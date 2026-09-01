@@ -5,7 +5,7 @@ const SimulationLodScript = preload("res://src/sim/simulation_lod.gd")
 const SimulationSchedulerScript = preload("res://src/sim/simulation_scheduler.gd")
 var scheduler := SimulationSchedulerScript.new()
 
-func tick(world: WorldState, streams: SeedStreams) -> void:
+func tick(world, streams) -> void:
     var region: Dictionary = world.regions["salt_road_vale"]
     scheduler.ensure(region, world.day, SimulationLodScript.REGIONAL)
     if not scheduler.is_due(region, world.day):
@@ -16,7 +16,7 @@ func tick(world: WorldState, streams: SeedStreams) -> void:
         _simulate_ecology_day(world)
     scheduler.mark_simulated(region, world.day)
 
-func set_lod(world: WorldState, region_id: String, lod: String) -> bool:
+func set_lod(world, region_id: String, lod: String) -> bool:
     if not world.regions.has(region_id):
         return false
     var region: Dictionary = world.regions[region_id]
@@ -28,7 +28,7 @@ func set_lod(world: WorldState, region_id: String, lod: String) -> bool:
     }
     return scheduler.set_lod(world, "region", region_id, region, lod, preserved)
 
-func _simulate_ecology_day(world: WorldState) -> void:
+func _simulate_ecology_day(world) -> void:
     var ecology: Dictionary = world.regions["salt_road_vale"]["ecology"]
     var predator: Dictionary = world.species["ash_hyena"]
     var prey := float(ecology["prey_level"])
@@ -40,7 +40,7 @@ func _simulate_ecology_day(world: WorldState) -> void:
     var food_pressure := 1.0 - float(ecology["prey_level"]) / maxf(carrying, 1.0)
     predator["hunger"] = clampf(float(predator["hunger"]) + 0.025 + food_pressure * 0.05, 0.0, 1.0)
 
-func predator_attack_utility(world: WorldState, caravan: Dictionary) -> Dictionary:
+func predator_attack_utility(world, caravan: Dictionary) -> Dictionary:
     var predator: Dictionary = world.species["ash_hyena"]
     var route: Dictionary = world.routes[caravan["route_id"]]
     var hunger := float(predator["hunger"])
@@ -49,7 +49,7 @@ func predator_attack_utility(world: WorldState, caravan: Dictionary) -> Dictiona
     var total := hunger * 0.52 + overlap * 0.30 + weakness * 0.18
     return {"hunger": hunger * 0.52, "territory_overlap": overlap * 0.30, "target_weakness": weakness * 0.18, "total": total}
 
-func resolve_predator_attack(world: WorldState, caravan: Dictionary, streams: SeedStreams) -> Dictionary:
+func resolve_predator_attack(world, caravan: Dictionary, streams) -> Dictionary:
     var predator: Dictionary = world.species["ash_hyena"]
     var rng := streams.get_rng("ecology_combat")
     var pack_power := float(predator["pack_size"]) * (0.75 + float(predator["hunger"]) * 0.35)
