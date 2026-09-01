@@ -13,7 +13,9 @@ func _initialize() -> void:
     _test_causal_trade_and_threat_loop()
     _test_save_reload_roundtrip()
     _test_individual_knowledge_precedes_remote_faction_knowledge()
+    _test_knowledge_provenance_chain()
     _test_lod_transition_preserves_entity_state()
+    _test_regional_ecology_matches_detailed_at_sync_boundary()
     _finish()
 
 func _simulate(seed_value: int, days: int = 120) -> WorldState:
@@ -77,13 +79,39 @@ func _test_individual_knowledge_precedes_remote_faction_knowledge() -> void:
     if attack.is_empty():
         return
     var witness := WorldInspectorScript.first_knowledge_delivery_for(world, "road_scout", int(attack["id"]))
+    var wardens := WorldInspectorScript.first_knowledge_delivery_for(world, "road_wardens", int(attack["id"]))
     var asha := WorldInspectorScript.first_knowledge_delivery_for(world, "asha_council", int(attack["id"]))
     _expect(not witness.is_empty(), "direct witness must acquire knowledge")
+    _expect(not wardens.is_empty(), "road wardens must eventually receive the scout report")
     _expect(not asha.is_empty(), "remote faction must eventually acquire knowledge")
     if not witness.is_empty():
         _expect(int(witness["day"]) == int(attack["day"]), "direct witness knowledge should be immediate")
-    if not witness.is_empty() and not asha.is_empty():
-        _expect(int(witness["day"]) < int(asha["day"]), "witness must know before remote Asha council")
+    if not witness.is_empty() and not wardens.is_empty():
+        _expect(int(witness["day"]) < int(wardens["day"]), "witness must know before road wardens")
+    if not wardens.is_empty() and not asha.is_empty():
+        _expect(int(wardens["day"]) < int(asha["day"]), "road wardens must know before Asha council")
+
+func _test_knowledge_provenance_chain() -> void:
+    var world := _simulate(190512, 50)
+    var attack := WorldInspectorScript.first_event(world, "bandit_attack")
+    _expect(not attack.is_empty(), "provenance test requires a bandit attack")
+    if attack.is_empty():
+        return
+    var event_id := int(attack["id"])
+    var witness_packet := WorldInspectorScript.knowledge_packet_for(world, "agent", "road_scout", event_id)
+    var warden_packet := WorldInspectorScript.knowledge_packet_for(world, "faction", "road_wardens", event_id)
+    var asha_packet := WorldInspectorScript.knowledge_packet_for(world, "faction", "asha_council", event_id)
+    _expect(not witness_packet.is_empty(), "direct witness packet must exist")
+    _expect(not warden_packet.is_empty(), "warden relay packet must exist")
+    _expect(not asha_packet.is_empty(), "Asha relay packet must exist")
+    if witness_packet.is_empty() or warden_packet.is_empty() or asha_packet.is_empty():
+        return
+    _expect(int(witness_packet.get("hops", -1)) == 0, "direct witness must be zero hops from world event")
+    _expect(int(warden_packet.get("hops", -1)) == 1, "warden knowledge must be one relay hop from witness")
+    _expect(int(asha_packet.get("hops", -1)) == 2, "Asha knowledge must be two relay hops from witness")
+    _expect(float(witness_packet["confidence"]) > float(warden_packet["confidence"]), "relay should decay confidence from witness to wardens")
+    _expect(float(warden_packet["confidence"]) > float(asha_packet["confidence"]), "relay should decay confidence from wardens to Asha")
+    _expect((asha_packet["provenance"] as Array).size() == 3, "Asha packet must preserve full event -> scout -> wardens provenance chain")
 
 func _test_lod_transition_preserves_entity_state() -> void:
     var world := WorldFactoryScript.create_kernel_0a(190512)
@@ -118,6 +146,22 @@ func _test_lod_transition_preserves_entity_state() -> void:
     _expect(before["cargo_salt"] == after["cargo_salt"], "LOD transition must not reset cargo")
     _expect(before["guard_strength"] == after["guard_strength"], "LOD transition must not heal or alter guards")
     _expect(WorldInspectorScript.event_count(world, "simulation_lod_changed") > 0, "LOD transition must be auditable")
+
+func _test_regional_ecology_matches_detailed_at_sync_boundary() -> void:
+    var detailed_world := WorldFactoryScript.create_kernel_0a(77191)
+    var regional_world := WorldFactoryScript.create_kernel_0a(77191)
+    detailed_world.settlements["asha"]["salt_stock"] = 1000.0
+    regional_world.settlements["asha"]["salt_stock"] = 1000.0
+    var detailed_sim := WorldSimulatorScript.new(detailed_world)
+    var regional_sim := WorldSimulatorScript.new(regional_world)
+    _expect(detailed_sim.set_region_lod("salt_road_vale", SimulationLodScript.DETAILED), "region must accept detailed LOD")
+    _expect(regional_sim.set_region_lod("salt_road_vale", SimulationLodScript.REGIONAL), "region must accept regional LOD")
+    detailed_sim.run_days(31)
+    regional_sim.run_days(31)
+    var detailed_ecology: Dictionary = detailed_world.regions["salt_road_vale"]["ecology"]
+    var regional_ecology: Dictionary = regional_world.regions["salt_road_vale"]["ecology"]
+    _expect(is_equal_approx(float(detailed_ecology["prey_level"]), float(regional_ecology["prey_level"])), "regional ecology batching must equal detailed ecology at synchronization boundary")
+    _expect(is_equal_approx(float(detailed_world.species["ash_hyena"]["hunger"]), float(regional_world.species["ash_hyena"]["hunger"])), "regional predator hunger must equal detailed simulation at synchronization boundary")
 
 func _expect(condition: bool, message: String) -> void:
     if not condition:
