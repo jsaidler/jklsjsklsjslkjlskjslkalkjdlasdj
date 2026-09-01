@@ -4,12 +4,12 @@ extends RefCounted
 const KnowledgeSystemScript = preload("res://src/sim/systems/knowledge_system.gd")
 var knowledge := KnowledgeSystemScript.new()
 
-func tick(world: WorldState) -> void:
+func tick(world) -> void:
     _consume_bandit_resources(world)
     _process_new_knowledge(world, "asha_council")
     _process_new_knowledge(world, "road_wardens")
 
-func bandit_attack_scores(world: WorldState, caravan: Dictionary) -> Dictionary:
+func bandit_attack_scores(world, caravan: Dictionary) -> Dictionary:
     var bandits: Dictionary = world.factions["red_knives"]
     var need := float(bandits["salt_need"])
     var aggression := float(bandits["aggression"])
@@ -21,7 +21,7 @@ func bandit_attack_scores(world: WorldState, caravan: Dictionary) -> Dictionary:
     var total := need * 0.30 + aggression * 0.22 + intel * 0.12 + morale * 0.12 + cargo_value * 0.24 - guard_deterrence * 0.25 - recent_loss_fear * 0.22
     return {"salt_need": need * 0.30, "aggression": aggression * 0.22, "route_intel": intel * 0.12, "morale": morale * 0.12, "cargo_value": cargo_value * 0.24, "guard_deterrence": -guard_deterrence * 0.25, "recent_loss_fear": -recent_loss_fear * 0.22, "total": total}
 
-func resolve_bandit_attack(world: WorldState, caravan: Dictionary, streams: SeedStreams) -> Dictionary:
+func resolve_bandit_attack(world, caravan: Dictionary, streams) -> Dictionary:
     var bandits: Dictionary = world.factions["red_knives"]
     var rng := streams.get_rng("faction_combat")
     var bandit_power := float(bandits["raider_strength"]) * (0.75 + float(bandits["morale"]) * 0.5)
@@ -43,14 +43,14 @@ func resolve_bandit_attack(world: WorldState, caravan: Dictionary, streams: Seed
         caravan["guard_strength"] = maxf(1.0, float(caravan["guard_strength"]) - 0.75)
     return {"bandits_win": bandits_win, "power_ratio": ratio, "roll": roll}
 
-func _consume_bandit_resources(world: WorldState) -> void:
+func _consume_bandit_resources(world) -> void:
     var bandits: Dictionary = world.factions["red_knives"]
     bandits["salt_stock"] = maxf(0.0, float(bandits["salt_stock"]) - float(bandits["daily_salt_use"]))
     var target := maxf(float(bandits["salt_target"]), 1.0)
     bandits["salt_need"] = clampf(1.0 - float(bandits["salt_stock"]) / target, 0.0, 1.0)
     bandits["recent_loss_fear"] = maxf(0.0, float(bandits["recent_loss_fear"]) - 0.01)
 
-func _process_new_knowledge(world: WorldState, faction_id: String) -> void:
+func _process_new_knowledge(world, faction_id: String) -> void:
     var faction: Dictionary = world.factions[faction_id]
     var packets: Array = world.faction_knowledge[faction_id]
     var cursor := int(faction.get("knowledge_cursor", 0))
