@@ -28,7 +28,7 @@ func mark_simulated(entity: Dictionary, world_day: int, max_interval_days: int =
         interval = mini(interval, max_interval_days)
     entity["next_simulation_day"] = world_day + maxi(interval, 1)
 
-func set_lod(world: WorldState, entity_type: String, entity_id: String, entity: Dictionary, lod: String, preserved_state: Dictionary = {}) -> bool:
+func set_lod(world, entity_type: String, entity_id: String, entity: Dictionary, lod: String, preserved_state: Dictionary = {}) -> bool:
     if not SimulationLodScript.is_valid(lod):
         return false
     ensure(entity, world.day)
