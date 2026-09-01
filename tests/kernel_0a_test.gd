@@ -18,24 +18,24 @@ func _initialize() -> void:
     _test_regional_ecology_matches_detailed_at_sync_boundary()
     _finish()
 
-func _simulate(seed_value: int, days: int = 120) -> WorldState:
-    var world := WorldFactoryScript.create_kernel_0a(seed_value)
-    var sim := WorldSimulatorScript.new(world)
+func _simulate(seed_value: int, days: int = 120):
+    var world = WorldFactoryScript.create_kernel_0a(seed_value)
+    var sim = WorldSimulatorScript.new(world)
     sim.run_days(days)
     return world
 
 func _test_determinism() -> void:
-    var first := _simulate(190512)
-    var second := _simulate(190512)
+    var first = _simulate(190512)
+    var second = _simulate(190512)
     _expect(WorldInspectorScript.signature(first) == WorldInspectorScript.signature(second), "same seed must reproduce identical world history")
 
 func _test_seed_divergence() -> void:
-    var first := _simulate(190512)
-    var second := _simulate(190513)
+    var first = _simulate(190512)
+    var second = _simulate(190513)
     _expect(WorldInspectorScript.signature(first) != WorldInspectorScript.signature(second), "different seeds must produce different histories")
 
 func _test_causal_trade_and_threat_loop() -> void:
-    var world := _simulate(190512)
+    var world = _simulate(190512)
     _expect(WorldInspectorScript.event_count(world, "trade_requested") > 0, "salt shortage must cause trade requests")
     _expect(WorldInspectorScript.event_count(world, "caravan_departed") > 0, "trade requests must cause caravans")
     _expect(WorldInspectorScript.event_count(world, "bandit_attack") > 0, "resource need + opportunity must eventually cause a bandit attack")
@@ -53,27 +53,27 @@ func _test_causal_trade_and_threat_loop() -> void:
     _expect(float(world.factions["road_wardens"]["escort_bonus"]) > 0.0, "road wardens must adapt after learning about attacks")
 
 func _test_save_reload_roundtrip() -> void:
-    var continuous := _simulate(190512, 120)
-    var split := WorldFactoryScript.create_kernel_0a(190512)
-    var first_half := WorldSimulatorScript.new(split)
+    var continuous = _simulate(190512, 120)
+    var split = WorldFactoryScript.create_kernel_0a(190512)
+    var first_half = WorldSimulatorScript.new(split)
     first_half.run_days(60)
     var path := "user://kernel_0a_roundtrip.save"
     var save_error := WorldSerializerScript.save_world(path, split)
     _expect(save_error == OK, "world save must succeed")
     if save_error != OK:
         return
-    var loaded := WorldSerializerScript.load_world(path)
+    var loaded = WorldSerializerScript.load_world(path)
     _expect(loaded != null, "saved world must reload")
     if loaded == null:
         return
-    var second_half := WorldSimulatorScript.new(loaded)
+    var second_half = WorldSimulatorScript.new(loaded)
     second_half.run_days(60)
     _expect(WorldInspectorScript.signature(continuous) == WorldInspectorScript.signature(loaded), "60 days + save/reload + 60 days must equal 120 continuous days")
     if FileAccess.file_exists(path):
         DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 func _test_individual_knowledge_precedes_remote_faction_knowledge() -> void:
-    var world := _simulate(190512, 40)
+    var world = _simulate(190512, 40)
     var attack := WorldInspectorScript.first_event(world, "bandit_attack")
     _expect(not attack.is_empty(), "knowledge test requires a bandit attack")
     if attack.is_empty():
@@ -92,7 +92,7 @@ func _test_individual_knowledge_precedes_remote_faction_knowledge() -> void:
         _expect(int(wardens["day"]) < int(asha["day"]), "road wardens must know before Asha council")
 
 func _test_knowledge_provenance_chain() -> void:
-    var world := _simulate(190512, 50)
+    var world = _simulate(190512, 50)
     var attack := WorldInspectorScript.first_event(world, "bandit_attack")
     _expect(not attack.is_empty(), "provenance test requires a bandit attack")
     if attack.is_empty():
@@ -114,8 +114,8 @@ func _test_knowledge_provenance_chain() -> void:
     _expect((asha_packet["provenance"] as Array).size() == 3, "Asha packet must preserve full event -> scout -> wardens provenance chain")
 
 func _test_lod_transition_preserves_entity_state() -> void:
-    var world := WorldFactoryScript.create_kernel_0a(190512)
-    var sim := WorldSimulatorScript.new(world)
+    var world = WorldFactoryScript.create_kernel_0a(190512)
+    var sim = WorldSimulatorScript.new(world)
     var caravan_id := ""
     for _day in range(20):
         sim.step_day()
@@ -148,12 +148,12 @@ func _test_lod_transition_preserves_entity_state() -> void:
     _expect(WorldInspectorScript.event_count(world, "simulation_lod_changed") > 0, "LOD transition must be auditable")
 
 func _test_regional_ecology_matches_detailed_at_sync_boundary() -> void:
-    var detailed_world := WorldFactoryScript.create_kernel_0a(77191)
-    var regional_world := WorldFactoryScript.create_kernel_0a(77191)
+    var detailed_world = WorldFactoryScript.create_kernel_0a(77191)
+    var regional_world = WorldFactoryScript.create_kernel_0a(77191)
     detailed_world.settlements["asha"]["salt_stock"] = 1000.0
     regional_world.settlements["asha"]["salt_stock"] = 1000.0
-    var detailed_sim := WorldSimulatorScript.new(detailed_world)
-    var regional_sim := WorldSimulatorScript.new(regional_world)
+    var detailed_sim = WorldSimulatorScript.new(detailed_world)
+    var regional_sim = WorldSimulatorScript.new(regional_world)
     _expect(detailed_sim.set_region_lod("salt_road_vale", SimulationLodScript.DETAILED), "region must accept detailed LOD")
     _expect(regional_sim.set_region_lod("salt_road_vale", SimulationLodScript.REGIONAL), "region must accept regional LOD")
     detailed_sim.run_days(31)
