@@ -36,3 +36,6 @@ func run_days(days: int) -> void:
 
 func set_caravan_lod(caravan_id: String, lod: String) -> bool:
     return caravans.set_lod(world, caravan_id, lod)
+
+func set_region_lod(region_id: String, lod: String) -> bool:
+    return ecology.set_lod(world, region_id, lod)
