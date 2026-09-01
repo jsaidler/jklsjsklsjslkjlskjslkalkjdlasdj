@@ -1,9 +1,12 @@
 class_name WorldFactory
 extends RefCounted
 
-static func create_kernel_0a(seed_value: int) -> WorldState:
-    var world := WorldState.new(seed_value)
-    var streams := SeedStreams.new(seed_value)
+const WorldStateScript = preload("res://src/sim/world_state.gd")
+const SeedStreamsScript = preload("res://src/sim/seed_streams.gd")
+
+static func create_kernel_0a(seed_value: int):
+    var world = WorldStateScript.new(seed_value)
+    var streams = SeedStreamsScript.new(seed_value)
     var rng := streams.get_rng("world_generation")
     world.cultures = {"asha_riverfolk": {"trade_value": 0.82, "hospitality": 0.68, "slavery_acceptance": 0.18, "combat_doctrine": "shielded_escort"}, "red_waste_clans": {"trade_value": 0.31, "hospitality": 0.22, "slavery_acceptance": 0.74, "combat_doctrine": "ambush_and_withdrawal"}}
     world.regions = {"salt_road_vale": {"biome": "semi_arid_vale", "ecology": {"prey_level": rng.randf_range(22.0, 34.0), "prey_carrying_capacity": 40.0}}}
