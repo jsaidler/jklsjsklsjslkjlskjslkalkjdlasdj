@@ -7,7 +7,7 @@ func ensure(entity: Dictionary, world_day: int, default_lod: String = Simulation
     if not entity.has("simulation_lod"):
         entity["simulation_lod"] = default_lod
     if not entity.has("last_simulation_day"):
-        entity["last_simulation_day"] = world_day - 1
+        entity["last_simulation_day"] = world_day
     if not entity.has("next_simulation_day"):
         entity["next_simulation_day"] = world_day
 
