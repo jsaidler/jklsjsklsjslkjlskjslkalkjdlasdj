@@ -1,20 +1,20 @@
 class_name WorldInspector
 extends RefCounted
 
-static func event_count(world: WorldState, event_type: String) -> int:
+static func event_count(world, event_type: String) -> int:
     var count := 0
     for event in world.events:
         if event["type"] == event_type:
             count += 1
     return count
 
-static func first_event(world: WorldState, event_type: String) -> Dictionary:
+static func first_event(world, event_type: String) -> Dictionary:
     for event in world.events:
         if event["type"] == event_type:
             return event
     return {}
 
-static func first_knowledge_delivery_for(world: WorldState, target_id: String, source_event_id: int) -> Dictionary:
+static func first_knowledge_delivery_for(world, target_id: String, source_event_id: int) -> Dictionary:
     for event in world.events:
         if event["type"] != "knowledge_delivered":
             continue
@@ -23,7 +23,7 @@ static func first_knowledge_delivery_for(world: WorldState, target_id: String, s
             return event
     return {}
 
-static func knowledge_packet_for(world: WorldState, scope: String, target_id: String, source_event_id: int) -> Dictionary:
+static func knowledge_packet_for(world, scope: String, target_id: String, source_event_id: int) -> Dictionary:
     var packets: Array = []
     if scope == "agent":
         packets = world.agent_knowledge.get(target_id, [])
@@ -34,7 +34,7 @@ static func knowledge_packet_for(world: WorldState, scope: String, target_id: St
             return packet
     return {}
 
-static func last_decision(world: WorldState, subject_id: String, decision_type: String) -> Dictionary:
+static func last_decision(world, subject_id: String, decision_type: String) -> Dictionary:
     for index in range(world.decision_log.size() - 1, -1, -1):
         var decision: Dictionary = world.decision_log[index]
         if decision["subject_id"] == subject_id and decision["decision_type"] == decision_type:
@@ -52,7 +52,7 @@ static func explain_decision(decision: Dictionary) -> String:
         score_parts.append("%s=%0.3f" % [String(key), float(scores[key])])
     return "day=%d subject=%s decision=%s action=%s | %s" % [int(decision["day"]), String(decision["subject_id"]), String(decision["decision_type"]), String(decision["chosen_action"]), ", ".join(score_parts)]
 
-static func signature(world: WorldState) -> String:
+static func signature(world) -> String:
     var parts: Array[String] = []
     parts.append("seed=%d" % world.seed)
     parts.append("day=%d" % world.day)
@@ -68,7 +68,7 @@ static func signature(world: WorldState) -> String:
     parts.append("events=" + ";".join(sequence))
     return "\n".join(parts)
 
-static func timeline(world: WorldState, limit: int = 80) -> String:
+static func timeline(world, limit: int = 80) -> String:
     var lines: Array[String] = []
     var start := maxi(0, world.events.size() - limit)
     for index in range(start, world.events.size()):
