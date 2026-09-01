@@ -3,7 +3,6 @@ name: Living World Kernel Tests
 on:
   push:
     branches:
-      - main
       - 'feat/**'
   pull_request:
 
