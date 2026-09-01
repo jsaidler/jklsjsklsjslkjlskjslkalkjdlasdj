@@ -18,7 +18,8 @@ var caravans := CaravanSystemScript.new()
 func _init(world_state: WorldState) -> void:
     world = world_state
     streams = SeedStreams.new(world.seed)
-    if not world.rng_states.is_empty(): streams.import_states(world.rng_states)
+    if not world.rng_states.is_empty():
+        streams.import_states(world.rng_states)
 
 func step_day() -> void:
     world.day += 1
@@ -30,4 +31,8 @@ func step_day() -> void:
     world.rng_states = streams.export_states()
 
 func run_days(days: int) -> void:
-    for _i in range(max(days, 0)): step_day()
+    for _i in range(max(days, 0)):
+        step_day()
+
+func set_caravan_lod(caravan_id: String, lod: String) -> bool:
+    return caravans.set_lod(world, caravan_id, lod)
