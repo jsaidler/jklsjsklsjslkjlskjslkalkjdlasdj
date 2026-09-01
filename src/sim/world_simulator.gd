@@ -1,23 +1,24 @@
 class_name WorldSimulator
 extends RefCounted
 
+const SeedStreamsScript = preload("res://src/sim/seed_streams.gd")
 const KnowledgeSystemScript = preload("res://src/sim/systems/knowledge_system.gd")
 const EcologySystemScript = preload("res://src/sim/systems/ecology_system.gd")
 const EconomySystemScript = preload("res://src/sim/systems/economy_system.gd")
 const FactionSystemScript = preload("res://src/sim/systems/faction_system.gd")
 const CaravanSystemScript = preload("res://src/sim/systems/caravan_system.gd")
 
-var world: WorldState
-var streams: SeedStreams
+var world
+var streams
 var knowledge := KnowledgeSystemScript.new()
 var ecology := EcologySystemScript.new()
 var economy := EconomySystemScript.new()
 var factions := FactionSystemScript.new()
 var caravans := CaravanSystemScript.new()
 
-func _init(world_state: WorldState) -> void:
+func _init(world_state) -> void:
     world = world_state
-    streams = SeedStreams.new(world.seed)
+    streams = SeedStreamsScript.new(world.seed)
     if not world.rng_states.is_empty():
         streams.import_states(world.rng_states)
 
