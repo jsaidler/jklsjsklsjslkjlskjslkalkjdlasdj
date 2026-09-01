@@ -11,29 +11,68 @@ func tick(world: WorldState) -> void:
     world.scheduled_knowledge = remaining
 
 func schedule_for_faction(world: WorldState, event: Dictionary, faction_id: String, delay_days: int, confidence: float, channel: String) -> void:
-    _schedule(world, event, "faction", faction_id, delay_days, confidence, channel)
+    _schedule(world, _packet_from_event(world, event, "faction", faction_id, delay_days, confidence, channel))
 
 func schedule_for_agent(world: WorldState, event: Dictionary, agent_id: String, delay_days: int, confidence: float, channel: String) -> void:
-    _schedule(world, event, "agent", agent_id, delay_days, confidence, channel)
+    _schedule(world, _packet_from_event(world, event, "agent", agent_id, delay_days, confidence, channel))
 
-func grant_faction_immediate(world: WorldState, event: Dictionary, faction_id: String, confidence: float = 1.0, channel: String = "direct") -> void:
-    _deliver(world, _packet(world, event, "faction", faction_id, 0, confidence, channel))
+func grant_faction_immediate(world: WorldState, event: Dictionary, faction_id: String, confidence: float = 1.0, channel: String = "direct") -> Dictionary:
+    var packet := _packet_from_event(world, event, "faction", faction_id, 0, confidence, channel)
+    _deliver(world, packet)
+    return packet
 
-func grant_agent_immediate(world: WorldState, event: Dictionary, agent_id: String, confidence: float = 1.0, channel: String = "direct") -> void:
-    _deliver(world, _packet(world, event, "agent", agent_id, 0, confidence, channel))
+func grant_agent_immediate(world: WorldState, event: Dictionary, agent_id: String, confidence: float = 1.0, channel: String = "direct") -> Dictionary:
+    var packet := _packet_from_event(world, event, "agent", agent_id, 0, confidence, channel)
+    _deliver(world, packet)
+    return packet
 
-func _schedule(world: WorldState, event: Dictionary, scope: String, target_id: String, delay_days: int, confidence: float, channel: String) -> void:
-    world.scheduled_knowledge.append(_packet(world, event, scope, target_id, delay_days, confidence, channel))
+func relay_from_agent(world: WorldState, source_agent_id: String, source_packet: Dictionary, target_faction_id: String, delay_days: int, confidence_multiplier: float, channel: String) -> Dictionary:
+    return _relay(world, source_packet, "agent", source_agent_id, "faction", target_faction_id, delay_days, confidence_multiplier, channel)
 
-func _packet(world: WorldState, event: Dictionary, scope: String, target_id: String, delay_days: int, confidence: float, channel: String) -> Dictionary:
+func relay_from_faction(world: WorldState, source_faction_id: String, source_packet: Dictionary, target_faction_id: String, delay_days: int, confidence_multiplier: float, channel: String) -> Dictionary:
+    return _relay(world, source_packet, "faction", source_faction_id, "faction", target_faction_id, delay_days, confidence_multiplier, channel)
+
+func _relay(world: WorldState, source_packet: Dictionary, source_scope: String, source_id: String, target_scope: String, target_id: String, delay_days: int, confidence_multiplier: float, channel: String) -> Dictionary:
+    var provenance: Array = (source_packet.get("provenance", []) as Array).duplicate(true)
+    provenance.append({
+        "scope": source_scope,
+        "id": source_id,
+        "channel": channel,
+        "relay_day": world.day,
+    })
+    var packet := {
+        "delivery_day": world.day + max(delay_days, 0),
+        "scope": target_scope,
+        "target_id": target_id,
+        "event_id": int(source_packet["event_id"]),
+        "event_type": String(source_packet["event_type"]),
+        "confidence": clampf(float(source_packet["confidence"]) * confidence_multiplier, 0.0, 1.0),
+        "channel": channel,
+        "hops": int(source_packet.get("hops", 0)) + 1,
+        "provenance": provenance,
+    }
+    _schedule(world, packet)
+    return packet
+
+func _schedule(world: WorldState, packet: Dictionary) -> void:
+    world.scheduled_knowledge.append(packet.duplicate(true))
+
+func _packet_from_event(world: WorldState, event: Dictionary, scope: String, target_id: String, delay_days: int, confidence: float, channel: String) -> Dictionary:
     return {
         "delivery_day": world.day + max(delay_days, 0),
         "scope": scope,
         "target_id": target_id,
-        "event_id": event["id"],
-        "event_type": event["type"],
+        "event_id": int(event["id"]),
+        "event_type": String(event["type"]),
         "confidence": clampf(confidence, 0.0, 1.0),
         "channel": channel,
+        "hops": 0,
+        "provenance": [{
+            "scope": "world_event",
+            "id": str(event["id"]),
+            "channel": channel,
+            "relay_day": world.day,
+        }],
     }
 
 func _deliver(world: WorldState, packet: Dictionary) -> void:
@@ -58,4 +97,6 @@ func _deliver(world: WorldState, packet: Dictionary) -> void:
         "source_event_type": packet["event_type"],
         "channel": packet["channel"],
         "confidence": packet["confidence"],
+        "hops": packet.get("hops", 0),
+        "provenance": (packet.get("provenance", []) as Array).duplicate(true),
     })
