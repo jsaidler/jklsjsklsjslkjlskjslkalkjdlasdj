@@ -3,7 +3,9 @@ extends RefCounted
 
 const KnowledgeSystemScript = preload("res://src/sim/systems/knowledge_system.gd")
 const SimulationLodScript = preload("res://src/sim/simulation_lod.gd")
+const SimulationSchedulerScript = preload("res://src/sim/simulation_scheduler.gd")
 var knowledge := KnowledgeSystemScript.new()
+var scheduler := SimulationSchedulerScript.new()
 
 func tick(world: WorldState, streams: SeedStreams, ecology, factions) -> void:
     _spawn_from_requests(world, streams)
@@ -11,52 +13,40 @@ func tick(world: WorldState, streams: SeedStreams, ecology, factions) -> void:
         var caravan: Dictionary = world.caravans[caravan_id]
         if caravan["status"] != "travelling":
             continue
-        if world.day < int(caravan.get("next_simulation_day", world.day)):
+        scheduler.ensure(caravan, world.day, SimulationLodScript.REGIONAL)
+        if not scheduler.is_due(caravan, world.day):
             continue
 
-        var last_day := int(caravan.get("last_simulation_day", world.day - 1))
-        var elapsed_days := maxi(1, world.day - last_day)
+        var elapsed_days := scheduler.elapsed_days(caravan, world.day)
 
         _consider_predators(world, caravan, streams, ecology)
         if caravan["status"] != "travelling":
+            scheduler.mark_simulated(caravan, world.day)
             continue
         _consider_bandits(world, caravan, streams, factions)
         if caravan["status"] != "travelling":
+            scheduler.mark_simulated(caravan, world.day)
             continue
 
         caravan["days_remaining"] = int(caravan["days_remaining"]) - elapsed_days
-        caravan["last_simulation_day"] = world.day
         if int(caravan["days_remaining"]) <= 0:
             _arrive(world, caravan)
+            scheduler.mark_simulated(caravan, world.day)
             continue
 
-        var lod := String(caravan.get("simulation_lod", SimulationLodScript.REGIONAL))
-        var interval := SimulationLodScript.interval_days(lod)
-        caravan["next_simulation_day"] = world.day + mini(interval, int(caravan["days_remaining"]))
+        scheduler.mark_simulated(caravan, world.day, int(caravan["days_remaining"]))
 
 func set_lod(world: WorldState, caravan_id: String, lod: String) -> bool:
-    if not world.caravans.has(caravan_id) or not SimulationLodScript.is_valid(lod):
+    if not world.caravans.has(caravan_id):
         return false
     var caravan: Dictionary = world.caravans[caravan_id]
-    var previous := String(caravan.get("simulation_lod", SimulationLodScript.REGIONAL))
-    if previous == lod:
-        return true
     var preserved := {
         "status": caravan["status"],
         "days_remaining": caravan["days_remaining"],
         "cargo_salt": caravan["cargo_salt"],
         "guard_strength": caravan["guard_strength"],
     }
-    caravan["simulation_lod"] = lod
-    caravan["next_simulation_day"] = world.day
-    world.record_event("simulation_lod_changed", {
-        "entity_type": "caravan",
-        "entity_id": caravan_id,
-        "from": previous,
-        "to": lod,
-        "preserved_state": preserved,
-    })
-    return true
+    return scheduler.set_lod(world, "caravan", caravan_id, caravan, lod, preserved)
 
 func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
     var rng := streams.get_rng("caravan_generation")
@@ -67,7 +57,7 @@ func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
         var caravan_id := world.next_caravan_id()
         var cargo := minf(24.0, maxf(12.0, float(request["amount"])))
         var guard_strength := 4.6 + float(wardens["escort_bonus"]) + rng.randf_range(-0.35, 0.35)
-        world.caravans[caravan_id] = {
+        var caravan := {
             "id": caravan_id,
             "request_id": request["id"],
             "origin": "white_salt_quarry",
@@ -78,10 +68,9 @@ func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
             "cargo_salt": cargo,
             "guard_strength": guard_strength,
             "escort_quality": 0.55 + float(wardens["escort_bonus"]) * 0.04,
-            "simulation_lod": SimulationLodScript.REGIONAL,
-            "last_simulation_day": world.day - 1,
-            "next_simulation_day": world.day,
         }
+        scheduler.ensure(caravan, world.day, SimulationLodScript.REGIONAL)
+        world.caravans[caravan_id] = caravan
         request["status"] = "dispatched"
         var event := world.record_event("caravan_departed", {
             "caravan_id": caravan_id,
@@ -96,7 +85,7 @@ func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
 func _consider_predators(world: WorldState, caravan: Dictionary, streams: SeedStreams, ecology) -> void:
     var scores: Dictionary = ecology.predator_attack_utility(world, caravan)
     var action := "attack" if float(scores["total"]) >= 0.58 else "ignore"
-    world.log_decision("ash_hyena_pack", "predator_caravan_response", action, scores, {"caravan_id": caravan["id"]})
+    world.log_decision("ash_hyena_pack", "predator_caravan_response", action, scores, {"caravan_id": caravan["id"], "simulation_lod": caravan["simulation_lod"]})
     if action != "attack":
         return
     var result: Dictionary = ecology.resolve_predator_attack(world, caravan, streams)
@@ -106,7 +95,7 @@ func _consider_predators(world: WorldState, caravan: Dictionary, streams: SeedSt
 func _consider_bandits(world: WorldState, caravan: Dictionary, streams: SeedStreams, factions) -> void:
     var scores: Dictionary = factions.bandit_attack_scores(world, caravan)
     var action := "attack" if float(scores["total"]) >= 0.43 else "shadow"
-    world.log_decision("red_knives", "bandit_caravan_response", action, scores, {"caravan_id": caravan["id"]})
+    world.log_decision("red_knives", "bandit_caravan_response", action, scores, {"caravan_id": caravan["id"], "simulation_lod": caravan["simulation_lod"]})
     if action != "attack":
         return
     var result: Dictionary = factions.resolve_bandit_attack(world, caravan, streams)
@@ -119,10 +108,9 @@ func _consider_bandits(world: WorldState, caravan: Dictionary, streams: SeedStre
         "witness_agent_ids": ["road_scout"],
     }, ["survivor_testimony", "tracks", "spent_arrows"])
 
-    knowledge.grant_agent_immediate(world, event, "road_scout", 1.0, "direct_witness")
+    var witness_packet := knowledge.grant_agent_immediate(world, event, "road_scout", 1.0, "direct_witness")
+    knowledge.relay_from_agent(world, "road_scout", witness_packet, "road_wardens", 2, 0.95, "road_scout_report")
     knowledge.grant_faction_immediate(world, event, "red_knives", 1.0, "participants")
-    knowledge.schedule_for_faction(world, event, "road_wardens", 2, 0.95, "road_scout_report")
-    knowledge.schedule_for_faction(world, event, "asha_council", 3, 0.90, "warden_message")
     if bool(result["bandits_win"]):
         world.record_event("caravan_lost", {"caravan_id": caravan["id"], "cause": "red_knives"})
 
