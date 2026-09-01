@@ -1,10 +1,11 @@
 class_name WorldSerializer
 extends RefCounted
 
+const WorldStateScript = preload("res://src/sim/world_state.gd")
 const SCHEMA_VERSION := 1
 const GENERATOR_VERSION := "kernel_0a"
 
-static func to_snapshot(world: WorldState) -> Dictionary:
+static func to_snapshot(world) -> Dictionary:
     return {
         "schema_version": SCHEMA_VERSION,
         "generator_version": GENERATOR_VERSION,
@@ -30,7 +31,7 @@ static func to_snapshot(world: WorldState) -> Dictionary:
         },
     }
 
-static func from_snapshot(snapshot: Dictionary) -> WorldState:
+static func from_snapshot(snapshot: Dictionary):
     if int(snapshot.get("schema_version", -1)) != SCHEMA_VERSION:
         push_error("Unsupported world save schema version: %s" % str(snapshot.get("schema_version", "missing")))
         return null
@@ -39,7 +40,7 @@ static func from_snapshot(snapshot: Dictionary) -> WorldState:
         return null
 
     var data: Dictionary = snapshot["world"]
-    var world := WorldState.new(int(data["seed"]))
+    var world = WorldStateScript.new(int(data["seed"]))
     world.day = int(data["day"])
     world.cultures = (data["cultures"] as Dictionary).duplicate(true)
     world.factions = (data["factions"] as Dictionary).duplicate(true)
@@ -59,14 +60,14 @@ static func from_snapshot(snapshot: Dictionary) -> WorldState:
     world.import_counters(data.get("counters", {}))
     return world
 
-static func save_world(path: String, world: WorldState) -> Error:
+static func save_world(path: String, world) -> Error:
     var file := FileAccess.open(path, FileAccess.WRITE)
     if file == null:
         return FileAccess.get_open_error()
     file.store_var(to_snapshot(world), false)
     return OK
 
-static func load_world(path: String) -> WorldState:
+static func load_world(path: String):
     if not FileAccess.file_exists(path):
         return null
     var file := FileAccess.open(path, FileAccess.READ)
