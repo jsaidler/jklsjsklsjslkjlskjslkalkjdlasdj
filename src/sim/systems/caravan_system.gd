@@ -7,7 +7,7 @@ const SimulationSchedulerScript = preload("res://src/sim/simulation_scheduler.gd
 var knowledge := KnowledgeSystemScript.new()
 var scheduler := SimulationSchedulerScript.new()
 
-func tick(world: WorldState, streams: SeedStreams, ecology, factions) -> void:
+func tick(world, streams, ecology, factions) -> void:
     _spawn_from_requests(world, streams)
     for caravan_id in world.caravans.keys():
         var caravan: Dictionary = world.caravans[caravan_id]
@@ -36,7 +36,7 @@ func tick(world: WorldState, streams: SeedStreams, ecology, factions) -> void:
 
         scheduler.mark_simulated(caravan, world.day, int(caravan["days_remaining"]))
 
-func set_lod(world: WorldState, caravan_id: String, lod: String) -> bool:
+func set_lod(world, caravan_id: String, lod: String) -> bool:
     if not world.caravans.has(caravan_id):
         return false
     var caravan: Dictionary = world.caravans[caravan_id]
@@ -48,7 +48,7 @@ func set_lod(world: WorldState, caravan_id: String, lod: String) -> bool:
     }
     return scheduler.set_lod(world, "caravan", caravan_id, caravan, lod, preserved)
 
-func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
+func _spawn_from_requests(world, streams) -> void:
     var rng := streams.get_rng("caravan_generation")
     for request in world.trade_requests:
         if request["status"] != "open":
@@ -82,7 +82,7 @@ func _spawn_from_requests(world: WorldState, streams: SeedStreams) -> void:
         })
         knowledge.grant_faction_immediate(world, event, "salt_bearers", 1.0, "dispatch_record")
 
-func _consider_predators(world: WorldState, caravan: Dictionary, streams: SeedStreams, ecology) -> void:
+func _consider_predators(world, caravan: Dictionary, streams, ecology) -> void:
     var scores: Dictionary = ecology.predator_attack_utility(world, caravan)
     var action := "attack" if float(scores["total"]) >= 0.58 else "ignore"
     world.log_decision("ash_hyena_pack", "predator_caravan_response", action, scores, {"caravan_id": caravan["id"], "simulation_lod": caravan["simulation_lod"]})
@@ -92,7 +92,7 @@ func _consider_predators(world: WorldState, caravan: Dictionary, streams: SeedSt
     var event := world.record_event("predator_attack", {"caravan_id": caravan["id"], "species_id": "ash_hyena", "guard_loss": result["guard_loss"], "pressure": result["pressure"]}, ["tracks", "wounds"])
     knowledge.schedule_for_faction(world, event, "road_wardens", 1, 0.85, "caravan_report")
 
-func _consider_bandits(world: WorldState, caravan: Dictionary, streams: SeedStreams, factions) -> void:
+func _consider_bandits(world, caravan: Dictionary, streams, factions) -> void:
     var scores: Dictionary = factions.bandit_attack_scores(world, caravan)
     var action := "attack" if float(scores["total"]) >= 0.43 else "shadow"
     world.log_decision("red_knives", "bandit_caravan_response", action, scores, {"caravan_id": caravan["id"], "simulation_lod": caravan["simulation_lod"]})
@@ -114,7 +114,7 @@ func _consider_bandits(world: WorldState, caravan: Dictionary, streams: SeedStre
     if bool(result["bandits_win"]):
         world.record_event("caravan_lost", {"caravan_id": caravan["id"], "cause": "red_knives"})
 
-func _arrive(world: WorldState, caravan: Dictionary) -> void:
+func _arrive(world, caravan: Dictionary) -> void:
     caravan["status"] = "arrived"
     var settlement: Dictionary = world.settlements[caravan["destination"]]
     settlement["salt_stock"] = float(settlement["salt_stock"]) + float(caravan["cargo_salt"])
