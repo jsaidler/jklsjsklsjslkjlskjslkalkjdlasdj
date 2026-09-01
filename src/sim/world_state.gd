@@ -55,3 +55,15 @@ func has_open_trade_request(settlement_id: String) -> bool:
         if request["settlement_id"] == settlement_id and request["status"] == "open":
             return true
     return false
+
+func export_counters() -> Dictionary:
+    return {
+        "next_event_id": _next_event_id,
+        "next_caravan_id": _next_caravan_id,
+        "next_request_id": _next_request_id,
+    }
+
+func import_counters(counters: Dictionary) -> void:
+    _next_event_id = int(counters.get("next_event_id", 1))
+    _next_caravan_id = int(counters.get("next_caravan_id", 1))
+    _next_request_id = int(counters.get("next_request_id", 1))
