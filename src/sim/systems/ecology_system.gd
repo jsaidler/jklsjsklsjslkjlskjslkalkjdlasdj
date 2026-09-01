@@ -1,7 +1,34 @@
 class_name EcologySystem
 extends RefCounted
 
+const SimulationLodScript = preload("res://src/sim/simulation_lod.gd")
+const SimulationSchedulerScript = preload("res://src/sim/simulation_scheduler.gd")
+var scheduler := SimulationSchedulerScript.new()
+
 func tick(world: WorldState, streams: SeedStreams) -> void:
+    var region: Dictionary = world.regions["salt_road_vale"]
+    scheduler.ensure(region, world.day, SimulationLodScript.REGIONAL)
+    if not scheduler.is_due(region, world.day):
+        return
+
+    var elapsed := scheduler.elapsed_days(region, world.day)
+    for _i in range(elapsed):
+        _simulate_ecology_day(world)
+    scheduler.mark_simulated(region, world.day)
+
+func set_lod(world: WorldState, region_id: String, lod: String) -> bool:
+    if not world.regions.has(region_id):
+        return false
+    var region: Dictionary = world.regions[region_id]
+    var ecology: Dictionary = region["ecology"]
+    var preserved := {
+        "prey_level": ecology["prey_level"],
+        "prey_carrying_capacity": ecology["prey_carrying_capacity"],
+        "predator_hunger": world.species["ash_hyena"]["hunger"],
+    }
+    return scheduler.set_lod(world, "region", region_id, region, lod, preserved)
+
+func _simulate_ecology_day(world: WorldState) -> void:
     var ecology: Dictionary = world.regions["salt_road_vale"]["ecology"]
     var predator: Dictionary = world.species["ash_hyena"]
     var prey := float(ecology["prey_level"])
