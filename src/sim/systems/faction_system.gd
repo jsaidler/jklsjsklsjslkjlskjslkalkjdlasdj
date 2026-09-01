@@ -1,6 +1,9 @@
 class_name FactionSystem
 extends RefCounted
 
+const KnowledgeSystemScript = preload("res://src/sim/systems/knowledge_system.gd")
+var knowledge := KnowledgeSystemScript.new()
+
 func tick(world: WorldState) -> void:
     _consume_bandit_resources(world)
     _process_new_knowledge(world, "asha_council")
@@ -49,13 +52,14 @@ func _consume_bandit_resources(world: WorldState) -> void:
 
 func _process_new_knowledge(world: WorldState, faction_id: String) -> void:
     var faction: Dictionary = world.factions[faction_id]
-    var knowledge: Array = world.faction_knowledge[faction_id]
+    var packets: Array = world.faction_knowledge[faction_id]
     var cursor := int(faction.get("knowledge_cursor", 0))
-    while cursor < knowledge.size():
-        var packet: Dictionary = knowledge[cursor]
+    while cursor < packets.size():
+        var packet: Dictionary = packets[cursor]
         if packet["event_type"] == "bandit_attack" and faction_id in ["asha_council", "road_wardens"]:
             faction["known_route_danger"] = clampf(float(faction.get("known_route_danger", 0.0)) + 0.22 * float(packet["confidence"]), 0.0, 1.0)
             if faction_id == "road_wardens":
                 faction["escort_bonus"] = minf(4.0, float(faction["escort_bonus"]) + 0.6)
+                knowledge.relay_from_faction(world, "road_wardens", packet, "asha_council", 1, 0.95, "warden_message")
         cursor += 1
     faction["knowledge_cursor"] = cursor
