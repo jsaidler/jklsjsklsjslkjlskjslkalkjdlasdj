@@ -1,0 +1,13 @@
+# Local AI sprite-animation toolchain (large/reproducible files)
+tools/sprite-animation/.venv/
+tools/sprite-animation/vendor/
+tools/sprite-animation/build/
+tools/sprite-animation/bin/
+tools/sprite-animation/models/
+tools/sprite-animation/output/
+tools/sprite-animation/poses/walk/*.png
+tools/sprite-animation/poses/walk/poses.json
+
+# Python
+__pycache__/
+*.py[cod]
