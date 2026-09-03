@@ -1,6 +1,6 @@
 # Visual Direction — Living Document
 
-Status: **production constraints and baseline gameplay camera locked; final aesthetic pending visual spike**
+Status: **production constraints and baseline gameplay camera locked; final aesthetic still unproven**
 
 ## Core production constraint
 
@@ -29,33 +29,60 @@ Generated concept imagery may be used for exploration and reference, but it must
 - Photorealistic materials whose quality depends on large hand-authored texture sets.
 - A visual identity dependent on illustration quality that cannot be reproduced systematically in runtime assets.
 - Treating generated full-scene illustrations or character sheets as if they were automatically usable production assets.
+- Treating simple runtime primitives plus lighting/shaders as proof of production-quality art.
 
 ### Prefer
 
 - **Stylized rather than realistic rendering.** Stylization is a production strategy as well as an aesthetic choice: it must reduce authoring burden while preserving a strong, adult visual identity.
-- Systemic stylized 3D built from modular and parametric geometry.
 - Strong silhouettes and readable proportions.
-- Low-to-moderate geometric complexity.
+- Low-to-moderate geometric complexity when hidden by or compatible with the final rendering language.
 - Reusable skeleton families rather than one skeleton per creature.
 - Procedural body proportion changes within controlled anatomical rules.
 - Equipment assembled from modular parts and attachment points.
-- Vertex colors, palettes, compact texture atlases, procedural masks, and shader-driven material variation.
+- Palette-driven rendering, procedural masks, shader-driven material variation, controlled pixelation/dithering, compact reusable textures where needed, and simulation-driven visual state.
 - Animation built from reusable clips plus procedural posing, additive layers, IK, gait parameters, and behavioral state.
 - Environmental assets constructed from modular kits and procedural composition.
 - Lighting, atmosphere, weather, particles, material response, and world state as major sources of visual richness.
 - Visual systems in which code and simulation create richness that would otherwise require large quantities of manually authored art.
 
-## Working direction
+## Failed visual-production attempts
 
-The strongest candidate is currently **systemic stylized 3D**.
+The project has now tested and **rejected** a specific production approach:
 
-The intended formula is:
+> direct rendering of simple procedural 3D primitives / parametric low-detail geometry, with flat materials, outlines, hatching, lighting, fog, and procedural animation, presented as the final visible art.
 
-> simple geometry + strong silhouette + economical materials + sophisticated lighting + expressive motion + systemic variation
+This approach proved that the technical architecture is programmable, but **did not prove that ChatGPT can produce sufficiently strong final game art using that rendering language**.
 
-"Low poly" is not itself the desired aesthetic. Polygon economy is a production technique. The final identity must not resemble generic asset-store low-poly art.
+Observed failure mode:
 
-The target should be visually mature and atmospheric rather than cute, toy-like, or dependent on photorealism.
+- characters read as procedural mannequins rather than authored protagonists;
+- environments read as technical compositions of primitives rather than a distinctive world;
+- shader changes, outlines, hatching, or lighting did not materially solve the underlying form-design problem;
+- repeating the same geometric strategy with a different renderer or shader is not considered a new visual-production experiment.
+
+Therefore **plain runtime primitive/low-poly rendering is rejected as the final art direction**. It may still be used internally for blockout, collision, navigation, prototyping, or hidden geometry, but not as the visible production target unless transformed by a substantially different rendering pipeline.
+
+## Next candidate: pixel-rendered systemic 3D
+
+The next visual-production candidate changes the final image formation rather than merely changing the shader on the same visible geometry.
+
+The hypothesis to test is:
+
+> systemic 3D geometry and continuous skeletal/procedural animation rendered internally at low resolution, then transformed into a deliberately pixel-art-like final image through palette quantization, ordered dithering, controlled edge treatment, hard value grouping, and low-resolution lighting.
+
+The intent is **not** to imitate conventional frame-by-frame sprite production. The character remains continuously animated and can rotate freely in 3D; the final raster presentation is pixel-driven.
+
+This candidate is attractive because it may simultaneously provide:
+
+- continuous 360° movement and facing;
+- reusable 3D rigs and modular equipment;
+- no frame-by-frame animation burden;
+- a non-realistic, mature visual language;
+- reduced need for detailed sculpting because the final image is intentionally resolution-limited;
+- lighting, particles, weather, injuries, equipment state, and world simulation that remain dynamic;
+- a plausible route toward detailed-looking pixel art without hand-authoring thousands of sprite frames.
+
+This remains **unproven** and must not be treated as the selected art direction until a visual spike demonstrates sufficient quality.
 
 ## Systemic visual rule
 
@@ -89,7 +116,9 @@ Characters should be assembled from a limited number of anatomical families. Eac
 - clothing layers;
 - equipment attachment points.
 
-The goal is to obtain a very large phenotype space from a tractable number of primitives and modules.
+The goal is to obtain a very large phenotype space from a tractable number of modules.
+
+The visible result must be judged **after final raster treatment**, not from raw geometry alone.
 
 ### Animation
 
@@ -104,15 +133,24 @@ Animation should favor systemic reuse:
 - behavioral animation modifiers;
 - weapon-dependent overrides rather than wholly separate animation libraries.
 
-### Materials
+Continuous motion is mandatory. Pixel presentation must not imply frame-by-frame or turn-stepped locomotion.
 
-Materials should favor reproducibility and runtime variation:
+### Materials and final image formation
 
-- palette-driven base colors;
-- vertex color masks;
-- procedural wear/dirt/blood/wetness/frost masks;
-- small reusable texture sets where texture information is genuinely needed;
-- shader-driven surface differentiation.
+The next spike should prioritize final image formation over conventional PBR fidelity:
+
+- deliberately low internal render resolution;
+- limited or controlled palette;
+- palette quantization by luminance/material family;
+- ordered dithering where it improves tonal richness;
+- hard value grouping for readability;
+- restrained silhouettes/edge treatment;
+- dynamic lights calculated before raster reduction;
+- low-resolution particles and atmospheric effects;
+- procedural blood, wetness, dirt, frost, wear, and state masks where readable at gameplay scale;
+- nearest-neighbor scaling to the display resolution.
+
+The target is not nostalgic pixel art by default. The target is a coherent modern pixel-rendered language that can support the game's adult tone and systemic world.
 
 ### World
 
@@ -125,9 +163,11 @@ The environment should derive richness from composition and state rather than as
 - persistent or semi-persistent evidence of events;
 - simulation-driven settlement condition and resource use.
 
+The next spike must determine whether low-resolution final rasterization can make economical geometry visually convincing without exposing generic primitive construction.
+
 ## Camera
 
-The baseline gameplay camera is now **locked as a high oblique top-down camera**, chosen specifically to balance tactical readability, character readability, free movement, verticality, and an AI-manageable production pipeline.
+The baseline gameplay camera is **locked as a high oblique top-down camera**, chosen specifically to balance tactical readability, character readability, free movement, verticality, and an AI-manageable production pipeline.
 
 ### Locked camera principles
 
@@ -155,22 +195,32 @@ Any change to these parameters must preserve the locked high-oblique top-down ga
 
 ## Decision gate
 
-The final art direction must not be selected from concept art alone.
+The final art direction must not be selected from concept art or technical architecture alone.
 
-Before locking it, we must produce a small **visual production spike** containing at minimum:
+The next valid test is deliberately narrow before rebuilding the larger production spike.
 
-1. one humanoid generated from the intended modular character pipeline;
-2. several visibly different individuals generated from the same family;
-3. at least two equipment states;
-4. one non-human body-family test;
-5. one small environment tile/scene;
-6. lighting/weather variation of the same scene;
-7. basic locomotion or procedural pose test;
-8. a representative gameplay-camera capture using the locked high-oblique top-down camera.
+### Immediate proof required
 
-The spike must also demonstrate that ChatGPT can reproduce and extend the assets without manual art intervention from the user or an external artist.
+Produce one representative gameplay-camera scene containing only:
 
-Only visual languages that survive this test with an acceptably small authoring burden are valid candidates.
+1. one protagonist with a distinctive silhouette and readable equipment;
+2. one small environment composition;
+3. continuous locomotion and rotation;
+4. one dynamic light source and shadow response;
+5. final low-resolution raster / palette / dithering treatment.
+
+The test passes only if the resulting **final gameplay image** is visually convincing enough to justify expanding the pipeline.
+
+If it passes, only then expand the proof to:
+
+1. several visibly different individuals generated from the same family;
+2. at least two equipment states;
+3. one non-human body-family test;
+4. lighting/weather variation;
+5. systemic visual-state variation;
+6. a representative gameplay capture under load.
+
+The spike must demonstrate that ChatGPT can reproduce and extend the assets without manual art intervention from the user or an external artist.
 
 ## Current decision
 
@@ -178,8 +228,10 @@ Only visual languages that survive this test with an acceptably small authoring 
 
 **Locked:** the baseline gameplay camera is high oblique top-down, approximately 60–70° relative to the ground plane, with continuous 360° movement and no rigid isometric projection requirement.
 
-**Preferred aesthetic direction:** stylized, mature, atmospheric, systemic, and intentionally non-photorealistic unless a future spike demonstrates that a more realistic treatment is equally maintainable by the solo AI pipeline.
+**Rejected as final visible art:** direct presentation of simple procedural runtime primitives / generic low-poly geometry, even with flat shading, outlines, hatching, fog, or sophisticated lighting.
 
-**Leading production architecture:** systemic stylized 3D using modular/parametric geometry, reusable rigs, procedural posing, economical materials, and simulation-driven visible state.
+**Preferred aesthetic direction:** stylized, mature, atmospheric, systemic, and intentionally non-photorealistic.
 
-**Not yet locked:** exact character proportions, palette, surface treatment, degree of geometric abstraction, precise camera FOV/distance, and final material/shader language.
+**Next production hypothesis to prove:** pixel-rendered systemic 3D — continuous modular 3D animation rendered at deliberately low resolution with palette quantization, dithering, controlled edges, and dynamic low-resolution lighting.
+
+**Not yet locked:** the final aesthetic itself. No production art direction is approved until the next visual spike demonstrates acceptable final gameplay quality.
