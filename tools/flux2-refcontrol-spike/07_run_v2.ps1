@@ -1,12 +1,13 @@
 param(
-    [string]$Workspace = 'D:\AI\Flux2RefControlSpike',
+    [string]$Workspace = 'Z:\AI\Flux2RefControlSpike',
     [int]$Port = 8200,
     [int]$PromptTimeoutSec = 1800,
     [long]$Seed = 20260904,
     [int]$Width = 768,
     [int]$Height = 1024,
     [int]$Steps = 20,
-    [double]$Cfg = 5.0
+    [double]$Cfg = 5.0,
+    [switch]$RecoverPreSubmissionFailure
 )
 
 Set-StrictMode -Version Latest
@@ -62,19 +63,31 @@ function Get-PropertyValue([object]$Object, [string]$Name) {
     return $p.Value
 }
 
-function Save-Json([object]$Object, [string]$Path, [int]$Depth = 80) {
-    $json = $Object | ConvertTo-Json -Depth $Depth
+function Save-Json([object]$Object, [string]$Path, [int]$Depth = 32) {
+    # Windows PowerShell has a hard serialization-depth ceiling of 100.
+    # The workflow/history structures used here need far less than that.
+    $safeDepth = [math]::Max(4, [math]::Min($Depth, 64))
+    $json = $Object | ConvertTo-Json -Depth $safeDepth
     [System.IO.File]::WriteAllText($Path, $json, [System.Text.UTF8Encoding]::new($false))
+}
+
+function ConvertTo-CompactJson([object]$Object, [int]$Depth = 32) {
+    $safeDepth = [math]::Max(4, [math]::Min($Depth, 64))
+    return ($Object | ConvertTo-Json -Depth $safeDepth -Compress)
 }
 
 function Wait-ComfyReady([System.Diagnostics.Process]$Process, [string]$Api, [int]$TimeoutSec) {
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        if ($Process.HasExited) { throw "ComfyUI exited during startup with code $($Process.ExitCode). See $StdoutLog and $StderrLog" }
+        if ($Process.HasExited) {
+            throw "ComfyUI exited during startup with code $($Process.ExitCode). See $StdoutLog and $StderrLog"
+        }
         try {
             $result = Invoke-RestMethod -Uri "$Api/object_info" -Method Get -TimeoutSec 5
             if ($result) { return $result }
-        } catch { Start-Sleep -Milliseconds 750 }
+        } catch {
+            Start-Sleep -Milliseconds 750
+        }
     }
     throw "Timed out waiting for ComfyUI on $Api"
 }
@@ -91,8 +104,20 @@ function Assert-Choice([object]$ObjectInfo, [string]$NodeName, [string]$InputNam
     if ($null -eq $prop) { throw "$NodeName does not expose input '$InputName'." }
     $definition = $prop.Value
     if ($definition -is [System.Array] -and $definition.Count -gt 0 -and $definition[0] -is [System.Array]) {
-        if (@($definition[0]) -notcontains $Expected) { throw "$NodeName.$InputName does not offer expected value '$Expected'." }
+        if (@($definition[0]) -notcontains $Expected) {
+            throw "$NodeName.$InputName does not offer expected value '$Expected'."
+        }
     }
+}
+
+function Test-AnyAcceptedPromptEvidence {
+    $accepted = @(Get-ChildItem -LiteralPath $RunDir -File -Filter '*_accepted.json' -ErrorAction SilentlyContinue)
+    $history = @(Get-ChildItem -LiteralPath $RunDir -File -Filter '*_history.json' -ErrorAction SilentlyContinue)
+    $outputs = @()
+    if (Test-Path $V2OutputDir -PathType Container) {
+        $outputs = @(Get-ChildItem -LiteralPath $V2OutputDir -File -Filter '*.png' -ErrorAction SilentlyContinue)
+    }
+    return (($accepted.Count + $history.Count + $outputs.Count) -gt 0)
 }
 
 Write-Host ''
@@ -100,6 +125,7 @@ Write-Host 'FLUX.2 Klein + RefControl Pose - STEP 7B: V2 FOUR-POSE CORRECTION RU
 Write-Host 'Controlled comparison against V1.' -ForegroundColor Yellow
 Write-Host 'Unchanged: model, reference, seed, 768x1024, 20 steps, CFG 5.0, LoRA 1.0, Euler, one-shot/no-retry.' -ForegroundColor Yellow
 Write-Host 'Changed: V2 skeleton geometry + anatomy/continuity prompt only.' -ForegroundColor Yellow
+Write-Host "Workspace: $Workspace" -ForegroundColor DarkGray
 Write-Host ''
 
 if ($Seed -ne 20260904) { throw "V2 contract requires seed 20260904. Got $Seed." }
@@ -117,7 +143,9 @@ $modelFiles = @(
     (Join-Path $ComfyRoot "models\vae\$VaeName"),
     (Join-Path $ComfyRoot "models\loras\$LoraName")
 )
-foreach ($p in $modelFiles) { if (-not (Test-Path $p -PathType Leaf)) { throw "Missing model file: $p" } }
+foreach ($p in $modelFiles) {
+    if (-not (Test-Path $p -PathType Leaf)) { throw "Missing model file: $p" }
+}
 
 $inputManifestObject = Get-Content -LiteralPath $ManifestInput -Raw | ConvertFrom-Json
 if ([string]$inputManifestObject.revision -ne 'v2_walk_anatomy_clarity') { throw 'Unexpected V2 input manifest revision.' }
@@ -137,17 +165,38 @@ foreach ($name in $ExpectedPoses) {
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
 
-if (Test-Path $RunStartedPath -PathType Leaf) { throw "V2 run-start sentinel already exists: $RunStartedPath. Refusing to risk a duplicate artistic submission." }
-if (Test-Path $RunManifestPath -PathType Leaf) { throw "V2 run manifest already exists: $RunManifestPath. Refusing to create an artistic retry." }
-if (Test-Path $V2OutputDir -PathType Container) {
-    $existing = @(Get-ChildItem -LiteralPath $V2OutputDir -File -Filter '*.png' -ErrorAction SilentlyContinue)
-    if ($existing.Count -gt 0) { throw "Existing V2 PNG outputs found in $V2OutputDir. Refusing to rerun." }
+if (Test-Path $RunManifestPath -PathType Leaf) {
+    throw "V2 run manifest already exists: $RunManifestPath. Refusing to create an artistic retry."
+}
+
+if (Test-Path $RunStartedPath -PathType Leaf) {
+    if (-not $RecoverPreSubmissionFailure) {
+        throw "V2 run-start sentinel already exists: $RunStartedPath. If this is the known pre-submission ConvertTo-Json failure, rerun with -RecoverPreSubmissionFailure after pulling the fix."
+    }
+    if (Test-AnyAcceptedPromptEvidence) {
+        throw 'Recovery refused: accepted-prompt/history/output evidence exists. This is not a safe pre-submission reset.'
+    }
+    Write-Host '[RECOVER] Known pre-submission serialization failure detected: no accepted prompt/history/output evidence exists.' -ForegroundColor Yellow
+    Remove-Item -LiteralPath $RunStartedPath -Force
+    Get-ChildItem -LiteralPath $RunDir -File -Filter '*_request.json' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Write-Host '[RECOVER] Stale pre-submission sentinel/request evidence cleared. No artistic generation is being repeated.' -ForegroundColor Green
+}
+
+if (Test-AnyAcceptedPromptEvidence) {
+    throw 'Existing accepted-prompt/history/output evidence found. Refusing to rerun V2.'
 }
 
 Remove-Item $StdoutLog, $StderrLog -Force -ErrorAction SilentlyContinue
 $portBusy = $false
-try { Invoke-RestMethod -Uri "$ApiRoot/object_info" -Method Get -TimeoutSec 2 | Out-Null; $portBusy = $true } catch { $portBusy = $false }
-if ($portBusy) { throw "Port $Port is already in use by a ComfyUI-compatible endpoint. Refusing to reuse it." }
+try {
+    Invoke-RestMethod -Uri "$ApiRoot/object_info" -Method Get -TimeoutSec 2 | Out-Null
+    $portBusy = $true
+} catch {
+    $portBusy = $false
+}
+if ($portBusy) {
+    throw "Port $Port is already in use by a ComfyUI-compatible endpoint. Refusing to reuse it."
+}
 
 $args = @('-s', $MainPy, '--windows-standalone-build', '--listen', '127.0.0.1', '--port', [string]$Port, '--disable-auto-launch')
 Write-Host "[START] Launching isolated ComfyUI on 127.0.0.1:$Port ..." -ForegroundColor Cyan
@@ -155,6 +204,7 @@ $proc = Start-Process -FilePath $Python -ArgumentList $args -WorkingDirectory $C
 
 $records = @()
 $runStarted = (Get-Date).ToString('o')
+
 try {
     $objectInfo = Wait-ComfyReady $proc $ApiRoot 90
     Write-Host '[OK] ComfyUI ready.' -ForegroundColor Green
@@ -170,12 +220,13 @@ try {
     Assert-Choice $objectInfo 'KSamplerSelect' 'sampler_name' 'euler'
 
     $startedRecord = [ordered]@{
-        revision='v2_walk_anatomy_clarity'
-        started_at=(Get-Date).ToString('o')
-        seed=$Seed
-        note='Sentinel written after runtime validation and immediately before the first possible /prompt submission. Presence means do not rerun automatically.'
+        revision = 'v2_walk_anatomy_clarity'
+        started_at = (Get-Date).ToString('o')
+        seed = $Seed
+        prompt_submissions_completed = 0
+        note = 'Sentinel written after runtime validation. Do not remove unless the failure is proven to have occurred before POST /prompt.'
     }
-    Save-Json $startedRecord $RunStartedPath 20
+    Save-Json $startedRecord $RunStartedPath 16
 
     foreach ($name in $ExpectedPoses) {
         $poseRel = 'refcontrol_poses_v2/' + $name + '.png'
@@ -207,28 +258,49 @@ try {
             '22' = @{ class_type='SaveImage'; inputs=@{ images=@('21',0); filename_prefix=$prefix } }
         }
 
-        $requestObject = [ordered]@{ prompt=$workflow; client_id=$ClientId }
+        $requestObject = [ordered]@{
+            prompt = $workflow
+            client_id = $ClientId
+        }
         $requestPath = Join-Path $RunDir ($name + '_request.json')
-        Save-Json $requestObject $requestPath 100
+
+        # Serialize completely BEFORE announcing/submitting the artistic job.
+        Save-Json $requestObject $requestPath 32
+        $body = ConvertTo-CompactJson $requestObject 32
 
         Write-Host ''
         Write-Host "[PROMPT] $name" -ForegroundColor Cyan
         Write-Host "         seed=$Seed"
         Write-Host '         attempt=1/1'
         $submittedAt = Get-Date
-        $body = $requestObject | ConvertTo-Json -Depth 100 -Compress
+
+        # This POST is intentionally never retried automatically.
         try {
             $submit = Invoke-RestMethod -Uri "$ApiRoot/prompt" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 30
         } catch {
-            throw "${name}: /prompt submission failed and will NOT be retried. $($_.Exception.Message)"
+            throw "${name}: /prompt submission failed or became transport-ambiguous and will NOT be retried. $($_.Exception.Message)"
         }
+
         $promptId = [string](Get-PropertyValue $submit 'prompt_id')
-        if ([string]::IsNullOrWhiteSpace($promptId)) { throw "${name}: no prompt_id returned; no retry will be attempted." }
+        if ([string]::IsNullOrWhiteSpace($promptId)) {
+            throw "${name}: /prompt returned no prompt_id. Sentinel remains; do not rerun automatically."
+        }
+
+        $acceptedPath = Join-Path $RunDir ($name + '_accepted.json')
+        Save-Json ([ordered]@{
+            pose_name = $name
+            prompt_id = $promptId
+            accepted_at = (Get-Date).ToString('o')
+            seed = $Seed
+        }) $acceptedPath 12
+        Write-Host "[ACCEPTED] prompt_id=$promptId" -ForegroundColor Green
 
         $deadline = (Get-Date).AddSeconds($PromptTimeoutSec)
         $historyEntry = $null
         while ((Get-Date) -lt $deadline) {
-            if ($proc.HasExited) { throw "${name}: ComfyUI exited during inference with code $($proc.ExitCode)." }
+            if ($proc.HasExited) {
+                throw "${name}: ComfyUI exited during inference with code $($proc.ExitCode)."
+            }
             try {
                 $history = Invoke-RestMethod -Uri "$ApiRoot/history/$promptId" -Method Get -TimeoutSec 10
                 $prop = $history.PSObject.Properties[$promptId]
@@ -236,67 +308,94 @@ try {
                     $historyEntry = $prop.Value
                     if ((Get-PropertyValue (Get-PropertyValue $historyEntry 'status') 'completed') -eq $true) { break }
                 }
-            } catch {}
+            } catch {
+                # Read-only polling failure does not submit another prompt.
+            }
             Start-Sleep -Seconds 1
         }
-        if ($null -eq $historyEntry) { throw "${name}: timed out; prompt will NOT be resubmitted." }
+
+        if ($null -eq $historyEntry) {
+            throw "${name}: timed out waiting for history; prompt will NOT be resubmitted."
+        }
 
         $historyPath = Join-Path $RunDir ($name + '_history.json')
-        Save-Json $historyEntry $historyPath 120
+        Save-Json $historyEntry $historyPath 64
         $status = Get-PropertyValue $historyEntry 'status'
         $statusStr = [string](Get-PropertyValue $status 'status_str')
-        if ((Get-PropertyValue $status 'completed') -ne $true -or $statusStr -ne 'success') { throw "${name}: status '$statusStr'; no retry." }
+        if ((Get-PropertyValue $status 'completed') -ne $true -or $statusStr -ne 'success') {
+            throw "${name}: status '$statusStr'; no retry."
+        }
 
         $outputs = Get-PropertyValue $historyEntry 'outputs'
         $saveNodeProp = $outputs.PSObject.Properties['22']
         if ($null -eq $saveNodeProp) { throw "${name}: no SaveImage node 22 output." }
         $images = @(Get-PropertyValue $saveNodeProp.Value 'images')
         if ($images.Count -ne 1) { throw "${name}: expected one image, got $($images.Count)." }
+
         $filename = [string](Get-PropertyValue $images[0] 'filename')
         $subfolder = [string](Get-PropertyValue $images[0] 'subfolder')
-        $outputPath = if ([string]::IsNullOrWhiteSpace($subfolder)) { Join-Path $OutputRoot $filename } else { Join-Path (Join-Path $OutputRoot $subfolder) $filename }
-        if (-not (Test-Path $outputPath -PathType Leaf)) { throw "${name}: output missing: $outputPath" }
+        $outputPath = if ([string]::IsNullOrWhiteSpace($subfolder)) {
+            Join-Path $OutputRoot $filename
+        } else {
+            Join-Path (Join-Path $OutputRoot $subfolder) $filename
+        }
+        if (-not (Test-Path $outputPath -PathType Leaf)) {
+            throw "${name}: output missing: $outputPath"
+        }
 
         $hash = (Get-FileHash -LiteralPath $outputPath -Algorithm SHA256).Hash.ToLowerInvariant()
-        $elapsed = [math]::Round(((Get-Date)-$submittedAt).TotalSeconds, 2)
+        $elapsed = [math]::Round(((Get-Date) - $submittedAt).TotalSeconds, 2)
         $records += [pscustomobject][ordered]@{
-            pose_name=$name
-            pose_input=$poseRel
-            prompt_id=$promptId
-            prompt=$prompt
-            seed=$Seed
-            submission_attempts=1
-            status=$statusStr
-            elapsed_seconds=$elapsed
-            output_path=$outputPath
-            output_sha256=$hash
-            request_json=$requestPath
-            history_json=$historyPath
+            pose_name = $name
+            pose_input = $poseRel
+            prompt_id = $promptId
+            prompt = $prompt
+            seed = $Seed
+            submission_attempts = 1
+            status = $statusStr
+            elapsed_seconds = $elapsed
+            output_path = $outputPath
+            output_sha256 = $hash
+            request_json = $requestPath
+            accepted_json = $acceptedPath
+            history_json = $historyPath
         }
+
         Write-Host "[OK] $name completed in $elapsed s" -ForegroundColor Green
         Write-Host "     output=$outputPath"
     }
 
-    if ($records.Count -ne 4) { throw "Expected four completed V2 records, got $($records.Count)." }
-    $manifest = [ordered]@{
-        spike='FLUX.2 Klein Base 4B FP8 + RefControl Pose'
-        revision='v2_walk_anatomy_clarity'
-        stage='v2_four_pose_one_shot_complete_visual_qa_pending'
-        started_at=$runStarted
-        completed_at=(Get-Date).ToString('o')
-        api=$ApiRoot
-        seed=$Seed
-        reference=$MasterRel
-        unchanged_settings=@{ width=$Width; height=$Height; steps=$Steps; cfg=$Cfg; lora_strength=1.0; sampler='euler' }
-        controlled_changes=@('V2 COCO-18 skeleton geometry','V2 anatomy/foot/chain continuity prompt')
-        prompt_submissions_expected=4
-        prompt_submissions_completed=$records.Count
-        retry_policy='exactly one /prompt submission per pose; no artistic retry'
-        outputs=$records
-        visual_qa_performed=$false
-        production_approved=$false
+    if ($records.Count -ne 4) {
+        throw "Expected four completed V2 records, got $($records.Count)."
     }
-    Save-Json $manifest $RunManifestPath 120
+
+    $manifest = [ordered]@{
+        spike = 'FLUX.2 Klein Base 4B FP8 + RefControl Pose'
+        revision = 'v2_walk_anatomy_clarity'
+        stage = 'v2_four_pose_one_shot_complete_visual_qa_pending'
+        started_at = $runStarted
+        completed_at = (Get-Date).ToString('o')
+        api = $ApiRoot
+        seed = $Seed
+        workspace = $Workspace
+        reference = $MasterRel
+        unchanged_settings = @{
+            width = $Width
+            height = $Height
+            steps = $Steps
+            cfg = $Cfg
+            lora_strength = 1.0
+            sampler = 'euler'
+        }
+        controlled_changes = @('V2 COCO-18 skeleton geometry','V2 anatomy/foot/chain continuity prompt')
+        prompt_submissions_expected = 4
+        prompt_submissions_completed = $records.Count
+        retry_policy = 'exactly one /prompt submission per pose; no artistic retry'
+        outputs = $records
+        visual_qa_performed = $false
+        production_approved = $false
+    }
+    Save-Json $manifest $RunManifestPath 64
 
     Write-Host ''
     Write-Host 'STEP 7B: PASS' -ForegroundColor Green
