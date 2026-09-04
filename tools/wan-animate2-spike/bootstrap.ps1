@@ -44,19 +44,30 @@ Write-Host 'Installing/updating pipx in the user Python...' -ForegroundColor Cya
 & py.exe -3.14 -m pip install --user --upgrade pipx
 if ($LASTEXITCODE -ne 0) { throw 'pipx installation failed.' }
 
+# Always invoke comfy-cli from a path without spaces. comfy-cli --fast-deps/uv can
+# mis-handle an override.txt path when the caller cwd contains spaces (for example
+# D:\GOOGLE DRIVE\...). We also deliberately avoid --fast-deps for this spike and
+# use the normal pip dependency path: slower, but substantially less brittle.
+$CliWorkDir = Split-Path -Parent $Workspace
+if (-not $CliWorkDir) { throw "Could not resolve parent directory for workspace: $Workspace" }
+New-Item -ItemType Directory -Force -Path $CliWorkDir | Out-Null
+
 function Invoke-Comfy {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
-    if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
+    Push-Location $CliWorkDir
+    try {
+        & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
+        if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
+    } finally {
+        Pop-Location
+    }
 }
 
 $ComfyRoot = Find-ComfyRoot $Workspace
 
 if (-not $ComfyRoot) {
     # comfy-cli refuses to install into an existing non-repository directory.
-    # The previous version of this script created $Workspace before calling comfy-cli,
-    # which caused exactly that failure. Remove only a completely empty directory;
-    # never delete unknown user data automatically.
+    # Remove only a completely empty placeholder; never delete unknown user data.
     if (Test-Path $Workspace) {
         $items = @(Get-ChildItem -Force -Path $Workspace -ErrorAction Stop)
         if ($items.Count -eq 0) {
@@ -75,13 +86,18 @@ Move/delete that directory yourself, or rerun with a different -Workspace path.
     }
 
     Write-Host "Installing ComfyUI for NVIDIA into $Workspace ..." -ForegroundColor Cyan
-    Invoke-Comfy --skip-prompt --workspace $Workspace install --nvidia --fast-deps
+    Invoke-Comfy --skip-prompt --workspace $Workspace install --nvidia --skip-manager
     $ComfyRoot = Find-ComfyRoot $Workspace
     if (-not $ComfyRoot) {
         throw "comfy-cli returned success, but main.py/.git were not found at $Workspace or $(Join-Path $Workspace 'ComfyUI')."
     }
 } else {
-    Write-Host "ComfyUI already exists at $ComfyRoot" -ForegroundColor Green
+    # A previous install may have cloned ComfyUI and created .venv before dependency
+    # installation failed. --restore is the supported comfy-cli path for completing
+    # or repairing dependencies in an existing valid ComfyUI repository.
+    Write-Host "ComfyUI repository found at $ComfyRoot" -ForegroundColor Green
+    Write-Host 'Restoring/verifying ComfyUI dependencies with normal pip (no --fast-deps)...' -ForegroundColor Cyan
+    Invoke-Comfy --skip-prompt --workspace $ComfyRoot install --restore --nvidia --skip-manager
 }
 
 Write-Host "Resolved ComfyUI root: $ComfyRoot" -ForegroundColor Green
@@ -129,8 +145,13 @@ foreach ($p in @($Diffusion, $TextEnc, $ClipVision, $Vae, $InputDir)) {
 
 function Invoke-HF {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    & py.exe -3.14 -m pipx run --spec huggingface_hub hf @Args
-    if ($LASTEXITCODE -ne 0) { throw "Hugging Face download failed: hf $($Args -join ' ')" }
+    Push-Location $CliWorkDir
+    try {
+        & py.exe -3.14 -m pipx run --spec huggingface_hub hf @Args
+        if ($LASTEXITCODE -ne 0) { throw "Hugging Face download failed: hf $($Args -join ' ')" }
+    } finally {
+        Pop-Location
+    }
 }
 
 $MainModel = Join-Path $Diffusion 'Wan-Animate-2-14B-Q4_K_M.gguf'
