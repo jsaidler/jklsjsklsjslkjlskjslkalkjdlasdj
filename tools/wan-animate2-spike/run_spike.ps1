@@ -1,6 +1,7 @@
 param(
     [string]$Workspace = 'D:\AI\WanAnimate2',
-    [int]$Port = 8188
+    [int]$Port = 8188,
+    [int]$Timeout = 7200
 )
 
 Set-StrictMode -Version Latest
@@ -35,6 +36,16 @@ try {
     throw "ComfyUI API is not running at $BaseUrl. Run .\inspect.ps1 first."
 }
 
+# Do not accidentally submit a second expensive job while a previous prompt is
+# still active after a client-side WebSocket timeout.
+$Queue = Invoke-RestMethod -Uri "$BaseUrl/queue" -TimeoutSec 10
+if ($Queue.queue_running -and @($Queue.queue_running).Count -gt 0) {
+    Write-Host 'ComfyUI already has a running prompt. Nothing new will be submitted.' -ForegroundColor Yellow
+    Write-Host 'Use the existing prompt id with the /queue and /history API, or wait for it to finish.' -ForegroundColor Yellow
+    $Queue.queue_running | ConvertTo-Json -Depth 20 | Write-Host
+    exit 2
+}
+
 $Template = Join-Path $Workspace 'video_wan_animate2_official.json'
 $Workflow = Join-Path $Workspace 'wan_animate2_exilada_17f.json'
 $TemplateUrl = 'https://raw.githubusercontent.com/Comfy-Org/workflow_templates/main/templates/video_wan_animate2.json'
@@ -47,7 +58,7 @@ $Builder = Join-Path $PSScriptRoot 'build_workflow.py'
 if ($LASTEXITCODE -ne 0) { throw 'Workflow builder failed.' }
 
 Write-Host ''
-Write-Host 'Submitting headless Base-model validation workflow...' -ForegroundColor Cyan
+Write-Host "Submitting headless Base-model validation workflow (timeout=${Timeout}s)..." -ForegroundColor Cyan
 Push-Location 'D:\AI'
 try {
     & py.exe -3.14 -m pipx run --spec comfy-cli comfy --workspace $Workspace run `
@@ -56,6 +67,7 @@ try {
         --host 127.0.0.1 `
         --port $Port `
         --wait `
+        --timeout $Timeout `
         --verbose
     if ($LASTEXITCODE -ne 0) { throw 'comfy run failed.' }
 } finally {
