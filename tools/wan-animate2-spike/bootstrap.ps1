@@ -12,7 +12,32 @@ function Require-Command([string]$Name, [string]$Hint) {
     }
 }
 
-Require-Command 'py.exe' 'Python launcher is required. Your existing Python 3.14 is sufficient.'
+function Find-ComfyRoot([string]$Base) {
+    $candidates = @(
+        $Base,
+        (Join-Path $Base 'ComfyUI')
+    )
+    foreach ($candidate in $candidates) {
+        if ((Test-Path (Join-Path $candidate 'main.py')) -and
+            (Test-Path (Join-Path $candidate '.git'))) {
+            return $candidate
+        }
+    }
+    return $null
+}
+
+function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
+    $candidates = @(
+        (Join-Path $ComfyRoot '.venv\Scripts\python.exe'),
+        (Join-Path $Base '.venv\Scripts\python.exe')
+    ) | Select-Object -Unique
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) { return $candidate }
+    }
+    return $null
+}
+
+Require-Command 'py.exe' 'Python launcher is required. Your existing Python 3.14 is sufficient for comfy-cli.'
 Require-Command 'git.exe' 'Git for Windows is required.'
 
 Write-Host 'Installing/updating pipx in the user Python...' -ForegroundColor Cyan
@@ -25,20 +50,47 @@ function Invoke-Comfy {
     if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
 }
 
-$ComfyRoot = Join-Path $Workspace 'ComfyUI'
-$CustomNodes = Join-Path $ComfyRoot 'custom_nodes'
+$ComfyRoot = Find-ComfyRoot $Workspace
 
-New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
+if (-not $ComfyRoot) {
+    # comfy-cli refuses to install into an existing non-repository directory.
+    # The previous version of this script created $Workspace before calling comfy-cli,
+    # which caused exactly that failure. Remove only a completely empty directory;
+    # never delete unknown user data automatically.
+    if (Test-Path $Workspace) {
+        $items = @(Get-ChildItem -Force -Path $Workspace -ErrorAction Stop)
+        if ($items.Count -eq 0) {
+            Write-Host "Removing empty placeholder directory: $Workspace" -ForegroundColor Yellow
+            Remove-Item -Force $Workspace
+        } else {
+            $names = ($items | Select-Object -ExpandProperty Name) -join ', '
+            throw @"
+$Workspace exists but is not a ComfyUI git repository and is not empty.
+Contents: $names
 
-if (-not (Test-Path (Join-Path $ComfyRoot 'main.py'))) {
-    Write-Host "Installing ComfyUI into $Workspace ..." -ForegroundColor Cyan
-    Invoke-Comfy --workspace $Workspace install --fast-deps
+The bootstrap will not delete unknown files automatically.
+Move/delete that directory yourself, or rerun with a different -Workspace path.
+"@
+        }
+    }
+
+    Write-Host "Installing ComfyUI for NVIDIA into $Workspace ..." -ForegroundColor Cyan
+    Invoke-Comfy --skip-prompt --workspace $Workspace install --nvidia --fast-deps
+    $ComfyRoot = Find-ComfyRoot $Workspace
+    if (-not $ComfyRoot) {
+        throw "comfy-cli returned success, but main.py/.git were not found at $Workspace or $(Join-Path $Workspace 'ComfyUI')."
+    }
 } else {
     Write-Host "ComfyUI already exists at $ComfyRoot" -ForegroundColor Green
 }
 
+Write-Host "Resolved ComfyUI root: $ComfyRoot" -ForegroundColor Green
+
+$CustomNodes = Join-Path $ComfyRoot 'custom_nodes'
+New-Item -ItemType Directory -Force -Path $CustomNodes | Out-Null
+
 $GGUFDir = Join-Path $CustomNodes 'ComfyUI-GGUF'
-if (-not (Test-Path $GGUFDir)) {
+if (-not (Test-Path (Join-Path $GGUFDir '.git'))) {
     & git.exe clone https://github.com/city96/ComfyUI-GGUF.git $GGUFDir
     if ($LASTEXITCODE -ne 0) { throw 'Failed to clone ComfyUI-GGUF.' }
 } else {
@@ -47,7 +99,7 @@ if (-not (Test-Path $GGUFDir)) {
 }
 
 $RebelsDir = Join-Path $CustomNodes 'Rebels_w3a8_Loader'
-if (-not (Test-Path $RebelsDir)) {
+if (-not (Test-Path (Join-Path $RebelsDir '.git'))) {
     & git.exe clone https://github.com/RealRebelAI/Rebels_w3a8_Loader.git $RebelsDir
     if ($LASTEXITCODE -ne 0) { throw 'Failed to clone Rebels_w3a8_Loader.' }
 } else {
@@ -55,10 +107,11 @@ if (-not (Test-Path $RebelsDir)) {
     if ($LASTEXITCODE -ne 0) { throw 'Failed to update Rebels_w3a8_Loader.' }
 }
 
-$WorkspacePython = Join-Path $Workspace '.venv\Scripts\python.exe'
-if (-not (Test-Path $WorkspacePython)) {
-    throw "ComfyUI workspace Python was not found at $WorkspacePython"
+$WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
+if (-not $WorkspacePython) {
+    throw "ComfyUI workspace Python was not found under $ComfyRoot\.venv or $Workspace\.venv"
 }
+Write-Host "ComfyUI Python: $WorkspacePython" -ForegroundColor Green
 
 Write-Host 'Installing GGUF custom-node dependencies...' -ForegroundColor Cyan
 & $WorkspacePython -m pip install --upgrade -r (Join-Path $GGUFDir 'requirements.txt')
@@ -88,16 +141,19 @@ if (-not (Test-Path $MainModel)) {
 
 $TextModel = Join-Path $TextEnc 'umt5_xxl_fp8_e4m3fn_scaled.safetensors'
 if (-not (Test-Path $TextModel)) {
+    Write-Host 'Downloading UMT5 XXL FP8...' -ForegroundColor Cyan
     Invoke-HF download Comfy-Org/Wan-Animate-2 text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors --local-dir $Models
 }
 
 $ClipModel = Join-Path $ClipVision 'clip_vision_h.safetensors'
 if (-not (Test-Path $ClipModel)) {
+    Write-Host 'Downloading CLIP Vision H...' -ForegroundColor Cyan
     Invoke-HF download Comfy-Org/Wan-Animate-2 clip_vision/clip_vision_h.safetensors --local-dir $Models
 }
 
 $VaeModel = Join-Path $Vae 'Wan2_1_VAE_bf16.safetensors'
 if (-not (Test-Path $VaeModel)) {
+    Write-Host 'Downloading Wan 2.1 VAE...' -ForegroundColor Cyan
     Invoke-HF download Comfy-Org/Wan-Animate-2 vae/Wan2_1_VAE_bf16.safetensors --local-dir $Models
 }
 
@@ -109,5 +165,7 @@ if ($Master) {
 
 Write-Host ''
 Write-Host 'CLI Wan-Animate-2 spike bootstrap complete.' -ForegroundColor Green
-Write-Host "Workspace: $Workspace"
+Write-Host "Workspace:  $Workspace"
+Write-Host "ComfyUI:    $ComfyRoot"
+Write-Host "Python:     $WorkspacePython"
 Write-Host 'Next: run .\inspect.ps1, then prepare the 17-frame driver with .\make_driver.ps1.'
