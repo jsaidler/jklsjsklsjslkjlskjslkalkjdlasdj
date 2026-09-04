@@ -1,28 +1,30 @@
 # Character Animation Production — Living Decision Record
 
-Status: **local generative sprite-animation spike prepared; not yet visually validated**
+Status: **Sprite Sheet Diffusion pipeline selected for validation; canonical reference format clarified; not yet production-proven**
 
 ## Production constraint
 
-The user will not manually animate production characters and will not hire an animation/art team. A valid 2D character pipeline must therefore be reproducible by the project tooling and must scale beyond a single hand-corrected demo.
+The user will not manually animate production characters and will not hire an animation/art team. A valid character-animation pipeline must therefore be reproducible by project tooling and scale beyond a single hand-corrected demo.
+
+The visible game style is **modern pixel art**. Animation output must preserve that language rather than looking like painted AI frames that were subsequently pixelated.
 
 ## Rejected approaches
 
-The following approaches have been tested and are rejected as production foundations:
+The following approaches are rejected as production foundations:
 
 - generating independent animation frames with a general-purpose image generator and hoping identity remains stable;
 - asking a general image generator for a complete sprite sheet in one generation;
-- cutting an already-flattened character PNG into rigid body parts and rotating those parts as a 2D puppet.
+- cutting an already-flattened character PNG into rigid body parts and rotating those parts as a 2D puppet;
+- accepting conventional rendered or painted animation and adding a pixel filter afterward;
+- relying on frame-by-frame manual repainting to repair identity or anatomy.
 
-Observed failures included character drift, biomechanically incoherent cycles, inconsistent equipment, changing proportions, and obvious paper-doll articulation.
+Observed failures included character drift, biomechanically incoherent cycles, inconsistent clothing/equipment, changing proportions and obvious paper-doll articulation.
 
-## Current experiment: Sprite Sheet Diffusion hybrid
+## Current production candidate: Sprite Sheet Diffusion hybrid
 
-Sprite Sheet Diffusion (SSD) is specifically aimed at generating game-character animation from a reference character and driving poses. It is therefore materially more relevant than general image generation.
+Sprite Sheet Diffusion (SSD) is aimed specifically at game-character animation from a reference character plus driving poses and is therefore materially more relevant than general image generation.
 
-However, the public SSD release is incomplete: its trained custom multi-scale pose guider was never released. The public release contains the sprite-finetuned denoising UNet and ReferenceNet, while the motion module is byte-equivalent to the AnimateAnyone baseline.
-
-For a reproducible local test, this project uses the runnable configuration documented by the `fszontagh/stable-diffusion.cpp` port:
+The public SSD release is incomplete: its trained custom multi-scale pose guider was not released. The runnable local reconstruction documented by the project uses:
 
 - SSD finetuned `denoising_unet.pth`;
 - SSD finetuned `reference_unet.pth`;
@@ -35,22 +37,68 @@ This is a **hybrid public-weight reconstruction**, not the exact unreleased pape
 
 ## Hardware target
 
-The first target is the user's Windows 11 machine with RTX 3060 12 GB and 48 GB RAM.
+Initial target machine:
 
-The chosen C++ port explicitly documents an RTX 3060 recipe:
+- Windows 11;
+- RTX 3060 12 GB;
+- 48 GB RAM.
 
-- FP16 model loading;
-- CPU parameter offload;
-- flash attention for multi-frame generation;
-- VAE tiling at 512x768 and above.
+The chosen C++ port documents an RTX 3060 configuration using FP16 model loading, CPU parameter offload, flash attention and VAE tiling.
 
-The port measured approximately 7.4 GB peak VRAM for an 8-frame 512x640 / 25-step video generation test. The project will use 512x768 for the quality profile because the approved Exilada reference is tall and detail retention matters.
+The quality profile currently targets a tall reference format because the approved protagonist source is full-body and detail retention matters.
 
-## Deterministic walk test
+## Canonical character reference
 
-The project does not ask the model to invent motion. A deterministic BODY_18/OpenPose-style walk skeleton sequence is generated locally.
+Each production character has **one approved master reference** that anchors identity.
 
-The base cycle has eight conventional phases:
+The master reference is not a decorative character sheet. It is a production conditioning image.
+
+### Required reference format
+
+For the Exilada and equivalent humanoid characters:
+
+- one character only;
+- full body completely visible, including feet;
+- neutral or mildly alert standing pose;
+- arms separated enough from the torso to keep limb anatomy legible;
+- legs separated enough to make lower-body structure clear;
+- no title, UI, inset, environment composition or extra view;
+- flat or very simple neutral background;
+- no weapon in the identity master unless the weapon itself is canonically inseparable from that character;
+- stable adult anatomy and proportions;
+- approved hair, body, clothing and persistent character markers clearly visible;
+- native modern pixel-art construction and controlled palette;
+- sufficient margin around the figure for downstream processing.
+
+The currently approved Exilada production reference follows this format: full-body, weaponless, minimal initial clothing, long heavy black hair and visible captivity markers.
+
+Recommended repository-side source layout:
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+The image should be promoted to this path when binary asset ingestion is incorporated into the repository workflow.
+
+## Identity versus equipment
+
+Weapons are **gameplay-variable equipment**, not part of the Exilada's permanent character identity.
+
+The canonical master reference therefore excludes a weapon.
+
+Animation generation must distinguish:
+
+1. **body identity** — anatomy, face, hair, permanent marks, base silhouette;
+2. **current clothing/equipment state** — variable through progression;
+3. **weapon state** — supplied as an animation/equipment condition when needed.
+
+Pass criteria must therefore check stability of whatever equipment state was explicitly requested for that animation, without treating one particular weapon as permanently canonical.
+
+## Deterministic pose driving
+
+The project does not ask the model to invent motion.
+
+A deterministic BODY_18/OpenPose-style skeleton sequence is generated locally.
+
+The base walk cycle uses eight conventional phases:
 
 1. contact A;
 2. down A;
@@ -61,92 +109,144 @@ The base cycle has eight conventional phases:
 7. passing B;
 8. up B.
 
-This cycle is repeated three times to create a 24-frame driving window. The motion module performs more reliably in its native context length than on an isolated 8-frame sequence. The output tool extracts the middle eight frames as the candidate production cycle.
+This cycle can be repeated to create a longer motion context, with the stable center window extracted for the final candidate cycle.
 
 ## Recurring production routine
 
-Once the spike is validated, character animation production follows one canonical workflow rather than ad-hoc prompting.
+### 1. Ground the character state
 
-### 1. Canonical reference
+Select the canonical character master plus any explicitly requested current clothing/equipment/weapon state.
 
-Each playable character has one approved master reference image that anchors identity, proportions, clothing, hair, equipment and rendering style. For the Exilada, the already-approved protagonist image becomes this canonical source. Animation generation must not create a new character design.
+### 2. Define the animation spec
 
-Recommended repository-side source layout:
+Each action is described by a machine-readable specification containing, as needed:
 
-`assets/source/characters/exilada/reference/exilada_master.png`
+- action name;
+- final frame count;
+- loop/non-loop behavior;
+- intended facing/direction;
+- timing;
+- contact frames;
+- locomotion speed;
+- current equipment state;
+- current weapon state;
+- deterministic pose sequence.
 
-The source image itself may be versioned if file size remains practical; model checkpoints and generated temporary files remain excluded.
+Examples include `walk`, `run`, `idle`, `light_attack`, `heavy_attack`, `hit_react`, `dodge` and `death`.
 
-### 2. Animation specification
+### 3. Generate candidates
 
-Before generation, each action is defined by a small machine-readable spec: action name, number of final frames, loop/non-loop behavior, intended facing, timing, contact frames, weapon state, and pose sequence. Examples: `walk`, `run`, `idle`, `light_attack_01`, `heavy_attack_01`, `hit_react`, `dodge`, `death`.
+The canonical reference plus deterministic pose sequence are passed through the SSD hybrid.
 
-The model does not invent the choreography. Driving poses are deterministic and are generated or authored as skeletal trajectories by project tooling.
+Generation uses a small controlled seed set when needed. Record:
 
-### 3. Candidate generation
+- seed;
+- resolution;
+- steps;
+- model identifiers;
+- conditioning/reference asset version;
+- pose-spec version.
 
-The canonical reference plus the deterministic pose sequence are passed through the SSD hybrid. Generation is repeated with a small controlled set of seeds only when necessary. Seeds, resolution, steps and all model identifiers are recorded with the result so a successful animation is reproducible.
-
-The default target is to generate enough temporal context for the motion module and extract the stable center window rather than relying on short isolated clips.
+A successful animation must be reproducible.
 
 ### 4. Automated post-processing
 
-The toolchain performs non-artistic cleanup automatically wherever possible:
+The toolchain should automatically:
 
-- extract the desired center frames;
+- extract stable center frames;
 - align a common ground/contact line;
 - normalize canvas dimensions;
-- remove or key out background when needed;
+- remove/key the background if necessary;
 - preserve alpha;
 - crop consistently without changing character scale;
-- assemble the final sprite sheet;
-- write frame metadata and pivots/hitbox references.
+- assemble sprite sheets;
+- write frame metadata;
+- write pivots and hitbox/hurtbox references where applicable.
 
-Manual frame-by-frame repainting is not part of the accepted workflow.
+Manual frame-by-frame repainting is outside the accepted production workflow.
 
-### 5. Visual validation gate
+### 5. Visual validation
 
-Every new animation is reviewed as an animation, not as isolated attractive frames. Review checks identity, anatomy, clothing/equipment stability, gait/action readability, foot sliding, ground contact, temporal jitter and unwanted morphing.
+Every candidate is reviewed as motion, not as isolated attractive frames.
 
-If a candidate fails, the first response is to adjust poses, seed, inference parameters or source conditioning and regenerate. A pipeline that only becomes usable through frame-by-frame painting is rejected.
-
-### 6. Runtime test
-
-An approved sheet is tested immediately in the game at actual camera scale and movement speed. The runtime test validates cadence, continuous translation, loop seam, silhouette readability, contact with the ground plane and combat timing. Animation approval is therefore based on in-game behavior, not merely on a contact sheet.
-
-### 7. Canonical asset promotion
-
-Only approved outputs are promoted into production assets. Temporary generations remain outside git. The promoted sprite sheet, animation metadata and the exact generation manifest become canonical project assets so the same result can be traced and reproduced later.
-
-## Initial animation order for the Exilada
-
-The protagonist image already exists, so production begins with animation rather than additional concept generation. The first validation sequence is:
-
-1. walk — proves basic identity and temporal consistency;
-2. idle — proves subtle motion without character drift;
-3. run — increases locomotion stress;
-4. light attack with the curved blade — proves weapon and limb consistency under large motion;
-5. hit reaction / dodge — proves fast silhouette change;
-6. heavy attack — stress test for the final combat pipeline.
-
-No large animation library should be generated before `walk` passes the decision gate.
-
-## Decision gate
-
-The pipeline is not accepted because it installs or executes successfully. The first generated Exilada walk cycle must be inspected.
-
-Pass criteria:
+Review checks:
 
 - identity preservation;
 - stable adult anatomy and proportions;
-- stable clothing/hair/weapon design;
-- coherent gait;
-- no hallucinated anatomy or extra props;
-- temporal consistency sufficient that any remaining post-processing can be automated.
+- stable hair and persistent character markers;
+- stability of explicitly requested clothing/equipment/weapon state;
+- coherent gait/action mechanics;
+- foot sliding and ground contact;
+- temporal jitter;
+- unwanted morphing;
+- preservation of authentic modern pixel-art readability.
 
-Fail condition:
+If a candidate fails, adjust pose driving, inference parameters, seed or reference conditioning and regenerate.
 
-If acceptable quality requires manual frame-by-frame repainting, the pipeline is rejected because it violates the project's production constraint.
+### 6. Runtime validation
+
+Approved sheets are immediately tested at actual game camera scale and movement speed.
+
+Validate:
+
+- cadence;
+- continuous translation;
+- loop seam;
+- silhouette readability;
+- ground contact;
+- combat timing;
+- facing/directional readability;
+- whether the result still reads as intentional pixel art in motion.
+
+### 7. Canonical promotion
+
+Only approved outputs become production assets.
+
+Promote together:
+
+- sprite sheet;
+- animation metadata;
+- generation manifest;
+- source/master reference version;
+- pose specification version.
+
+Temporary generations remain outside the canonical asset set.
+
+## Initial validation order for the Exilada
+
+The first sequence should prove the core body before weapon complexity:
+
+1. `walk` — identity and temporal consistency;
+2. `idle` — subtle motion without drift;
+3. `run` — faster locomotion stress;
+4. `hit_react` / `dodge` — rapid silhouette change without external equipment;
+5. one **equipped-weapon test** using a chosen temporary validation weapon — proves equipment conditioning, not character identity;
+6. light and heavy attacks for that weapon class;
+7. additional weapon classes only after the base pipeline passes.
+
+No large animation library should be generated before `walk` passes.
+
+## Additional human-body-family test
+
+A masculine counterpart reference has been generated in the same production-reference format as an exploratory second human-body-family sample.
+
+It is **not automatically canonical as a playable character** merely because the reference exists. If approved, it can become a controlled validation case demonstrating that the SSD pipeline generalizes beyond the Exilada while preserving the same modern pixel-art language.
+
+## Decision gate
+
+The pipeline passes only if it can produce animation that preserves:
+
+- character identity;
+- adult anatomy;
+- stable proportions;
+- hair and clothing consistency;
+- explicitly requested equipment/weapon state;
+- coherent motion;
+- clean temporal consistency;
+- authentic modern pixel-art readability at gameplay scale;
+- reproducibility without manual frame-by-frame repainting.
+
+If acceptable quality requires ongoing manual repainting, the pipeline is rejected.
 
 ## Repository tooling
 
@@ -154,4 +254,4 @@ Implementation lives under:
 
 `tools/sprite-animation/`
 
-The repository versions scripts, configuration and documentation only. Model checkpoints, dependency checkouts, build products and generated animation files are explicitly excluded from git.
+The repository currently versions scripts, configuration and documentation. Model checkpoints, dependency checkouts, build products and temporary generated files remain excluded from git.
