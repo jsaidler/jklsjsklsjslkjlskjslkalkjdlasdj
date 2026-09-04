@@ -7,7 +7,8 @@ param(
     [int]$Height = 1024,
     [int]$Steps = 20,
     [double]$Cfg = 5.0,
-    [switch]$RecoverPreSubmissionFailure
+    [Alias('RecoverPreSubmissionFailure')]
+    [switch]$RecoverSerializationFailure
 )
 
 Set-StrictMode -Version Latest
@@ -65,7 +66,7 @@ function Get-PropertyValue([object]$Object, [string]$Name) {
 
 function Save-Json([object]$Object, [string]$Path, [int]$Depth = 32) {
     # Windows PowerShell has a hard serialization-depth ceiling of 100.
-    # The workflow/history structures used here need far less than that.
+    # The structures used by this runner do not need anything close to that.
     $safeDepth = [math]::Max(4, [math]::Min($Depth, 64))
     $json = $Object | ConvertTo-Json -Depth $safeDepth
     [System.IO.File]::WriteAllText($Path, $json, [System.Text.UTF8Encoding]::new($false))
@@ -110,14 +111,50 @@ function Assert-Choice([object]$ObjectInfo, [string]$NodeName, [string]$InputNam
     }
 }
 
-function Test-AnyAcceptedPromptEvidence {
-    $accepted = @(Get-ChildItem -LiteralPath $RunDir -File -Filter '*_accepted.json' -ErrorAction SilentlyContinue)
-    $history = @(Get-ChildItem -LiteralPath $RunDir -File -Filter '*_history.json' -ErrorAction SilentlyContinue)
-    $outputs = @()
-    if (Test-Path $V2OutputDir -PathType Container) {
-        $outputs = @(Get-ChildItem -LiteralPath $V2OutputDir -File -Filter '*.png' -ErrorAction SilentlyContinue)
+function Get-ExistingV2Outputs {
+    $result = @()
+    if (-not (Test-Path $V2OutputDir -PathType Container)) { return @() }
+
+    $allPng = @(Get-ChildItem -LiteralPath $V2OutputDir -File -Filter '*.png' -ErrorAction SilentlyContinue)
+    foreach ($name in $ExpectedPoses) {
+        $matches = @($allPng | Where-Object { $_.Name -like ($name + '*.png') })
+        if ($matches.Count -gt 1) {
+            throw "Recovery refused: more than one V2 output exists for $name."
+        }
+        if ($matches.Count -eq 1) {
+            $result += [pscustomobject]@{ pose_name=$name; file=$matches[0] }
+        }
     }
-    return (($accepted.Count + $history.Count + $outputs.Count) -gt 0)
+
+    if ($result.Count -ne $allPng.Count) {
+        $known = @($result | ForEach-Object { $_.file.FullName })
+        $unexpected = @($allPng | Where-Object { $known -notcontains $_.FullName })
+        throw "Recovery refused: unexpected PNG(s) exist in $V2OutputDir: $($unexpected.Name -join ', ')"
+    }
+
+    # Existing outputs must be a contiguous prefix of the four-pose sequence.
+    $gapSeen = $false
+    foreach ($name in $ExpectedPoses) {
+        $has = @($result | Where-Object { $_.pose_name -eq $name }).Count -eq 1
+        if (-not $has) {
+            $gapSeen = $true
+        } elseif ($gapSeen) {
+            throw 'Recovery refused: existing V2 outputs are not a contiguous prefix of the intended one-shot sequence.'
+        }
+    }
+
+    return @($result)
+}
+
+function Get-EvidencePoseNames([string]$Filter, [string]$Suffix) {
+    $names = @()
+    foreach ($f in @(Get-ChildItem -LiteralPath $RunDir -File -Filter $Filter -ErrorAction SilentlyContinue)) {
+        $base = $f.Name
+        if ($base.EndsWith($Suffix)) {
+            $names += $base.Substring(0, $base.Length - $Suffix.Length)
+        }
+    }
+    return @($names)
 }
 
 Write-Host ''
@@ -169,66 +206,123 @@ if (Test-Path $RunManifestPath -PathType Leaf) {
     throw "V2 run manifest already exists: $RunManifestPath. Refusing to create an artistic retry."
 }
 
+$existingOutputs = @(Get-ExistingV2Outputs)
+$acceptedPoseNames = @(Get-EvidencePoseNames '*_accepted.json' '_accepted.json')
+$historyPoseNames = @(Get-EvidencePoseNames '*_history.json' '_history.json')
+$existingPoseNames = @($existingOutputs | ForEach-Object { $_.pose_name })
+
+$runStarted = (Get-Date).ToString('o')
 if (Test-Path $RunStartedPath -PathType Leaf) {
-    if (-not $RecoverPreSubmissionFailure) {
-        throw "V2 run-start sentinel already exists: $RunStartedPath. If this is the known pre-submission ConvertTo-Json failure, rerun with -RecoverPreSubmissionFailure after pulling the fix."
+    try {
+        $oldStarted = Get-Content -LiteralPath $RunStartedPath -Raw | ConvertFrom-Json
+        if (-not [string]::IsNullOrWhiteSpace([string]$oldStarted.started_at)) {
+            $runStarted = [string]$oldStarted.started_at
+        }
+    } catch {}
+
+    if (-not $RecoverSerializationFailure) {
+        throw "V2 run-start sentinel already exists: $RunStartedPath. Pull the fixed runner and rerun with -RecoverSerializationFailure; it will inspect existing evidence and will not duplicate a completed pose."
     }
-    if (Test-AnyAcceptedPromptEvidence) {
-        throw 'Recovery refused: accepted-prompt/history/output evidence exists. This is not a safe pre-submission reset.'
+
+    # Evidence for a pose without a saved output is ambiguous and cannot be safely replayed.
+    foreach ($evidenceName in @($acceptedPoseNames + $historyPoseNames | Select-Object -Unique)) {
+        if ($existingPoseNames -notcontains $evidenceName) {
+            throw "Recovery refused: submission/history evidence exists for $evidenceName but no corresponding PNG exists. Do not resubmit automatically."
+        }
     }
-    Write-Host '[RECOVER] Known pre-submission serialization failure detected: no accepted prompt/history/output evidence exists.' -ForegroundColor Yellow
-    Remove-Item -LiteralPath $RunStartedPath -Force
-    Get-ChildItem -LiteralPath $RunDir -File -Filter '*_request.json' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-    Write-Host '[RECOVER] Stale pre-submission sentinel/request evidence cleared. No artistic generation is being repeated.' -ForegroundColor Green
-}
 
-if (Test-AnyAcceptedPromptEvidence) {
-    throw 'Existing accepted-prompt/history/output evidence found. Refusing to rerun V2.'
+    if ($existingOutputs.Count -eq 0) {
+        Write-Host '[RECOVER] Sentinel exists but no accepted/history/output evidence exists: treating prior failure as pre-submission.' -ForegroundColor Yellow
+        Get-ChildItem -LiteralPath $RunDir -File -Filter '*_request.json' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    } else {
+        Write-Host "[RECOVER] Preserving $($existingOutputs.Count) already-generated V2 output(s); only remaining poses will be submitted." -ForegroundColor Yellow
+        foreach ($item in $existingOutputs) {
+            Write-Host "          keep=$($item.file.FullName)" -ForegroundColor DarkGray
+        }
+    }
+} elseif ($existingOutputs.Count -gt 0 -or $acceptedPoseNames.Count -gt 0 -or $historyPoseNames.Count -gt 0) {
+    throw 'Existing V2 generation evidence exists without the run-start sentinel. Refusing automatic recovery.'
 }
-
-Remove-Item $StdoutLog, $StderrLog -Force -ErrorAction SilentlyContinue
-$portBusy = $false
-try {
-    Invoke-RestMethod -Uri "$ApiRoot/object_info" -Method Get -TimeoutSec 2 | Out-Null
-    $portBusy = $true
-} catch {
-    $portBusy = $false
-}
-if ($portBusy) {
-    throw "Port $Port is already in use by a ComfyUI-compatible endpoint. Refusing to reuse it."
-}
-
-$args = @('-s', $MainPy, '--windows-standalone-build', '--listen', '127.0.0.1', '--port', [string]$Port, '--disable-auto-launch')
-Write-Host "[START] Launching isolated ComfyUI on 127.0.0.1:$Port ..." -ForegroundColor Cyan
-$proc = Start-Process -FilePath $Python -ArgumentList $args -WorkingDirectory $ComfyRoot -PassThru -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog
 
 $records = @()
-$runStarted = (Get-Date).ToString('o')
-
-try {
-    $objectInfo = Wait-ComfyReady $proc $ApiRoot 90
-    Write-Host '[OK] ComfyUI ready.' -ForegroundColor Green
-
-    foreach ($node in @('UNETLoader','LoraLoaderModelOnly','CLIPLoader','VAELoader','CLIPTextEncode','LoadImage','VAEEncode','ReferenceLatent','EmptyFlux2LatentImage','Flux2Scheduler','RandomNoise','KSamplerSelect','CFGGuider','SamplerCustomAdvanced','VAEDecode','SaveImage')) {
-        if ($null -eq $objectInfo.PSObject.Properties[$node]) { throw "Runtime missing required node: $node" }
+foreach ($item in $existingOutputs) {
+    $name = [string]$item.pose_name
+    $poseRel = 'refcontrol_poses_v2/' + $name + '.png'
+    $prompt = ($BasePrompt.Trim() + ' ' + [string]$PoseSuffix[$name]).Trim()
+    $requestPath = Join-Path $RunDir ($name + '_request.json')
+    $acceptedPath = Join-Path $RunDir ($name + '_accepted.json')
+    $historyPath = Join-Path $RunDir ($name + '_history.json')
+    $promptId = $null
+    if (Test-Path $acceptedPath -PathType Leaf) {
+        try { $promptId = [string]((Get-Content -LiteralPath $acceptedPath -Raw | ConvertFrom-Json).prompt_id) } catch {}
     }
-    Assert-Choice $objectInfo 'UNETLoader' 'unet_name' $UnetName
-    Assert-Choice $objectInfo 'CLIPLoader' 'clip_name' $ClipName
-    Assert-Choice $objectInfo 'CLIPLoader' 'type' 'flux2'
-    Assert-Choice $objectInfo 'VAELoader' 'vae_name' $VaeName
-    Assert-Choice $objectInfo 'LoraLoaderModelOnly' 'lora_name' $LoraName
-    Assert-Choice $objectInfo 'KSamplerSelect' 'sampler_name' 'euler'
+    $hash = (Get-FileHash -LiteralPath $item.file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+    $records += [pscustomobject][ordered]@{
+        pose_name = $name
+        pose_input = $poseRel
+        prompt_id = $promptId
+        prompt = $prompt
+        seed = $Seed
+        submission_attempts = 1
+        status = 'success_recovered_existing_output'
+        elapsed_seconds = $null
+        output_path = $item.file.FullName
+        output_sha256 = $hash
+        request_json = $(if (Test-Path $requestPath) { $requestPath } else { $null })
+        accepted_json = $(if (Test-Path $acceptedPath) { $acceptedPath } else { $null })
+        history_json = $(if (Test-Path $historyPath) { $historyPath } else { $null })
+        recovered_after_serialization_failure = $true
+    }
+}
+
+$pendingPoses = @($ExpectedPoses | Where-Object { $existingPoseNames -notcontains $_ })
+
+# If all four outputs already exist, do not start ComfyUI; just reconstruct the final manifest.
+$proc = $null
+try {
+    if ($pendingPoses.Count -gt 0) {
+        Remove-Item $StdoutLog, $StderrLog -Force -ErrorAction SilentlyContinue
+        $portBusy = $false
+        try {
+            Invoke-RestMethod -Uri "$ApiRoot/object_info" -Method Get -TimeoutSec 2 | Out-Null
+            $portBusy = $true
+        } catch {
+            $portBusy = $false
+        }
+        if ($portBusy) {
+            throw "Port $Port is already in use by a ComfyUI-compatible endpoint. Refusing to reuse it."
+        }
+
+        $args = @('-s', $MainPy, '--windows-standalone-build', '--listen', '127.0.0.1', '--port', [string]$Port, '--disable-auto-launch')
+        Write-Host "[START] Launching isolated ComfyUI on 127.0.0.1:$Port ..." -ForegroundColor Cyan
+        $proc = Start-Process -FilePath $Python -ArgumentList $args -WorkingDirectory $ComfyRoot -PassThru -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog
+
+        $objectInfo = Wait-ComfyReady $proc $ApiRoot 90
+        Write-Host '[OK] ComfyUI ready.' -ForegroundColor Green
+
+        foreach ($node in @('UNETLoader','LoraLoaderModelOnly','CLIPLoader','VAELoader','CLIPTextEncode','LoadImage','VAEEncode','ReferenceLatent','EmptyFlux2LatentImage','Flux2Scheduler','RandomNoise','KSamplerSelect','CFGGuider','SamplerCustomAdvanced','VAEDecode','SaveImage')) {
+            if ($null -eq $objectInfo.PSObject.Properties[$node]) { throw "Runtime missing required node: $node" }
+        }
+        Assert-Choice $objectInfo 'UNETLoader' 'unet_name' $UnetName
+        Assert-Choice $objectInfo 'CLIPLoader' 'clip_name' $ClipName
+        Assert-Choice $objectInfo 'CLIPLoader' 'type' 'flux2'
+        Assert-Choice $objectInfo 'VAELoader' 'vae_name' $VaeName
+        Assert-Choice $objectInfo 'LoraLoaderModelOnly' 'lora_name' $LoraName
+        Assert-Choice $objectInfo 'KSamplerSelect' 'sampler_name' 'euler'
+    }
 
     $startedRecord = [ordered]@{
         revision = 'v2_walk_anatomy_clarity'
-        started_at = (Get-Date).ToString('o')
+        started_at = $runStarted
+        resumed_at = $(if ($RecoverSerializationFailure) { (Get-Date).ToString('o') } else { $null })
         seed = $Seed
-        prompt_submissions_completed = 0
-        note = 'Sentinel written after runtime validation. Do not remove unless the failure is proven to have occurred before POST /prompt.'
+        recovered_existing_outputs = $existingPoseNames
+        prompt_submissions_completed_before_resume = $existingOutputs.Count
+        note = 'Sentinel records the one-shot V2 sequence. Existing completed outputs are preserved and never resubmitted.'
     }
     Save-Json $startedRecord $RunStartedPath 16
 
-    foreach ($name in $ExpectedPoses) {
+    foreach ($name in $pendingPoses) {
         $poseRel = 'refcontrol_poses_v2/' + $name + '.png'
         $prefix = 'flux2_refcontrol_v2/' + $name
         $prompt = ($BasePrompt.Trim() + ' ' + [string]$PoseSuffix[$name]).Trim()
@@ -264,7 +358,7 @@ try {
         }
         $requestPath = Join-Path $RunDir ($name + '_request.json')
 
-        # Serialize completely BEFORE announcing/submitting the artistic job.
+        # Serialize completely before any POST /prompt.
         Save-Json $requestObject $requestPath 32
         $body = ConvertTo-CompactJson $requestObject 32
 
@@ -274,7 +368,6 @@ try {
         Write-Host '         attempt=1/1'
         $submittedAt = Get-Date
 
-        # This POST is intentionally never retried automatically.
         try {
             $submit = Invoke-RestMethod -Uri "$ApiRoot/prompt" -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 30
         } catch {
@@ -359,6 +452,7 @@ try {
             request_json = $requestPath
             accepted_json = $acceptedPath
             history_json = $historyPath
+            recovered_after_serialization_failure = $false
         }
 
         Write-Host "[OK] $name completed in $elapsed s" -ForegroundColor Green
@@ -379,6 +473,8 @@ try {
         seed = $Seed
         workspace = $Workspace
         reference = $MasterRel
+        resumed_after_serialization_failure = [bool]$RecoverSerializationFailure
+        recovered_existing_outputs = $existingPoseNames
         unchanged_settings = @{
             width = $Width
             height = $Height
@@ -388,9 +484,9 @@ try {
             sampler = 'euler'
         }
         controlled_changes = @('V2 COCO-18 skeleton geometry','V2 anatomy/foot/chain continuity prompt')
-        prompt_submissions_expected = 4
-        prompt_submissions_completed = $records.Count
-        retry_policy = 'exactly one /prompt submission per pose; no artistic retry'
+        prompt_submissions_expected_total = 4
+        prompt_submissions_completed_total = $records.Count
+        retry_policy = 'one artistic generation per pose; recovered completed outputs are never resubmitted'
         outputs = $records
         visual_qa_performed = $false
         production_approved = $false
@@ -399,7 +495,7 @@ try {
 
     Write-Host ''
     Write-Host 'STEP 7B: PASS' -ForegroundColor Green
-    Write-Host 'Exactly four V2 one-shot generations completed.'
+    Write-Host 'Four V2 outputs are present with no duplicate artistic generation.'
     Write-Host "Manifest: $RunManifestPath"
     Write-Host "Outputs:  $V2OutputDir"
     Write-Host 'Do not rerun. Next gate is V1-vs-V2 visual QA.' -ForegroundColor Yellow
