@@ -20,7 +20,9 @@ After every material step: update thematic docs + this file, record PASS/FAIL/ne
 
 The game is a **systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a living world**.
 
-Immediate gameplay baseline is an **elevated 2D belt-scroller / false 3D**. Character-art/animation feasibility remains the current priority because it is the largest production risk.
+Immediate gameplay baseline: **elevated 2D belt-scroller / false 3D**.
+
+Character-art/animation feasibility remains the current priority because it is the largest production risk; code capability is not the current unknown.
 
 ## Exilada visual state
 
@@ -30,15 +32,15 @@ Canonical identity master:
 
 It is a high-detail identity/design reference, not the final gameplay sprite. Final visible art remains true modern pixel art; simple high-resolution generation followed by resize/quantization is not accepted as the final-sprite route.
 
-## RefControl walk checkpoint
+## RefControl direct-frame route — REJECTED
 
-### V1 — CONDITIONAL PASS upstream / FAIL final walk
+FLUX.2 Klein + RefControl Pose was the strongest identity-preserving route tested, but it has now reached a structural reliability limit.
 
-V1 proved that FLUX.2 Klein + RefControl Pose can preserve the Exilada substantially better than prior routes.
+### V1
 
 Strengths:
 
-- strong identity retention;
+- strong Exilada identity retention;
 - four gait phases visibly distinct.
 
 Defects:
@@ -46,93 +48,136 @@ Defects:
 - right-foot/toe error;
 - left-arm inconsistency;
 - small body drift;
-- unstable chain/shackle topology.
+- chain/shackle topology drift.
 
-### V2 — FAIL as walk
+Verdict: **CONDITIONAL PASS as research/upstream reference; FAIL as final walk.**
 
-V2 improved feet, arms and body stability, but the left/right gait pairs collapsed:
+### V2
 
-- `contact_L` ≈ `contact_R`;
-- `passing_L` ≈ `passing_R`.
+Improvements:
 
-Root cause: V2 left/right controls had nearly the same **screen-space geometry** and relied too heavily on COCO side colors/labels. RefControl followed visible geometry more strongly than the semantic reassignment.
+- feet better;
+- arms better;
+- body stability better;
+- identity remained strong.
 
-### V3 — distinct gait restored, but catastrophic anatomy FAIL
+Critical failure:
 
-STEP 8A V3 controls passed:
+- `contact_L` and `contact_R` collapsed to nearly the same pose;
+- `passing_L` and `passing_R` collapsed to nearly the same pose.
 
-- four deterministic COCO-18 controls generated;
-- `silhouette_uniqueness=PASS`;
-- all four gait controls remain visibly distinct even without COCO colors.
+Root cause: opposite phases used nearly identical screen-space geometry and relied too heavily on COCO left/right semantics.
 
-STEP 8B inference then produced four V3 character outputs.
+Verdict: **FAIL as walk.**
 
-Positive finding:
+### V3
 
-- V3 restored real left/right phase differentiation; the V2 two-pose collapse did not recur.
+STEP 8A control preparation passed with four unique color-independent silhouettes and restored real left/right phase geometry.
 
-Catastrophic failure:
+Generated result restored phase differentiation but produced a catastrophic anatomy error:
 
-- `pose_01_passing_L_v3` contains **three legs / three visible feet**.
+- `pose_01_passing_L_v3` contains **three visible legs / three feet**.
 
-This is an immediate gross-anatomy failure and invalidates the V3 set as a usable walk cycle.
+This is a level-1 topology failure. Chain/shackle drift also remains.
 
-Secondary unresolved issues:
+Verdict: **FAIL as direct animation-frame generation.**
 
-- chain/shackle topology still varies between frames;
-- passing-pose anatomy remains unstable;
-- fine body/prop continuity is not production-stable.
+### Locked decision
 
-V3 verdict:
+Do **not** create a RefControl V4. Do not prompt-tune, seed-fish, inpaint, or continue repairing the same route.
 
-**FAIL as a usable walk set.**
+RefControl is frozen as research history / possible non-final pose-reference support only.
 
-Research conclusion:
-
-**FLUX.2 Klein + RefControl Pose can preserve identity and respond to explicit phase geometry, but it does not yet guarantee one-to-one major-limb topology. Extra-limb hallucination is now a production-blocking risk.**
+It is **rejected as the production direct-frame generator** because it does not reliably preserve body topology.
 
 ## Mandatory QA order — LOCKED
 
-All future generated frames must be judged in this order:
+Future generated character frames are judged in this order:
 
-1. **gross anatomy / limb count** — exactly two arms, two hands, two legs, two feet; no duplicated/fused major limbs;
-2. **requested pose/gait semantics** — correct support/swing/contact leg and distinct phase;
-3. **identity/continuity** — same body, face, hair, clothes, scars, restraints;
-4. **visual quality/gameplay usefulness**.
+1. exactly one head/torso, two arms, two hands, two legs, two feet; no extra/missing/fused major limbs;
+2. pose/gait adherence;
+3. identity continuity;
+4. prop/equipment continuity;
+5. visual quality/gameplay readability.
 
-A frame failing step 1 is not to be discussed as a usable gait frame.
+Failure at step 1 immediately fails the output.
 
-## Workspace relocation — LOCKED
+## New active animation feasibility candidate
 
-Current canonical workspace:
+### Qwen-Image-Edit-2511
+
+The next experiment changes model architecture rather than tweaking RefControl.
+
+Why this candidate:
+
+- image-editing architecture instead of reference-fusion LoRA generation;
+- designed to preserve source appearance/semantics during edits;
+- 2511 targets lower drift, improved character consistency and stronger geometric reasoning;
+- Qwen-Image-Edit supports keypoint/control conditioning and multi-image editing;
+- ComfyUI has a native Qwen 2511 image-edit workflow.
+
+### Target-machine strategy
+
+Machine:
+
+- Windows 11;
+- RTX 3060 12 GB;
+- ~48 GB RAM;
+- SSD workspace available.
+
+Do not start with full BF16.
+
+Initial smoke-test target:
+
+- Qwen-Image-Edit-2511 GGUF;
+- **Q3_K_M (~9.7 GB transformer)** for VRAM safety;
+- offload text encoder/VAE to RAM as needed;
+- new workspace recommended: `Z:\AI\QwenImageEditSpike`.
+
+If topology passes, a higher-quality Q4 quant may be evaluated later.
+
+## Exact next gate
+
+Do **one difficult passing pose only**, using the canonical Exilada master and explicit pose/keypoint control.
+
+No four-pose batch yet. No retry. No seed fishing.
+
+Pass requires:
+
+- exactly 2 arms / 2 hands / 2 legs / 2 feet;
+- no extra/fused/missing major limb;
+- requested passing pose obeyed;
+- Exilada identity/hair/body/clothing recognizably preserved;
+- no catastrophic prop/body fusion.
+
+If that single difficult pose fails topology, **reject Qwen immediately as a direct-frame generator**. Do not begin prompt iteration.
+
+If it passes, only then run the four-pose set.
+
+## Deterministic fallback — already defined
+
+If Qwen also fails the one-pose topology gate, stop testing diffusion-based direct frame synthesis.
+
+Next architecture becomes **deterministic rig-first animation** (2D mesh/skeletal or hidden 3D rig), guaranteeing body topology and gait mechanically. Generative tools may then assist only in non-topological tasks such as concept/reference, texture/style guidance or final native-pixel authoring.
+
+This is the hard stop that prevents endless repetition of limb-hallucination experiments.
+
+## Workspace state
+
+Frozen RefControl workspace:
 
 `Z:\AI\Flux2RefControlSpike`
-
-Old workspace:
-
-`D:\AI\Flux2RefControlSpike` — superseded.
 
 Repository:
 
 `D:\GOOGLE DRIVE\DEV\Roguelite`
 
-## Exact next gate
+Proposed new Qwen spike workspace:
 
-Do **not** expand to eight frames and do **not** rerun V3 with another seed.
-
-Next decision: determine how to constrain or reject major-limb topology errors before another generation round. Any next experiment must explicitly target extra-limb hallucination and retain the mandatory limb-count QA gate.
+`Z:\AI\QwenImageEditSpike`
 
 ## Gameplay-scale / Production Pixel Master gate — queued
 
-Only after the upstream walk route demonstrates four distinct anatomically valid phases do we return to gameplay-scale/native-raster validation under the elevated belt-scroller projection.
+Gameplay-scale/native-raster validation remains queued until an upstream animation representation passes the topology/pose gate.
 
-High-resolution RefControl outputs are motion/identity references; they are not automatically final pixel sprites.
-
-## Rejected/stopped routes
-
-- Sprite Sheet Diffusion — rejected;
-- Wan-Animate-2 — rejected;
-- paid hosted PixelLab/Pixel Engine/Retro Diffusion routes — stopped/disqualified;
-- generic video diffusion as primary animation architecture — rejected;
-- direct high-resolution generation as final pixel master — rejected;
-- primitive Python/Pillow geometry as final artistic authoring — rejected.
+High-resolution AI outputs remain motion/identity references unless and until a separate native-grid production route is validated.
