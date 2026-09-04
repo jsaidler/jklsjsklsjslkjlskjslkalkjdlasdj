@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **No production animation pipeline is accepted yet. Sprite Sheet Diffusion and Wan-Animate-2 were tested and rejected. Paid/proprietary hosted generation is disqualified unless explicitly authorized. The current active experiment is a free/local four-key-pose spike using FLUX.2 Klein Base 4B FP8 + RefControl Pose on the canonical Exilada reference. Steps 1–4 have passed: hardware/runtime, required weights, canonical reference copy and four deterministic COCO-18 poses are prepared. No FLUX inference has been executed yet.**
+Status: **No production animation pipeline is accepted yet. Sprite Sheet Diffusion and Wan-Animate-2 were tested and rejected. Paid/proprietary hosted generation is disqualified unless explicitly authorized. The current active experiment is a free/local four-key-pose spike using FLUX.2 Klein Base 4B FP8 + RefControl Pose on the canonical Exilada reference. Steps 1–4 have passed. STEP 5 tooling has been hardened and committed, but the local runtime-schema probe has not yet been executed, so STEP 5 is still pending. No FLUX inference has been executed yet.**
 
 ## Process rule — living documentation
 
@@ -226,7 +226,42 @@ Passed:
 
 Current next gate:
 
-5. **Runtime schema/workflow validation without inference.** Start ComfyUI headless on localhost, confirm the installed runtime exposes every core node required for two-reference FLUX.2 editing, confirm all four model filenames are visible to the correct loaders, save the relevant `/object_info` schema and stop the server. Only after this passes will an executable workflow be built/queued.
+5. **Runtime schema/workflow validation without inference — tooling ready, local execution pending.**
+
+Current validator:
+
+`tools/flux2-refcontrol-spike/04_validate_runtime_schema.ps1`
+
+Tooling commit:
+
+`e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce`
+
+Run on the target Windows machine:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\04_validate_runtime_schema.ps1"
+```
+
+This gate is deliberately schema-driven rather than workflow-driven. The validator must use the installed runtime's live `GET /object_info` response as evidence and must not POST `/prompt`, execute nodes, load models for inference or generate images.
+
+The validator now checks and records:
+
+- exact bind target `127.0.0.1:8188`;
+- complete raw `/object_info` saved as `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.full.json`;
+- reduced selected-node schema saved as `object_info.required.json`;
+- JSON and text PASS/FAIL reports;
+- core FLUX.2 image-edit node type contracts through model loading, reference encoding, conditioning, sampling and decode/save boundaries without executing those nodes;
+- exact visibility of `flux-2-klein-base-4b-fp8.safetensors`, `qwen_3_4b.safetensors`, `flux2-vae.safetensors` and `refcontrol-pose-klein-4b.safetensors` in the intended loaders;
+- `CLIPLoader.type=flux2`;
+- visibility of the canonical Exilada image and all four prepared skeleton PNGs through `LoadImage`;
+- actual `ReferenceLatent` or a uniquely identifiable equivalent exposed by the installed schema, resolved by a `CONDITIONING + LATENT -> CONDITIONING` contract rather than by copying an old workflow;
+- chainability of two ordered references, preserving the locked semantic contract **image 1 = skeleton, image 2 = Exilada reference**;
+- temporary server shutdown;
+- explicit report fields `prompt_requests_sent=0`, `inference_performed=false` and `model_execution_requested=false`.
+
+**STEP 5 is not PASS until that local report says PASS.** If it fails, remain in STEP 5 and diagnose the actual schema mismatch. If it passes, update this document and `docs/PROJECT_STATE.md` with the observed runtime result before creating any executable generation workflow.
+
+The premature `04_build_validate_workflow.ps1` and `05_run_spike.ps1` files that had remained in `main` from an earlier out-of-order attempt were removed from the current tree in the STEP 5 tooling cleanup. Their historical commits remain recoverable through git, but they are not current tooling and must not be restored before the gate passes.
 
 ## Acceptance criteria for the four-key-pose spike
 
@@ -272,6 +307,6 @@ Not currently approved for installation:
 - `tools/sprite-animation/` — rejected SSD experiment; research history.
 - `tools/wan-animate2-spike/` — rejected Wan experiment; research history.
 - `tools/pixellab-skeleton-spike/` — stopped hosted PixelLab experiment; research history.
-- `tools/flux2-refcontrol-spike/` — **active current local spike**.
+- `tools/flux2-refcontrol-spike/` — **active current local spike**; current authoritative next script is `04_validate_runtime_schema.ps1`. No executable STEP 6 workflow builder/runner is present in the current tree.
 
 Model checkpoints, dependency checkouts, generated outputs and temporary runtime files remain excluded from git unless a specific artifact is intentionally promoted as canonical project evidence.

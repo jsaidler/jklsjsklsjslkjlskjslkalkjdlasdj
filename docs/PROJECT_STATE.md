@@ -153,11 +153,52 @@ Pose format:
 
 Current script: `tools/flux2-refcontrol-spike/03_prepare_inputs.ps1`.
 
+### STEP 5 — runtime schema/workflow validation: TOOLING READY / LOCAL RUN PENDING
+
+Repository tooling for this gate has been corrected and committed, but the target-machine runtime probe has **not yet been executed**. Therefore STEP 5 is **not PASS yet**.
+
+Current script:
+
+`tools/flux2-refcontrol-spike/04_validate_runtime_schema.ps1`
+
+Tooling commit:
+
+`e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce`
+
+The validator now:
+
+- binds only to `127.0.0.1:8188`;
+- refuses to attach to an already occupied/unknown listener;
+- performs only `GET /object_info`;
+- saves the raw complete schema to `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.full.json`;
+- saves the relevant runtime subset to `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.required.json`;
+- saves machine-readable and text PASS/FAIL reports;
+- validates the required FLUX.2 core type contracts without executing any node;
+- verifies the exact four installed model filenames in `UNETLoader`, `CLIPLoader`, `VAELoader` and `LoraLoaderModelOnly`;
+- verifies `CLIPLoader.type` exposes `flux2`;
+- verifies all five prepared image inputs are visible to `LoadImage`;
+- resolves `ReferenceLatent` or a uniquely identifiable equivalent from the installed schema by its `CONDITIONING + LATENT -> CONDITIONING` contract;
+- records how the runtime can chain image 1 then image 2 as ordered reference latents;
+- always stops the temporary server;
+- records `prompt_requests_sent=0`, `inference_performed=false` and `model_execution_requested=false`.
+
+The premature executable workflow builder and inference runner that were still present in `main` were removed from the current tree during this cleanup. Their old commits remain in git history only. No STEP 6 tooling should be restored or recreated until the local STEP 5 report is PASS and the two living documents are updated with the observed result.
+
 ## Exact next gate — do not skip
 
 ### STEP 5 — runtime schema/workflow validation **without inference**
 
-Next conversation must continue here, not rerun completed setup unless validation reveals corruption.
+Run exactly:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\04_validate_runtime_schema.ps1"
+```
+
+Then inspect/share:
+
+`D:\AI\Flux2RefControlSpike\runtime_schema\step5_runtime_schema_report.json`
+
+Do not rerun completed setup unless the validator reports corruption.
 
 Goal:
 
@@ -169,7 +210,7 @@ Goal:
 6. stop the server after validation;
 7. perform **zero inference** and queue **zero prompts** in this step.
 
-Only after STEP 5 passes should the repository gain the executable headless workflow builder/runner for the four one-shot renders.
+Only after the local STEP 5 report says PASS, and **after** `docs/ANIMATION_PIPELINE.md` plus this file are updated with the observed result, should the repository gain the executable headless workflow builder/runner for the four one-shot renders.
 
 ## Current architecture evidence already established
 
@@ -191,6 +232,7 @@ Do not assume the final two-reference API graph until STEP 5 inspects the runtim
 - `36059f75e14626f56abaf214eec708add6600216` — final Windows PowerShell-compatible ComfyUI runtime validation fix.
 - `d6f19fb8ba79dbb048e5b96ccb862537c56cdb58` — four-weight downloader/validator.
 - `e047ee70c31cb72c193c5dfa08daf1a1db8c1d58` — canonical reference and deterministic four-pose input preparation.
+- `e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce` — hardened no-inference STEP 5 runtime-schema validator; premature STEP 6 tooling removed from current tree.
 
 ## Rejected / stopped animation routes that must not be revived casually
 
