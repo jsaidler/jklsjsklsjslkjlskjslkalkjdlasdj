@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose remains the strongest character re-posing route tested so far, but no walk cycle is approved. V1 preserved identity strongly but had anatomy/continuity defects. V2 improved anatomy but failed because left/right phase pairs collapsed into nearly repeated poses. V3 restored distinct screen-space gait phases, but visual QA exposed a catastrophic extra-limb hallucination: `pose_01_passing_L_v3` contains three legs / three visible feet. Therefore V3 FAILS as a usable walk set. QA order is now locked: gross anatomy/limb count first, gait semantics second, continuity/props third, visual quality last.**
+Status: **RefControl is no longer accepted as a direct animation-frame generator. V1 showed strong identity retention but anatomy/prop drift; V2 improved anatomy but collapsed left/right gait phases; V3 restored phase differentiation but produced a catastrophic extra-limb failure (three legs in `pose_01_passing_L_v3`). This establishes a structural reliability ceiling for the current FLUX.2 Klein + RefControl Pose route. The next experiment must use a materially different model architecture, not another RefControl V4.**
 
 This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
@@ -16,216 +16,164 @@ The animation pipeline must:
 - use free/local/self-hosted code and weights unless explicitly approved otherwise;
 - scale to many characters, equipment states and actions.
 
-## Canonical Exilada reference
+Canonical Exilada identity reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-This is the **high-detail identity/design master**, not the final gameplay pixel sprite.
+It is a high-detail identity/design master, not the final gameplay sprite.
 
-Stable identity anchors:
+## Architecture principle
 
-- adult woman;
-- lean functional anatomy;
-- severe face;
-- very long heavy black hair;
-- minimal degraded beige cloth;
-- wounds/scars;
-- wrist and ankle restraints / broken chains;
-- barefoot base state;
-- no permanent weapon.
+The useful decomposition remains:
 
-## Architecture
+`motion/key poses -> explicit structure/control -> controlled character renderer/editor -> gameplay-scale/native-raster translation -> temporal completion if needed -> QA`
 
-`motion/key poses -> explicit skeletons -> controlled character renderer -> gameplay-scale/native-raster translation -> temporal completion if needed -> QA`
+The critical new rule is:
 
-Motion generation and character re-posing are separate problems.
+**the character renderer/editor must preserve body topology before identity, style, props or gait quality are judged.**
 
-FLUX.2 Klein + RefControl Pose currently owns the **character re-posing** layer. MoMask remains a possible later numeric motion/pose-sequence generator only after the renderer and gameplay-raster representation are stable.
+## Mandatory QA order — LOCKED
 
-## Mandatory visual-QA order — LOCKED after V3 miss
+Every future generated pose/frame must be evaluated in this order:
 
-Every generated character frame must now be evaluated in this order. A frame that fails an earlier layer is not meaningfully judged on later layers.
+1. **topology/anatomy count:** exactly one head, one torso, two arms, two hands, two legs, two feet; no extra/duplicated/fused/missing major limbs;
+2. **pose adherence:** requested contact/passing/support/swing geometry is actually present;
+3. **identity continuity:** same Exilada face, body type, hair mass, clothing language and scars;
+4. **prop continuity:** shackles/chains/equipment remain on stable anatomical sides;
+5. **visual quality/gameplay readability.**
 
-### QA-0 — gross anatomy / limb-count gate
+Failure at level 1 is immediately eliminatory for that output and blocks any downstream praise/approval.
 
-Immediate FAIL if any of the following occurs:
+## RefControl research history — FROZEN
 
-- more or fewer than two legs;
-- more or fewer than two feet;
-- more or fewer than two arms;
-- more or fewer than two hands;
-- duplicated or fused major limb;
-- impossible attachment of a limb to pelvis/shoulder;
-- catastrophic hand/foot/body fusion.
+### V1
 
-### QA-1 — requested pose / gait semantics
+FLUX.2 Klein Base 4B FP8 + RefControl Pose, fixed seed `20260904`, four COCO-18 gait poses, one-shot/no-retry.
 
-Only after QA-0 passes:
+Result:
 
-- target support leg correct;
-- target swing/contact leg correct;
-- left/right phase visibly distinct;
-- foot placement and weight transfer plausible;
-- no unintended phase collapse.
-
-### QA-2 — identity and continuity
-
-Only after QA-0/1 pass:
-
-- same Exilada body proportions;
-- same face/hair mass;
-- same clothing/scars;
-- restraints/chains remain on intended anatomical sides;
-- no unexplained body-size or topology drift.
-
-### QA-3 — visual quality / gameplay usefulness
-
-Only after QA-0/1/2 pass:
-
-- silhouette quality;
-- visual polish;
-- pixel-art suitability;
-- gameplay-scale readability.
-
-This order is mandatory specifically because the V3 review incorrectly discussed gait quality before noticing an obvious third leg.
-
-## Rejected routes
-
-Do not revive casually:
-
-- Sprite Sheet Diffusion — tested locally; identity/anatomy/motion coherence failed;
-- Wan-Animate-2 Base INT8 — tested locally; motion adherence failed;
-- generic video diffusion as primary animation architecture;
-- manual frame-by-frame repainting;
-- paid hosted sprite/interpolation APIs as the default production path;
-- one-shot generic sprite-sheet generation.
-
-## RefControl contract
-
-Current local route:
-
-- base: FLUX.2 Klein Base 4B FP8;
-- LoRA: `refcontrol-pose-klein-4b.safetensors`;
-- text encoder: `qwen_3_4b.safetensors`;
-- VAE: `flux2-vae.safetensors`;
-- image 1: target OpenPose-style skeleton;
-- image 2: Exilada identity reference;
-- trigger: `refcontrol`;
-- fixed seed: `20260904`.
-
-RefControl expects an **OpenPose-style COCO-18** skeleton. COCO-18 has ankle joints but no toe/heel joints. Foot/toe errors must therefore be attacked by cleaner hip-knee-ankle geometry plus textual orientation constraints.
-
-## V1 — strong identity / structural defects
-
-V1 result:
-
-- runtime: PASS;
 - identity retention: strong;
 - four phases: distinct;
 - right-foot/toe error: present;
 - left-arm inconsistency: present;
 - body drift: small;
-- chain/shackle topology drift: present.
+- chain/shackle drift: present.
 
-Verdict:
+Verdict: **CONDITIONAL PASS as research/upstream reference; FAIL as final walk.**
 
-**CONDITIONAL PASS as upstream re-posing route; FAIL as final walk.**
+### V2
 
-## V2 — anatomy correction / gait collapse
-
-V2 preserved model, reference, seed and render settings, while changing control geometry and adding a stricter anatomy/continuity prompt.
+Changed control geometry + stricter anatomy/continuity prompt while holding model/seed/render settings constant.
 
 Improvements:
 
-- feet materially better;
-- arms materially better;
+- feet better;
+- arms better;
 - body stability better;
-- Exilada identity remained strong.
+- identity remained strong.
 
 Critical failure:
 
-- `contact_L` and `contact_R` rendered nearly the same;
-- `passing_L` and `passing_R` rendered nearly the same.
+- `contact_L` ≈ `contact_R`;
+- `passing_L` ≈ `passing_R`.
 
-Root cause — LOCKED:
+Root cause: opposite phases used nearly identical screen-space silhouettes and relied too heavily on COCO semantic left/right labels.
 
-V2 left/right pairs had nearly identical **screen-space skeleton geometry** and differed mainly through COCO left/right colors/labels. RefControl followed visible geometry more strongly than the semantic side reassignment.
+Verdict: **FAIL as a usable walk.**
 
-V2 verdict:
+### V3
 
-**FAIL as a usable walk cycle. Do not expand to eight frames.**
+Changed actual screen-space geometry so all four controls had unique color-independent silhouettes.
 
-Secondary unresolved defect:
+STEP 8A controls: PASS.
 
-- chain/shackle topology remains inconsistent.
+Generated V3 result:
 
-## V3 — structural left/right correction
+- left/right phase differentiation returned;
+- identity remained strong;
+- but `pose_01_passing_L_v3` contains **three visible legs / three feet**.
 
-V3 changed actual visible skeleton geometry so opposite gait phases remained different even if COCO colors were removed.
+This is a catastrophic topology failure. Secondary chain/shackle drift also remains.
 
-### STEP 8A — V3 controls: PASS
+Verdict: **FAIL as a direct animation-frame route.**
 
-Tool:
+### RefControl final decision — LOCKED
 
-`tools/flux2-refcontrol-spike/08_prepare_v3_inputs.ps1`
+Do **not** create a V4, do not prompt-tune, seed-fish, inpaint, or iterate further trying to repair the same class of failure.
 
-Observed preparation:
+RefControl may remain useful only as:
 
-- `generated_v3_poses=4`;
-- `silhouette_uniqueness=PASS`;
-- no model loaded;
-- no inference performed.
+- a pose/identity reference generator for non-final upstream material;
+- research history.
 
-Hashes:
+It is **rejected as the production direct-frame generator** because it does not guarantee body topology.
 
-- `pose_00_contact_L_v3` — PNG `48f7988c8107c6ac741908d8604347423fe57b18df2c93ebf5f55900333193fa`; silhouette `f24c1ddcd7e396c47e946109465756ae86d57bbdb9d90b9d0caf16bccbf52ba0`;
-- `pose_01_passing_L_v3` — PNG `5a06ba6cc32e76da4e1a8aad42e67a8c5a0258cbd9eb7464c54a4800dccfc465`; silhouette `a5e260fb5119d47ca58886d74f982cdcee01906563e7e37b536936b91510ee02`;
-- `pose_02_contact_R_v3` — PNG `637ea37ebe25b43134d6374ec3e334646f9034b39c6e6b35be3c2ddb9cd08650`; silhouette `aa94a2f6a7d2908dfb20078aee8146b13b60d0b068342a0b2df89bb0096dfabd`;
-- `pose_03_passing_R_v3` — PNG `ff98c35f70f49136c9cb55c0d6f93fdbf5b6d449d164402ee0348ba72dcdc58a`; silhouette `476ff26d61e80d05140eda6c75862280c1fc4adcd96d6159de334c11220d4098`.
+## New candidate architecture — Qwen-Image-Edit-2511
 
-Control-level verdict: **PASS** — four genuinely different screen-space silhouettes.
+The next generative spike must change model class, not merely parameters.
 
-### STEP 8B — V3 inference: completed, visual set FAIL
+Candidate:
 
-The user produced four V3 character outputs.
+**Qwen-Image-Edit-2511**, local/self-hosted, Apache 2.0.
 
-Positive result:
+Why it is materially different:
 
-- V3 did restore visible left/right phase differentiation; the V2 two-pose collapse did not recur.
+- it is an image-editing architecture rather than a reference-fusion LoRA attached to a generative base;
+- the Qwen-Image-Edit family is designed to preserve source appearance/semantics while applying edits;
+- the 2511 revision specifically targets lower image drift, improved character consistency and stronger geometric reasoning;
+- the edit family supports keypoint/control conditioning and multi-image inputs;
+- ComfyUI has a native Qwen 2511 edit workflow.
 
-Catastrophic failure:
+### Hardware strategy for RTX 3060 12 GB
 
-- `pose_01_passing_L_v3` contains **three legs / three visible feet**;
-- this is an immediate QA-0 gross-anatomy FAIL and invalidates the frame regardless of gait/readability quality.
+Do not attempt the full BF16 model first.
 
-Other unresolved issues visible across V3 remain secondary to QA-0:
+Initial local smoke-test target:
 
-- chain/shackle topology still varies;
-- some passing-pose anatomy remains awkward;
-- fine body/prop continuity is not yet production-stable.
+- Qwen-Image-Edit-2511 GGUF quantized transformer;
+- start with **Q3_K_M (~9.7 GB transformer)** for VRAM safety;
+- text encoder/VAE offloaded as needed to system RAM;
+- use existing 48 GB RAM and SSD workspace;
+- if and only if topology passes, later evaluate a higher-quality Q4 quant.
 
-V3 verdict:
-
-**FAIL as a usable walk set.**
-
-Important research conclusion:
-
-**Distinct control geometry can restore phase differentiation, but FLUX.2 Klein + RefControl Pose still does not guarantee one-to-one major-limb topology. Extra-limb hallucination remains a production-blocking risk.**
-
-## Workspace — LOCKED
-
-Canonical FLUX workspace:
+Canonical workspace remains:
 
 `Z:\AI\Flux2RefControlSpike`
 
-Repository:
+A new sub-workspace may be created under `Z:\AI\QwenImageEditSpike` rather than contaminating the frozen RefControl evidence.
 
-`D:\GOOGLE DRIVE\DEV\Roguelite`
+## Hard next gate — ONE difficult pose only
 
-## Exact next gate
+Do not generate four frames first.
 
-Do **not** expand to eight frames and do **not** approve any V3 frame set yet.
+The first Qwen test uses exactly one difficult passing pose — preferably the same structural case that produced the V3 extra leg.
 
-Before another inference round, decide how to handle major-limb topology failures. Any next experiment must explicitly target the extra-limb risk and retain the new mandatory QA-0 limb-count gate.
+Inputs:
 
-The next route should be chosen from evidence, not by simply rerunning V3 with another seed.
+1. canonical `exilada_master.png`;
+2. one explicit keypoint/pose control for the difficult passing phase;
+3. fixed prompt requiring the same Exilada and exact normal human topology.
+
+One output only. No retry, no seed fishing.
+
+### Acceptance criteria
+
+The single-pose spike passes only if all are true:
+
+- exactly **2 arms / 2 hands / 2 legs / 2 feet**;
+- no extra or fused major limb;
+- requested passing pose is visibly obeyed;
+- Exilada identity/hair/body/clothing remain recognizably stable;
+- no catastrophic prop-body fusion.
+
+If this one difficult pose fails topology, **reject Qwen as a direct-frame generator immediately**. Do not start a prompt-tuning loop.
+
+If it passes, only then run the four-pose set.
+
+## Deterministic fallback if Qwen also fails
+
+If the Qwen one-pose topology gate fails, stop testing diffusion-based direct frame synthesis.
+
+Next architecture becomes **deterministic rig-first animation**, where topology and gait are guaranteed by a 2D mesh/skeletal or hidden 3D rig, and generative tools are allowed only for non-topological tasks such as reference, texture/style guidance or downstream native-pixel authoring.
+
+This prevents an endless sequence of models hallucinating limbs while we repeatedly repair prompts.
