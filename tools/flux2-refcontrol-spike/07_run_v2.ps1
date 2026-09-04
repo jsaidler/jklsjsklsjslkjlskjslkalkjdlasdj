@@ -129,7 +129,7 @@ function Get-ExistingV2Outputs {
     if ($result.Count -ne $allPng.Count) {
         $known = @($result | ForEach-Object { $_.file.FullName })
         $unexpected = @($allPng | Where-Object { $known -notcontains $_.FullName })
-        throw "Recovery refused: unexpected PNG(s) exist in $V2OutputDir: $($unexpected.Name -join ', ')"
+        throw "Recovery refused: unexpected PNG(s) exist in ${V2OutputDir}: $($unexpected.Name -join ', ')"
     }
 
     # Existing outputs must be a contiguous prefix of the four-pose sequence.
