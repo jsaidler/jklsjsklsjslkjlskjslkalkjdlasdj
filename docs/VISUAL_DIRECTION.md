@@ -1,45 +1,57 @@
 # Visual Direction — Living Document
 
-Status: **modern pixel art and baseline gameplay camera locked; production execution still under validation**
+Status: **modern pixel art remains the final gameplay target; the current Exilada master is reclassified as a high-detail canonical design/identity reference rather than proof of final pixel-art construction. Production execution is still under validation.**
+
+## Process rule — living documentation
+
+All material visual-direction decisions, pipeline changes, accepted/rejected approaches and current validation state must be recorded in this document or the relevant linked canonical document as they occur. These documents are the project memory across chats. When a decision changes, edit the existing canonical document rather than creating parallel versions.
 
 ## Core production constraint
 
 The project is developed end-to-end by ChatGPT, with the user directing and approving decisions.
 
-The user will **not produce game art manually and will not hire external artists**. Therefore the complete production visual pipeline — characters, creatures, environments, animation, effects, variation, maintenance, and future expansion — must be executable by ChatGPT and project tooling without depending on a conventional art team or bespoke manual artwork supplied by the user.
+The user will **not produce game art manually and will not hire external artists**. Therefore the complete production visual pipeline — characters, creatures, environments, animation, effects, variation, maintenance and future expansion — must be executable by ChatGPT and project tooling without depending on a conventional art team or bespoke manual frame work.
 
-This is a hard design constraint.
-
-A visual direction is invalid if it can produce an attractive isolated concept but cannot be reproduced, animated, varied, maintained, and expanded by the same production pipeline used to build the game.
+A visual direction is invalid if it can produce an attractive isolated concept but cannot be reproduced, animated, varied, maintained and expanded by the same production pipeline used to build the game.
 
 ## Locked final visual language: modern pixel art
 
-The game uses **modern pixel art as an actual image-making language**, not a simulated pixel texture applied to another rendering style.
+The final game should use **modern pixel art as an actual image-making language**, not merely a pixel texture or post-process applied to another rendering style.
 
-### This means
+At production gameplay scale this means:
 
-- Characters and environments must be designed for pixel-art readability from the beginning.
-- Pixel clusters, silhouette, value grouping, palette, edge treatment and animation readability are primary design concerns.
-- The final image must not read as painted or generated artwork that was subsequently downscaled, quantized, sharpened or covered with a pixel filter.
-- The final image must not read as conventional 3D rendered at low resolution and disguised as pixel art.
-- Pixel density and detail must be intentional and coherent at gameplay scale.
-- The style may be detailed and contemporary, but detail must remain organized into readable pixel structures rather than noisy microtexture.
-- Controlled palettes, clean clusters and strong silhouettes are preferred over decorative dithering or texture for its own sake.
-- The target is mature, severe, atmospheric and systemic rather than nostalgic, cute or cartoonish.
+- pixel clusters, silhouette, value grouping, palette, edge treatment and animation readability are primary design concerns;
+- the final image should not read as conventional painted/3D imagery simply downsampled, quantized or covered with a pixel filter;
+- pixel density and detail must be intentional and coherent at gameplay scale;
+- the style may be detailed and contemporary, but detail must remain organized into readable raster structures rather than noisy microtexture;
+- controlled palettes, clean clusters and strong silhouettes are preferred over decorative texture for its own sake;
+- the target is mature, severe, atmospheric and systemic rather than nostalgic, cute or cartoonish.
+
+### Important clarification: design reference versus production sprite
+
+The current `exilada_master.png` is **more detailed than a strict production pixel-art sprite should be**. It remains approved because it successfully defines the Exilada's identity, proportions, face, hair mass, clothing state, restraint markers and overall visual character.
+
+It must therefore be treated as a **high-detail canonical design/identity reference**, not as evidence that its current raster density is already the final gameplay pixel-art solution.
+
+Consequences:
+
+- a pose/model test should be judged against the source it was given; reproducing the reference's high-detail look is not, by itself, a model failure;
+- final pixel-art compliance is a separate production problem that must be solved downstream at actual gameplay scale;
+- the project still requires an automatic/scalable method to derive the final production-raster representation from the approved design without manual frame repainting;
+- the source design should not be redesigned merely to make a particular animation model look better.
 
 ### Explicitly rejected as final visible art
 
 - simple procedural primitives or generic low-poly geometry presented directly;
 - the same geometry hidden behind outlines, hatching, fog or more sophisticated shaders;
-- conventional rendered imagery with a pixelation/post-process filter;
-- AI-looking painterly imagery merely reduced to a coarse raster;
-- fake pixel-art texture that does not survive inspection as coherent pixel construction;
-- large libraries of hand-painted frame-by-frame sprites that require manual art labor from the user;
-- production approaches that require manual frame repair as their normal mode of operation.
+- conventional rendered imagery with a superficial pixelation/post-process filter as the final solution;
+- fake pixel texture that does not survive inspection as coherent gameplay-scale raster construction;
+- large libraries of hand-painted frame-by-frame sprites requiring manual art labor from the user;
+- production approaches that require routine manual frame repair.
 
-The previously documented **pixel-rendered systemic 3D** hypothesis is therefore superseded as the target aesthetic. 3D or procedural geometry may still be useful internally for blockout, collision, navigation, pose generation, lighting reference or hidden production tooling, but it is not the visible art direction.
+3D or procedural geometry may still be useful internally for blockout, collision, navigation, pose generation, lighting reference or hidden production tooling, but it is not the locked visible art direction.
 
-## Character pixel-art principles
+## Character visual principles
 
 Characters must be identifiable first through **silhouette, large masses, posture and controlled contrast**, then through secondary detail.
 
@@ -51,9 +63,9 @@ At gameplay scale:
 - clothing and equipment may evolve without erasing the character's underlying body, hair and posture identity;
 - anatomy remains adult and materially grounded;
 - exposed skin or nudity may be used when narratively and materially appropriate, without forcing erotic framing;
-- dirt, wounds, blood, scars and wear should preferably express actual simulated history or state rather than arbitrary decoration.
+- dirt, wounds, blood, scars and wear should preferably express actual simulated history/state rather than arbitrary decoration.
 
-The protagonist-specific rules are maintained in `docs/CHARACTERS.md`.
+The protagonist-specific rules live in `docs/CHARACTERS.md`.
 
 ## Systemic visual rule
 
@@ -66,7 +78,7 @@ Examples:
 - population clothing and equipment should reflect available resources, culture, climate, trade and conflict;
 - looted equipment may visually propagate between factions after warfare;
 - hunger, disease, age, fatigue, status, occupation and injuries may affect silhouette, posture, animation, material condition or clothing;
-- blood, dirt, wetness, burns, frost and other transient states should correspond to gameplay or environmental causes.
+- blood, dirt, wetness, burns, frost and other transient states should correspond to gameplay/environmental causes.
 
 Procedural variation must therefore be **causal and constrained**, not arbitrary noise.
 
@@ -88,15 +100,19 @@ Useful controlled parameters may include:
 - equipment states;
 - species-specific anatomy where relevant.
 
-The final visible output must still satisfy the locked pixel-art language. Production efficiency does not excuse generic forms or incoherent pixels.
+The final visible output must still satisfy the locked gameplay raster language. Production efficiency does not excuse generic forms or incoherent pixels.
 
 ## Character animation direction
 
-The current production path uses **Sprite Sheet Diffusion (SSD)** driven by deterministic pose sequences and a canonical character reference.
+The previous Sprite Sheet Diffusion and Wan-Animate-2 routes were tested and rejected. They are no longer current production paths.
 
-The objective is not to ask an image generator to invent independent frames. The canonical reference anchors identity while deterministic skeletal poses define motion. Generated sequences are accepted only when temporal consistency and pixel-art readability survive actual gameplay-scale inspection.
+The active animation research path is documented in `docs/ANIMATION_PIPELINE.md` and currently tests:
 
-Full technical details live in `docs/ANIMATION_PIPELINE.md`.
+`canonical high-detail design reference + explicit deterministic COCO-18 key poses + FLUX.2 Klein Base 4B FP8 + RefControl Pose`
+
+This current spike is intentionally limited to **four static key poses**. Its first gate is identity/anatomy/pose adherence, not final gameplay pixel-art compliance.
+
+If the pose renderer passes, the project must then solve the **production-raster translation** problem explicitly before choosing temporal completion/inbetweening.
 
 ## Environment direction
 
@@ -118,18 +134,18 @@ The baseline gameplay camera is **locked as a high oblique top-down camera**, ch
 
 ### Locked camera principles
 
-- The camera is elevated and strongly top-down, but **not vertical**.
-- The viewing axis should descend at approximately **60–70° relative to the horizontal ground plane** (roughly 20–30° away from a purely vertical top-down view).
-- The camera must show enough of the character's full body for posture, equipment, injuries and animation to remain readable.
-- Movement is continuous and free in **360°**, not grid-stepped.
-- The presentation is **not constrained to a rigid 2:1 isometric projection**.
-- Walls, doors, props, elevation changes and vertical structures must remain legible.
-- Character facing, locomotion direction, torso orientation, look direction and weapon aim may be partially independent.
-- Character and environment assets must be designed for this actual gameplay projection rather than unrelated front/profile/catalog views.
+- elevated and strongly top-down, but **not vertical**;
+- viewing axis approximately **60–70° relative to the horizontal ground plane** (roughly 20–30° away from pure vertical top-down);
+- enough of the character's full body must remain visible for posture, equipment, injuries and animation to read;
+- movement is continuous and free in **360°**, not grid-stepped;
+- presentation is **not constrained to rigid 2:1 isometric projection**;
+- walls, doors, props, elevation changes and vertical structures must remain legible;
+- character facing, locomotion direction, torso orientation, look direction and weapon aim may be partially independent;
+- character/environment assets must be designed for this gameplay projection rather than unrelated front/profile/catalog views.
 
 ### Still to tune
 
-- exact pitch within the 60–70° target band;
+- exact pitch within the 60–70° band;
 - orthographic versus perspective implementation if needed;
 - camera distance and zoom limits;
 - azimuth and whether player-controlled rotation exists;
@@ -140,22 +156,26 @@ Any tuning must preserve the locked high-oblique top-down gameplay language.
 
 ## Visual validation gate
 
-Artwork is not approved because a character sheet or concept is attractive. Production art must be judged at actual game scale and in motion.
+Artwork is not approved because a concept or character sheet is attractive. Production art must be judged at actual game scale and in motion.
 
-A representative validation sequence must demonstrate:
+A representative validation sequence must eventually demonstrate:
 
 1. one protagonist with a distinctive silhouette at gameplay scale;
-2. coherent modern pixel-art construction rather than post-processed illustration;
+2. a deliberate modern pixel-art production raster, not merely high-detail concept art;
 3. continuous readable locomotion and rotation/facing changes;
-4. at least one small representative environment composition;
-5. dynamic state such as light, injury, dirt, blood, weather or equipment without destroying pixel clarity;
-6. reproducibility through the project pipeline without manual frame-by-frame repainting.
+4. at least one representative environment composition;
+5. dynamic state such as light, injury, dirt, blood, weather or equipment without destroying readability;
+6. reproducibility through project tooling without manual frame-by-frame repainting.
+
+The current FLUX + RefControl key-pose spike does **not** need to prove item 2 by itself; it is an earlier structural gate focused on preserving the approved design while obeying explicit pose control.
 
 ## Current decision
 
-**Locked:** modern pixel art is the final visual language.
+**Locked:** modern pixel art remains the final gameplay visual language.
 
-**Locked:** pixel art must be native to the design and final image, not a texture/filter applied to AI illustration, 3D rendering or generic low-poly art.
+**Locked:** the current Exilada master is the canonical design/identity reference, but is too detailed to be treated as the final production pixel-art master.
+
+**Locked:** do not blame a pose model for faithfully reproducing detail already present in the source; model fidelity and final raster stylization are separate gates.
 
 **Locked:** stylized, mature, severe, atmospheric and systemic presentation.
 
@@ -165,6 +185,4 @@ A representative validation sequence must demonstrate:
 
 **Locked:** character production must remain scalable without manual art labor from the user or hired artists.
 
-**Current character-animation path:** canonical pixel-art reference + deterministic pose driving + Sprite Sheet Diffusion + automated post-processing + gameplay-scale validation.
-
-**Still under validation:** whether the complete SSD-based production chain can preserve the approved modern pixel-art character identity across all required animations, directions, equipment states and character families.
+**Current character-animation path:** canonical Exilada design reference + four deterministic COCO-18 key poses + FLUX.2 Klein Base 4B FP8 + RefControl Pose, followed by a separate production-raster solution only if pose/identity control passes.
