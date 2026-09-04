@@ -59,7 +59,8 @@ Write-Host '  Pixel Engine: FORBIDDEN unless this spike passes'
 Write-Host ''
 
 $Script = Join-Path $PSScriptRoot 'pixellab_spike.py'
-& $Python $Script `
+$Launcher = Join-Path $PSScriptRoot 'balance_aware_launcher.py'
+& $Python $Launcher $Script `
     --master $Master `
     --workspace $Workspace `
     --size $Size `
