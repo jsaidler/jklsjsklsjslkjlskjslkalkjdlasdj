@@ -84,7 +84,7 @@ function Assert-Choice([object]$ObjectInfo, [string]$NodeName, [string]$InputNam
     }
 }
 
-function Assert-WorkflowSchema([object]$ObjectInfo, [hashtable]$Workflow) {
+function Assert-WorkflowSchema([object]$ObjectInfo, [System.Collections.IDictionary]$Workflow) {
     foreach ($entry in $Workflow.GetEnumerator()) {
         $id = [string]$entry.Key
         $nodeDef = $entry.Value
@@ -138,21 +138,21 @@ foreach ($name in $ExpectedPoses) {
     if (-not (Test-Path $json -PathType Leaf)) { throw "Missing pose spec: $json" }
 
     $spec = Get-Content -LiteralPath $json -Raw | ConvertFrom-Json
-    if ($spec.format -ne 'openpose_coco18') { throw "$name: unexpected pose format '$($spec.format)'" }
-    if ($spec.pose_name -ne $name) { throw "$name: pose_name mismatch in JSON" }
-    if (@($spec.keypoints_normalized).Count -ne 18) { throw "$name: expected 18 normalized keypoints" }
-    if (@($spec.keypoints_pixels).Count -ne 18) { throw "$name: expected 18 pixel keypoints" }
+    if ($spec.format -ne 'openpose_coco18') { throw "${name}: unexpected pose format '$($spec.format)'" }
+    if ($spec.pose_name -ne $name) { throw "${name}: pose_name mismatch in JSON" }
+    if (@($spec.keypoints_normalized).Count -ne 18) { throw "${name}: expected 18 normalized keypoints" }
+    if (@($spec.keypoints_pixels).Count -ne 18) { throw "${name}: expected 18 pixel keypoints" }
     if ([int]$spec.canvas[0] -ne $Width -or [int]$spec.canvas[1] -ne $Height) {
-        throw "$name: expected canvas ${Width}x${Height}, got $($spec.canvas[0])x$($spec.canvas[1])"
+        throw "${name}: expected canvas ${Width}x${Height}, got $($spec.canvas[0])x$($spec.canvas[1])"
     }
     foreach ($kp in @($spec.keypoints_normalized)) {
         if ([double]$kp.x -lt 0.0 -or [double]$kp.x -gt 1.0 -or [double]$kp.y -lt 0.0 -or [double]$kp.y -gt 1.0) {
-            throw "$name: keypoint '$($kp.label)' is outside normalized canvas"
+            throw "${name}: keypoint '$($kp.label)' is outside normalized canvas"
         }
     }
     $actualHash = (Get-FileHash -LiteralPath $png -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($actualHash -ne ([string]$spec.png_sha256).ToLowerInvariant()) {
-        throw "$name: PNG hash no longer matches its pose spec"
+        throw "${name}: PNG hash no longer matches its pose spec"
     }
 }
 Write-Host '[OK] Four deterministic COCO-18 skeletons validate structurally and by SHA-256.' -ForegroundColor Green
