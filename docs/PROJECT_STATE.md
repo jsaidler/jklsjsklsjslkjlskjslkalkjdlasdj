@@ -11,9 +11,11 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 3. `docs/VISUAL_DIRECTION.md`
 4. `docs/CHARACTERS.md`
 5. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-6. `docs/PIXEL_ART_PRODUCTION.md`
-7. `docs/ANIMATION_PIPELINE.md`
-8. current tooling under `tools/`
+6. `docs/ANIMATION_SOURCE_LIBRARY.md`
+7. `docs/PHYSICAL_INTERACTION_VFX_GORE.md`
+8. `docs/PIXEL_ART_PRODUCTION.md`
+9. `docs/ANIMATION_PIPELINE.md`
+10. current tooling under `tools/`
 
 After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -68,6 +70,84 @@ Production decomposition:
 `gameplay scale/camera -> real motion -> deterministic rig -> persistent secondary systems -> native-raster semantic passes -> pixel-specific renderer -> modular equipment/state composition -> sprite/runtime export -> automated QA`
 
 A hidden 3D rig is currently the preferred topology/motion backbone because it scales to motion capture, equipment sockets and many characters/actions. This **does not** mean the visible game becomes conventional 3D.
+
+## Animation-source strategy — CANONICAL LIBRARY PLAN
+
+Canonical source/ingestion catalog:
+
+`docs/ANIMATION_SOURCE_LIBRARY.md`
+
+Blender is the deterministic processing/retargeting backbone, not the sole source of motions.
+
+Primary permissive sources already identified:
+
+- **Quaternius Universal Animation Library** — 120+ CC0 humanoid animations including locomotion, crawl, swim, death and combat;
+- **Quaternius Universal Animation Library 2** — 130+ additional CC0 actions including armed/melee combos and parkour;
+- **CMU Graphics Lab Motion Capture Database** — thousands of recorded trials, including walking, limping, get-up/recovery, swordplay and many natural motions, commercially usable in products under its stated terms;
+- **Quaternius animal/monster/dinosaur packs** — CC0 animated sources for quadruped/creature rig-family validation.
+
+Adobe Mixamo remains supplemental rather than a required automated dependency because acquisition normally requires account/web interaction.
+
+The library is normalized by canonical **rig families** rather than forcing all species through one skeleton.
+
+## Physical interaction / VFX / gore / body-state architecture — NEW LOCKED PLAN
+
+Canonical document:
+
+`docs/PHYSICAL_INTERACTION_VFX_GORE.md`
+
+These are **not** deferred polish items. Wind, liquids, gore, dynamic lighting and optional unclothed body states affect how the rig, materials, semantic passes and runtime composition are designed.
+
+### Wind
+
+- Blender force fields / deterministic secondary systems may drive hair, cloth, foliage, dust, smoke-reference motion and similar assets;
+- character hair/cloth should remain persistent modular structures, not per-frame redraws;
+- wind must not create full-body animation×wind combinatorial explosion if separate depth-aware hair/cloth layers can solve it;
+- if continuous bitmap deformation damages pixel clusters, use discrete wind-state families instead.
+
+### Liquids
+
+Separate **surface state** from **free fluid motion**.
+
+- wetness/blood/mud on characters use persistent semantic/material/body masks;
+- blood spray, splashes, drips and ordinary water interaction are event-driven pixel VFX at runtime;
+- Blender fluid simulation is useful for reference, hero effects and atlas generation, but ordinary gameplay liquid interaction must not require an offline bake per event;
+- environment water may use runtime 2D wave/height-field logic, contact splashes and depth-aware pixel particles where needed.
+
+### Gore
+
+Gore is a production requirement.
+
+The deterministic body must include named anatomical damage/sever zones from the start.
+
+A sever event uses:
+
+- known body-part hide/removal;
+- persistent wound-cap/gore socket;
+- detached limb/head object from the same body identity;
+- blood emitter at the correct socket;
+- collision/velocity/depth behavior;
+- deterministic equipment transfer rules.
+
+Do not begin with arbitrary mesh slicing. Controlled anatomical cut zones are the scalable first architecture.
+
+### Dynamic lighting
+
+Hidden per-frame normal/material/depth information may drive runtime lighting, but visible pixel sprites must use **discrete material palette bands/LUTs**, not smooth photoreal gradients.
+
+This preserves pixel-art structure while allowing point lights, rim effects, weather/day-night changes and similar systemic lighting.
+
+### Nude/unclothed body support
+
+The body must exist **independently under clothing** because clothing is modular and may be removed/damaged/changed.
+
+This does not require generative nude imagery.
+
+A current deterministic base-body candidate is **MakeHuman/MPFB or their CC0 core assets**. The base mesh/targets/skins can be used commercially, then parametrically adapted to Exilada proportions and rendered by the same local Blender/pixel pipeline.
+
+Any third-party MakeHuman/MPFB asset must be license-checked separately.
+
+The technical pipeline therefore does not make clothing mandatory and is not blocked by any image-generation-service limitation on nude imagery.
 
 ## Hard user-operation constraint — LOCKED
 
@@ -125,10 +205,13 @@ Only after G0–G3 all PASS:
 - **G4 identity mapping:** low-detail Exilada production proxy + first approved native Production Pixel Master;
 - **G5 temporal stress pack:** walk + high-energy/extreme action + compressed/impact/recovery motion before any animation library;
 - **G6 equipment/attachments:** hair, shackles, chains and one representative weapon remain persistent and modular across motions;
-- **G7 systemic visual state:** representative blood/dirt/wetness/injury/material states use stable semantic masks/palette rules;
+- **G6A wind/secondary motion:** calm + wind-state response without manual repair or pixel corruption;
+- **G6B liquid/contact VFX:** one water/wetness interaction + one blood impact;
+- **G6C gore topology:** one deterministic sever-zone test before Exilada gore content is multiplied;
+- **G7 systemic visual state/dynamic lighting:** blood/dirt/wetness plus one dynamic light and wind-driven state;
 - **G8 production scaling:** several clips/items process automatically end-to-end with deterministic export and QA.
 
-The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md`.
+The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md` and `docs/PHYSICAL_INTERACTION_VFX_GORE.md`.
 
 ## Planned visual translation — current primary candidate
 
