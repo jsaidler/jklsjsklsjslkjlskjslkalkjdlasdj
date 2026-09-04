@@ -13,9 +13,6 @@ $EmbeddedPython = Join-Path $PortableRoot 'python_embeded\python.exe'
 $OfficialUrl = 'https://github.com/Comfy-Org/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z'
 
 function Find-7Zip {
-    # Windows PowerShell 5.1 can collapse a one-item pipeline result to a scalar.
-    # Build and wrap the candidate list explicitly so StrictMode never relies on
-    # a scalar object's .Count property.
     $rawCandidates = @()
 
     if ($env:ProgramFiles) {
@@ -97,17 +94,24 @@ if ($LASTEXITCODE -ne 0) { throw 'Embedded Python validation failed.' }
 
 Write-Host ''
 Write-Host '[CHECK] PyTorch/CUDA runtime:' -ForegroundColor Cyan
+$probePath = Join-Path $Workspace '_cuda_probe.py'
 $probe = @'
 import torch
-print(f"torch={torch.__version__}")
-print(f"cuda_runtime={torch.version.cuda}")
-print(f"cuda_available={torch.cuda.is_available()}")
+print('torch=' + str(torch.__version__))
+print('cuda_runtime=' + str(torch.version.cuda))
+print('cuda_available=' + str(torch.cuda.is_available()))
 if torch.cuda.is_available():
-    print(f"gpu={torch.cuda.get_device_name(0)}")
-    print(f"vram_gb={torch.cuda.get_device_properties(0).total_memory / (1024**3):.2f}")
+    print('gpu=' + torch.cuda.get_device_name(0))
+    print('vram_gb={:.2f}'.format(torch.cuda.get_device_properties(0).total_memory / (1024**3)))
 '@
-& $EmbeddedPython -c $probe
-if ($LASTEXITCODE -ne 0) { throw 'PyTorch/CUDA validation failed.' }
+[System.IO.File]::WriteAllText($probePath, $probe, [System.Text.UTF8Encoding]::new($false))
+try {
+    & $EmbeddedPython $probePath
+    if ($LASTEXITCODE -ne 0) { throw 'PyTorch/CUDA validation failed.' }
+}
+finally {
+    Remove-Item $probePath -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host ''
 Write-Host 'STEP 2: PASS' -ForegroundColor Green
