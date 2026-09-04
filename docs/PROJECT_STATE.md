@@ -2,11 +2,9 @@
 
 Status date: **2026-09-04**
 
-Purpose: **canonical cross-chat operational handoff.** This file records the current active work, latest validated checkpoints, rejected routes and exact next gate. Detailed design lives in the linked living documents.
+Purpose: **canonical cross-chat operational handoff.** GitHub living documents are the source of truth.
 
-## Canonical living documents
-
-Read in this order before acting:
+## Read first
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/GAME_VISION.md`
@@ -14,250 +12,158 @@ Read in this order before acting:
 4. `docs/CHARACTERS.md`
 5. `docs/PIXEL_ART_PRODUCTION.md`
 6. `docs/ANIMATION_PIPELINE.md`
-7. current tooling under the relevant `tools/` spike directory
+7. current tooling under `tools/`
 
-GitHub living documents are the source of truth across chats.
+After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
 
-## Mandatory checkpoint protocol
+## Game identity
 
-After every material project step:
+The game is a **systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a living world**.
 
-1. update the relevant thematic living document;
-2. update this file;
-3. commit tooling/documentation changes with a focused commit;
-4. record PASS/FAIL, observed result and next gate;
-5. do not rely only on chat history or memory.
+Immediate gameplay baseline is an **elevated 2D belt-scroller / false 3D** rather than rigid isometric/top-down 360° presentation.
 
-## What the game is — canonical summary
+Character-art/animation feasibility is the current priority because it is the largest production risk; code capability is not the current unknown.
 
-The project is a **systemic action RPG with roguelite structure, persistent fortress growth and a living sword-and-sorcery world**.
+## Exilada visual state
 
-Five coupled layers define the game:
-
-1. **Living world:** cultures, creatures, settlements, resources, territories and factions behave from causal rules rather than arbitrary procedural randomness.
-2. **Fortress:** a persistent foothold that grows, produces, defends, attracts population and affects/is affected by the same world simulation.
-3. **Exilada meta-progression:** the protagonist persists and changes through capabilities, equipment, knowledge, relationships and history/state.
-4. **Expeditions/runs:** dangerous excursions feed consequences back into protagonist, fortress and world state rather than existing as isolated arcade stages.
-5. **Immediate gameplay:** physical, readable action inspired by arcade belt-scrolling beat'em ups but updated with systemic AI, state, equipment, environment and contemporary combat expectations.
-
-Detailed canonical formulation lives in `docs/GAME_VISION.md`.
-
-## Locked gameplay projection change — PASS
-
-The previous high-oblique top-down / continuous-360° presentation baseline is superseded.
-
-The current locked baseline is:
-
-**elevated 2D belt-scroller / false 3D**
-
-This means:
-
-- strong lateral travel axis;
-- continuous depth movement within walkable bands;
-- elevated camera showing enough ground to read spatial depth;
-- mostly lateral / three-quarter full-body action presentation;
-- foreground/background overlap and false-3D environmental depth;
-- not a pure side-scrolling platformer;
-- not rigid technical isometry;
-- combat readability and production scalability take priority over geometric purity.
-
-Observed design consequence:
-
-This should substantially reduce the directional-art multiplication of an eight-direction isometric/top-down system while preserving the spatial language desired for the game's beat'em-up-like maps.
-
-## Current active focus
-
-**Resolve the Exilada base-walk production scale under the belt-scroller projection.**
-
-The project is intentionally focused on the protagonist before large-scale gameplay implementation because character art/animation is the principal production-feasibility risk. Code implementation capability is not the current unknown.
-
-The goal is to prove that the project can produce, reproducibly and without manual frame-by-frame work:
-
-- a convincing protagonist at actual gameplay scale;
-- a readable and physically grounded base walk;
-- animation suitable for the selected projection;
-- equipment/state variation;
-- scalable character production for NPCs, enemies and creatures.
-
-This focus is a feasibility gate for the full game, not a redefinition of the project as a sprite experiment.
-
-## Current visual-production findings
-
-### Identity/design master: PASS
-
-Canonical Exilada reference:
+Canonical identity master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-It remains canonical for identity and defines:
+It is a high-detail identity/design reference, not the final gameplay sprite.
 
-- adult female identity;
-- lean functional anatomy;
-- long black hair as dominant mass;
-- olive/brown skin;
-- minimal degraded clothing;
-- captivity/restraint markers;
-- barefoot, weaponless initial state.
+Final visible art remains true modern pixel art. Simple high-resolution generation followed by resize/quantization is not an accepted final-sprite route.
 
-It is **not** the final gameplay sprite master.
+Old provisional production values such as ~64 px visible height / `96×96` idle canvas / eight mandatory directions are superseded after the belt-scroller decision.
 
-### Direct high-resolution generation as Production Pixel Master: FAIL
+## Current animation checkpoint
 
-Observed:
+### FLUX.2 Klein + RefControl Pose V1
 
-- high-resolution illustration rather than actual production-grid pixel art;
-- excessive generative texture/detail;
-- no trustworthy native-grid cluster/palette control.
+This is the strongest route tested so far.
+
+STEP 6 was actually executed successfully; any older statement that the project is still pre-inference is obsolete.
+
+Run properties:
+
+- four one-shot generations;
+- fixed seed `20260904`;
+- `768×1024`;
+- no retry, fallback, inpainting, interpolation or seed fishing.
+
+Runtime result: **PASS**.
+
+Visual result: **CONDITIONAL PASS / not production-ready**.
+
+Strengths:
+
+- strongest Exilada identity retention obtained so far;
+- four gait phases are clearly different;
+- overall anatomy and clothing/hair coherence are substantially better than prior SSD/Wan attempts.
+
+Blocking defects:
+
+1. right-foot/toe orientation error in at least one frame;
+2. left-arm inconsistency;
+3. small inter-frame body-proportion drift;
+4. chain/shackle side/topology drift.
 
 Decision:
 
-Do not prompt-iterate this route as final sprite authoring.
+**Keep RefControl as the lead upstream re-posing route and run one controlled correction round.**
 
-### Native Python/Pillow primitive sprite spike: FAIL visually
+## Current exact gate — V2 correction run
 
-Technical native-raster properties passed, but visual quality failed through generic procedural/mannequin anatomy and weak authored silhouette.
+Do not change models or search seeds.
 
-Decision:
+### Unchanged variables
 
-Python/Pillow remains useful for deterministic QA/export/masks/palette checks, but not as the artistic authoring engine.
+- Exilada reference;
+- FLUX.2 Klein Base 4B FP8;
+- RefControl Pose LoRA strength 1.0;
+- seed `20260904`;
+- `768×1024`;
+- 20 steps;
+- CFG 5.0;
+- Euler;
+- one prompt submission per pose.
 
-## Recovered base-walk checkpoint — PASS as historical evidence
+### Changed variables only
 
-The work had already reached an eight-frame Exilada walk-cycle test before the production-raster concern interrupted it.
+1. cleaner COCO-18 skeleton geometry:
+   - no arms crossing through torso centerline;
+   - no crossed-leg X pose;
+   - larger limb separation;
+2. stricter prompt:
+   - correct feet/toe direction toward screen-right;
+   - coherent left/right arms;
+   - fixed body dimensions;
+   - exact chain/shackle topology from identity reference.
 
-Recovered artifacts:
+RefControl officially expects COCO-18, so toe/heel joints cannot simply be added to the control skeleton. Foot correction must be tested through less ambiguous ankle/knee geometry plus prompt constraints.
 
-- **smoke:** `8` frames, `8 fps`, `384 × 576` pixels per frame;
-- **quality:** `8` frames, `8 fps`, `512 × 768` pixels per frame.
+### Tooling
 
-These artifacts prove that the active question was already the **base walk**, not a new static-sprite exercise.
+Prepare V2 inputs:
 
-They are now classified as:
+`tools/flux2-refcontrol-spike/06_prepare_v2_inputs.ps1`
 
-**high-resolution motion/reference proxies — not approved production sprites.**
+Then run V2 once:
 
-The unresolved question is:
+`tools/flux2-refcontrol-spike/07_run_v2.ps1`
 
-> How much does evaluating/generating the walk at these high resolutions change what remains readable or usable at the real gameplay scale?
+Expected V2 output directory:
 
-Locked interpretation:
+`D:\AI\Flux2RefControlSpike\ComfyUI_windows_portable\ComfyUI\output\flux2_refcontrol_v2`
 
-- high-resolution output can still be useful for pose sequence, stride mechanics, foot contacts, identity continuity and secondary-motion reference;
-- it cannot establish final pixel clusters, palette, gameplay-scale detail or native-grid animation quality;
-- simple downscale/quantization of these frames is not an accepted final-art pipeline.
+Expected manifest:
 
-## Superseded pixel-scale assumptions
+`D:\AI\Flux2RefControlSpike\run_v2\step7_v2_run_manifest.json`
 
-The following previous values were tied to the old high-oblique/360° presentation hypothesis and are **unlocked/superseded**:
+## V2 next decision
 
-- Exilada visible height ~`64 px`;
-- tuning band `56–72 px`;
-- idle/locomotion canvas `96 × 96`;
-- ordinary melee/action canvas `128 × 128`;
-- mandatory eight-direction neutral reference family;
-- `S`, `NE`, `N` as the first directional approval gate.
+After four V2 images exist, compare against V1 on:
 
-They must not be treated as current production requirements.
+- foot correctness;
+- left-arm correctness;
+- body-proportion stability;
+- chain/shackle continuity;
+- Exilada identity retention;
+- gait-phase readability.
 
-The provisional internal gameplay raster remains `640 × 360` only as a starting point for evidence gathering; it may change.
+Do not proceed to eight frames, inbetweening or final gameplay sprite authoring before this comparison.
 
-## Locked visual direction
+## Gameplay-scale / Production Pixel Master gate — queued after V2
 
-- true modern pixel art, not pixel-textured illustration;
-- mature, severe, physical, atmospheric sword-and-sorcery language;
-- Exilada identity led by large black hair mass, adult lean anatomy, asymmetrical degraded clothing and captivity history;
-- visually relevant state should be causal/systemic whenever feasible;
-- no manual frame-by-frame production burden on the user;
-- production route must scale to many characters, equipment states and world conditions.
+The belt-scroller gameplay-scale test remains necessary, but it is now **after** V2 structural correction.
 
-## Exact next gate — do not skip
+After V2 determines whether the upstream re-poser is trustworthy, test the accepted motion/reference frames in a representative gameplay composition to establish:
 
-### Motion-aware gameplay scale validation
+- real Exilada on-screen height;
+- native gameplay raster suitability (provisional `640×360`);
+- safe action bounds;
+- final Production Pixel Master dimensions;
+- required facing families.
 
-Do **not** author another final sprite first and do **not** resume full FLUX generation yet.
+High-resolution RefControl outputs may serve as motion/identity references; they are not automatically final pixel sprites.
 
-Use the existing eight-frame high-resolution walk cycle only as a **motion proxy** inside a representative elevated belt-scroller composition at the provisional `640 × 360` native raster.
+## Rejected/stopped routes
 
-Test several provisional visible Exilada heights, initially around:
+- Sprite Sheet Diffusion — rejected;
+- Wan-Animate-2 — rejected;
+- paid hosted PixelLab/Pixel Engine/Retro Diffusion routes — stopped/disqualified;
+- generic video diffusion as primary animation architecture — rejected;
+- direct high-resolution generation as final pixel master — rejected;
+- primitive Python/Pillow geometry as final artistic authoring — rejected.
 
-- `112 px`;
-- `128 px`;
-- `144 px`.
+## Target machine
 
-These are comparison samples, not production locks.
+- Windows 11;
+- RTX 3060 12 GB;
+- ~48 GB RAM;
+- repo: `D:\GOOGLE DRIVE\DEV\Roguelite`;
+- workspace: `D:\AI\Flux2RefControlSpike`.
 
-The test must establish, at native `1×`:
+## Exact next action
 
-1. stride readability;
-2. distinct foot-contact / passing phases;
-3. whether the feet feel grounded or appear to slide;
-4. hair-mass readability during motion;
-5. arm/leg separation across the cycle;
-6. protagonist screen occupancy;
-7. ability to read approximately 3–5 simultaneous nearby enemies;
-8. available space for ordinary weapon/attack arcs;
-9. usable walkable depth band for foreground/background combat positioning;
-10. whether `640 × 360` remains viable.
-
-This is explicitly a **motion + gameplay-scale gate**, not an approval of the resized high-resolution art.
-
-### Gate output
-
-Only after this comparison should the project lock:
-
-- protagonist visible pixel height;
-- idle/locomotion canvas bounds;
-- ordinary action canvas bounds;
-- ground/pivot convention;
-- facing-family requirement under the belt-scroller model.
-
-Then:
-
-1. author the first real native-grid Production Pixel Master at that scale;
-2. build the definitive native-grid eight-frame base walk from the validated motion language;
-3. evaluate it in the same gameplay composition at `1×`.
-
-## Animation pipeline — preserved but paused at visual dependency
-
-The FLUX.2 Klein + RefControl local spike remains preserved and technically relevant as an upstream character re-posing/reference route, but it is not the immediate next action.
-
-Validated state remains:
-
-- STEP 1 preflight: PASS;
-- STEP 2 ComfyUI portable runtime: PASS;
-- STEP 3 required weights: PASS;
-- STEP 4 canonical reference + four deterministic COCO-18 poses: PASS;
-- STEP 5 runtime schema validation tooling: ready; local target-machine execution still pending.
-
-Active tooling:
-
-`tools/flux2-refcontrol-spike/`
-
-Do not discard or silently restart that work. Resume it only after the gameplay-scale walk gate establishes what representation the renderer must ultimately serve, unless the user explicitly reprioritizes it.
-
-## Rejected / stopped routes
-
-Do not revive casually:
-
-- Sprite Sheet Diffusion — tested and rejected;
-- Wan-Animate-2 Base INT8 — tested and rejected;
-- PixelLab hosted/tiered route — stopped;
-- Pixel Engine — disqualified as hosted/paid dependency;
-- Retro Diffusion hosted route — disqualified under same rule;
-- direct generic image generation as final pixel master — rejected;
-- primitive Python/Pillow geometry as final artistic authoring — rejected;
-- generic video diffusion as primary animation architecture — rejected.
-
-## Target machine / relevant paths
-
-- Windows 11 Home Single Language;
-- 47.7 GB usable RAM detected;
-- NVIDIA GeForce RTX 3060 12 GB;
-- project repository: `D:\GOOGLE DRIVE\DEV\Roguelite`;
-- FLUX spike workspace: `D:\AI\Flux2RefControlSpike`.
-
-## Current next action
-
-**Do not generate another character sprite yet.**
-
-Next: use the already-existing eight-frame walk as a temporary motion proxy and perform the belt-scroller gameplay-scale comparison. The result will determine the real character pixel density; only then do we author the Production Pixel Master and definitive native-grid base walk.
+Pull `main`, run `06_prepare_v2_inputs.ps1`, inspect the four V2 skeleton PNGs if desired, then run `07_run_v2.ps1` exactly once. Share the four generated V2 images plus `step7_v2_run_manifest.json` for comparative QA.

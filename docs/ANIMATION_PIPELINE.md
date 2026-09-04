@@ -1,312 +1,258 @@
 # Character Animation Production — Living Decision Record
 
-Status: **No production animation pipeline is accepted yet. Sprite Sheet Diffusion and Wan-Animate-2 were tested and rejected. Paid/proprietary hosted generation is disqualified unless explicitly authorized. The current active experiment is a free/local four-key-pose spike using FLUX.2 Klein Base 4B FP8 + RefControl Pose on the canonical Exilada reference. Steps 1–4 have passed. STEP 5 tooling has been hardened and committed, but the local runtime-schema probe has not yet been executed, so STEP 5 is still pending. No FLUX inference has been executed yet.**
+Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose is the strongest animation/re-posing route tested so far. The V1 four-pose one-shot inference completed successfully on the target RTX 3060 machine. Visual QA is promising but not production-ready: one foot shows reversed toe orientation, the left arm is inconsistent, body proportions drift slightly and chain/shackle topology changes between frames. The immediate next gate is a controlled V2 correction run of the same four walk phases.**
 
-## Process rule — living documentation
-
-All material animation decisions, test results, constraints, accepted/rejected directions and current execution state must be recorded here as they occur. This document is canonical across chats. When a decision changes, edit this document instead of creating a parallel version or relying on conversation history.
+This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
 ## Hard production constraints
 
 The animation pipeline must:
 
-- start from the approved canonical character design/reference rather than requiring the user to redraw production art manually;
-- preserve character identity, adult anatomy, hair mass, clothing state, captivity markers and equipment state;
-- provide explicit, inspectable gameplay motion control;
-- be reproducible through project tooling and command-line automation;
-- avoid manual frame-by-frame repainting, seed fishing and hand animation as normal production steps;
-- be credible on Windows 11 / RTX 3060 12 GB / 48 GB RAM;
-- use source code and required weights that are freely obtainable for local/self-hosted use;
-- not require subscriptions, per-generation credits or proprietary hosted inference unless explicitly approved in advance;
-- use licenses compatible with intended project use.
+- start from the approved Exilada identity reference;
+- preserve adult anatomy, face, long black hair mass, clothing state, scars/restraints and equipment state;
+- provide explicit inspectable pose/motion control;
+- run reproducibly on Windows 11 / RTX 3060 12 GB / ~48 GB RAM;
+- avoid routine manual frame-by-frame repainting, seed fishing and artistic retry loops;
+- use free/local/self-hosted code and weights unless explicitly approved otherwise;
+- scale to many characters, equipment states and actions.
 
-The user will not manually animate production characters and will not hire an animation/art team.
-
-## Canonical Exilada reference — important clarification
-
-Canonical file:
+## Canonical Exilada reference
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The reference remains the approved source of the Exilada's design identity: adult anatomy, proportions, face, long black hair mass, minimal degraded clothing, broken restraints, bare feet and weaponless base state.
+This is the **high-detail identity/design master**, not the final gameplay pixel sprite.
 
-**2026-09-04 clarification:** the current master is too detailed to be treated as proof of strict production pixel-art construction. It is now classified as a **high-detail canonical design/identity reference**, not as evidence that every visible pixel already satisfies the final gameplay raster language.
+It defines the stable identity anchors:
 
-Therefore the current FLUX + RefControl spike must not be rejected merely because the output reproduces the same high-detail/illustrative density present in the source. For this spike, the model is judged primarily on **source fidelity and pose control**.
+- adult woman;
+- lean functional anatomy;
+- severe face;
+- very long heavy black hair;
+- minimal degraded beige cloth;
+- wounds/scars;
+- wrist and ankle restraints / broken chains;
+- barefoot base state;
+- no permanent weapon.
 
-The separate question — how to derive the final gameplay-scale modern-pixel-art asset language from the approved design without manual art labor — remains a downstream production problem. It must be solved explicitly rather than blamed on the pose model.
-
-Weapons are gameplay-variable equipment and are not part of permanent character identity.
-
-## Rejected approaches
-
-Rejected as production foundations:
-
-- independent generic frame generation;
-- one-shot generic sprite-sheet generation;
-- rigid cut-out / segmented 2D puppetry from a flattened PNG;
-- conventional rendered animation followed by a pixel filter;
-- manual frame-by-frame repainting;
-- Sprite Sheet Diffusion hybrid public-weight reconstruction;
-- Wan-Animate-2 Base INT8 motion transfer;
-- generic video-diffusion as the primary architecture for this problem;
-- paid/proprietary hosted sprite-generation or interpolation APIs as the default production path.
-
-### Sprite Sheet Diffusion — tested and rejected
-
-The public-weight reconstruction ran locally on the target RTX 3060 12 GB machine. Rejection was visual/structural rather than infrastructural: identity drift, lower-body collapse, unstable hair/clothing/chains, malformed anatomy and incoherent walk mechanics.
-
-Do not rescue SSD through seed search, CFG sweeps, new masters or manual repair. `tools/sprite-animation/` is research history only.
-
-### Wan-Animate-2 Base INT8 — tested and rejected
-
-The local workflow completed. It preserved coarse Exilada identity better than SSD but failed explicit motion adherence: the driver locomotion was not transferred strongly enough, while output remained mostly planted. It also changed the visual treatment substantially from the supplied source.
-
-Do not rescue the tested Wan route with seed fishing, prompt cosmetics or post-generation filters. `tools/wan-animate2-spike/` is research history only.
-
-## Architectural conclusion
+## Architecture
 
 The useful decomposition remains:
 
-`motion / key-pose generation -> explicit skeleton / key poses -> controlled character renderer -> temporal completion / inbetweening -> automatic QA`
+`motion/key poses -> explicit skeletons -> controlled character renderer -> gameplay-scale/native-raster translation -> temporal completion if needed -> QA`
 
-Motion generation, motion representation and character rendering are separate problems. A generic video model should not be asked to infer choreography, identity, visual treatment and temporal structure simultaneously.
+Motion generation and character re-posing are separate problems.
 
-## Pose generation vs. character re-posing — locked research distinction
+### Character re-posing
 
-**2026-09-04:** the project now explicitly distinguishes two AI tasks that must be evaluated independently.
+Input:
 
-### A. Character re-posing
+- canonical character reference;
+- explicit target pose skeleton.
 
-Input: one canonical character reference + one explicit target skeleton.
+Output:
 
-Output: the same character rendered in that target pose.
+- the same character in the requested pose.
 
-The current FLUX.2 Klein + RefControl spike tests only this layer. Its four COCO-18 walk poses are deterministic and were generated by project tooling, not by an AI motion generator. This prevents choreography quality from contaminating the first renderer test.
+FLUX.2 Klein + RefControl Pose currently owns this layer.
 
-### B. Motion / pose-sequence generation
+### Motion / pose-sequence generation
 
-Input: an action description, optional constraints/key poses and desired duration.
+This remains downstream. MoMask remains the preferred first numeric text-to-motion candidate if a generated pose sequence is needed later. Do not introduce it until the re-posing and gameplay-raster representation are stable.
 
-Output: a time sequence of body joints/poses, ideally as 3D joints or a format convertible deterministically to the project's 2D COCO-18 driving skeletons.
+## Rejected routes
 
-This layer will be evaluated only after the controlled character renderer demonstrates adequate source fidelity and pose adherence. The preferred architecture is to generate motion numerically first and rasterize OpenPose/COCO controls afterward, rather than asking an image/video generator to invent motion implicitly.
+Do not revive casually:
 
-## Current pose-sequence generator research — 2026-09-04
+- Sprite Sheet Diffusion — tested locally; identity/anatomy/motion coherence failed;
+- Wan-Animate-2 Base INT8 — tested locally; motion adherence failed;
+- generic video diffusion as primary animation architecture;
+- manual frame-by-frame repainting;
+- paid hosted sprite/interpolation APIs as the default production path;
+- one-shot generic sprite-sheet generation.
 
-No pose-sequence AI is approved for production yet. Current ranking for a future local spike:
+## RefControl contract
 
-### 1. MoMask — strongest practical baseline candidate
+Current local route:
 
-Why it is relevant:
-
-- text-to-motion from natural-language actions;
-- outputs per-frame 3D joints (`nframe × 22 × 3`) at 20 fps;
-- also exports BVH;
-- supports specifying motion length;
-- official implementation and pretrained models are public;
-- code license is MIT;
-- inference is substantially lighter than image/video diffusion and is plausible on the RTX 3060 target.
-
-Risks:
-
-- HumanML3D motion vocabulary is generic human motion, not gameplay animation authored for combat timing;
-- supplied naive foot IK is acknowledged by the project to sometimes fail;
-- generated sequences still require deterministic retargeting/down-projection to the COCO-18 driver representation and game-specific timing cleanup.
-
-**Status:** preferred first AI motion-generator spike if/when the renderer stage passes.
-
-### 2. MotionGPT3 — newer research candidate
-
-Why it is relevant:
-
-- released pretrained models in late 2025;
-- supports text-to-motion, motion prediction and motion inbetweening;
-- outputs HumanML3D motion sequences and therefore fits the numeric-motion-first architecture;
-- code repository is MIT licensed;
-- official checkpoint is approximately 1.2 GB and public but gated on Hugging Face.
-
-Risks / unresolved production issues:
-
-- the official Hugging Face checkpoint metadata currently reports a generic `cc` license rather than a production-clear software/model license, so model-weight licensing must be resolved before production use;
-- more complex runtime than MoMask;
-- quality advantage for the project's short game-action key-pose use case is not yet demonstrated.
-
-**Status:** second research candidate; do not install for production until weight license is clarified.
-
-### 3. MotionLCM — technically attractive, licensing disqualifies current production use
-
-Why it is technically interesting:
-
-- very fast text-to-motion;
-- explicit motion control facilities;
-- per-frame 3D joint output;
-- well suited conceptually to generating short motion candidates.
-
-Blocking issue:
-
-- the official repository explicitly states that its MotionLCM license does not allow commercial usage.
-
-**Status:** research reference only unless licensing changes or a clearly compatible independently licensed checkpoint/runtime is established.
-
-### 4. MotionStreamer — not production eligible
-
-It provides modern streaming text-to-motion research and joint/rotation representations, but the official repository states academic-only usage.
-
-**Status:** disqualified for production licensing; useful only as architectural research.
-
-### Not pose generators
-
-The following should not be confused with the motion-generation layer:
-
-- **RefControl Pose:** controlled still-image character renderer from supplied skeleton + reference;
-- **One-to-All Animation:** character animation/video renderer driven by pose/video; it consumes motion rather than being the preferred source of game choreography;
-- **Wan-Animate-2:** video/motion-transfer renderer already rejected in this project;
-- **OpenPose/DWPose-style extractors:** pose estimators/extractors, useful for converting existing footage into skeletons but not generative motion models.
-
-## Free/open/local rule
-
-Before installing any new candidate, verify:
-
-1. required code and weights are freely obtainable locally;
-2. no mandatory subscription, per-generation credit or proprietary hosted inference exists;
-3. license is compatible with intended use;
-4. explicit pose/action control exists;
-5. RTX 3060 12 GB operation is credible;
-6. failure criteria are defined before installation.
-
-PixelLab, Pixel Engine and Retro Diffusion were stopped because their relevant production route depended on hosted/tiered services. `tools/pixellab-skeleton-spike/` is research history only.
-
-## Current active spike — FLUX.2 Klein Base 4B FP8 + RefControl Pose
-
-This is **not** a video-generation test and not a motion-generation test. It tests one narrow capability first: can one canonical Exilada reference be re-posed into four explicit walk key poses while maintaining the same character?
-
-### Components
-
-- base: `black-forest-labs/FLUX.2-klein-base-4B` family, Apache 2.0;
-- local runtime: ComfyUI Portable NVIDIA;
-- diffusion weight: `flux-2-klein-base-4b-fp8.safetensors`;
+- base: FLUX.2 Klein Base 4B FP8;
+- LoRA: `refcontrol-pose-klein-4b.safetensors`;
 - text encoder: `qwen_3_4b.safetensors`;
 - VAE: `flux2-vae.safetensors`;
-- pose adapter: `xocialize/refcontrol-FLUX.2-klein-4B-pose-lora`, `refcontrol-pose-klein-4b.safetensors`, Apache 2.0;
-- RefControl contract: image 1 = OpenPose-style COCO-18 target skeleton; image 2 = reference subject; prompt trigger includes `refcontrol` and the instruction to apply pose from image 1 with reference from image 2.
+- image 1: target OpenPose-style skeleton;
+- image 2: Exilada identity reference;
+- trigger: `refcontrol`;
+- fixed seed: `20260904`.
 
-Current external verification:
+The RefControl model card explicitly requires an **OpenPose-style COCO-18** skeleton. COCO-18 contains ankle joints but no toe/heel joints. Therefore foot/toe errors cannot be corrected by adding extra foot keypoints without leaving the supported control format. The supported correction strategy is:
 
-- BFL lists FLUX.2 Klein 4B Base as Apache 2.0 and approximately 9.2 GB VRAM in its standard local configuration;
-- an official FP8 single-file variant is available at approximately 4.09 GB;
-- the current RefControl 4B pose LoRA is approximately 92 MB, Apache 2.0, and specifically trained for the two-input COCO-18 skeleton/reference contract;
-- a 9B RefControl pose variant also exists, but the corresponding BFL 9B Base is substantially above the target VRAM and uses the FLUX non-commercial license, so the 9B route is not a production candidate for this project.
+1. reduce ambiguity/crossing in hip-knee-ankle geometry;
+2. keep gait phases clean and readable;
+3. constrain foot orientation textually;
+4. judge whether the renderer obeys the correction.
 
-No Pixel Art LoRA is part of the current spike. Adding one now would confound whether RefControl itself preserves the supplied design.
+## V1 — four walk key poses
 
-### Fixed spike contract
+### Fixed V1 contract
 
-- canonical `exilada_master.png` only;
-- four deterministic walk poses: `contact_L`, `passing_L`, `contact_R`, `passing_R`;
-- OpenPose-style COCO-18 skeletons on black;
-- one fixed seed: `20260904`;
-- one fixed model/adapter configuration;
-- one render per pose;
-- no seed fishing;
+- `pose_00_contact_L`
+- `pose_01_passing_L`
+- `pose_02_contact_R`
+- `pose_03_passing_R`
+- COCO-18 skeleton PNGs at `768 × 1024`;
+- seed `20260904`;
+- one generation per pose;
+- no retry;
 - no inpainting;
-- no frame repair;
-- no video generation;
-- no interpolation;
-- no artistic retry.
+- no parameter change;
+- no interpolation/video generation.
 
-### Current execution state — 2026-09-04
+### Steps 1–5
 
-Passed:
+Validated before inference:
 
-1. **Preflight:** Windows 11, 47.7 GB RAM, RTX 3060 12 GB, sufficient disk space, canonical master present.
-2. **ComfyUI runtime:** Python 3.13.14, PyTorch 2.13.0+cu130, CUDA 13.0, GPU visible with 12.00 GB VRAM.
-3. **Weights:** exactly the four required model files installed and hash-validated; no generation performed.
-4. **Inputs:** canonical master copied byte-for-byte; four deterministic 768×1024 COCO-18 skeleton PNGs and JSON specifications generated; manifest written; no inference performed.
+1. target machine/runtime preflight — PASS;
+2. ComfyUI Portable / CUDA runtime — PASS;
+3. four required weights — PASS;
+4. canonical reference and deterministic pose inputs — PASS;
+5. runtime/workflow schema — sufficient to execute the production spike.
 
-Current next gate:
+### STEP 6 — one-shot inference: PASS technically
 
-5. **Runtime schema/workflow validation without inference — tooling ready, local execution pending.**
+The user executed:
 
-Current validator:
+`tools/flux2-refcontrol-spike/05_run_spike.ps1`
 
-`tools/flux2-refcontrol-spike/04_validate_runtime_schema.ps1`
+Observed run:
 
-Tooling commit:
+- isolated ComfyUI on `127.0.0.1:8199`;
+- exactly four `/prompt` submissions;
+- same seed for every pose;
+- no fallback/retry/parameter change.
 
-`e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce`
+Outputs:
 
-Run on the target Windows machine:
+- `pose_00_contact_L_00001_.png` — 242.18 s — SHA256 `12c03f5ca96b8eef474c384de6b1ed8d8e6f9adbb40db691484476f4f04df5a8`
+- `pose_01_passing_L_00001_.png` — 234.84 s — SHA256 `d314bb7255d883c8dbf71872a3778911ebcf1a2ddeeebacc8ac13aa3ebe0a1c0`
+- `pose_02_contact_R_00001_.png` — 235.10 s — SHA256 `e0a37bc15c8e72cdbf71c890cc0fa486db3a2c8297ff1266e0f7daa53c8efa9c`
+- `pose_03_passing_R_00001_.png` — 235.15 s — SHA256 `987780837414b91838924073a4508b893bd7b9022bcec6b16339020fbc58022b`
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\04_validate_runtime_schema.ps1"
-```
+Run manifest:
 
-This gate is deliberately schema-driven rather than workflow-driven. The validator must use the installed runtime's live `GET /object_info` response as evidence and must not POST `/prompt`, execute nodes, load models for inference or generate images.
+`D:\AI\Flux2RefControlSpike\run\step6_run_manifest.json`
 
-The validator now checks and records:
+### V1 visual QA — CONDITIONAL PASS
 
-- exact bind target `127.0.0.1:8188`;
-- complete raw `/object_info` saved as `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.full.json`;
-- reduced selected-node schema saved as `object_info.required.json`;
-- JSON and text PASS/FAIL reports;
-- core FLUX.2 image-edit node type contracts through model loading, reference encoding, conditioning, sampling and decode/save boundaries without executing those nodes;
-- exact visibility of `flux-2-klein-base-4b-fp8.safetensors`, `qwen_3_4b.safetensors`, `flux2-vae.safetensors` and `refcontrol-pose-klein-4b.safetensors` in the intended loaders;
-- `CLIPLoader.type=flux2`;
-- visibility of the canonical Exilada image and all four prepared skeleton PNGs through `LoadImage`;
-- actual `ReferenceLatent` or a uniquely identifiable equivalent exposed by the installed schema, resolved by a `CONDITIONING + LATENT -> CONDITIONING` contract rather than by copying an old workflow;
-- chainability of two ordered references, preserving the locked semantic contract **image 1 = skeleton, image 2 = Exilada reference**;
-- temporary server shutdown;
-- explicit report fields `prompt_requests_sent=0`, `inference_performed=false` and `model_execution_requested=false`.
+Strong findings:
 
-**STEP 5 is not PASS until that local report says PASS.** If it fails, remain in STEP 5 and diagnose the actual schema mismatch. If it passes, update this document and `docs/PROJECT_STATE.md` with the observed runtime result before creating any executable generation workflow.
+- best identity preservation of every route tested so far;
+- all four images are recognizably the same Exilada;
+- hair mass, face, clothing language and body type are substantially more stable than prior pipelines;
+- the four requested gait phases are distinct enough to continue testing.
 
-The premature `04_build_validate_workflow.ps1` and `05_run_spike.ps1` files that had remained in `main` from an earlier out-of-order attempt were removed from the current tree in the STEP 5 tooling cleanup. Their historical commits remain recoverable through git, but they are not current tooling and must not be restored before the gate passes.
+Blocking defects:
 
-## Acceptance criteria for the four-key-pose spike
+1. **foot anatomy:** at least one right foot has toe orientation reversed / mirrored;
+2. **left arm:** anatomy/placement is inconsistent in at least part of the set;
+3. **body drift:** subtle changes in torso/limb volume between frames;
+4. **restraint continuity:** chains/shackles move or swap side/orientation between frames.
 
-For this stage, evaluate the model against what the source actually contains.
+Decision:
 
-Pass requires all four poses to maintain, within reasonable generative variance:
+**PASS as the lead upstream re-posing/reference route.**
 
-- recognizably the same Exilada;
-- adult body proportions and coherent anatomy;
-- long black hair as the dominant silhouette mass;
-- minimal degraded clothing and broken restraint markers;
-- plausible limb/foot placement matching the requested skeleton;
-- clear distinction between the four requested walk phases;
-- no catastrophic extra limbs, missing limbs or object/anatomy fusion;
-- reproducibility under the fixed configuration.
+**FAIL as a production-ready final walk cycle.**
 
-**Do not fail this spike solely because the result is not stricter pixel art than the high-detail reference itself.** The model is expected to be coherent with its source. Final production pixel-art compliance is a separate downstream gate.
+## V2 — controlled correction gate
 
-Fail this route if explicit pose control is materially weak, identity changes across poses, anatomy becomes unstable, or critical design anchors disappear unpredictably. A failure is not to be rescued with manual corrections or seed searching.
+The V2 is deliberately a comparison experiment, not an unrestricted optimization pass.
 
-## Downstream problem if RefControl passes
+### Unchanged from V1
 
-If all four key poses pass, the next research task is not immediately video interpolation. First determine a scalable **production-raster translation** that turns the approved high-detail design language into actual gameplay-scale modern pixel art while preserving identity and allowing repeated animation/equipment variation without manual frame work.
+- canonical `exilada_master.png`;
+- FLUX.2 Klein Base 4B FP8;
+- RefControl Pose LoRA;
+- LoRA strength `1.0`;
+- seed `20260904`;
+- canvas `768 × 1024`;
+- `20` steps;
+- CFG `5.0`;
+- Euler sampler;
+- image order: skeleton first, identity reference second;
+- exactly one `/prompt` submission per pose;
+- no retry, fallback, inpainting or seed search.
 
-After the production-resolution representation is defined, the next motion step is to test a numeric pose-sequence generator — currently MoMask is the preferred first candidate — and then select temporal completion/inbetweening only if needed.
+### Controlled changes
 
-## Other researched candidates
+Only these variables change:
 
-Not currently approved for installation:
+1. **COCO-18 pose geometry**
+   - remove the V1 arm-crossing geometry through the torso;
+   - keep elbows/wrists visually separated from the body centerline;
+   - remove the crossed-leg X geometry present in the old opposite-contact pose;
+   - use clean non-crossing screen-space leg trajectories;
+   - use COCO left/right joint colors to assign which anatomical leg occupies each trajectory.
 
-- **One-to-All 1.3B:** explicit pose-driven animation and cartoon relevance, but official low-resource route targets a 16 GB T4 and it belongs to the renderer/video layer rather than the pose-generator layer.
-- **StableAnimator:** fits VRAM but is a human-video framework in the wrong domain.
-- **SteadyDancer:** 12 GB community route exists but remains continuous human-video diffusion.
-- **MikuDance:** stylized-character relevance, insufficient 12 GB/pixel evidence.
-- **SCAIL-2:** large Wan-family video renderer, wrong current direction.
-- **See-through:** potentially useful semantic-layer decomposition research, but not an accepted animation foundation.
-- **Animated Drawings:** deterministic and open, but visually/structurally incompatible with the Exilada.
-- **AniGen:** fails the 12 GB hardware constraint.
-- **MDIGAN / bitmap inbetweening research:** useful principles/components, not a complete single-reference production route.
+2. **Prompt correction contract**
+   - both feet/toes point toward screen-right;
+   - no reversed/mirrored foot;
+   - anatomically coherent left and right arms;
+   - same body proportions/limb thickness across all frames;
+   - exact restraint/chain topology from reference image 2;
+   - never swap loose chains to the opposite anatomical wrist/ankle;
+   - preserve scars and torn-cloth layout as closely as possible.
 
-## Repository tooling status
+### New V2 pose names
 
-- `tools/sprite-animation/` — rejected SSD experiment; research history.
-- `tools/wan-animate2-spike/` — rejected Wan experiment; research history.
-- `tools/pixellab-skeleton-spike/` — stopped hosted PixelLab experiment; research history.
-- `tools/flux2-refcontrol-spike/` — **active current local spike**; current authoritative next script is `04_validate_runtime_schema.ps1`. No executable STEP 6 workflow builder/runner is present in the current tree.
+- `pose_00_contact_L_v2`
+- `pose_01_passing_L_v2`
+- `pose_02_contact_R_v2`
+- `pose_03_passing_R_v2`
 
-Model checkpoints, dependency checkouts, generated outputs and temporary runtime files remain excluded from git unless a specific artifact is intentionally promoted as canonical project evidence.
+### V2 tooling
+
+`tools/flux2-refcontrol-spike/06_prepare_v2_inputs.ps1`
+
+Creates:
+
+- `ComfyUI\input\refcontrol_poses_v2\`
+- `D:\AI\Flux2RefControlSpike\pose_specs_v2\`
+- `D:\AI\Flux2RefControlSpike\input_manifest_v2.json`
+
+No inference.
+
+`tools/flux2-refcontrol-spike/07_run_v2.ps1`
+
+Runs exactly four V2 one-shot generations and writes:
+
+- outputs under `ComfyUI\output\flux2_refcontrol_v2\`;
+- request/history evidence under `D:\AI\Flux2RefControlSpike\run_v2\`;
+- `step7_v2_started.json` sentinel before the first possible prompt submission;
+- `step7_v2_run_manifest.json` on successful completion.
+
+The sentinel prevents accidental artistic reruns after any submission may have occurred.
+
+## V2 acceptance criteria
+
+Compare V1 and V2 frame-for-frame.
+
+V2 passes the correction gate only if:
+
+- foot orientation is anatomically correct in all four outputs;
+- no catastrophic hand/arm anatomy appears;
+- left-arm consistency materially improves;
+- body proportions drift less than V1;
+- chain/shackle topology is more stable than V1;
+- Exilada identity remains at least as strong as V1;
+- four gait phases remain clearly distinct.
+
+A regression in identity is not acceptable merely to improve feet/props.
+
+## Next gate
+
+Run V2 exactly once, then upload/share the four V2 images and `step7_v2_run_manifest.json` for V1-vs-V2 QA.
+
+Only after that comparison do we decide whether:
+
+1. RefControl is reliable enough as the upstream re-posing generator;
+2. another controlled V3 is justified;
+3. or the route should be frozen as an upstream reference generator and the final walk solved downstream at native gameplay raster.
