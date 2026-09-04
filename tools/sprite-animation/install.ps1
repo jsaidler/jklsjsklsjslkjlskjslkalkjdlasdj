@@ -144,20 +144,60 @@ Do not install anything else yet. Send the CMake output above so the exact integ
     Write-Host "Installed: $(Join-Path $Bin 'sd-cli.exe')" -ForegroundColor Green
 }
 
+# The helper scripts are intentionally pinned to Python 3.10. Do not silently fall back
+# to a newer system Python: Pillow 10.4.0 has no Windows wheel for Python 3.14.
 $PyLauncher = Get-Command 'py.exe' -ErrorAction SilentlyContinue
-$Python = Get-Command 'python.exe' -ErrorAction SilentlyContinue
-if (-not $PyLauncher -and -not $Python) {
-    throw 'Python was not found. Install Python 3.10 or newer. Example: winget install --id Python.Python.3.10 -e'
+$Python310 = $null
+
+if ($PyLauncher) {
+    $Candidate = (& py.exe -3.10 -c "import sys; print(sys.executable)" 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -eq 0 -and $Candidate -and (Test-Path $Candidate)) {
+        $Python310 = $Candidate
+    }
+}
+
+if (-not $Python310) {
+    $KnownPython310Paths = @(
+        (Join-Path $env:LocalAppData 'Programs\Python\Python310\python.exe'),
+        (Join-Path $env:ProgramFiles 'Python310\python.exe')
+    )
+    foreach ($Candidate in $KnownPython310Paths) {
+        if (Test-Path $Candidate) {
+            $Python310 = $Candidate
+            break
+        }
+    }
+}
+
+if (-not $Python310) {
+    throw @'
+Python 3.10 was not found. The system Python is not used as a fallback because newer versions such as Python 3.14 are incompatible with the pinned Pillow wheel used by this toolchain.
+
+Install Python 3.10 side-by-side:
+  winget install --id Python.Python.3.10 -e
+
+Then reopen PowerShell and run install.ps1 again.
+'@
+}
+
+Write-Host "Python 3.10:   $Python310"
+
+$VenvPython = Join-Path $Venv 'Scripts\python.exe'
+if (Test-Path $VenvPython) {
+    $VenvVersion = (& $VenvPython -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or $VenvVersion -ne '3.10') {
+        Write-Host "Removing incompatible virtual environment (Python $VenvVersion)..."
+        Remove-Item -Recurse -Force $Venv
+    }
+} elseif (Test-Path $Venv) {
+    Write-Host 'Removing incomplete virtual environment...'
+    Remove-Item -Recurse -Force $Venv
 }
 
 if (-not (Test-Path $Venv)) {
-    if ($PyLauncher) {
-        & py.exe -3.10 -m venv $Venv
-        if ($LASTEXITCODE -ne 0) { & py.exe -3 -m venv $Venv }
-    } else {
-        & python.exe -m venv $Venv
-    }
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to create Python virtual environment.' }
+    Write-Host 'Creating Python 3.10 virtual environment...'
+    & $Python310 -m venv $Venv
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to create Python 3.10 virtual environment.' }
 }
 
 $VenvPython = Join-Path $Venv 'Scripts\python.exe'
