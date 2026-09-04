@@ -108,6 +108,21 @@ Production decomposition:
 
 `real/procedural motion -> deterministic rig/topology -> deterministic attachments/secondary systems -> fixed camera/control passes -> final 2D/pixel representation -> QA`
 
+### Operator constraint — LOCKED
+
+The user will **not** be required to learn Blender, rigging, retargeting, BVH editing, weight painting, animation curves, physics setup, sprite extraction, or other specialist art/animation software, and the project cannot assume hiring an animator or technical artist.
+
+Any accepted pipeline must therefore be **CLI/script operated**:
+
+- PowerShell or equivalent wrapper as the normal entry point;
+- Blender run in background/headless mode;
+- Python scripts create/edit scenes, rigs, cameras, constraints, attachment sockets and render settings;
+- BVH import/retargeting, bake, render/export and diagnostics automated;
+- no routine mandatory GUI manipulation;
+- user interaction target: `git pull` -> run one documented script/command -> inspect/share outputs.
+
+If a solution needs recurring manual Blender work to stay functional, it fails the project constraints.
+
 ### Motion source
 
 Do not manually invent final walk key poses.
@@ -160,11 +175,12 @@ Create a minimal local/free test using:
 - one generic human/armature proxy;
 - one real walking BVH from CMU Mocap;
 - orthographic/elevated belt-scroller camera;
-- diagnostic silhouette/body-part output only.
+- diagnostic silhouette/body-part output only;
+- full CLI/headless automation.
 
 The gate asks:
 
-> Can we get a natural measured walk, fixed topology, stable attachments and the intended belt-scroller camera without manual animation?
+> Can we get a natural measured walk, fixed topology, stable attachments and the intended belt-scroller camera without manual animation or manual Blender operation?
 
 ### PASS requires the full sequence to have
 
@@ -174,7 +190,8 @@ The gate asks:
 - stable left/right anatomy;
 - stable attachment points;
 - usable elevated belt-scroller camera;
-- reproducible scripted/local workflow.
+- reproducible scripted/local workflow;
+- no mandatory GUI step.
 
 Only after that passes do we solve how the Exilada's approved 2D/pixel identity is mapped to the deterministic moving structure.
 
