@@ -7,60 +7,40 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Find-ComfyRoot([string]$Base) {
-    foreach ($candidate in @($Base, (Join-Path $Base 'ComfyUI'))) {
-        if ((Test-Path (Join-Path $candidate 'main.py')) -and (Test-Path (Join-Path $candidate '.git'))) {
-            return $candidate
-        }
+    $candidates = @($Base, (Join-Path $Base 'ComfyUI'))
+    foreach ($candidate in $candidates) {
+        if (Test-Path (Join-Path $candidate 'main.py')) { return $candidate }
     }
     return $null
 }
 
-function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
-    foreach ($candidate in @(
-        (Join-Path $ComfyRoot '.venv\Scripts\python.exe'),
-        (Join-Path $Base '.venv\Scripts\python.exe')
-    ) | Select-Object -Unique) {
-        if (Test-Path $candidate) { return $candidate }
+function Invoke-Comfy {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
+    Push-Location 'D:\AI'
+    try {
+        & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
+        if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
+    } finally {
+        Pop-Location
     }
-    return $null
 }
 
 $ComfyRoot = Find-ComfyRoot $Workspace
 if (-not $ComfyRoot) {
-    throw "ComfyUI not found at $Workspace or $(Join-Path $Workspace 'ComfyUI'). Run bootstrap.ps1 first."
-}
-$WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
-if (-not $WorkspacePython) {
-    throw 'ComfyUI workspace Python was not found.'
+    throw "ComfyUI not found under $Workspace. Run bootstrap.ps1 first."
 }
 
-Write-Host "Resolved ComfyUI root: $ComfyRoot" -ForegroundColor Green
-Write-Host "ComfyUI Python:      $WorkspacePython" -ForegroundColor Green
-
-$Stdout = Join-Path $Workspace "comfyui_$Port.stdout.log"
-$Stderr = Join-Path $Workspace "comfyui_$Port.stderr.log"
+Write-Host "ComfyUI root: $ComfyRoot" -ForegroundColor Green
+Write-Host 'Starting ComfyUI in background...' -ForegroundColor Cyan
+try {
+    Invoke-Comfy --workspace $Workspace launch --background -- --listen 127.0.0.1 --port $Port
+} catch {
+    Write-Host 'Background launch may already be active; probing the API before failing.' -ForegroundColor Yellow
+}
 
 $Base = "http://127.0.0.1:$Port"
-$alreadyRunning = $false
-try {
-    $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
-    $alreadyRunning = $true
-    Write-Host "ComfyUI is already responding at $Base" -ForegroundColor Green
-} catch { }
-
-if (-not $alreadyRunning) {
-    Write-Host 'Starting ComfyUI headlessly in background...' -ForegroundColor Cyan
-    $proc = Start-Process -FilePath $WorkspacePython `
-        -ArgumentList @('main.py','--listen','127.0.0.1','--port',"$Port") `
-        -WorkingDirectory $ComfyRoot `
-        -RedirectStandardOutput $Stdout `
-        -RedirectStandardError $Stderr `
-        -PassThru
-    Write-Host "PID: $($proc.Id)"
-}
-
 $ok = $false
-for ($i = 0; $i -lt 120; $i++) {
+for ($i = 0; $i -lt 90; $i++) {
     try {
         $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
         $ok = $true
@@ -69,26 +49,43 @@ for ($i = 0; $i -lt 120; $i++) {
         Start-Sleep -Seconds 1
     }
 }
-if (-not $ok) {
-    if (Test-Path $Stderr) {
-        Write-Host '--- stderr tail ---' -ForegroundColor Yellow
-        Get-Content $Stderr -Tail 80
-    }
-    throw "ComfyUI API did not become available at $Base"
-}
+if (-not $ok) { throw "ComfyUI API did not become available at $Base" }
 
 $ObjectInfo = Invoke-RestMethod -Uri "$Base/object_info" -TimeoutSec 60
-$Required = @(
-    'RebelsGGUFUnetLoaderMeta',
-    'WanAnimate2ToVideo',
-    'LoadImage',
-    'LoadVideo',
-    'CLIPLoader',
-    'CLIPVisionLoader',
-    'CLIPVisionEncode',
-    'VAELoader'
-)
 
+$RouteFile = Join-Path $Workspace 'spike_model_route.txt'
+$OfficialBaseInt8 = Test-Path (Join-Path $ComfyRoot 'models\diffusion_models\wan_animate_2_int8_convrot.safetensors')
+$BaseQ4 = Test-Path (Join-Path $ComfyRoot 'models\diffusion_models\Wan-Animate-2-14B-Q4_K_M.gguf')
+
+if ($OfficialBaseInt8) {
+    $Route = 'official_base_int8_convrot'
+    $Required = @(
+        'WanAnimate2ToVideo',
+        'LoadImage',
+        'LoadVideo',
+        'UNETLoader',
+        'CLIPLoader',
+        'CLIPVisionLoader',
+        'CLIPVisionEncode',
+        'VAELoader'
+    )
+} elseif ($BaseQ4) {
+    $Route = 'base_q4_gguf'
+    $Required = @(
+        'RebelsGGUFUnetLoaderMeta',
+        'WanAnimate2ToVideo',
+        'LoadImage',
+        'LoadVideo',
+        'CLIPLoader',
+        'CLIPVisionLoader',
+        'CLIPVisionEncode',
+        'VAELoader'
+    )
+} else {
+    throw 'No supported Base model file was found. Do not continue with the workflow.'
+}
+
+Write-Host "Detected model route: $Route" -ForegroundColor Cyan
 Write-Host ''
 Write-Host 'Required node classes:' -ForegroundColor Cyan
 $failed = $false
@@ -103,8 +100,14 @@ foreach ($name in $Required) {
 }
 
 $Models = Join-Path $ComfyRoot 'models'
+$MainModel = if ($Route -eq 'official_base_int8_convrot') {
+    Join-Path $Models 'diffusion_models\wan_animate_2_int8_convrot.safetensors'
+} else {
+    Join-Path $Models 'diffusion_models\Wan-Animate-2-14B-Q4_K_M.gguf'
+}
+
 $Files = @(
-    (Join-Path $Models 'diffusion_models\Wan-Animate-2-14B-Q4_K_M.gguf'),
+    $MainModel,
     (Join-Path $Models 'text_encoders\umt5_xxl_fp8_e4m3fn_scaled.safetensors'),
     (Join-Path $Models 'clip_vision\clip_vision_h.safetensors'),
     (Join-Path $Models 'vae\Wan2_1_VAE_bf16.safetensors'),
@@ -123,8 +126,10 @@ foreach ($f in $Files) {
     }
 }
 
-$Probe = [ordered]@{}
-foreach ($name in @('RebelsGGUFUnetLoaderMeta','WanAnimate2ToVideo','LoadVideo')) {
+$Probe = [ordered]@{
+    route = $Route
+}
+foreach ($name in @('RebelsGGUFUnetLoaderMeta','UNETLoader','WanAnimate2ToVideo','LoadVideo')) {
     if ($ObjectInfo.PSObject.Properties.Name -contains $name) {
         $Probe[$name] = $ObjectInfo.$name
     }
@@ -134,12 +139,16 @@ $Probe | ConvertTo-Json -Depth 30 | Set-Content -Path $ProbePath -Encoding utf8
 Write-Host ''
 Write-Host "Saved exact installed node schemas to: $ProbePath" -ForegroundColor Green
 
-foreach ($log in @($Stdout, $Stderr)) {
-    if (Test-Path $log) {
+$LogCandidates = @(
+    (Join-Path $Workspace "user\comfyui_$Port.log"),
+    (Join-Path $ComfyRoot "user\comfyui_$Port.log")
+) | Select-Object -Unique
+foreach ($Log in $LogCandidates) {
+    if (Test-Path $Log) {
         Write-Host ''
-        Write-Host "Relevant lines from: $log"
-        $imports = Select-String -Path $log -Pattern 'IMPORT FAILED|Rebels|GGUF|WanAnimate2|ERROR|Traceback' -SimpleMatch:$false
-        if ($imports) { $imports | Select-Object -Last 50 | ForEach-Object { $_.Line } }
+        Write-Host "ComfyUI log: $Log"
+        $imports = Select-String -Path $Log -Pattern 'IMPORT FAILED|Rebels|GGUF|WanAnimate2|Animate2' -SimpleMatch:$false
+        if ($imports) { $imports | Select-Object -Last 40 | ForEach-Object { $_.Line } }
     }
 }
 
@@ -149,5 +158,9 @@ if ($failed) {
 
 Write-Host ''
 Write-Host 'CLI preflight PASSED.' -ForegroundColor Green
-Write-Host 'Important: model class=WAN_Animate2 can only be proven when the GGUF is actually loaded during a workflow run.' -ForegroundColor Yellow
-Write-Host 'The next step is to generate a headless API workflow from the installed schemas, then execute it from the command line.'
+if ($Route -eq 'base_q4_gguf') {
+    Write-Host 'GGUF route: model class=WAN_Animate2 must be proven at actual model load.' -ForegroundColor Yellow
+} else {
+    Write-Host 'Official Base INT8 route: the safetensors checkpoint carries native Animate-2 metadata; actual model loading will still be checked in the run log.' -ForegroundColor Yellow
+}
+Write-Host 'Next: prepare the 17-frame driver, then build the headless API workflow from these installed schemas.'
