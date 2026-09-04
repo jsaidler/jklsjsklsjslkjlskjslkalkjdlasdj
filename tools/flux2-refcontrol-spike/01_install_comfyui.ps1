@@ -24,7 +24,7 @@ function Find-7Zip {
 }
 
 Write-Host ''
-Write-Host 'FLUX.2 Klein + RefControl Pose spike - STEP 1: ComfyUI portable only' -ForegroundColor Cyan
+Write-Host 'FLUX.2 Klein + RefControl Pose spike - STEP 2: ComfyUI portable only' -ForegroundColor Cyan
 Write-Host 'This step downloads ComfyUI Portable for NVIDIA and extracts it.'
 Write-Host 'NO model weights are downloaded by this script.'
 Write-Host ''
@@ -98,6 +98,6 @@ if torch.cuda.is_available():
 if ($LASTEXITCODE -ne 0) { throw 'PyTorch/CUDA validation failed.' }
 
 Write-Host ''
-Write-Host 'STEP 1: PASS' -ForegroundColor Green
+Write-Host 'STEP 2: PASS' -ForegroundColor Green
 Write-Host "ComfyUI portable: $PortableRoot"
 Write-Host 'No FLUX, Qwen, VAE, LoRA, OpenPose, or other model files were downloaded.'
