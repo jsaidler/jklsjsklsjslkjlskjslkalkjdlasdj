@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose remains the strongest character re-posing route tested so far. V1 preserved identity strongly but had anatomy/continuity defects. V2 improved feet, arms and body consistency, but failed as a walk because left/right phase pairs collapsed into nearly repeated poses. The immediate gate is V3 pose-control preparation with genuinely different screen-space geometry and an automatic color-independent silhouette-uniqueness check.**
+Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose remains the strongest character re-posing route tested so far. V1 preserved identity strongly but had anatomy/continuity defects. V2 improved anatomy but failed as a walk because left/right phase pairs collapsed into nearly repeated poses. V3 deterministic controls now PASS: all four gait phases have genuinely different screen-space geometry and unique color-independent silhouette hashes. The immediate next gate is one-shot V3 inference with the V2 correction prompt held constant.**
 
 This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
@@ -66,113 +66,63 @@ Current local route:
 - trigger: `refcontrol`;
 - fixed seed: `20260904`.
 
-RefControl expects an **OpenPose-style COCO-18** skeleton. COCO-18 has ankle joints but no toe/heel joints. Therefore foot/toe errors are attacked by cleaner hip-knee-ankle geometry plus textual orientation constraints, not unsupported extra foot joints.
+RefControl expects an **OpenPose-style COCO-18** skeleton. COCO-18 has ankle joints but no toe/heel joints. Foot/toe errors must therefore be attacked by cleaner hip-knee-ankle geometry plus textual orientation constraints.
 
-## V1 — four walk key poses
+## V1 — strong identity / structural defects
 
-Fixed V1 contract:
+V1 fixed contract:
 
-- `pose_00_contact_L`
-- `pose_01_passing_L`
-- `pose_02_contact_R`
-- `pose_03_passing_R`
-- `768 × 1024` COCO-18 controls;
+- four walk key poses;
+- `768 × 1024` controls;
 - seed `20260904`;
 - one generation per pose;
 - no retry/inpainting/seed search/interpolation.
 
-### V1 result
+Result:
 
-Runtime: **PASS**.
+- runtime: PASS;
+- identity retention: strong;
+- four phases: distinct;
+- right-foot/toe error: present;
+- left-arm inconsistency: present;
+- body drift: small;
+- chain/shackle topology drift: present.
 
-Visual verdict: **CONDITIONAL PASS / not production-ready**.
+Verdict:
 
-Strengths:
+**CONDITIONAL PASS as upstream re-posing route; FAIL as final walk.**
 
-- best identity preservation of every route tested so far;
-- all four images recognizably the same Exilada;
-- gait phases visibly distinct.
+## V2 — anatomy correction / gait collapse
 
-Blocking defects:
+V2 preserved model, reference, seed and render settings, while changing control geometry and adding a stricter anatomy/continuity prompt.
 
-1. right-foot / toe orientation error;
-2. left-arm inconsistency;
-3. subtle body-proportion drift;
-4. chain/shackle topology drift.
+Improvements:
 
-Decision:
+- feet materially better;
+- arms materially better;
+- body stability better;
+- Exilada identity remained strong.
 
-**PASS as lead upstream re-posing/reference route.**
+Critical failure:
 
-**FAIL as final production-ready walk cycle.**
+- `contact_L` and `contact_R` rendered nearly the same;
+- `passing_L` and `passing_R` rendered nearly the same.
 
-## V2 — anatomy correction experiment
+Root cause — LOCKED:
 
-V2 was a controlled comparison, not unrestricted optimization.
-
-Unchanged:
-
-- canonical `exilada_master.png`;
-- FLUX.2 Klein Base 4B FP8;
-- RefControl Pose LoRA strength `1.0`;
-- seed `20260904`;
-- canvas `768 × 1024`;
-- `20` steps;
-- CFG `5.0`;
-- Euler;
-- one artistic generation per pose;
-- no retry/fallback/inpainting/seed search.
-
-Changed:
-
-- cleaner limb separation;
-- no arm crossing through torso centerline;
-- no crossed-leg X in the control set;
-- stricter anatomy/feet/continuity prompt.
-
-### STEP 7A — V2 controls: PASS to inference
-
-The deterministic V2 controls were generated successfully in the SSD workspace.
-
-### V2 visual result — FAIL as walk cycle
-
-The V2 outputs materially improved:
-
-- foot anatomy;
-- arm anatomy;
-- body stability;
-- overall Exilada identity retention remained strong.
-
-However the core motion result regressed:
-
-- `pose_00_contact_L_v2` ≈ `pose_02_contact_R_v2`;
-- `pose_01_passing_L_v2` ≈ `pose_03_passing_R_v2`.
-
-The four requested phases therefore collapsed into effectively two repeated pose geometries.
-
-### V2 root cause — LOCKED
-
-The left/right pairs used nearly identical **screen-space geometry** and differed mainly through COCO anatomical side colors/labels.
-
-Observed model behavior:
-
-**RefControl followed the visible skeleton geometry more strongly than the intended semantic left/right reassignment.**
-
-Therefore future gait controls must not depend on COCO colors alone to distinguish opposite phases.
-
-Secondary unresolved defect:
-
-- chain/shackle topology remains inconsistent between generated frames.
+V2 left/right pairs had nearly identical **screen-space skeleton geometry** and differed mainly through COCO left/right colors/labels. RefControl followed visible geometry more strongly than the semantic side reassignment.
 
 V2 verdict:
 
-**FAIL as a usable walk cycle.**
+**FAIL as a usable walk cycle. Do not expand to eight frames.**
 
-**Do not expand V2 to eight frames.**
+Secondary unresolved defect:
 
-## V3 — structural left/right phase correction
+- chain/shackle topology remains inconsistent.
 
-V3 exists solely to correct the V2 phase-collapse failure while preserving the useful anatomy gains.
+## V3 — structural left/right correction
+
+V3 changes the actual visible skeleton geometry so opposite gait phases remain different even if COCO colors are removed.
 
 ### V3 control names
 
@@ -183,62 +133,103 @@ V3 exists solely to correct the V2 phase-collapse failure while preserving the u
 
 ### V3 geometry rules
 
-- each phase has genuinely different screen-space limb geometry;
-- `contact_L` and `contact_R` differ in stride extent, support/trailing geometry and arm opposition;
-- `passing_L` and `passing_R` differ in support-leg and swing-leg geometry, not merely color labels;
-- no leg-crossing X shapes;
-- support vs swing leg must be readable in silhouette;
-- arms change geometry with the opposite gait phase;
-- slight 3/4 side-facing-right asymmetry is retained.
+- four genuinely different screen-space limb geometries;
+- no crossed-leg X shapes;
+- support and swing legs readable directly from silhouette;
+- opposite contact phases use physically different stride geometry;
+- opposite passing phases use physically different support/swing geometry;
+- arm opposition changes with phase;
+- slight 3/4 side-facing-right asymmetry retained.
 
-### New hard QA rule — silhouette uniqueness
+### STEP 8A — V3 controls: PASS
 
-The four V3 controls must remain distinct **with all COCO colors removed**.
-
-Tooling:
+Tool:
 
 `tools/flux2-refcontrol-spike/08_prepare_v3_inputs.ps1`
 
-The script renders a binary white-on-black skeleton internally for each pose and records a silhouette SHA256. STEP 8A fails unless all four hashes are unique.
+User-observed execution:
 
-This automatic gate directly prevents the V2 mistake from recurring.
+- `generated_v3_poses=4`;
+- `silhouette_uniqueness=PASS`;
+- no model loaded;
+- no inference performed.
 
-### STEP 8A contract
+Hashes:
 
-STEP 8A performs no model loading and no inference.
+- `pose_00_contact_L_v3` — PNG `48f7988c8107c6ac741908d8604347423fe57b18df2c93ebf5f55900333193fa`; silhouette `f24c1ddcd7e396c47e946109465756ae86d57bbdb9d90b9d0caf16bccbf52ba0`;
+- `pose_01_passing_L_v3` — PNG `5a06ba6cc32e76da4e1a8aad42e67a8c5a0258cbd9eb7464c54a4800dccfc465`; silhouette `a5e260fb5119d47ca58886d74f982cdcee01906563e7e37b536936b91510ee02`;
+- `pose_02_contact_R_v3` — PNG `637ea37ebe25b43134d6374ec3e334646f9034b39c6e6b35be3c2ddb9cd08650`; silhouette `aa94a2f6a7d2908dfb20078aee8146b13b60d0b068342a0b2df89bb0096dfabd`;
+- `pose_03_passing_R_v3` — PNG `ff98c35f70f49136c9cb55c0d6f93fdbf5b6d449d164402ee0348ba72dcdc58a`; silhouette `476ff26d61e80d05140eda6c75862280c1fc4adcd96d6159de334c11220d4098`.
 
-It writes:
+Visual QA: **PASS to inference**.
 
-- `Z:\AI\Flux2RefControlSpike\ComfyUI_windows_portable\ComfyUI\input\refcontrol_poses_v3\`
-- `Z:\AI\Flux2RefControlSpike\pose_specs_v3\`
-- `Z:\AI\Flux2RefControlSpike\input_manifest_v3.json`
+The intended gait semantics are visibly present in geometry:
 
-After STEP 8A, stop and visually inspect/share the four skeleton PNGs before any V3 inference runner is created or executed.
+- contact_L: left leg physically leads;
+- passing_L: right supports, left swings;
+- contact_R: right leg physically leads;
+- passing_R: left supports, right swings.
 
-## Workspace relocation — LOCKED
+## STEP 8B — V3 one-shot inference
 
-Current canonical FLUX workspace:
+Runner:
+
+`tools/flux2-refcontrol-spike/09_run_v3.ps1`
+
+Experimental isolation:
+
+**only V3 screen-space skeleton geometry changes relative to the V2 correction run.**
+
+Held constant:
+
+- canonical identity master;
+- FLUX.2 Klein Base 4B FP8;
+- RefControl Pose LoRA strength `1.0`;
+- V2 correction prompt contract;
+- seed `20260904`;
+- `768×1024`;
+- 20 steps;
+- CFG 5.0;
+- Euler;
+- one prompt submission per pose;
+- no retry, inpainting, interpolation or seed search.
+
+Runner safeguards:
+
+- safe PowerShell JSON depths only (`<=64`);
+- validates `input_manifest_v3.json` revision;
+- validates every pose PNG against its spec hash;
+- requires four unique binary silhouette hashes;
+- refuses to run if V3 sentinel, run manifest or V3 PNG output already exists;
+- writes request JSON before submission;
+- writes accepted `prompt_id` evidence immediately after each successful submission;
+- writes history and final run manifest.
+
+## Workspace — LOCKED
+
+Canonical FLUX workspace:
 
 `Z:\AI\Flux2RefControlSpike`
 
-Old path:
-
-`D:\AI\Flux2RefControlSpike` — superseded.
-
-Repository remains:
+Repository:
 
 `D:\GOOGLE DRIVE\DEV\Roguelite`
 
 ## Exact next gate
 
-Run only:
+Run exactly once:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\08_prepare_v3_inputs.ps1" -Workspace "Z:\AI\Flux2RefControlSpike"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\09_run_v3.ps1" -Workspace "Z:\AI\Flux2RefControlSpike"
 ```
 
-Then share the four V3 skeleton PNGs.
+Then stop and share:
 
-**Do not run another FLUX inference yet.**
+- the four V3 generated images;
+- `Z:\AI\Flux2RefControlSpike\run_v3\step8b_v3_run_manifest.json`.
+
+Next QA question:
+
+**Did V3 restore four distinct left/right gait phases while retaining the V2 anatomy gains and strong Exilada identity?**
