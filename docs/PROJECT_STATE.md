@@ -2,257 +2,197 @@
 
 Status date: **2026-09-04**
 
-Purpose: **canonical cross-chat operational handoff.** This file is intentionally concise. It records the current active work, last validated checkpoint, next exact gate, machine/workspace facts and the process rule for keeping project memory synchronized. Detailed design decisions remain in the linked living documents rather than being duplicated here.
+Purpose: **canonical cross-chat operational handoff.** This file records the current active work, latest validated checkpoints, rejected routes and exact next gate. Detailed design lives in the linked living documents.
 
 ## Canonical living documents
 
-- `docs/VISUAL_DIRECTION.md` — locked visual language, camera, production constraints and art-pipeline principles.
-- `docs/CHARACTERS.md` — canonical character definitions, including the Exilada.
-- `docs/ANIMATION_PIPELINE.md` — animation architecture, rejected approaches, research, active spike and acceptance/rejection gates.
-- `docs/PROJECT_STATE.md` — current operational checkpoint and cross-chat handoff.
+Read in this order before acting:
 
-These documents are the durable project memory. When a decision changes, edit the relevant existing canonical document instead of creating parallel versions.
+1. `docs/PROJECT_STATE.md`
+2. `docs/ANIMATION_PIPELINE.md`
+3. `docs/VISUAL_DIRECTION.md`
+4. `docs/CHARACTERS.md`
+5. `docs/PIXEL_ART_PRODUCTION.md`
+6. current tooling under the relevant `tools/` spike directory
+
+GitHub living documents are the source of truth across chats.
 
 ## Mandatory checkpoint protocol
 
-After **every material project step** — success, failure, architectural decision, rejected route, new constraint, installed component, generated validation artifact or changed next gate — do all of the following before moving on:
+After every material project step:
 
-1. update the relevant canonical living document(s);
-2. update this `PROJECT_STATE.md` with the latest validated checkpoint and exact next action;
-3. record any repository tooling change in git with a focused commit;
-4. do not rely only on chat history or model memory for state that another chat must recover;
-5. when a chat is near its context limit, stop before starting a new technical step, sync the documents, then hand off with a prompt that instructs the new chat to read these canonical files first.
+1. update the relevant thematic living document;
+2. update this file;
+3. commit tooling/documentation changes with a focused commit;
+4. record PASS/FAIL, observed result and next gate;
+5. do not rely only on chat history or memory.
 
-The assistant should also keep its available project/personal memory aligned with these durable documents when the product permits it, but **GitHub living documents are the source of truth** for cross-chat continuity.
+## Current active focus
 
-## Active focus
+**Production Pixel Master validation for the Exilada.**
 
-**Character re-posing validation: FLUX.2 Klein Base 4B FP8 + RefControl Pose, fully local, headless/CLI, Windows 11, RTX 3060 12 GB.**
+The project has identified a blocking distinction:
 
-This is not video generation and not motion-sequence generation. The current spike asks one narrow question: can the canonical Exilada design reference be rendered into four explicit walk key poses while maintaining source identity/anatomy and obeying the supplied COCO-18 skeletons?
+- `exilada_master.png` is the approved **high-detail identity/design master**;
+- it is **not** the final gameplay sprite master;
+- mass animation work is paused until a convincing, reproducible Production Pixel Master exists in true modern pixel art.
 
-Final gameplay modern-pixel-art compliance is a separate downstream production-raster gate. The current high-detail `exilada_master.png` is the canonical design/identity reference, not proof of final gameplay pixel construction.
+The final visual target remains true modern pixel art, not a high-resolution generated image with pixel texture and not a simple procedural/mannequin raster.
 
-## Locked constraints relevant to the active spike
+Detailed production rules live in `docs/PIXEL_ART_PRODUCTION.md`.
 
-- no paid/proprietary hosted generation APIs;
-- local/self-hosted code and weights only unless the user explicitly authorizes an exception in advance;
-- no manual frame-by-frame art work;
-- no seed fishing;
-- no inpainting/manual repair to rescue a failed route;
-- no Pixel Art LoRA in this spike;
-- no video generation;
-- no interpolation;
-- one fixed seed: `20260904`;
-- four deterministic walk poses only: `contact_L`, `passing_L`, `contact_R`, `passing_R`;
-- one render per pose once generation is authorized;
-- no inference before the runtime/workflow schema gate passes.
+## Current visual-production findings
 
-## User machine / paths
+### Identity/design master: PASS
 
-Target machine:
+Canonical Exilada reference:
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+It successfully defines:
+
+- adult female identity;
+- lean functional anatomy;
+- long black hair as dominant mass;
+- olive/brown skin;
+- minimal degraded clothing;
+- captivity/restraint markers;
+- barefoot, weaponless initial state.
+
+It remains canonical for identity.
+
+### Direct image generation as Production Pixel Master: FAIL
+
+Observed:
+
+- outputs around `1024 × 1536`, not native sprite canvases;
+- image treatment merely resembled pixel art;
+- excessive generative texture and detail;
+- no trustworthy native-grid cluster/palette control.
+
+Decision:
+
+**Do not continue prompt-iterating this route as the final sprite authoring method.**
+
+### Native Python/Pillow geometric sprite spike: FAIL visually
+
+A real `96 × 96` RGBA Exilada candidate was produced with:
+
+- no downscale;
+- no antialiasing;
+- controlled palette;
+- real native pixels.
+
+Technical raster correctness passed, but visual quality failed:
+
+- generic procedural/mannequin character;
+- weak anatomy and authored silhouette;
+- far below the project's best-in-class modern pixel-art quality target;
+- structurally similar to the already rejected idea of treating simple procedural forms as final art.
+
+Decision:
+
+**Python/Pillow remains useful for deterministic QA/export/masks/palette checks, but is rejected as the system that invents final character art through primitive geometry.**
+
+## Locked pixel-art starting parameters
+
+These remain provisional-but-locked for the current validation gate:
+
+- native gameplay raster: `640 × 360`;
+- Exilada target visible height: ~`64 px`;
+- allowed composition tuning band: `56–72 px`;
+- idle/locomotion canvas: `96 × 96`;
+- ordinary melee/action canvas: `128 × 128`;
+- approval first at native `1×`;
+- final character reference family ultimately needs eight directions;
+- first directional gate is only `S`, `NE`, `N`.
+
+Do not generate a walk cycle before these three static directions pass.
+
+## Locked visual inspiration translation
+
+The project explicitly wants the Exilada and broader human visual language to retain the original sword-and-sorcery inspirations:
+
+- Conan / sword-and-sorcery brutality and material scarcity;
+- Frank Frazetta's decisive masses, physicality and dangerous silhouette;
+- Heavy Metal's adult, less sanitized fantasy sensibility and bodily/material freedom;
+- Julie Bell's anatomical/sculptural confidence, without drifting into polished bodybuilding glamour.
+
+For the Exilada this means:
+
+- lean functional body, not fitness-model musculature;
+- clothing as residue of captivity, not designed barbarian costume;
+- nudity/skin exposure is acceptable when materially/narratively coherent;
+- hair as dominant violent mass, not strand soup;
+- asymmetry, degradation and bodily presence must feel lived rather than decorative.
+
+## Next production-art gate
+
+### Agent-operated native pixel editor/source workflow
+
+The next candidate must combine:
+
+1. a **real native pixel canvas/source**, and
+2. enough **visual authorship and iterative inspection** to reach professional modern pixel-art quality.
+
+Preferred workflow shape:
+
+`identity/pose reference -> native canvas -> agent draws/edits -> preview at 1× -> critique -> cluster repair -> validation -> save`
+
+Current researched candidates:
+
+- **Aseprite MCP:** strongest current architecture; true pixel-level operations, layers/frames/palette, preview/QA loop; MIT; requires Aseprite locally.
+- **LibreSprite-MCP:** free/GPL fallback, but its own docs describe the implementation as brittle and lightly tested.
+- **code-as-pixelart:** useful MIT structured-source architecture for semantic colors/parts/views/frames/anchors; not yet proven as sufficient artistic authoring on its own.
+- **Spriteloom:** local and useful for some tasks, but remains diffusion + postprocess and is not accepted as the canonical Production Pixel Master authoring foundation.
+
+**Exact next gate:** choose and validate one agent-native editor/source route with a single `S` Exilada sprite on the real target grid. Do not proceed to `NE`, `N` or animation until `S` is visually convincing.
+
+## Animation pipeline — preserved but paused at visual dependency
+
+The existing FLUX.2 Klein + RefControl local spike remains technically relevant for character re-posing, but it is no longer the immediate next action.
+
+Validated execution state remains:
+
+- STEP 1 preflight: PASS;
+- STEP 2 ComfyUI portable runtime: PASS;
+- STEP 3 required weights: PASS;
+- STEP 4 canonical reference + four deterministic COCO-18 poses: PASS;
+- STEP 5 runtime schema/workflow validation: tooling ready, local target-machine run still pending.
+
+Active tooling:
+
+`tools/flux2-refcontrol-spike/`
+
+Do not discard or silently restart that work. Resume only after the Production Pixel Master direction is sufficiently resolved, unless the user explicitly prioritizes the pose spike again.
+
+## Target machine / relevant paths
 
 - Windows 11 Home Single Language;
 - 47.7 GB usable RAM detected;
 - NVIDIA GeForce RTX 3060 12 GB;
-- driver observed during preflight: `595.95`;
-- repository: `D:\GOOGLE DRIVE\DEV\Roguelite`;
-- active spike workspace: `D:\AI\Flux2RefControlSpike`.
+- project repository: `D:\GOOGLE DRIVE\DEV\Roguelite`;
+- FLUX spike workspace: `D:\AI\Flux2RefControlSpike`.
 
-Canonical Exilada master:
+## Rejected / stopped routes
 
-`D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_master.png`
+Do not revive casually:
 
-Active repository tooling:
-
-`tools/flux2-refcontrol-spike/`
-
-## FLUX.2 + RefControl spike — validated execution state
-
-### STEP 1 — preflight: PASS
-
-Validated:
-
-- Windows 11;
-- 47.7 GB RAM;
-- RTX 3060 12 GB;
-- sufficient free disk space;
-- canonical Exilada master exists;
-- git and winget available;
-- 7-Zip available.
-
-No model download or inference occurred.
-
-### STEP 2 — ComfyUI portable runtime: PASS
-
-Installed/validated at:
-
-`D:\AI\Flux2RefControlSpike\ComfyUI_windows_portable`
-
-Validated runtime:
-
-- Python `3.13.14`;
-- PyTorch `2.13.0+cu130`;
-- CUDA runtime `13.0`;
-- `torch.cuda.is_available() = True`;
-- GPU `NVIDIA GeForce RTX 3060`;
-- VRAM reported by PyTorch: `12.00 GB`.
-
-Important history: two script-only failures occurred before this pass — a Windows PowerShell 5.1 scalar `.Count` issue and quoting corruption in an inline Python `-c` probe. Both were corrected. They were not GPU/runtime failures.
-
-Current script: `tools/flux2-refcontrol-spike/01_install_comfyui.ps1`.
-
-### STEP 3 — required weights: PASS
-
-Exactly four required model files were installed and hash-validated. No generation occurred.
-
-Required model set:
-
-- `flux-2-klein-base-4b-fp8.safetensors`;
-- `qwen_3_4b.safetensors`;
-- `flux2-vae.safetensors`;
-- `refcontrol-pose-klein-4b.safetensors`.
-
-No OpenPose model, video model, Pixel Art LoRA or additional generation model is part of this spike.
-
-Current script: `tools/flux2-refcontrol-spike/02_download_models.ps1`.
-
-### STEP 4 — canonical reference + deterministic skeleton inputs: PASS
-
-Prepared reference:
-
-`D:\AI\Flux2RefControlSpike\ComfyUI_windows_portable\ComfyUI\input\exilada_master.png`
-
-It is copied byte-for-byte from the canonical repository master and hash-checked; no resize, crop, repaint, palette modification or regeneration is performed.
-
-Prepared pose PNGs:
-
-- `refcontrol_poses\pose_00_contact_L.png`;
-- `refcontrol_poses\pose_01_passing_L.png`;
-- `refcontrol_poses\pose_02_contact_R.png`;
-- `refcontrol_poses\pose_03_passing_R.png`.
-
-Pose specification JSONs:
-
-`D:\AI\Flux2RefControlSpike\pose_specs\`
-
-Manifest:
-
-`D:\AI\Flux2RefControlSpike\input_manifest.json`
-
-Pose format:
-
-- deterministic OpenPose-style COCO-18;
-- 18 explicit joints;
-- black background;
-- canvas `768 × 1024`;
-- no pose-estimation model;
-- no network access in this step;
-- no random geometry;
-- no inference.
-
-Current script: `tools/flux2-refcontrol-spike/03_prepare_inputs.ps1`.
-
-### STEP 5 — runtime schema/workflow validation: TOOLING READY / LOCAL RUN PENDING
-
-Repository tooling for this gate has been corrected and committed, but the target-machine runtime probe has **not yet been executed**. Therefore STEP 5 is **not PASS yet**.
-
-Current script:
-
-`tools/flux2-refcontrol-spike/04_validate_runtime_schema.ps1`
-
-Tooling commit:
-
-`e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce`
-
-The validator now:
-
-- binds only to `127.0.0.1:8188`;
-- refuses to attach to an already occupied/unknown listener;
-- performs only `GET /object_info`;
-- saves the raw complete schema to `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.full.json`;
-- saves the relevant runtime subset to `D:\AI\Flux2RefControlSpike\runtime_schema\object_info.required.json`;
-- saves machine-readable and text PASS/FAIL reports;
-- validates the required FLUX.2 core type contracts without executing any node;
-- verifies the exact four installed model filenames in `UNETLoader`, `CLIPLoader`, `VAELoader` and `LoraLoaderModelOnly`;
-- verifies `CLIPLoader.type` exposes `flux2`;
-- verifies all five prepared image inputs are visible to `LoadImage`;
-- resolves `ReferenceLatent` or a uniquely identifiable equivalent from the installed schema by its `CONDITIONING + LATENT -> CONDITIONING` contract;
-- records how the runtime can chain image 1 then image 2 as ordered reference latents;
-- always stops the temporary server;
-- records `prompt_requests_sent=0`, `inference_performed=false` and `model_execution_requested=false`.
-
-The premature executable workflow builder and inference runner that were still present in `main` were removed from the current tree during this cleanup. Their old commits remain in git history only. No STEP 6 tooling should be restored or recreated until the local STEP 5 report is PASS and the two living documents are updated with the observed result.
-
-## Exact next gate — do not skip
-
-### STEP 5 — runtime schema/workflow validation **without inference**
-
-Run exactly:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\04_validate_runtime_schema.ps1"
-```
-
-Then inspect/share:
-
-`D:\AI\Flux2RefControlSpike\runtime_schema\step5_runtime_schema_report.json`
-
-Do not rerun completed setup unless the validator reports corruption.
-
-Goal:
-
-1. start the already-installed ComfyUI portable headless on `127.0.0.1:8188`;
-2. query/save its local `/object_info` schema;
-3. verify that the installed runtime exposes the exact core node types and loader contracts required for the FLUX.2 Klein two-reference edit path plus model-only RefControl LoRA;
-4. verify the four installed filenames are visible to the correct loaders;
-5. verify the intended way to supply **image 1 = COCO-18 target skeleton** and **image 2 = Exilada reference** using the current ComfyUI core FLUX.2 edit architecture (`ReferenceLatent`/equivalent) before constructing an executable workflow;
-6. stop the server after validation;
-7. perform **zero inference** and queue **zero prompts** in this step.
-
-Only after the local STEP 5 report says PASS, and **after** `docs/ANIMATION_PIPELINE.md` plus this file are updated with the observed result, should the repository gain the executable headless workflow builder/runner for the four one-shot renders.
-
-## Current architecture evidence already established
-
-The installed/current ComfyUI codebase contains native FLUX.2 support, including:
-
-- FLUX.2 model detection/support;
-- `CLIPLoader` support for `flux2` / Qwen3 4B;
-- `EmptyFlux2LatentImage`;
-- `Flux2Scheduler`;
-- `ReferenceLatent` (Set Reference Latent) for edit-model reference latents;
-- `LoraLoaderModelOnly`;
-- the official `Image Edit (Flux.2 Klein 4B)` blueprint using `flux-2-klein-base-4b-fp8.safetensors`, `qwen_3_4b.safetensors` and `flux2-vae.safetensors`.
-
-Do not assume the final two-reference API graph until STEP 5 inspects the runtime's actual `/object_info` schema locally.
-
-## Relevant repository milestone commits from this spike
-
-- `090dc4ee3e06f3c3010657fe9bd01b52e692ee69` — preflight tooling added.
-- `36059f75e14626f56abaf214eec708add6600216` — final Windows PowerShell-compatible ComfyUI runtime validation fix.
-- `d6f19fb8ba79dbb048e5b96ccb862537c56cdb58` — four-weight downloader/validator.
-- `e047ee70c31cb72c193c5dfa08daf1a1db8c1d58` — canonical reference and deterministic four-pose input preparation.
-- `e3e7cb62e7f6f5af3af2ebb6b58d10c5dc3867ce` — hardened no-inference STEP 5 runtime-schema validator; premature STEP 6 tooling removed from current tree.
-
-## Rejected / stopped animation routes that must not be revived casually
-
-Detailed rationale lives in `docs/ANIMATION_PIPELINE.md`. Current status:
-
-- Sprite Sheet Diffusion — tested locally, rejected;
-- Wan-Animate-2 Base INT8 — tested locally, rejected;
-- PixelLab skeleton route — stopped because relevant production path requires hosted/tiered service;
-- Pixel Engine — disqualified as paid/proprietary hosted dependency;
-- Retro Diffusion hosted route — disqualified under the same rule;
+- Sprite Sheet Diffusion — tested and rejected;
+- Wan-Animate-2 Base INT8 — tested and rejected;
+- PixelLab hosted/tiered route — stopped;
+- Pixel Engine — disqualified as hosted/paid dependency;
+- Retro Diffusion hosted route — disqualified under same rule;
+- direct generic image generation as final pixel master — rejected;
+- primitive Python/Pillow geometry as final artistic authoring — rejected;
 - generic video diffusion is not the current architecture.
 
-## What a new chat must read before acting
+## Latest documentation commits
 
-In order:
+- `957f89315850bd967d95877ba8098736a3303715` — record direct-image and native-Pillow Production Pixel Master failures; lock agent-native pixel-editing next gate.
 
-1. `docs/PROJECT_STATE.md`;
-2. `docs/ANIMATION_PIPELINE.md`;
-3. `docs/VISUAL_DIRECTION.md`;
-4. `docs/CHARACTERS.md`;
-5. current files under `tools/flux2-refcontrol-spike/` if code changes are required.
+## Exact next action
 
-After reading, continue **only from STEP 5** above unless the user explicitly changes the plan.
+**Do not generate another image or scripted primitive sprite.**
+
+The next action is to validate a real agent-operated pixel editor/source workflow, beginning with a single `S` Exilada at the native target grid, and only advance when that result passes both technical raster and artistic-quality gates.
