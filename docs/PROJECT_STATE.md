@@ -34,113 +34,109 @@ It is a high-detail identity/design reference, not the final gameplay sprite.
 
 Final visible art remains true modern pixel art. Simple high-resolution generation followed by resize/quantization is not an accepted final-sprite route.
 
-Old provisional production values such as ~64 px visible height / `96×96` idle canvas / eight mandatory directions are superseded after the belt-scroller decision.
+## RefControl animation checkpoint
 
-## Current animation checkpoint
+### V1 — strong identity, structural defects
 
-### FLUX.2 Klein + RefControl Pose V1
+V1 produced four one-shot key poses at `768×1024`, fixed seed `20260904`, with no artistic retry.
 
-This is the strongest route tested so far.
+Result:
 
-STEP 6 executed successfully:
+- identity retention: strong;
+- four gait phases: visibly distinct;
+- right-foot/toe anatomy: faulty in at least one frame;
+- left arm: inconsistent;
+- body proportions: small drift;
+- chain/shackle continuity: unstable.
 
-- four one-shot generations;
-- fixed seed `20260904`;
-- `768×1024`;
-- no retry, fallback, inpainting, interpolation or seed fishing.
+Verdict:
 
-Runtime result: **PASS**.
+**CONDITIONAL PASS as upstream re-posing route; FAIL as production-ready walk.**
 
-Visual result: **CONDITIONAL PASS / not production-ready**.
+### V2 — anatomy improved, gait alternation collapsed
 
-Blocking defects:
+V2 deliberately changed only pose geometry + stricter anatomy/continuity prompt while preserving model, seed and inference settings.
 
-1. right-foot/toe orientation error in at least one frame;
-2. left-arm inconsistency;
-3. small inter-frame body-proportion drift;
-4. chain/shackle side/topology drift.
+The four V2 outputs were generated and visually reviewed.
 
-Decision:
+What improved:
 
-**Keep RefControl as the lead upstream re-posing route and run one controlled correction round.**
+- feet/toe anatomy improved materially;
+- arms improved materially;
+- Exilada identity remained strong;
+- general body stability improved.
 
-## V2 correction run
+Critical failure:
 
-### STEP 7A — V2 inputs: PASS
-
-The user executed `06_prepare_v2_inputs.ps1` against the relocated workspace and generated four deterministic V2 COCO-18 controls:
-
-- `pose_00_contact_L_v2` — SHA256 `5867506c9c7e16116fd2eb5e40f60dc0ba9b528d4ecedc4e2d53372e33fd5755`
-- `pose_01_passing_L_v2` — SHA256 `cb8e2ea801e4002e1b8b0ca8d6286e94ee3ba760f689aa1ae15e235c9d960518`
-- `pose_02_contact_R_v2` — SHA256 `31497ed42506faf9d12ad9978fdc6769640250369d6b60d69c4ec36501a82f87`
-- `pose_03_passing_R_v2` — SHA256 `1ecf40680f6baba73f5924f327795b7c85ce45edb53a8419d29a97b7f6ac4e24`
-
-Visual skeleton QA: **PASS to inference**.
-
-Observed improvements in controls:
-
-- arms no longer cross through torso centerline;
-- crossed-leg X ambiguity removed;
-- larger leg/ankle screen-space separation;
-- four gait phases remain clearly distinguishable.
-
-### STEP 7B — first execution attempt: TOOLING FAIL, artistic status preserved
-
-The initial `07_run_v2.ps1` execution stopped with:
-
-`ConvertTo-Json : A profundidade máxima permitida de serialização é 100.`
+- `pose_00_contact_L_v2` and `pose_02_contact_R_v2` rendered as nearly the same pose;
+- `pose_01_passing_L_v2` and `pose_03_passing_R_v2` rendered as nearly the same pose;
+- the set therefore collapsed from four useful gait phases to effectively two repeated phase geometries.
 
 Root cause:
 
-- the runner used JSON serialization depths `100` and `120`;
-- Windows PowerShell enforces a maximum serialization depth of 100;
-- the `history` save at depth `120` could fail after an artistic prompt had already completed.
+V2 used nearly the same **screen-space skeleton silhouettes** for left/right phase pairs and relied too heavily on COCO left/right color/semantic labels. RefControl followed the visible geometry more strongly than the semantic side assignment.
 
-Therefore the incident must **not** be treated automatically as a pre-submission failure.
+Secondary failure remains:
 
-Corrected runner:
+- chain/shackle topology is still not rigidly stable between frames.
 
-`tools/flux2-refcontrol-spike/07_run_v2.ps1`
+V2 verdict:
 
-Fix commits:
+**FAIL as a usable walk cycle.**
 
-- `08eaab0d2541bc656515a04dc393ed60881be422` — safe JSON depth and recovery guard;
-- `74c05a39b5f2048d837adc7ad1922e4e144e61f3` — safe resume that preserves any already-generated contiguous V2 output and submits only remaining poses.
+Important positive finding:
 
-New recovery behavior:
+**RefControl remains the strongest upstream character re-poser tested, because identity/anatomy quality is materially better than prior routes. The next correction must change actual screen-space geometry, not just COCO left/right semantics.**
 
-- JSON serialization is capped at safe depth `32/64`;
-- request JSON is fully serialized before `POST /prompt`;
-- accepted prompts now get explicit `*_accepted.json` evidence with `prompt_id`;
-- if the old failed run produced no V2 PNG, recovery treats it as pre-submission;
-- if it produced `pose_00` (or another contiguous prefix), those images are preserved and never resubmitted;
-- evidence for a pose without a corresponding PNG is treated as ambiguous and recovery stops;
-- unexpected, duplicate or non-contiguous outputs cause FAIL rather than an artistic retry.
+## Current gate — V3 structural pose controls
 
-## V2 fixed comparison contract
+Do not run another character inference yet.
 
-Unchanged from V1:
+V3 fixes the specific V2 failure before spending GPU time.
 
-- Exilada reference;
-- FLUX.2 Klein Base 4B FP8;
-- RefControl Pose LoRA strength 1.0;
-- seed `20260904`;
-- `768×1024`;
-- 20 steps;
-- CFG 5.0;
-- Euler;
-- one artistic generation per pose.
+New tooling:
 
-Changed variables only:
+`tools/flux2-refcontrol-spike/08_prepare_v3_inputs.ps1`
 
-1. cleaner COCO-18 skeleton geometry;
-2. stricter prompt for feet/toes, left/right arms, fixed body dimensions and exact restraint topology.
+V3 names:
 
-RefControl expects COCO-18; toe/heel joints cannot simply be added. Foot correction is being tested through less ambiguous hip/knee/ankle geometry plus text constraints.
+- `pose_00_contact_L_v3`
+- `pose_01_passing_L_v3`
+- `pose_02_contact_R_v3`
+- `pose_03_passing_R_v3`
+
+V3 rules:
+
+- four genuinely different screen-space skeleton geometries;
+- no crossed-leg X geometry;
+- support and swing legs visibly distinct;
+- opposite arm geometry changes with gait phase;
+- slight 3/4 side-facing-right asymmetry;
+- all four controls must remain distinct even when COCO colors are removed.
+
+The script enforces the last rule automatically by rendering a color-independent binary silhouette for each control and requiring **four unique silhouette hashes**.
+
+### Exact next action
+
+Run only STEP 8A:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\08_prepare_v3_inputs.ps1" -Workspace "Z:\AI\Flux2RefControlSpike"
+```
+
+Expected outputs:
+
+`Z:\AI\Flux2RefControlSpike\ComfyUI_windows_portable\ComfyUI\input\refcontrol_poses_v3\`
+
+Expected manifest:
+
+`Z:\AI\Flux2RefControlSpike\input_manifest_v3.json`
+
+**STOP after STEP 8A. Do not run inference.** Share the four V3 skeleton PNGs for visual QA first.
 
 ## Workspace relocation — LOCKED
-
-The FLUX/RefControl workspace was moved to an SSD.
 
 Current canonical workspace:
 
@@ -148,46 +144,17 @@ Current canonical workspace:
 
 Old workspace:
 
-`D:\AI\Flux2RefControlSpike` — **superseded**.
+`D:\AI\Flux2RefControlSpike` — superseded.
 
 Repository remains:
 
 `D:\GOOGLE DRIVE\DEV\Roguelite`
 
-Active V2 runner now defaults to `Z:\AI\Flux2RefControlSpike`. Older historical scripts may still contain the legacy default; when they are ever reused, pass `-Workspace "Z:\AI\Flux2RefControlSpike"` explicitly unless their defaults have also been migrated.
+## Gameplay-scale / Production Pixel Master gate — queued
 
-## Exact next gate
+Only after the upstream walk-pose route has four actually distinct, acceptable gait phases should the project return to gameplay-scale/native-raster validation.
 
-Resume STEP 7B with the corrected runner in recovery mode:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\07_run_v2.ps1" -Workspace "Z:\AI\Flux2RefControlSpike" -RecoverSerializationFailure
-```
-
-The runner must first inspect the existing V2 evidence and report what it is preserving before any new `/prompt` submission.
-
-After four V2 images exist, compare V1 vs V2 on:
-
-- foot correctness;
-- left-arm correctness;
-- body-proportion stability;
-- chain/shackle continuity;
-- Exilada identity retention;
-- gait-phase readability.
-
-Do not proceed to eight frames, inbetweening or final gameplay sprite authoring before this comparison.
-
-## Gameplay-scale / Production Pixel Master gate — queued after V2
-
-After the upstream re-poser is judged, test accepted motion/reference frames in an elevated belt-scroller gameplay composition to establish:
-
-- real Exilada on-screen height;
-- native gameplay raster suitability (provisional `640×360`);
-- safe action bounds;
-- Production Pixel Master dimensions;
-- required facing families.
-
-High-resolution RefControl outputs are motion/identity references; they are not automatically final pixel sprites.
+High-resolution RefControl outputs remain motion/identity references; they are not automatically final pixel sprites.
 
 ## Rejected/stopped routes
 
