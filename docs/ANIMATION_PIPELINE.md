@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **RefControl is no longer accepted as a direct animation-frame generator. V1 showed strong identity retention but anatomy/prop drift; V2 improved anatomy but collapsed left/right gait phases; V3 restored phase differentiation but produced a catastrophic extra-limb failure (three legs in `pose_01_passing_L_v3`). This establishes a structural reliability ceiling for the current FLUX.2 Klein + RefControl Pose route. The next experiment must use a materially different model architecture, not another RefControl V4.**
+Status: **RefControl is rejected as a direct animation-frame generator after repeated structural failures, culminating in an extra third leg in V3. The next and final diffusion-based direct-frame test changes architecture to Qwen-Image-Edit-2509 using its native multi-image/keypoint-edit behavior. Qwen-Image-Edit-2511 is not the primary pose-control candidate because current evidence indicates its OpenPose/keypoint behavior is less reliable than 2509 for this exact use case. If the single hard 2509 topology test fails, direct diffusion frame synthesis ends and the project moves to deterministic rig-first animation.**
 
 This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
@@ -28,13 +28,11 @@ The useful decomposition remains:
 
 `motion/key poses -> explicit structure/control -> controlled character renderer/editor -> gameplay-scale/native-raster translation -> temporal completion if needed -> QA`
 
-The critical new rule is:
-
-**the character renderer/editor must preserve body topology before identity, style, props or gait quality are judged.**
+The renderer/editor must preserve **body topology first**. Identity, pose quality, props and visual polish are irrelevant if the frame invents or loses major limbs.
 
 ## Mandatory QA order — LOCKED
 
-Every future generated pose/frame must be evaluated in this order:
+Every future generated pose/frame is evaluated in this order:
 
 1. **topology/anatomy count:** exactly one head, one torso, two arms, two hands, two legs, two feet; no extra/duplicated/fused/missing major limbs;
 2. **pose adherence:** requested contact/passing/support/swing geometry is actually present;
@@ -42,7 +40,7 @@ Every future generated pose/frame must be evaluated in this order:
 4. **prop continuity:** shackles/chains/equipment remain on stable anatomical sides;
 5. **visual quality/gameplay readability.**
 
-Failure at level 1 is immediately eliminatory for that output and blocks any downstream praise/approval.
+Failure at level 1 is immediately eliminatory.
 
 ## RefControl research history — FROZEN
 
@@ -52,12 +50,12 @@ FLUX.2 Klein Base 4B FP8 + RefControl Pose, fixed seed `20260904`, four COCO-18 
 
 Result:
 
-- identity retention: strong;
-- four phases: distinct;
-- right-foot/toe error: present;
-- left-arm inconsistency: present;
-- body drift: small;
-- chain/shackle drift: present.
+- identity retention strong;
+- four phases distinct;
+- right-foot/toe error;
+- left-arm inconsistency;
+- small body drift;
+- chain/shackle drift.
 
 Verdict: **CONDITIONAL PASS as research/upstream reference; FAIL as final walk.**
 
@@ -79,7 +77,7 @@ Critical failure:
 
 Root cause: opposite phases used nearly identical screen-space silhouettes and relied too heavily on COCO semantic left/right labels.
 
-Verdict: **FAIL as a usable walk.**
+Verdict: **FAIL as usable walk.**
 
 ### V3
 
@@ -87,93 +85,183 @@ Changed actual screen-space geometry so all four controls had unique color-indep
 
 STEP 8A controls: PASS.
 
-Generated V3 result:
+Generated result:
 
-- left/right phase differentiation returned;
+- phase differentiation returned;
 - identity remained strong;
-- but `pose_01_passing_L_v3` contains **three visible legs / three feet**.
+- `pose_01_passing_L_v3` contains **three visible legs / three feet**;
+- chain/shackle drift remains.
 
-This is a catastrophic topology failure. Secondary chain/shackle drift also remains.
-
-Verdict: **FAIL as a direct animation-frame route.**
+Verdict: **catastrophic topology FAIL.**
 
 ### RefControl final decision — LOCKED
 
-Do **not** create a V4, do not prompt-tune, seed-fish, inpaint, or iterate further trying to repair the same class of failure.
+Do **not** create V4. Do not prompt-tune, seed-fish, inpaint, or iterate further on direct RefControl frame generation.
 
-RefControl may remain useful only as:
+RefControl is frozen as:
 
-- a pose/identity reference generator for non-final upstream material;
-- research history.
+- research history;
+- possible non-final upstream pose/identity reference support only.
 
-It is **rejected as the production direct-frame generator** because it does not guarantee body topology.
+It is **rejected as the production direct-frame generator** because it does not reliably preserve body topology.
 
-## New candidate architecture — Qwen-Image-Edit-2511
+## New candidate architecture — Qwen-Image-Edit-2509
 
-The next generative spike must change model class, not merely parameters.
+The final diffusion-based direct-frame topology test uses:
 
-Candidate:
+**Qwen-Image-Edit-2509**, local/self-hosted, Apache 2.0.
 
-**Qwen-Image-Edit-2511**, local/self-hosted, Apache 2.0.
+Why 2509 rather than 2511 for this gate:
 
-Why it is materially different:
+- 2509 explicitly introduced native support for keypoint/control images and pose transformation;
+- its multi-image edit path can take the Exilada identity image together with a keypoint map;
+- 2511 improves general consistency/drift, but current evidence shows its OpenPose/keypoint behavior can regress relative to 2509;
+- this spike tests **pose-controlled topology**, not general image-edit quality.
 
-- it is an image-editing architecture rather than a reference-fusion LoRA attached to a generative base;
-- the Qwen-Image-Edit family is designed to preserve source appearance/semantics while applying edits;
-- the 2511 revision specifically targets lower image drift, improved character consistency and stronger geometric reasoning;
-- the edit family supports keypoint/control conditioning and multi-image inputs;
-- ComfyUI has a native Qwen 2511 edit workflow.
+This is materially different from FLUX RefControl:
 
-### Hardware strategy for RTX 3060 12 GB
+- image-editing architecture;
+- identity image and keypoint map are native multi-image edit inputs;
+- no RefControl LoRA/reference-latent chain;
+- no attempt to rescue the FLUX route through another prompt or skeleton revision.
 
-Do not attempt the full BF16 model first.
+## RTX 3060 12 GB model strategy — LOCKED FOR FIRST TEST
 
-Initial local smoke-test target:
+Canonical new workspace:
 
-- Qwen-Image-Edit-2511 GGUF quantized transformer;
-- start with **Q3_K_M (~9.7 GB transformer)** for VRAM safety;
-- text encoder/VAE offloaded as needed to system RAM;
-- use existing 48 GB RAM and SSD workspace;
-- if and only if topology passes, later evaluate a higher-quality Q4 quant.
+`Z:\AI\QwenImageEditSpike`
 
-Canonical workspace remains:
+First model set:
 
-`Z:\AI\Flux2RefControlSpike`
+1. `Qwen-Image-Edit-2509-Q4_0.gguf` — ~11.9 GB transformer;
+2. `qwen_2.5_vl_7b_fp8_scaled.safetensors` — ~9.38 GB text encoder;
+3. `qwen_image_vae.safetensors` — ~0.25 GB VAE.
 
-A new sub-workspace may be created under `Z:\AI\QwenImageEditSpike` rather than contaminating the frozen RefControl evidence.
+No Lightning LoRA in the first topology test.
 
-## Hard next gate — ONE difficult pose only
+Rationale:
+
+- Q4_0 is chosen over Q3 to avoid degrading the topology test more than necessary;
+- the 12 GB GPU is expected to require low-VRAM / CPU offload;
+- the machine has ~48 GB RAM and the workspace is on SSD;
+- if Q4_0 cannot run under controlled low-VRAM offload, do not silently change quantization. Reassess the runtime gate explicitly.
+
+## New tooling — `tools/qwen-image-edit-2509-spike/`
+
+### `00_preflight.ps1`
+
+Checks only:
+
+- Windows 11;
+- >=40 GB visible system RAM for this spike;
+- ~12 GB NVIDIA VRAM;
+- >=40 GB free on the `Z:` workspace drive;
+- repository/master paths;
+- git/curl/7-Zip prerequisites.
+
+No downloads or installs.
+
+### `01_install_runtime.ps1`
+
+Creates an isolated runtime in:
+
+`Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
+
+Installs:
+
+- latest official NVIDIA ComfyUI Portable;
+- `city96/ComfyUI-GGUF` pinned to commit `6ea2651e7df66d7585f6ffee804b20e92fb38b8a`;
+- only the custom-node Python requirements.
+
+No Qwen weights and no inference.
+
+### `02_download_models.ps1`
+
+Downloads exactly the three locked files and validates SHA256:
+
+- `Qwen-Image-Edit-2509-Q4_0.gguf`
+  - SHA256 `4f6cda402e1dbc36ee4b601b10b9ee0da2dbefedfbfa53eae3efb0ddff48c3e2`
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+  - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
+- `qwen_image_vae.safetensors`
+  - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+
+No model load or inference.
+
+### `03_prepare_inputs.ps1`
+
+Creates one deliberately difficult topology stress-test input:
+
+- identity: byte-identical canonical `exilada_master.png`;
+- keypoint map: the same difficult passing-L structural case that caused the RefControl V3 extra-leg failure;
+- fixed seed `20260904`;
+- fixed `768×1024` control canvas;
+- explicit prompt requiring exactly two arms/hands/legs/feet and full-body visibility.
+
+No model load or inference.
+
+### `04_validate_runtime_schema.ps1`
+
+Starts isolated ComfyUI with `--lowvram`, performs only `GET /object_info`, and validates:
+
+- `UnetLoaderGGUF` with the Q4_0 model visible;
+- `CLIPLoader` with `qwen_image` type and the locked encoder visible;
+- `VAELoader` with the locked VAE visible;
+- `TextEncodeQwenImageEditPlus` multi-image edit contract;
+- required sampler/decode/save nodes;
+- both prepared input images visible to `LoadImage`.
+
+It sends **zero `/prompt` requests** and performs no inference.
+
+## Hard single-pose topology gate
 
 Do not generate four frames first.
 
-The first Qwen test uses exactly one difficult passing pose — preferably the same structural case that produced the V3 extra leg.
+The first Qwen inference, only after STEP 5 schema PASS, will use exactly one difficult passing pose — the same structural case that produced the V3 extra leg.
 
 Inputs:
 
-1. canonical `exilada_master.png`;
-2. one explicit keypoint/pose control for the difficult passing phase;
-3. fixed prompt requiring the same Exilada and exact normal human topology.
+1. canonical Exilada identity image;
+2. explicit OpenPose-style COCO-18 keypoint map;
+3. fixed prompt and seed.
 
-One output only. No retry, no seed fishing.
+One output only. No retry. No seed fishing. No prompt iteration.
 
 ### Acceptance criteria
 
 The single-pose spike passes only if all are true:
 
 - exactly **2 arms / 2 hands / 2 legs / 2 feet**;
-- no extra or fused major limb;
+- no extra, fused or missing major limb;
 - requested passing pose is visibly obeyed;
 - Exilada identity/hair/body/clothing remain recognizably stable;
+- complete body remains visible;
 - no catastrophic prop-body fusion.
 
-If this one difficult pose fails topology, **reject Qwen as a direct-frame generator immediately**. Do not start a prompt-tuning loop.
+If it fails topology, **reject Qwen-Image-Edit-2509 as a direct-frame generator immediately**.
 
 If it passes, only then run the four-pose set.
 
-## Deterministic fallback if Qwen also fails
+## Deterministic fallback — HARD STOP
 
 If the Qwen one-pose topology gate fails, stop testing diffusion-based direct frame synthesis.
 
-Next architecture becomes **deterministic rig-first animation**, where topology and gait are guaranteed by a 2D mesh/skeletal or hidden 3D rig, and generative tools are allowed only for non-topological tasks such as reference, texture/style guidance or downstream native-pixel authoring.
+Next architecture becomes **deterministic rig-first animation**:
 
-This prevents an endless sequence of models hallucinating limbs while we repeatedly repair prompts.
+- 2D mesh/skeletal rig or hidden 3D rig;
+- body topology and gait guaranteed mechanically;
+- generative tools allowed only for non-topological roles such as concept/reference, texture/style guidance or downstream native-pixel authoring.
+
+This prevents an endless sequence of models hallucinating limbs while the project repeatedly repairs prompts.
+
+## Exact next gate
+
+Run only STEP 1 preflight:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\qwen-image-edit-2509-spike\00_preflight.ps1"
+```
+
+Do not run STEP 2 or download models until STEP 1 output is reviewed and recorded.
