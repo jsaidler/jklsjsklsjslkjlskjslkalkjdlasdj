@@ -29,6 +29,35 @@ function Read-Keypoints([string]$Path) {
     return @($raw)
 }
 
+function Write-Utf8NoBom([string]$Path, [string]$Text) {
+    [System.IO.File]::WriteAllText($Path, $Text, [System.Text.UTF8Encoding]::new($false))
+}
+
+function Get-WebExceptionBody($Exception) {
+    if ($null -eq $Exception.Response) { return ($Exception | Out-String) }
+    try {
+        $stream = $Exception.Response.GetResponseStream()
+        if ($null -eq $stream) { return '' }
+        $reader = New-Object System.IO.StreamReader($stream)
+        try { return $reader.ReadToEnd() }
+        finally { $reader.Dispose(); $stream.Dispose() }
+    }
+    catch {
+        return ($Exception | Out-String)
+    }
+}
+
+function Get-ResponseHeadersText($Response) {
+    if ($null -eq $Response) { return '' }
+    $lines = @()
+    try {
+        foreach ($key in $Response.Headers.AllKeys) {
+            $lines += "$key`: $($Response.Headers[$key])"
+        }
+    } catch {}
+    return ($lines -join [Environment]::NewLine)
+}
+
 $Reference = Join-Path $Workspace 'exilada_reference_128.png'
 $Palette = Join-Path $Workspace 'palette.png'
 $PoseFiles = 0..3 | ForEach-Object { Join-Path $Workspace "target_pose_$_.json" }
@@ -53,8 +82,7 @@ foreach ($poseFile in $PoseFiles) {
     $frames += [ordered]@{ keypoints = @(Read-Keypoints $poseFile) }
 }
 
-# This payload intentionally reuses ONLY the artifacts already produced by the failed spike.
-# No estimate-skeleton call, no pose regeneration, no retries, no fallback schema.
+# Reuse ONLY artifacts from the previous spike. No estimator, pose regeneration, retry, or fallback schema.
 $payload = [ordered]@{
     image_size               = [ordered]@{ width = $Size; height = $Size }
     reference_image          = Get-Base64ImageObject $Reference
@@ -75,7 +103,7 @@ $bodyPath = Join-Path $Workspace 'diagnostic_animate_once_response_body.txt'
 $headersPath = Join-Path $Workspace 'diagnostic_animate_once_response_headers.txt'
 
 $json = $payload | ConvertTo-Json -Depth 30 -Compress
-[System.IO.File]::WriteAllText($requestPath, $json, [System.Text.UTF8Encoding]::new($false))
+Write-Utf8NoBom $requestPath $json
 
 Write-Host ''
 Write-Host 'PixelLab single-call diagnostic' -ForegroundColor Cyan
@@ -84,64 +112,80 @@ Write-Host "  workspace:  $Workspace"
 Write-Host "  reference:  $Reference"
 Write-Host "  palette:    $Palette"
 Write-Host '  poses:      target_pose_0.json .. target_pose_3.json'
-Write-Host '  API calls:   EXACTLY ONE POST; no balance query, no estimator, no retry'
+Write-Host '  API calls:  EXACTLY ONE POST; no balance query, no estimator, no retry'
 Write-Host "  request:    $requestPath"
 Write-Host ''
 
-$client = [System.Net.Http.HttpClient]::new()
-$client.Timeout = [TimeSpan]::FromMinutes(10)
-$client.DefaultRequestHeaders.Authorization = [System.Net.Http.Headers.AuthenticationHeaderValue]::new('Bearer', $env:PIXELLAB_SECRET)
-$client.DefaultRequestHeaders.Accept.ParseAdd('application/json')
-$content = [System.Net.Http.StringContent]::new($json, [System.Text.Encoding]::UTF8, 'application/json')
+$headers = @{
+    Authorization = "Bearer $env:PIXELLAB_SECRET"
+    Accept = 'application/json'
+}
+
+$statusLine = $null
+$body = ''
+$responseHeaders = ''
+$statusCode = $null
+$success = $false
 
 try {
-    # IMPORTANT: this is the only network/API call in the script. Do not wrap in retry logic.
-    $response = $client.PostAsync($Endpoint, $content).GetAwaiter().GetResult()
-    $body = $response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
-    $statusLine = "HTTP $([int]$response.StatusCode) $($response.ReasonPhrase)"
+    # IMPORTANT: this is the only network/API call in the script.
+    $response = Invoke-WebRequest `
+        -UseBasicParsing `
+        -Uri $Endpoint `
+        -Method Post `
+        -Headers $headers `
+        -ContentType 'application/json' `
+        -Body $json `
+        -TimeoutSec 600
 
-    [System.IO.File]::WriteAllText($statusPath, $statusLine + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
-    [System.IO.File]::WriteAllText($bodyPath, $body, [System.Text.UTF8Encoding]::new($false))
-
-    $headerLines = @()
-    foreach ($h in $response.Headers) {
-        $headerLines += "$($h.Key): $([string]::Join(', ', $h.Value))"
+    $statusCode = [int]$response.StatusCode
+    $statusLine = "HTTP $statusCode $($response.StatusDescription)"
+    $body = [string]$response.Content
+    $responseHeaders = Get-ResponseHeadersText $response
+    $success = ($statusCode -ge 200 -and $statusCode -lt 300)
+}
+catch [System.Net.WebException] {
+    $webEx = $_.Exception
+    if ($null -ne $webEx.Response) {
+        try { $statusCode = [int]$webEx.Response.StatusCode } catch { $statusCode = 0 }
+        try { $reason = [string]$webEx.Response.StatusDescription } catch { $reason = '' }
+        $statusLine = "HTTP $statusCode $reason".Trim()
+        $body = Get-WebExceptionBody $webEx
+        $responseHeaders = Get-ResponseHeadersText $webEx.Response
     }
-    foreach ($h in $response.Content.Headers) {
-        $headerLines += "$($h.Key): $([string]::Join(', ', $h.Value))"
+    else {
+        $statusCode = 0
+        $statusLine = 'NO HTTP RESPONSE'
+        $body = ($webEx | Out-String)
     }
-    [System.IO.File]::WriteAllLines($headersPath, $headerLines, [System.Text.UTF8Encoding]::new($false))
-
-    Write-Host $statusLine -ForegroundColor Yellow
-    Write-Host "Full response body saved to: $bodyPath"
-    Write-Host "Response headers saved to:   $headersPath"
-
-    $tierDenied = $body -match '(?i)tier\s*1|requires?\s+(at\s+least\s+)?tier|subscription.*required|upgrade.*tier|plan.*required'
-    if ($tierDenied) {
-        Write-Host ''
-        Write-Host 'Tier/subscription restriction detected. STOPPING. No workaround or second call will be attempted.' -ForegroundColor Red
-        exit 3
-    }
-
-    if ($response.IsSuccessStatusCode) {
-        Write-Host ''
-        Write-Host 'The one POST was accepted. Diagnostic ends here; no estimator/QA follow-up is being run.' -ForegroundColor Green
-        exit 0
-    }
-
-    Write-Host ''
-    Write-Host 'The one POST failed for a reason other than an obvious Tier-1 restriction. Diagnostic ends here with no retry.' -ForegroundColor Red
-    exit 1
 }
 catch {
-    $exceptionText = $_ | Out-String
-    [System.IO.File]::WriteAllText($statusPath, "NO HTTP RESPONSE`r`n", [System.Text.UTF8Encoding]::new($false))
-    [System.IO.File]::WriteAllText($bodyPath, $exceptionText, [System.Text.UTF8Encoding]::new($false))
-    Write-Host 'The single POST attempt raised a transport/client exception. No retry will be attempted.' -ForegroundColor Red
-    Write-Host "Exception saved to: $bodyPath"
-    exit 1
+    $statusCode = 0
+    $statusLine = 'NO HTTP RESPONSE'
+    $body = ($_ | Out-String)
 }
-finally {
-    $content.Dispose()
-    $client.Dispose()
+
+Write-Utf8NoBom $statusPath ($statusLine + [Environment]::NewLine)
+Write-Utf8NoBom $bodyPath $body
+Write-Utf8NoBom $headersPath $responseHeaders
+
+Write-Host $statusLine -ForegroundColor Yellow
+Write-Host "Full response body saved to: $bodyPath"
+Write-Host "Response headers saved to:   $headersPath"
+
+$tierDenied = $body -match '(?i)tier\s*1|requires?\s+(at\s+least\s+)?tier|subscription.*required|upgrade.*tier|plan.*required'
+if ($tierDenied) {
+    Write-Host ''
+    Write-Host 'Tier/subscription restriction detected. STOPPING. No workaround or second call will be attempted.' -ForegroundColor Red
+    exit 3
 }
+
+if ($success) {
+    Write-Host ''
+    Write-Host 'The one POST was accepted. Diagnostic ends here; no estimator/QA follow-up is being run.' -ForegroundColor Green
+    exit 0
+}
+
+Write-Host ''
+Write-Host 'The one POST failed for a reason other than an obvious Tier-1 restriction. Diagnostic ends here with no retry.' -ForegroundColor Red
+exit 1
