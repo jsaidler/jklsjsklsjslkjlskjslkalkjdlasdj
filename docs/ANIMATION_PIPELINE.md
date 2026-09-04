@@ -19,6 +19,23 @@ The animation pipeline must:
 - use free/local/self-hosted tools and assets unless explicitly approved otherwise;
 - scale to many actions, characters, equipment states and world conditions.
 
+### Zero-GUI / zero-specialist-operator requirement — LOCKED
+
+The user is **not** expected to learn Blender, rigging, retargeting, BVH editing, weight painting, animation curves, physics setup, sprite extraction or other specialist production software, and the project cannot assume hiring an animator/technical artist.
+
+Therefore every accepted production spike and pipeline must be operable through scripted automation:
+
+- installation/configuration through PowerShell or equivalent CLI automation;
+- Blender executed in background/headless mode from the command line;
+- scene/rig/camera/material/constraint/attachment setup generated or modified by Python scripts;
+- BVH import/retargeting, playback, baking and render/export automated;
+- diagnostic outputs, manifests and PASS/FAIL checks written by scripts;
+- no mandatory manual GUI editing step may be hidden inside the workflow.
+
+The normal user interaction target is: **pull repository -> run one documented command/script -> inspect/share outputs**.
+
+If a proposed architecture requires routine manual Blender work or specialist intervention to remain functional, it fails the project constraints even if the technique itself is viable.
+
 Canonical Exilada identity reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
