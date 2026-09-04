@@ -1,6 +1,7 @@
 param(
     [string]$Workspace = 'D:\AI\WanAnimate2',
-    [string]$Master = ''
+    [string]$Master = '',
+    [switch]$UseOfficialBaseInt8
 )
 
 Set-StrictMode -Version Latest
@@ -44,17 +45,9 @@ Write-Host 'Installing/updating pipx in the user Python...' -ForegroundColor Cya
 & py.exe -3.14 -m pip install --user --upgrade pipx
 if ($LASTEXITCODE -ne 0) { throw 'pipx installation failed.' }
 
-# Always invoke comfy-cli from a path without spaces. comfy-cli --fast-deps/uv can
-# mis-handle an override.txt path when the caller cwd contains spaces (for example
-# D:\GOOGLE DRIVE\...). We also deliberately avoid --fast-deps for this spike and
-# use the normal pip dependency path: slower, but substantially less brittle.
-$CliWorkDir = Split-Path -Parent $Workspace
-if (-not $CliWorkDir) { throw "Could not resolve parent directory for workspace: $Workspace" }
-New-Item -ItemType Directory -Force -Path $CliWorkDir | Out-Null
-
 function Invoke-Comfy {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    Push-Location $CliWorkDir
+    Push-Location 'D:\AI'
     try {
         & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
         if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
@@ -66,8 +59,6 @@ function Invoke-Comfy {
 $ComfyRoot = Find-ComfyRoot $Workspace
 
 if (-not $ComfyRoot) {
-    # comfy-cli refuses to install into an existing non-repository directory.
-    # Remove only a completely empty placeholder; never delete unknown user data.
     if (Test-Path $Workspace) {
         $items = @(Get-ChildItem -Force -Path $Workspace -ErrorAction Stop)
         if ($items.Count -eq 0) {
@@ -92,12 +83,9 @@ Move/delete that directory yourself, or rerun with a different -Workspace path.
         throw "comfy-cli returned success, but main.py/.git were not found at $Workspace or $(Join-Path $Workspace 'ComfyUI')."
     }
 } else {
-    # A previous install may have cloned ComfyUI and created .venv before dependency
-    # installation failed. --restore is the supported comfy-cli path for completing
-    # or repairing dependencies in an existing valid ComfyUI repository.
     Write-Host "ComfyUI repository found at $ComfyRoot" -ForegroundColor Green
     Write-Host 'Restoring/verifying ComfyUI dependencies with normal pip (no --fast-deps)...' -ForegroundColor Cyan
-    Invoke-Comfy --skip-prompt --workspace $ComfyRoot install --restore --nvidia --skip-manager
+    Invoke-Comfy --skip-prompt --workspace $Workspace install --restore --nvidia --skip-manager
 }
 
 Write-Host "Resolved ComfyUI root: $ComfyRoot" -ForegroundColor Green
@@ -145,19 +133,35 @@ foreach ($p in @($Diffusion, $TextEnc, $ClipVision, $Vae, $InputDir)) {
 
 function Invoke-HF {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    Push-Location $CliWorkDir
-    try {
-        & py.exe -3.14 -m pipx run --spec huggingface_hub hf @Args
-        if ($LASTEXITCODE -ne 0) { throw "Hugging Face download failed: hf $($Args -join ' ')" }
-    } finally {
-        Pop-Location
-    }
+    & py.exe -3.14 -m pipx run --spec huggingface_hub hf @Args
+    if ($LASTEXITCODE -ne 0) { throw "Hugging Face download failed: hf $($Args -join ' ')" }
 }
 
-$MainModel = Join-Path $Diffusion 'Wan-Animate-2-14B-Q4_K_M.gguf'
+# The originally documented RealRebelAI Base Q4_K_M repository slug
+# (realrebelai/Wan-Animate-2-14B-GGUF) no longer resolves. The currently
+# public realrebelai/Wan-Animate-2_GGUFs repository exposes Distilled GGUFs,
+# not the requested Base Q4_K_M file. Never silently substitute a distilled
+# checkpoint for the Base validation test.
+if (-not $UseOfficialBaseInt8) {
+    throw @"
+The requested Wan-Animate-2 BASE GGUF Q4_K_M is not currently downloadable from the public source we validated.
+
+The old documented repo id `realrebelai/Wan-Animate-2-14B-GGUF` returns Repository not found.
+The current public repo `realrebelai/Wan-Animate-2_GGUFs` exposes the Distilled/TURBO Q4_K_M, not the Base file.
+
+No silent model substitution will be made.
+
+Recommended controlled fallback: official Comfy-Org BASE INT8 ConvRot (16.7 GB), which preserves the Base model and carries the Animate-2 metadata natively.
+Rerun this same bootstrap with:
+
+    -UseOfficialBaseInt8
+"@
+}
+
+$MainModel = Join-Path $Diffusion 'wan_animate_2_int8_convrot.safetensors'
 if (-not (Test-Path $MainModel)) {
-    Write-Host 'Downloading Wan-Animate-2 Base Q4_K_M...' -ForegroundColor Cyan
-    Invoke-HF download realrebelai/Wan-Animate-2-14B-GGUF Wan-Animate-2-14B-Q4_K_M.gguf --local-dir $Diffusion
+    Write-Host 'Downloading OFFICIAL Wan-Animate-2 BASE INT8 ConvRot (16.7 GB)...' -ForegroundColor Cyan
+    Invoke-HF download Comfy-Org/Wan-Animate-2 diffusion_models/wan_animate_2_int8_convrot.safetensors --local-dir $Models
 }
 
 $TextModel = Join-Path $TextEnc 'umt5_xxl_fp8_e4m3fn_scaled.safetensors'
@@ -184,9 +188,19 @@ if ($Master) {
     Write-Host 'Copied canonical master to ComfyUI input.' -ForegroundColor Green
 }
 
+$RouteFile = Join-Path $Workspace 'spike_model_route.txt'
+@"
+route=official_base_int8_convrot
+model=wan_animate_2_int8_convrot.safetensors
+source=Comfy-Org/Wan-Animate-2
+precision=int8_convrot
+base_or_distilled=base
+"@ | Set-Content -Path $RouteFile -Encoding utf8
+
 Write-Host ''
 Write-Host 'CLI Wan-Animate-2 spike bootstrap complete.' -ForegroundColor Green
 Write-Host "Workspace:  $Workspace"
 Write-Host "ComfyUI:    $ComfyRoot"
 Write-Host "Python:     $WorkspacePython"
+Write-Host 'Model route: official BASE INT8 ConvRot (not Distilled).'
 Write-Host 'Next: run .\inspect.ps1, then prepare the 17-frame driver with .\make_driver.ps1.'
