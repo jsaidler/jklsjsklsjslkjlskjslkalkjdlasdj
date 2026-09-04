@@ -6,27 +6,61 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Invoke-Comfy {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
-    if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
+function Find-ComfyRoot([string]$Base) {
+    foreach ($candidate in @($Base, (Join-Path $Base 'ComfyUI'))) {
+        if ((Test-Path (Join-Path $candidate 'main.py')) -and (Test-Path (Join-Path $candidate '.git'))) {
+            return $candidate
+        }
+    }
+    return $null
 }
 
-$ComfyRoot = Join-Path $Workspace 'ComfyUI'
-if (-not (Test-Path (Join-Path $ComfyRoot 'main.py'))) {
-    throw "ComfyUI not found at $ComfyRoot. Run bootstrap.ps1 first."
+function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
+    foreach ($candidate in @(
+        (Join-Path $ComfyRoot '.venv\Scripts\python.exe'),
+        (Join-Path $Base '.venv\Scripts\python.exe')
+    ) | Select-Object -Unique) {
+        if (Test-Path $candidate) { return $candidate }
+    }
+    return $null
 }
 
-Write-Host 'Starting ComfyUI in background...' -ForegroundColor Cyan
-try {
-    Invoke-Comfy --workspace $Workspace launch --background -- --listen 127.0.0.1 --port $Port
-} catch {
-    Write-Host 'Background launch may already be active; probing the API before failing.' -ForegroundColor Yellow
+$ComfyRoot = Find-ComfyRoot $Workspace
+if (-not $ComfyRoot) {
+    throw "ComfyUI not found at $Workspace or $(Join-Path $Workspace 'ComfyUI'). Run bootstrap.ps1 first."
 }
+$WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
+if (-not $WorkspacePython) {
+    throw 'ComfyUI workspace Python was not found.'
+}
+
+Write-Host "Resolved ComfyUI root: $ComfyRoot" -ForegroundColor Green
+Write-Host "ComfyUI Python:      $WorkspacePython" -ForegroundColor Green
+
+$Stdout = Join-Path $Workspace "comfyui_$Port.stdout.log"
+$Stderr = Join-Path $Workspace "comfyui_$Port.stderr.log"
 
 $Base = "http://127.0.0.1:$Port"
+$alreadyRunning = $false
+try {
+    $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
+    $alreadyRunning = $true
+    Write-Host "ComfyUI is already responding at $Base" -ForegroundColor Green
+} catch { }
+
+if (-not $alreadyRunning) {
+    Write-Host 'Starting ComfyUI headlessly in background...' -ForegroundColor Cyan
+    $proc = Start-Process -FilePath $WorkspacePython `
+        -ArgumentList @('main.py','--listen','127.0.0.1','--port',"$Port") `
+        -WorkingDirectory $ComfyRoot `
+        -RedirectStandardOutput $Stdout `
+        -RedirectStandardError $Stderr `
+        -PassThru
+    Write-Host "PID: $($proc.Id)"
+}
+
 $ok = $false
-for ($i = 0; $i -lt 60; $i++) {
+for ($i = 0; $i -lt 120; $i++) {
     try {
         $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
         $ok = $true
@@ -35,7 +69,13 @@ for ($i = 0; $i -lt 60; $i++) {
         Start-Sleep -Seconds 1
     }
 }
-if (-not $ok) { throw "ComfyUI API did not become available at $Base" }
+if (-not $ok) {
+    if (Test-Path $Stderr) {
+        Write-Host '--- stderr tail ---' -ForegroundColor Yellow
+        Get-Content $Stderr -Tail 80
+    }
+    throw "ComfyUI API did not become available at $Base"
+}
 
 $ObjectInfo = Invoke-RestMethod -Uri "$Base/object_info" -TimeoutSec 60
 $Required = @(
@@ -94,12 +134,13 @@ $Probe | ConvertTo-Json -Depth 30 | Set-Content -Path $ProbePath -Encoding utf8
 Write-Host ''
 Write-Host "Saved exact installed node schemas to: $ProbePath" -ForegroundColor Green
 
-$Log = Join-Path $Workspace "user\comfyui_$Port.log"
-if (Test-Path $Log) {
-    Write-Host ''
-    Write-Host "ComfyUI log: $Log"
-    $imports = Select-String -Path $Log -Pattern 'IMPORT FAILED|Rebels|GGUF|WanAnimate2' -SimpleMatch:$false
-    if ($imports) { $imports | Select-Object -Last 40 | ForEach-Object { $_.Line } }
+foreach ($log in @($Stdout, $Stderr)) {
+    if (Test-Path $log) {
+        Write-Host ''
+        Write-Host "Relevant lines from: $log"
+        $imports = Select-String -Path $log -Pattern 'IMPORT FAILED|Rebels|GGUF|WanAnimate2|ERROR|Traceback' -SimpleMatch:$false
+        if ($imports) { $imports | Select-Object -Last 50 | ForEach-Object { $_.Line } }
+    }
 }
 
 if ($failed) {
@@ -109,4 +150,4 @@ if ($failed) {
 Write-Host ''
 Write-Host 'CLI preflight PASSED.' -ForegroundColor Green
 Write-Host 'Important: model class=WAN_Animate2 can only be proven when the GGUF is actually loaded during a workflow run.' -ForegroundColor Yellow
-Write-Host 'The next step is to generate a headless API workflow from the installed schemas, then execute it with comfy run.'
+Write-Host 'The next step is to generate a headless API workflow from the installed schemas, then execute it from the command line.'
