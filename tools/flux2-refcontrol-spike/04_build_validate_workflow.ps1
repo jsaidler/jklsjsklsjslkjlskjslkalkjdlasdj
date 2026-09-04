@@ -43,35 +43,57 @@ $ExpectedPoses = @(
     'pose_03_passing_R'
 )
 
+function Get-PropertyValue([object]$Object, [string]$Name) {
+    if ($null -eq $Object) { return $null }
+    $p = $Object.PSObject.Properties[$Name]
+    if ($null -eq $p) { return $null }
+    return $p.Value
+}
+
 function Get-Node([object]$ObjectInfo, [string]$Name) {
     $p = $ObjectInfo.PSObject.Properties[$Name]
     if ($null -eq $p) { throw "Required ComfyUI node is unavailable: $Name" }
     return $p.Value
 }
 
-function Get-InputNames([object]$NodeInfo) {
-    $names = @()
-    if ($NodeInfo.input -and $NodeInfo.input.required) {
-        $names += @($NodeInfo.input.required.PSObject.Properties.Name)
+function Get-InputGroups([object]$NodeInfo) {
+    $input = Get-PropertyValue $NodeInfo 'input'
+    return [pscustomobject]@{
+        required = Get-PropertyValue $input 'required'
+        optional = Get-PropertyValue $input 'optional'
     }
-    if ($NodeInfo.input -and $NodeInfo.input.optional) {
-        $names += @($NodeInfo.input.optional.PSObject.Properties.Name)
+}
+
+function Get-InputNames([object]$NodeInfo) {
+    $groups = Get-InputGroups $NodeInfo
+    $names = @()
+    if ($null -ne $groups.required) {
+        $names += @($groups.required.PSObject.Properties.Name)
+    }
+    if ($null -ne $groups.optional) {
+        $names += @($groups.optional.PSObject.Properties.Name)
     }
     return @($names | Select-Object -Unique)
 }
 
 function Get-RequiredInputNames([object]$NodeInfo) {
-    if ($NodeInfo.input -and $NodeInfo.input.required) {
-        return @($NodeInfo.input.required.PSObject.Properties.Name)
+    $groups = Get-InputGroups $NodeInfo
+    if ($null -ne $groups.required) {
+        return @($groups.required.PSObject.Properties.Name)
     }
     return @()
 }
 
 function Assert-Choice([object]$ObjectInfo, [string]$NodeName, [string]$InputName, [string]$Expected) {
     $node = Get-Node $ObjectInfo $NodeName
-    $prop = $node.input.required.PSObject.Properties[$InputName]
-    if ($null -eq $prop -and $node.input.optional) {
-        $prop = $node.input.optional.PSObject.Properties[$InputName]
+    $groups = Get-InputGroups $node
+    $prop = $null
+
+    if ($null -ne $groups.required) {
+        $prop = $groups.required.PSObject.Properties[$InputName]
+    }
+    if ($null -eq $prop -and $null -ne $groups.optional) {
+        $prop = $groups.optional.PSObject.Properties[$InputName]
     }
     if ($null -eq $prop) { throw "$NodeName does not expose input '$InputName'." }
 
@@ -161,7 +183,6 @@ New-Item -ItemType Directory -Force -Path $WorkflowDir | Out-Null
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 Remove-Item $StdoutLog, $StderrLog -Force -ErrorAction SilentlyContinue
 
-# Refuse to reuse an unknown service already bound to the dedicated validation port.
 $portBusy = $false
 try {
     Invoke-RestMethod -Uri "$ApiRoot/object_info" -Method Get -TimeoutSec 2 | Out-Null
@@ -217,10 +238,6 @@ try {
     Assert-Choice $objectInfo 'KSamplerSelect' 'sampler_name' 'euler'
     Write-Host '[OK] Live ComfyUI schemas expose the exact FLUX.2/Klein files, flux2 text-encoder type, RefControl LoRA and Euler sampler.' -ForegroundColor Green
 
-    # API-format graph. Reference order is intentionally fixed:
-    #   image 1 = pose skeleton
-    #   image 2 = canonical Exilada reference
-    # The same ordered reference latents are attached to positive and negative conditioning.
     $workflow = [ordered]@{
         '1' = @{ class_type='UNETLoader'; inputs=@{ unet_name=$UnetName; weight_dtype='default' } }
         '2' = @{ class_type='LoraLoaderModelOnly'; inputs=@{ model=@('1',0); lora_name=$LoraName; strength_model=1.0 } }
