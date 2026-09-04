@@ -10,9 +10,10 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 2. `docs/GAME_VISION.md`
 3. `docs/VISUAL_DIRECTION.md`
 4. `docs/CHARACTERS.md`
-5. `docs/PIXEL_ART_PRODUCTION.md`
-6. `docs/ANIMATION_PIPELINE.md`
-7. current tooling under `tools/`
+5. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+6. `docs/PIXEL_ART_PRODUCTION.md`
+7. `docs/ANIMATION_PIPELINE.md`
+8. current tooling under `tools/`
 
 After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -32,179 +33,167 @@ Canonical identity master:
 
 It is a high-detail identity/design reference, not the final gameplay sprite. Final visible art remains true modern pixel art; simple high-resolution generation followed by resize/quantization is not accepted as the final-sprite route.
 
-## Direct per-frame diffusion route — NO LONGER ACTIVE
+## Direct per-frame diffusion route — CLOSED AS PRIMARY ARCHITECTURE
 
-### RefControl
+RefControl was tested through V1/V2/V3.
 
-Three controlled iterations were tested.
-
-V1:
-
-- strong identity retention;
-- distinct gait phases;
-- foot/arm/body/chain inconsistencies.
-
-V2:
-
-- feet/arms/body stability improved;
-- opposite gait phases collapsed to near duplicates.
-
-V3:
-
-- four controls had unique screen-space silhouettes;
-- generated `pose_01_passing_L_v3` contains **three visible legs / three feet**;
-- chain/shackle drift remained.
+- V1: strong identity retention but foot/arm/body/chain inconsistencies.
+- V2: anatomy improved but opposite gait phases collapsed into near duplicates.
+- V3: distinct controls restored phase alternation but `pose_01_passing_L_v3` generated **three visible legs / three feet** and accessories still drifted.
 
 Final decision:
 
 **RefControl is rejected as the production direct-frame generator. No V4.**
 
-### Broader conclusion
+The problem is broader than extra limbs: independently synthesized frames do not guarantee stable proportions, natural locomotion, stable clothing/hair/accessories, anatomical side identity or scalable consistency across many actions.
 
-The failure is not only extra limbs.
-
-Independent generated frames also fail to guarantee:
-
-- stable body dimensions;
-- natural locomotion timing/arcs;
-- stable scars/clothing structure;
-- stable hair structure;
-- stable side assignment for shackles/chains/equipment;
-- scalable consistency across many actions.
-
-Therefore the project will no longer judge a production animation architecture from isolated generated poses.
+Qwen-Image-Edit-2509 tooling remains preserved under `tools/qwen-image-edit-2509-spike/`, but that spike is **PAUSED** as the active next step. A perfect isolated pose would not prove the full animation-system requirements.
 
 ## Important correction — tested walk-pose provenance
 
-The `contact_L / passing_L / contact_R / passing_R` controls were **manually parameterized project test poses**, not real motion capture or a validated kinematic walk.
+The old `contact_L / passing_L / contact_R / passing_R` controls were manually parameterized project test poses, not motion capture or a validated locomotion solver.
 
-They were created to test pose controllability, not to define the final gait.
+They were valid only as pose-control experiments. They are **not** the canonical gait source.
 
-This means part of the artificial motion problem came from the motion source itself, not just the renderer.
+Future motion comes from real captured motion, recorded performance or deterministic locomotion solving.
 
-Future locomotion must come from real captured motion, recorded human performance, or deterministic locomotion solving.
+## Active production architecture — RISK-FIRST DETERMINISTIC PIPELINE
 
-## Qwen-Image-Edit-2509 spike — PAUSED
+Canonical end-to-end roadmap:
 
-Tooling is preserved under:
-
-`tools/qwen-image-edit-2509-spike/`
-
-Proposed workspace:
-
-`Z:\AI\QwenImageEditSpike`
-
-Do **not** run the preflight/download/inference as the active next step.
-
-Reason:
-
-Even if Qwen produced one perfect passing pose, that would not prove temporal consistency, natural gait, stable accessories, stable clothing/hair structure, or production scalability.
-
-Qwen may later become a constrained editing/reference tool inside a deterministic pipeline, but it is no longer being treated as the system that must independently synthesize production animation frames.
-
-## New active architecture — DETERMINISTIC MOTION FIRST
+`docs/CHARACTER_PRODUCTION_PIPELINE.md`
 
 Production decomposition:
 
-`real/procedural motion -> deterministic rig/topology -> deterministic attachments/secondary systems -> fixed camera/control passes -> final 2D/pixel representation -> QA`
+`gameplay scale/camera -> real motion -> deterministic rig -> persistent secondary systems -> native-raster semantic passes -> pixel-specific renderer -> modular equipment/state composition -> sprite/runtime export -> automated QA`
 
-### Operator constraint — LOCKED
+A hidden 3D rig is currently the preferred topology/motion backbone because it scales to motion capture, equipment sockets and many characters/actions. This **does not** mean the visible game becomes conventional 3D.
 
-The user will **not** be required to learn Blender, rigging, retargeting, BVH editing, weight painting, animation curves, physics setup, sprite extraction, or other specialist art/animation software, and the project cannot assume hiring an animator or technical artist.
+## Hard user-operation constraint — LOCKED
 
-Any accepted pipeline must therefore be **CLI/script operated**:
+The user will not learn or manually operate Blender/rigging/animation/pixel-production software and will not hire an external art/animation team.
 
-- PowerShell or equivalent wrapper as the normal entry point;
-- Blender run in background/headless mode;
-- Python scripts create/edit scenes, rigs, cameras, constraints, attachment sockets and render settings;
-- BVH import/retargeting, bake, render/export and diagnostics automated;
-- no routine mandatory GUI manipulation;
-- user interaction target: `git pull` -> run one documented script/command -> inspect/share outputs.
+Therefore recurring production work must be executable by ChatGPT-authored tooling through command line/headless operation.
 
-If a solution needs recurring manual Blender work to stay functional, it fails the project constraints.
+Acceptable pattern:
 
-### Motion source
+`PowerShell -> blender.exe --background --python ... -> deterministic outputs/reports`
 
-Do not manually invent final walk key poses.
+Any proposed pipeline that requires routine specialist GUI work or frame-by-frame repair by the user is invalid.
 
-First validation preference:
+## Key planning correction — visual translation is tested EARLY
 
-- real walking BVH motion from the **CMU Graphics Lab Motion Capture Database**;
-- imported into Blender as animated armature data.
+We will **not** spend days building a complete rig and animation library before discovering whether hidden 3D can produce the required pixel-art language.
 
-The CMU database states that its motion data is free for all uses and may be included in commercially sold products under its stated terms.
+The first four gates deliberately cross-check downstream risk early:
 
-### Rig/topology ownership
+### G0 — headless automation
 
-A deterministic rig must own:
+Prove Blender/toolchain can create/render/export a known result with no GUI/manual operation.
 
-- exactly one head/torso;
-- exactly two arms/hands;
-- exactly two legs/feet;
-- pelvis/shoulder mechanics;
-- fixed anatomical left/right identity;
-- attachment sockets for equipment/restraints.
+### G1 — camera/native scale
 
-Diffusion must no longer own these facts.
+Before final art, use primitive gameplay composition to determine:
 
-### Persistent accessories
+- native scene raster (provisional `640×360` only until tested);
+- camera pitch/elevation;
+- pixels-per-world-unit;
+- protagonist visible height;
+- safe action bounds;
+- likely facing-family requirements.
 
-Shackles, chains, weapons, hair masses and cloth secondary structures must be attached/driven as persistent objects or rigged systems rather than redrawn independently every frame.
+Candidate heights such as 112/128/144 px remain comparison points only.
 
-This directly addresses the observed side-swapping and topology drift.
+### G2 — real motion/topology
 
-## Recommended motion backbone
+Use a generic humanoid + real locomotion BVH, retargeted/baked headlessly.
 
-For the project constraints — no animator, no manual frame-by-frame work, many characters/actions/equipment states — the current recommendation is:
+PASS requires the full cycle to preserve normal topology, natural gait, acceptable foot contact, left/right identity and stable wrist/ankle/weapon sockets.
 
-**hidden deterministic 3D rig as production/motion infrastructure**.
+### G3 — native pixel-translation feasibility
 
-This does **not** mean the final game must look 3D.
+**Before building the Exilada model**, prove that a simple stylized rig proxy can be translated into intentional modern pixel art at the exact G1 raster.
 
-The gameplay presentation remains 2D belt-scroller / false 3D. The rig can exist only to guarantee anatomy, motion, attachments and camera-consistent control passes.
+The primary candidate is not a conventional beauty render + pixel filter. Blender supplies deterministic native-density semantic passes such as silhouette, part/material IDs, normals, depth and stable detail masks; a purpose-built pixel renderer constructs indexed palette/value clusters directly on the final pixel grid.
 
-A deterministic 2D skeletal/mesh route remains an alternative, but risks cut-out appearance and pixel-cluster deformation.
+If G3 reads as filtered/low-resolution 3D rather than intentional pixel art, that visible rendering route is rejected immediately. The rig may still survive as motion/reference infrastructure, but we do not invest in a detailed Exilada 3D model.
 
-## Exact next gate — motion/topology spike
+## Gates after G3
 
-Do **not** use the Exilada art and do **not** run Qwen yet.
+Only after G0–G3 all PASS:
 
-Create a minimal local/free test using:
+- **G4 identity mapping:** low-detail Exilada production proxy + first approved native Production Pixel Master;
+- **G5 temporal stress pack:** walk + high-energy/extreme action + compressed/impact/recovery motion before any animation library;
+- **G6 equipment/attachments:** hair, shackles, chains and one representative weapon remain persistent and modular across motions;
+- **G7 systemic visual state:** representative blood/dirt/wetness/injury/material states use stable semantic masks/palette rules;
+- **G8 production scaling:** several clips/items process automatically end-to-end with deterministic export and QA.
 
-- Blender;
-- one generic human/armature proxy;
-- one real walking BVH from CMU Mocap;
-- orthographic/elevated belt-scroller camera;
-- diagnostic silhouette/body-part output only;
-- full CLI/headless automation.
+The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md`.
 
-The gate asks:
+## Planned visual translation — current primary candidate
 
-> Can we get a natural measured walk, fixed topology, stable attachments and the intended belt-scroller camera without manual animation or manual Blender operation?
+The hidden rig will output machine-readable passes at the **final target pixel density**, not a final high-resolution illustration:
 
-### PASS requires the full sequence to have
+- silhouette/coverage;
+- body-part ID;
+- material ID;
+- normals;
+- depth;
+- persistent UV/detail masks;
+- attachment metadata.
 
-- normal topology throughout;
-- natural gait rather than guessed four-pose motion;
-- acceptable ground contact/no obvious foot sliding after retargeting;
-- stable left/right anatomy;
-- stable attachment points;
-- usable elevated belt-scroller camera;
-- reproducible scripted/local workflow;
-- no mandatory GUI step.
+A deterministic pixel-specific renderer then applies:
 
-Only after that passes do we solve how the Exilada's approved 2D/pixel identity is mapped to the deterministic moving structure.
+- material-specific discrete palette ramps;
+- large connected value clusters;
+- controlled silhouette/edge rules;
+- no smooth gradients as the primary language;
+- no bilinear filtering;
+- no automatic dithering/noise;
+- stable UV-anchored details for scars/tears;
+- temporal QA/cleanup limited to deterministic pixel noise, never anatomy/motion rewriting.
 
-## Mandatory animation QA order — LOCKED
+This is the current route to test because it lets 3D own topology/motion while the raster system owns the visible pixel language.
 
-1. topology across the **full sequence**;
-2. motion/grounding across the full sequence;
-3. stable body proportions/anatomical sides;
-4. stable attachments/equipment;
-5. identity mapping;
-6. final pixel-art quality/gameplay readability.
+## Persistent accessories/equipment plan
 
-A single good generated frame is no longer sufficient evidence.
+These are not redrawn independently per frame.
+
+- hair: persistent rigged large-mass geometry with deterministic secondary motion;
+- cloth: persistent rig/secondary structures before considering free simulation;
+- shackles: separate rigid objects on named wrist/ankle sockets;
+- chains: persistent endpoint-connected structures;
+- weapons/gear: named sockets on the canonical rig.
+
+Equipment scalability is planned as modular rendering with depth/occlusion metadata, so we do not pre-render every body×weapon×armor combination. G6 must prove this before equipment content expands.
+
+## Systemic visual-state plan
+
+Semantic/material/body masks are planned from the start so causal state can change without redrawing animation:
+
+- blood/injury;
+- dirt/mud;
+- wetness;
+- frost/burn;
+- material wear;
+- selected persistent scars;
+- discrete-palette lighting/weather changes.
+
+## Production precedent / feasibility evidence
+
+Motion Twin publicly documented a `Dead Cells` character workflow using simple 3D models/animation plus a custom small-size pixel-art rendering tool to avoid redrawing every frame and to reuse animation across models. This is evidence that a hidden 3D motion backbone plus purpose-built 2D pixel output is a credible production class, not evidence that our final look is already solved.
+
+Blender supports background/headless Python execution, so this class of production work can be automated rather than requiring GUI operation.
+
+## Exact next implementation sequence — LOCKED
+
+Do **not** run the paused Qwen spike and do **not** build a detailed Exilada rig yet.
+
+Next implementation sequence:
+
+`G0 headless probe -> G1 gameplay camera/scale blockout -> G2 real-mocap generic walk -> G3 generic native-pixel renderer proof`
+
+Only if all four pass do we construct the Exilada production proxy.
 
 ## Workspace state
 
@@ -220,8 +209,4 @@ Repository:
 
 `D:\GOOGLE DRIVE\DEV\Roguelite`
 
-## Gameplay-scale / Production Pixel Master gate — queued
-
-Gameplay-scale/native-raster validation remains queued until the deterministic motion/topology backbone passes.
-
-The final visual layer must still satisfy the true modern pixel-art requirement; a naive 3D render followed by a pixel filter remains rejected.
+A separate deterministic character-pipeline workspace will be created by the G0 tooling; its exact path will be locked in that implementation step.
