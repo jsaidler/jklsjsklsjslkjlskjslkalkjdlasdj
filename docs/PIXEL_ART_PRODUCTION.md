@@ -1,115 +1,210 @@
 # Pixel Art Production — Living Document
 
-Status: **production pixel-art language is specified at a first actionable level; first direct image-generation attempt for the Exilada production pixel master was tested and rejected as a production asset.**
+Status: **modern pixel-art production target locked; no Production Pixel Master approved. Direct image generation and hand-authored Python/Pillow geometry have both been tested and rejected as final-authoring routes. The next gate is a true native-grid agent/editor workflow with visual iteration.**
 
-This document defines the production-raster rules that separate true modern pixel art from the project's higher-detail identity/concept references. It is canonical across chats and must be updated whenever pixel-art production rules change.
+This document is the canonical record for final raster production. It must be updated after every material pixel-art experiment, pass/fail result, production-method change or approval.
 
 ## Core distinction
 
 The project uses two different character-reference layers:
 
 1. **Identity master** — defines who the character is.
-2. **Production pixel master** — defines how that character exists on the actual gameplay pixel grid.
+2. **Production Pixel Master** — defines how that character actually exists on the final gameplay pixel grid.
 
-For the Exilada, the current identity master remains:
+For the Exilada, the identity master remains:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-It is intentionally richer and more detailed than the final gameplay sprite. It must not be downscaled mechanically and called production pixel art.
+It is intentionally richer than the final gameplay sprite. It must never be treated as final sprite art merely by resizing, quantizing or adding visible pixel texture.
 
-The production route must instead reinterpret the locked identity on the target raster while preserving the character's essential form.
+## Locked visual target
 
-## Quality target
+The final game uses **true modern pixel art**.
 
-The target is **best-in-class modern pixel art**, not retro imitation for its own sake and not a high-resolution illustration with square pixels.
+This explicitly means:
 
-Quality is judged by:
+- deliberate native-grid construction;
+- strong silhouettes;
+- readable pixel clusters;
+- controlled values and palette;
+- material separation through authored shapes rather than microtexture;
+- animation readability at actual gameplay scale;
+- consistent character identity across directions, equipment and states;
+- no dependence on high-resolution illustrative detail.
 
-- deliberate clusters rather than noisy per-pixel texture;
-- strong silhouette at native size;
-- controlled value grouping;
-- economy of detail;
-- readable anatomy and action;
-- coherent material separation;
-- intentional edge treatment;
-- animation readability;
-- consistency across characters, equipment, states and environments.
+The target is mature, severe, physical and atmospheric. Sword-and-sorcery references such as Conan, Frank Frazetta, Heavy Metal and Julie Bell inform mass, physicality, adult fantasy, body presence and dramatic shape language. They are **not** to be copied literally and they must be translated into the constraints of gameplay pixel art rather than imitated as high-resolution painting.
 
-Modern pixel-art games such as *Children of Morta*, *Blasphemous*, *Eastward* and *Sea of Stars* are useful quality references for discipline, clarity and authored raster structure, but the project is not to copy any one game's style.
+Useful pixel-art quality references include titles such as *Children of Morta*, *Blasphemous*, *Eastward* and *Sea of Stars* for discipline, silhouette, palette and authored raster quality; the project does not copy any one game's style.
 
-## Native gameplay raster — first locked target
+## What is explicitly rejected
 
-### Internal rendering grid
+### Rejected: high-resolution image generation pretending to be pixel art
 
-Initial target:
+The direct image-generation attempts produced visually plausible Exilada-like characters but remained high-resolution generative illustrations with visible blocky treatment.
 
-**640 × 360 native gameplay pixels**
+Observed failure:
 
-Rationale:
+- generated files around `1024 × 1536`, not actual production canvases;
+- excessive surface detail on skin, cloth and hair;
+- apparent pixels were an image style, not the actual production grid;
+- no trustworthy palette/cluster control;
+- no reliable 1× gameplay evaluation;
+- no evidence that directional frames would remain the same character.
 
-- exact 3× integer scale to 1920 × 1080;
-- exact 4× integer scale to 2560 × 1440;
-- enough tactical field of view for a high-oblique roguelite;
-- still coarse enough that individual pixel decisions remain visible and meaningful.
+**Status: FAIL.** Do not rescue this route by prompt iteration. Image generation remains useful only as identity, composition or pose reference.
 
-This resolution may only change after an actual gameplay-camera composition test. It must not drift casually because the chosen grid controls sprite scale, environment density and camera readability.
+### Rejected: Python/Pillow geometric drawing as the artistic authoring method
 
-### Exilada gameplay body height
+A native `96 × 96` Exilada spike was then constructed directly with Pillow using polygons, rectangles, lines and a controlled palette.
 
-Initial target:
+Technical properties passed:
 
-**64 native pixels from highest visible hair mass to lowest grounded foot pixel in a neutral standing pose at gameplay projection.**
+- true 96×96 RGBA canvas;
+- no antialiasing;
+- no downscale;
+- actual native pixels;
+- controlled palette;
+- transparent background.
 
-Acceptable tuning band during the first composition spike:
+Visual result failed decisively:
 
-**56–72 px**, but 64 px is the canonical starting point.
+- generic/procedural mannequin quality;
+- weak authored anatomy;
+- crude silhouettes and clusters;
+- no convincing translation of the Exilada's design or the project's sword-and-sorcery references;
+- far below best-in-class modern pixel art;
+- formal similarity to the already rejected idea of simple procedural primitives being mistaken for final visual art.
 
-The target is not a 64×64 boxed character. The *body/silhouette* is approximately 64 px high; action canvases may be larger.
+**Status: FAIL as an art-authoring route.** Python/Pillow remains valid for deterministic export, validation, palette checks, packing, masks and QA, but not as the system that invents the final character art through primitive geometry.
 
-Reasoning:
+## Production principle now locked
 
-- 32 px is too restrictive for the Exilada's mature anatomy, hair mass, minimal clothing and restraint markers at the requested quality level;
-- 96–128+ px invites portrait/illustration-level microdetail and substantially increases animation instability and production cost;
-- ~64 px forces readable pixel-art decisions while retaining enough information for a distinctive adult protagonist.
+**Native grid is necessary but not sufficient.**
 
-## Sprite canvas conventions
+A valid production route must provide both:
 
-Canonical starting canvases:
+1. **true native-grid pixel control**, and
+2. **high-level visual authorship capable of producing professional modern pixel art.**
 
-- idle / locomotion: **96 × 96 px**;
-- ordinary melee/action frames: **128 × 128 px**;
-- exceptional VFX-heavy or wide-action frames may use larger logical bounds, but the character itself must retain the same pixel density and world scale.
+The project must not confuse technical raster correctness with artistic quality again.
 
-Rules:
+## Current production architecture candidate
 
-- do not rescale a character inside its canvas from frame to frame;
-- preserve one common ground-contact convention;
-- preserve stable pivot/origin metadata;
-- empty transparent margin is allowed and preferable to changing character scale;
-- no fractional runtime scaling for the production sprite layer.
+The next route is **agent-native pixel editing**.
+
+The AI should operate a real pixel-art document/editor or structured pixel source and iterate visually:
+
+`identity/pose reference -> native pixel canvas -> draw/edit -> preview at 1× -> critique -> repair clusters -> validate -> save`
+
+The agent must be able to:
+
+- create the exact canvas size;
+- control individual pixels and connected regions;
+- maintain a fixed palette;
+- inspect the actual canvas after each material edit;
+- alter silhouette and clusters deliberately;
+- preserve layers/frames/anchors;
+- export deterministic PNG/spritesheets;
+- run automated checks without replacing visual judgment.
+
+### External tooling researched
+
+#### Aseprite MCP — promising architecture, not yet adopted
+
+Current public implementation can operate Aseprite through native pixel-level primitives, layers, frames, palette control, canvas preview, silhouette export, standards checks and iterative `draw -> preview -> analyze -> fix` loops.
+
+Advantages:
+
+- the editor owns a real pixel canvas;
+- AI operations are actual edits, not a diffusion bitmap pretending to be pixel art;
+- animation/layer/palette infrastructure already exists;
+- implementation is MIT licensed.
+
+Constraint:
+
+- requires a local Aseprite installation.
+
+**Status: candidate for a controlled spike, not yet approved.**
+
+#### LibreSprite-MCP — free alternative, currently less trustworthy
+
+A LibreSprite MCP exists and is GPL-2.0, but its own documentation describes the implementation as hacky/brittle and not extensively tested, with low-quality/unclear MCP resources.
+
+**Status: research fallback, not preferred production foundation at present.**
+
+#### code-as-pixelart — useful structured-source reference
+
+This MIT project treats characters as structured source with semantic colors, named parts, directional views, cels, poses, anchors and deterministic animation/export.
+
+Useful architectural ideas:
+
+- source-of-truth separate from exported PNG;
+- diffable character documents;
+- validated operations;
+- deterministic render/export;
+- semantic parts/anchors.
+
+**Status: architectural reference/candidate component, not yet proven to create the required art quality by itself.**
+
+#### Spriteloom — not suitable as Production Pixel Master authoring foundation
+
+Although local and convenient, its workflow still uses FLUX.2 diffusion followed by post-processing such as crop, palette quantization, background removal and fit-to-canvas.
+
+That is fundamentally still the route the project has rejected for the canonical master.
+
+**Status: not a Production Pixel Master foundation.**
+
+## Native gameplay raster — provisional locked starting target
+
+Internal gameplay grid:
+
+**640 × 360 native pixels**
+
+Why:
+
+- 3× integer scale to 1920×1080;
+- 4× integer scale to 2560×1440;
+- sufficient tactical field while retaining meaningful pixel structure.
+
+This value may only change after a real gameplay-composition test.
+
+### Exilada sprite scale
+
+Starting body/silhouette target:
+
+**~64 native pixels from highest visible hair mass to grounded foot**
+
+Tuning band during composition validation:
+
+**56–72 px**
+
+Idle/locomotion canvas starting point:
+
+**96 × 96 px**
+
+Ordinary melee/action canvas starting point:
+
+**128 × 128 px**
+
+The character is not a 64×64 box; the visible body is approximately 64 px high inside a larger transparent canvas.
 
 ## Gameplay projection
 
-The production pixel master must be designed for the actual locked camera family:
+All production character references must be designed for the actual gameplay camera:
 
 - high-oblique top-down;
-- approximately 60–70° viewing axis relative to the horizontal ground plane;
+- viewing axis approximately 60–70° relative to the horizontal ground plane;
+- continuous 360° movement;
 - not vertical top-down;
-- not rigid 2:1 isometric projection.
+- not rigid 2:1 isometric.
 
-The production master is therefore **not** primarily a frontal catalogue portrait.
+Front/profile catalogue art is not sufficient production evidence.
 
-The existing high-detail identity master remains useful for face/body identity, while the production reference pack must explicitly show how the character reads from gameplay-facing directions.
+## Exilada production reference pack
 
-## Exilada production reference pack — required deliverables
+The Production Pixel Master is a directional reference family, not one oversized portrait.
 
-The production pixel master is a **reference pack**, not one oversized illustration.
-
-Required canonical set before animation approval:
-
-### A. Eight-direction neutral turntable
-
-Eight gameplay-facing neutral poses:
+Required final neutral turntable:
 
 - S
 - SW
@@ -120,349 +215,133 @@ Eight gameplay-facing neutral poses:
 - E
 - SE
 
-Requirements:
+All views must preserve:
 
-- same world scale;
-- same body proportions;
-- same hair volume logic;
-- same clothing/restraint state;
-- no weapon;
-- identical lighting assumption;
-- fixed ground contact;
-- no pose theatrics.
+- same scale;
+- same anatomy/proportion logic;
+- same dominant hair mass;
+- same initial clothing state;
+- same captivity-marker logic;
+- same lighting assumption;
+- same ground/pivot convention;
+- weaponless base state.
 
-Purpose: prove that identity survives rotation and establish the correct source family for future directional animation.
+Before all eight views, the first visual gate remains only:
 
-### B. Silhouette sheet
+1. `S`
+2. `NE`
+3. `N`
 
-The same eight views as flat one-color silhouettes.
+Do not create a walk cycle until these three static views are convincingly the same character and pass at 1×.
 
-Pass condition: the character should remain identifiable through the large black hair mass, compact adult body, asymmetric cloth masses and overall posture without interior detail.
+## Exilada — pixel-art identity priorities
 
-### C. Material/value sheet
+At gameplay scale, priority order is:
 
-One representative gameplay view reduced to the major value/material groups only:
+1. large black hair mass;
+2. adult lean/compact body proportion;
+3. severe, alert physical presence;
+4. skin/hair value separation;
+5. minimal asymmetrical degraded cloth;
+6. readable limbs and grounded bare feet;
+7. broken-restraint history markers where legible;
+8. facial microdetail.
 
-- hair;
-- skin;
-- cloth;
-- restraint metal;
-- deepest occlusion/shadow;
-- selected highlights.
+Weapons are variable gameplay equipment and are not an identity anchor.
 
-Purpose: prevent later generations from replacing structure with microtexture.
+## Sword-and-sorcery translation rules
 
-### D. Native-scale inspection strip
+The visual references must influence **shape language**, not become decorative filters.
 
-Every approved reference must be shown at:
+Desired translation:
 
-- **1× native size**;
-- 2× nearest-neighbor;
-- 4× nearest-neighbor.
+- Frazetta: decisive dark/light masses, bodily weight, dangerous silhouette, physical immediacy;
+- Conan/sword-and-sorcery: brutality, scarcity, primitive/material world logic, exposed body without modern costume cleanliness;
+- Heavy Metal: adult freedom, sensual/material physicality, strangeness and less sanitized fantasy design;
+- Julie Bell: anatomical confidence and sculptural physical presence, without drifting into polished bodybuilding or chrome-like glamour.
 
-Approval is made first at **1×**. Enlarged versions are inspection aids only.
+For the Exilada specifically:
 
-## Exilada — locked pixel-art identity anchors
-
-At 64 px body height, the priority order is:
-
-1. **hair mass** — primary silhouette anchor;
-2. **adult compact body proportion**;
-3. **severe / forward-alert posture**;
-4. **skin-versus-hair value separation**;
-5. **asymmetric minimal clothing masses**;
-6. **bare feet / grounded stance**;
-7. **broken-restraint markers**, when readable from the current direction;
-8. facial detail.
-
-Facial microdetail is explicitly last in gameplay priority. The Exilada must remain recognizable when the face is only a few pixels.
-
-## Proportion rules
-
-The sprite must remain recognizably adult and must not drift toward chibi proportions.
-
-Starting rule:
-
-- overall anatomical impression approximately **6.5–7 heads tall** before perspective compression;
-- head may be enlarged only slightly for readability, approximately **5–8% over strict realistic projection**;
-- hands and feet may receive modest pixel-scale exaggeration where needed for action readability;
-- shoulders, pelvis and knees must remain clearly locatable during motion;
-- limbs must retain enough separation to avoid merging into the torso at 1×.
-
-Foreshortening from the high-oblique camera takes precedence over literal front-view ratios.
+- avoid fitness-model musculature;
+- favor lean functional anatomy, tendon/bone/weight;
+- clothing should look like residue of captivity, not a designed barbarian costume;
+- nudity/skin exposure is acceptable when materially/narratively coherent and should not be converted into pin-up framing;
+- hair should be a violent dominant mass rather than hundreds of tiny strands;
+- asymmetry and damaged material state should feel lived rather than decorated.
 
 ## Cluster rules
 
-### Required
+Required:
 
-- connected pixel clusters should describe planes and forms;
-- single-pixel decisions must have a visual function;
-- large forms first, small accents last;
-- internal detail must reinforce anatomy/material rather than create noise;
-- clusters should remain stable enough that adjacent animation frames do not shimmer arbitrarily.
-
-### Avoid
-
-- random single-pixel speckling;
-- high-frequency dirt/noise across every surface;
-- pseudo-photographic skin texture;
-- hair rendered as hundreds of isolated strands;
-- dithering used as default shading;
-- one-pixel decorative detail that disappears at 1×.
-
-Dithering may be used selectively when it produces a deliberate material or atmospheric effect, not merely because an AI model generated texture.
-
-## Palette and value rules
-
-The project does not use a single tiny retro console palette, but character palettes must remain controlled.
-
-Starting Exilada base target:
-
-**approximately 24–32 visible sprite colors**, excluding transparency and temporary state overlays.
-
-Suggested distribution, not a rigid per-frame quota:
-
-- skin: 5–7 useful values/hues;
-- hair: 4–5;
-- cloth: 4–5;
-- restraints/metal: 3–4;
-- shared deepest shadows / accents / highlight bridges: remaining colors.
-
-Rules:
-
-- value structure matters more than exact color count;
-- adjacent shades must be perceptually distinct at native scale;
-- do not add near-duplicate colors merely to simulate smooth gradients;
-- hair must remain the darkest dominant mass;
-- skin, cloth and metal must separate immediately without outlines doing all the work;
-- transient blood/dirt/wetness/frost should be implemented as controlled state palettes/overlays and not baked indiscriminately into the canonical clean master.
-
-## Edge treatment
-
-Use **selective contouring**, not a uniform black outline around every form.
-
-Preferred:
-
-- darkest contour around parts of the hair silhouette and high-contrast occlusions;
-- local-color dark edges around skin and cloth where appropriate;
-- broken/omitted contour where light or adjacency already separates forms;
-- contour thickness generally one native pixel at this scale.
+- connected clusters explain volume;
+- large masses before accents;
+- one-pixel marks have a clear function;
+- stable clusters between animation frames;
+- material separation through shape/value.
 
 Avoid:
 
-- continuous thick black sticker-outline;
-- anti-aliased smooth edges;
-- inconsistent pseudo-vector curves.
+- random speckling;
+- hair strand soup;
+- pseudo-photographic skin texture;
+- dense fabric noise;
+- default dithering;
+- smooth gradient dependence;
+- uniform heavy black sticker outlines.
 
-## Hair treatment
+## Palette
 
-The Exilada's hair is the principal identity anchor and must be handled as **large designed masses**.
+Initial Exilada target remains approximately **24–32 visible base colors**, excluding transparency and transient state overlays.
 
-Rules:
+The number is not a quota. Value clarity matters more than counting colors.
 
-- 3–6 principal locks/masses should control the outer silhouette in a given view;
-- internal strand suggestion is secondary;
-- use highlight clusters to imply volume, not strand-by-strand rendering;
-- hair motion may simplify or merge internal shapes but should preserve the dominant outer mass;
-- do not fill the hair with random checkerboard texture.
+Guidelines:
 
-## Skin/anatomy treatment
+- hair remains the darkest dominant material;
+- skin, cloth and restraint metal separate immediately at 1×;
+- do not add near-identical shades merely to fake smooth rendering;
+- blood, dirt, wetness, burns, frost and similar states should be systematic overlays/palette modifications rather than arbitrary baked noise.
 
-At gameplay size:
+## Pixel integrity / runtime rules
 
-- anatomy is communicated through value planes and contour changes;
-- no pore/freckle-level texture;
-- scars only survive if they are large enough to read or narratively important;
-- breasts, abdomen, limbs and joints are treated materially rather than erotically;
-- nudity/minimal clothing does not justify additional micro-detail;
-- body readability and motion mechanics take priority over anatomical decoration.
+Final production sprites must use:
 
-## Cloth treatment
-
-The initial cloth is intentionally minimal and degraded, but degradation must be graphically economical.
-
-Rules:
-
-- one major chest-wrap mass;
-- one asymmetric hip/loincloth mass;
-- a few deliberate torn contour breaks;
-- one or two internal folds/value groups only where they improve volume;
-- no dense fabric texture;
-- fraying represented by controlled silhouette interruptions rather than pixel noise.
-
-## Restraint treatment
-
-Broken restraints are secondary but meaningful identity/history markers.
-
-At native gameplay scale:
-
-- cuff must read as a compact metal band with strong value separation;
-- chain should use only as many links/pixels as remain legible;
-- if a chain becomes unreadable in a particular facing direction, do not enlarge it unnaturally merely to preserve detail;
-- the history of captivity is canonical, but readability has priority over literal hardware visibility in every frame.
-
-## Lighting assumption for the canonical master
-
-The production master should use **neutral readable baked form-light**, not a dramatic scene-specific light.
-
-Starting assumption:
-
-- soft key from upper-left / camera-left;
-- restrained highlight range;
-- readable shadow planes;
-- no strong colored environmental light baked into the canonical character.
-
-Runtime lighting/state systems may tint or modify this base later, but the source master must remain structurally readable without a specific environment.
-
-## Background and transparency
-
-Production reference sprites:
-
-- transparent background for canonical assets;
-- inspection sheets may use one neutral flat background plus checkerboard alpha view;
-- no atmospheric background contamination;
-- no cast-shadow shape baked into the sprite unless the runtime system explicitly adopts sprite-attached shadows.
-
-## Pixel integrity
-
-Production assets must satisfy:
-
-- nearest-neighbor scaling only;
-- integer-position placement for the sprite layer;
+- nearest-neighbor scaling;
+- integer sprite positioning where required for pixel stability;
 - no bilinear filtering;
-- no anti-aliased transform bake;
-- no arbitrary rotation of completed sprites at runtime;
-- no fractional scale differences between characters of the same body-size state unless the change is a deliberate world-scale mechanic.
+- no antialiased transform bake;
+- no arbitrary rotation of finished bitmaps;
+- fixed world scale across frames unless a real gameplay mechanic changes size.
 
-## Equipment compatibility
+## QA gate
 
-Because weapons and later clothing are gameplay-variable, the production master must leave the character suitable for modular variation.
+A Production Pixel Master candidate fails if:
 
-Rules:
-
-- weaponless base reference;
-- hands readable and spatially separable;
-- arms should not be permanently hidden by hair/cloth in every direction;
-- equipment must obey the same pixel density and lighting logic;
-- equipment variation must not redefine the protagonist's body scale or hair identity;
-- future armor/clothing may change silhouette, but the underlying identity anchors must remain recoverable.
-
-## First production-master generation spike
-
-Do **not** attempt an entire walk cycle first.
-
-Generate/construct only the following initial three views:
-
-1. `S` — toward camera/down-screen;
-2. `NE` — representative diagonal/back-side view;
-3. `N` — away from camera/up-screen.
-
-Each must use:
-
-- 64 px target body height;
-- actual gameplay high-oblique projection;
-- transparent background;
-- weaponless initial state;
-- same neutral pose;
-- same palette/value logic.
-
-### Pass gate
-
-All three must pass before generating the remaining five directions.
-
-Pass requires:
-
-- unmistakably the same Exilada;
-- convincing modern pixel art at 1×;
-- clean cluster construction;
-- no high-resolution-image-downsample look;
-- hair silhouette remains dominant and coherent;
-- anatomy remains adult and readable;
-- minimal clothing remains asymmetric and legible;
-- no dependence on facial microdetail;
-- no obvious AI texture/noise;
-- direction changes do not redesign the character.
-
-If the three-view test fails, fix the **production-raster method**, not the identity master.
-
-## First direct image-generation attempt — rejected (2026-09-04)
-
-A direct image-generation attempt was made for a nominal `S` production sprite.
-
-Observed output properties:
-
-- file dimensions: **1024 × 1536 px RGBA**, not the required 96 × 96 native production canvas;
-- the visible character occupied almost the full high-resolution image rather than approximately 64 native pixels;
-- transparency existed, but the output still carried a high-resolution generative treatment rather than a native-grid sprite construction;
-- the result was visually close to the Exilada identity but technically incompatible with the Production Pixel Master specification.
-
-### What the attempt preserved successfully
-
-- adult female identity;
-- long dark hair as the dominant silhouette mass;
-- olive/brown skin;
-- minimal degraded chest and hip cloth;
-- broken restraints / chains;
-- barefoot initial state;
-- weaponless base state;
-- severe survival-oriented presence.
-
-### Why it failed the production gate
-
-- not generated on the 96 × 96 native canvas;
-- not approximately 64 pixels tall at native scale;
-- detail density remained closer to high-resolution illustration than authored native pixel art;
-- excessive surface texture remained on skin, cloth and hair;
-- hair was described through many fine internal strands rather than a small number of stable designed masses;
-- palette/value economy was not demonstrably controlled;
-- the output could not be inspected as a true 1× production sprite;
-- therefore it cannot be used as a canonical conditioning source for production animation.
-
-**Decision:** reject this output as a Production Pixel Master candidate. Keep only as evidence that the generator can preserve the broad Exilada identity. The next experiment must produce an actual native-grid asset rather than a large image that merely looks pixel-art-like.
-
-## Relationship to the FLUX + RefControl pose spike
-
-The current FLUX.2 Klein + RefControl test remains useful as an isolated test of pose adherence and character preservation against the high-detail identity reference.
-
-It does **not** validate this production pixel-art specification.
-
-The intended production architecture, if the pose-control technology itself passes, becomes:
-
-`identity master -> approved production pixel reference pack -> pose-controlled generation -> native-grid pixel QA -> animation/inbetweening -> runtime validation`
-
-The project should not advance to mass animation generation until the production pixel reference pack exists and passes this document's gate.
-
-## QA checklist — production pixel master
-
-A candidate master fails if any of the following is true:
-
-- only looks good enlarged, not at 1×;
-- reads as a shrunk illustration;
-- relies on antialiasing or smooth gradients;
-- contains uncontrolled high-frequency pixel noise;
-- hair becomes strand soup rather than designed masses;
-- body age/proportions become ambiguous or juvenile;
-- clothing becomes generic fantasy decoration;
-- important silhouette masses change between views without perspective justification;
-- different directions appear to depict different people;
+- it looks good only enlarged;
+- it reads as a shrunk illustration;
+- it is technically native but visually procedural/generic;
+- anatomy becomes juvenile or mannequin-like;
+- hair loses its designed mass;
+- clothing becomes generic fantasy-barbarian costuming;
+- directions look like different people;
 - palette expands without structural reason;
-- equipment or a specific weapon becomes necessary to identify the Exilada;
-- manual pixel-by-pixel repair would be required as a routine production step.
+- routine manual pixel repair by the user would be required.
 
-## Current decision
+A candidate passes only if **both** are true:
 
-**Locked starting native gameplay raster:** 640 × 360.
+1. it is technically native, controllable and reproducible;
+2. it is artistically convincing at the quality level of the project's modern pixel-art target.
 
-**Locked starting Exilada body height:** 64 px, tunable only within 56–72 px during actual gameplay-composition validation.
+## Current decision / next gate
 
-**Locked:** production pixel master is a directional reference pack, not a single oversized portrait.
+**PASS:** separation of identity master from Production Pixel Master.
 
-**Locked:** first validation uses S, NE and N neutral weaponless views before expanding to all eight directions.
+**PASS:** 96×96 native-grid construction is technically feasible.
 
-**Locked:** identity master and production pixel master are separate canonical assets with different purposes.
+**FAIL:** direct high-resolution image generation as final sprite authoring.
 
-**Locked:** all art is approved first at 1× native scale.
+**FAIL:** primitive Python/Pillow drawing as final artistic authoring.
 
-**Rejected:** first direct image-generation attempt as a production master because it produced a 1024 × 1536 high-detail image instead of a native 96 × 96 sprite.
+**PAUSED:** mass animation production until a convincing Production Pixel Master exists.
 
-**Not yet approved:** any generated production pixel master image or the method that will create it reproducibly.
+**NEXT GATE:** validate an **agent-operated native pixel editor/source workflow**, beginning with a single `S` Exilada sprite at the real target grid. The first candidate should allow the agent to inspect and revise the actual pixels iteratively rather than outputting one generated bitmap.
