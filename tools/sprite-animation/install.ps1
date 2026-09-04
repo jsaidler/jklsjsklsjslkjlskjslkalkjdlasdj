@@ -144,66 +144,61 @@ Do not install anything else yet. Send the CMake output above so the exact integ
     Write-Host "Installed: $(Join-Path $Bin 'sd-cli.exe')" -ForegroundColor Green
 }
 
-# The helper scripts are intentionally pinned to Python 3.10. Do not silently fall back
-# to a newer system Python: Pillow 10.4.0 has no Windows wheel for Python 3.14.
+# The helper scripts only need Pillow. Use an already-installed supported Python
+# instead of forcing an old interpreter. Pillow 12.x supports CPython 3.10-3.14.
 $PyLauncher = Get-Command 'py.exe' -ErrorAction SilentlyContinue
-$Python310 = $null
+$PythonCommand = $null
+$PythonArgs = @()
 
 if ($PyLauncher) {
-    $Candidate = (& py.exe -3.10 -c "import sys; print(sys.executable)" 2>$null | Select-Object -First 1)
-    if ($LASTEXITCODE -eq 0 -and $Candidate -and (Test-Path $Candidate)) {
-        $Python310 = $Candidate
-    }
-}
-
-if (-not $Python310) {
-    $KnownPython310Paths = @(
-        (Join-Path $env:LocalAppData 'Programs\Python\Python310\python.exe'),
-        (Join-Path $env:ProgramFiles 'Python310\python.exe')
-    )
-    foreach ($Candidate in $KnownPython310Paths) {
-        if (Test-Path $Candidate) {
-            $Python310 = $Candidate
+    foreach ($Version in @('3.14', '3.13', '3.12', '3.11', '3.10')) {
+        & py.exe "-$Version" -c 'import sys; print(sys.version_info[:2])' *> $null
+        if ($LASTEXITCODE -eq 0) {
+            $PythonCommand = 'py.exe'
+            $PythonArgs = @("-$Version")
             break
         }
     }
 }
 
-if (-not $Python310) {
-    throw @'
-Python 3.10 was not found. The system Python is not used as a fallback because newer versions such as Python 3.14 are incompatible with the pinned Pillow wheel used by this toolchain.
-
-Install Python 3.10 side-by-side:
-  winget install --id Python.Python.3.10 -e
-
-Then reopen PowerShell and run install.ps1 again.
-'@
+if (-not $PythonCommand) {
+    $Python = Get-Command 'python.exe' -ErrorAction SilentlyContinue
+    if ($Python) {
+        $DetectedVersion = & $Python.Source -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'
+        if ($LASTEXITCODE -eq 0 -and $DetectedVersion -match '^3\.(10|11|12|13|14)$') {
+            $PythonCommand = $Python.Source
+        }
+    }
 }
 
-Write-Host "Python 3.10:   $Python310"
+if (-not $PythonCommand) {
+    throw 'No supported Python was found. Install CPython 3.10 through 3.14, then run install.ps1 again.'
+}
+
+$BaseVersion = & $PythonCommand @PythonArgs -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")'
+Write-Host "Python:        $BaseVersion"
 
 $VenvPython = Join-Path $Venv 'Scripts\python.exe'
 if (Test-Path $VenvPython) {
-    $VenvVersion = (& $VenvPython -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>$null | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or $VenvVersion -ne '3.10') {
-        Write-Host "Removing incompatible virtual environment (Python $VenvVersion)..."
+    $VenvVersion = & $VenvPython -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")'
+    if ($LASTEXITCODE -ne 0 -or $VenvVersion -notmatch '^3\.(10|11|12|13|14)$') {
+        Write-Host "Removing incompatible virtual environment ($VenvVersion)..."
         Remove-Item -Recurse -Force $Venv
+    } else {
+        Write-Host "Reusing virtual environment (Python $VenvVersion)..."
     }
-} elseif (Test-Path $Venv) {
-    Write-Host 'Removing incomplete virtual environment...'
-    Remove-Item -Recurse -Force $Venv
 }
 
-if (-not (Test-Path $Venv)) {
-    Write-Host 'Creating Python 3.10 virtual environment...'
-    & $Python310 -m venv $Venv
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to create Python 3.10 virtual environment.' }
+if (-not (Test-Path $VenvPython)) {
+    Write-Host "Creating virtual environment with Python $BaseVersion..."
+    & $PythonCommand @PythonArgs -m venv $Venv
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to create Python virtual environment.' }
 }
 
 $VenvPython = Join-Path $Venv 'Scripts\python.exe'
 & $VenvPython -m pip install --upgrade pip
 if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed.' }
-& $VenvPython -m pip install 'Pillow==10.4.0'
+& $VenvPython -m pip install 'Pillow==12.3.0'
 if ($LASTEXITCODE -ne 0) { throw 'Pillow install failed.' }
 
 if (-not $SkipModels) {
