@@ -13,13 +13,25 @@ $EmbeddedPython = Join-Path $PortableRoot 'python_embeded\python.exe'
 $OfficialUrl = 'https://github.com/Comfy-Org/ComfyUI/releases/latest/download/ComfyUI_windows_portable_nvidia.7z'
 
 function Find-7Zip {
-    $candidates = @(
-        (Join-Path $env:ProgramFiles '7-Zip\7z.exe'),
-        (Join-Path ${env:ProgramFiles(x86)} '7-Zip\7z.exe')
-    ) | Where-Object { $_ -and (Test-Path $_) }
-    if ($candidates.Count -gt 0) { return $candidates[0] }
+    # Windows PowerShell 5.1 can collapse a one-item pipeline result to a scalar.
+    # Build and wrap the candidate list explicitly so StrictMode never relies on
+    # a scalar object's .Count property.
+    $rawCandidates = @()
+
+    if ($env:ProgramFiles) {
+        $rawCandidates += (Join-Path $env:ProgramFiles '7-Zip\7z.exe')
+    }
+
+    $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+    if ($programFilesX86) {
+        $rawCandidates += (Join-Path $programFilesX86 '7-Zip\7z.exe')
+    }
+
+    $candidates = @($rawCandidates | Where-Object { $_ -and (Test-Path $_) })
+    if ($candidates.Count -gt 0) { return [string]$candidates[0] }
+
     $cmd = Get-Command 7z.exe -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
+    if ($cmd) { return [string]$cmd.Source }
     return $null
 }
 
