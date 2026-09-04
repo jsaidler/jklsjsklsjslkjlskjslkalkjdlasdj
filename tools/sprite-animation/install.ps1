@@ -83,13 +83,14 @@ Repair/reinstall CUDA 12.9 after Visual Studio 2022 Build Tools is present, then
     & git.exe -C $Vendor submodule update --init --recursive
     if ($LASTEXITCODE -ne 0) { throw 'git submodule update failed.' }
 
-    # CMake caches both generator and CUDA toolset. A failed auto-detected configure must not be reused.
+    # CMake caches generator/toolset/compiler flags. Reconfigure from a clean build tree.
     if (Test-Path $Build) {
         Write-Host 'Removing stale CMake cache...'
         Remove-Item -Recurse -Force $Build
     }
 
     Write-Host 'Configuring CUDA build with explicit VS2022 + x64 + CUDA toolset...'
+    Write-Host 'MSVC large-object support: /bigobj'
     $Toolset = "host=x64,cuda=$CudaPath"
     & cmake.exe `
         -S $Vendor `
@@ -98,7 +99,8 @@ Repair/reinstall CUDA 12.9 after Visual Studio 2022 Build Tools is present, then
         -A x64 `
         -T $Toolset `
         -DSD_CUDA=ON `
-        -DCMAKE_CUDA_ARCHITECTURES=86
+        -DCMAKE_CUDA_ARCHITECTURES=86 `
+        '-DCMAKE_CXX_FLAGS=/bigobj'
 
     if ($LASTEXITCODE -ne 0) {
         throw @"
@@ -114,13 +116,17 @@ Generator:
   Visual Studio 17 2022 / x64
 Toolset:
   $Toolset
+C++ flags:
+  /bigobj
 
 Do not install anything else yet. Send the CMake output above so the exact integration/compiler failure can be fixed.
 "@
     }
 
-    Write-Host 'Building sd-cli.exe...'
-    & cmake.exe --build $Build --config Release --parallel
+    # stable-diffusion.cpp contains very large translation units. On MSVC, unrestricted
+    # parallel compilation can trigger D8040/process-spawn failures even with ample RAM.
+    Write-Host 'Building sd-cli.exe with bounded parallelism (2 jobs)...'
+    & cmake.exe --build $Build --config Release --parallel 2
     if ($LASTEXITCODE -ne 0) { throw 'stable-diffusion.cpp build failed.' }
 
     $Exe = Get-ChildItem -Path $Build -Recurse -Filter 'sd-cli.exe' | Select-Object -First 1
