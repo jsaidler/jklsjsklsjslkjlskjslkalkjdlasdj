@@ -14,15 +14,15 @@ function Find-ComfyRoot([string]$Base) {
     return $null
 }
 
-function Invoke-Comfy {
-    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    Push-Location 'D:\AI'
-    try {
-        & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
-        if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
-    } finally {
-        Pop-Location
+function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
+    $candidates = @(
+        (Join-Path $ComfyRoot '.venv\Scripts\python.exe'),
+        (Join-Path $Base '.venv\Scripts\python.exe')
+    ) | Select-Object -Unique
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) { return $candidate }
     }
+    return $null
 }
 
 $ComfyRoot = Find-ComfyRoot $Workspace
@@ -30,30 +30,88 @@ if (-not $ComfyRoot) {
     throw "ComfyUI not found under $Workspace. Run bootstrap.ps1 first."
 }
 
-Write-Host "ComfyUI root: $ComfyRoot" -ForegroundColor Green
-Write-Host 'Starting ComfyUI in background...' -ForegroundColor Cyan
-try {
-    Invoke-Comfy --workspace $Workspace launch --background -- --listen 127.0.0.1 --port $Port
-} catch {
-    Write-Host 'Background launch may already be active; probing the API before failing.' -ForegroundColor Yellow
+$WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
+if (-not $WorkspacePython) {
+    throw "ComfyUI Python environment not found under $Workspace or $ComfyRoot"
 }
 
+Write-Host "ComfyUI root: $ComfyRoot" -ForegroundColor Green
+Write-Host "ComfyUI Python: $WorkspacePython" -ForegroundColor Green
+
 $Base = "http://127.0.0.1:$Port"
+$serverAlreadyRunning = $false
+try {
+    $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
+    $serverAlreadyRunning = $true
+} catch {}
+
+$UserDir = Join-Path $ComfyRoot 'user'
+New-Item -ItemType Directory -Force -Path $UserDir | Out-Null
+$StdoutLog = Join-Path $UserDir "comfyui_${Port}_stdout.log"
+$StderrLog = Join-Path $UserDir "comfyui_${Port}_stderr.log"
+$PidFile = Join-Path $Workspace '.wan_animate2_spike.pid'
+$process = $null
+
+if ($serverAlreadyRunning) {
+    Write-Host "ComfyUI API is already running at $Base" -ForegroundColor Green
+} else {
+    Write-Host 'Starting ComfyUI directly with the workspace Python (headless)...' -ForegroundColor Cyan
+    $MainPy = Join-Path $ComfyRoot 'main.py'
+    $launchArgs = @(
+        $MainPy,
+        '--listen', '127.0.0.1',
+        '--port', "$Port",
+        '--disable-auto-launch'
+    )
+
+    $process = Start-Process `
+        -FilePath $WorkspacePython `
+        -ArgumentList $launchArgs `
+        -WorkingDirectory $ComfyRoot `
+        -RedirectStandardOutput $StdoutLog `
+        -RedirectStandardError $StderrLog `
+        -WindowStyle Hidden `
+        -PassThru
+
+    Set-Content -Path $PidFile -Value $process.Id -Encoding ascii
+    Write-Host "Started PID $($process.Id)" -ForegroundColor Green
+    Write-Host "stdout: $StdoutLog"
+    Write-Host "stderr: $StderrLog"
+}
+
 $ok = $false
-for ($i = 0; $i -lt 90; $i++) {
+for ($i = 0; $i -lt 120; $i++) {
     try {
         $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
         $ok = $true
         break
     } catch {
+        if ($process -and $process.HasExited) {
+            Write-Host "ComfyUI exited early with code $($process.ExitCode)." -ForegroundColor Red
+            if (Test-Path $StderrLog) {
+                Write-Host '--- stderr tail ---' -ForegroundColor Yellow
+                Get-Content $StderrLog -Tail 80
+            }
+            if (Test-Path $StdoutLog) {
+                Write-Host '--- stdout tail ---' -ForegroundColor Yellow
+                Get-Content $StdoutLog -Tail 40
+            }
+            throw 'ComfyUI failed during startup.'
+        }
         Start-Sleep -Seconds 1
     }
 }
-if (-not $ok) { throw "ComfyUI API did not become available at $Base" }
+if (-not $ok) {
+    if (Test-Path $StderrLog) {
+        Write-Host '--- stderr tail ---' -ForegroundColor Yellow
+        Get-Content $StderrLog -Tail 80
+    }
+    throw "ComfyUI API did not become available at $Base"
+}
 
-$ObjectInfo = Invoke-RestMethod -Uri "$Base/object_info" -TimeoutSec 60
+Write-Host "ComfyUI API ready: $Base" -ForegroundColor Green
+$ObjectInfo = Invoke-RestMethod -Uri "$Base/object_info" -TimeoutSec 120
 
-$RouteFile = Join-Path $Workspace 'spike_model_route.txt'
 $OfficialBaseInt8 = Test-Path (Join-Path $ComfyRoot 'models\diffusion_models\wan_animate_2_int8_convrot.safetensors')
 $BaseQ4 = Test-Path (Join-Path $ComfyRoot 'models\diffusion_models\Wan-Animate-2-14B-Q4_K_M.gguf')
 
@@ -126,29 +184,25 @@ foreach ($f in $Files) {
     }
 }
 
-$Probe = [ordered]@{
-    route = $Route
-}
-foreach ($name in @('RebelsGGUFUnetLoaderMeta','UNETLoader','WanAnimate2ToVideo','LoadVideo')) {
+$Probe = [ordered]@{ route = $Route }
+foreach ($name in @('RebelsGGUFUnetLoaderMeta','UNETLoader','WanAnimate2ToVideo','LoadVideo','CLIPLoader','CLIPVisionLoader','CLIPVisionEncode','VAELoader')) {
     if ($ObjectInfo.PSObject.Properties.Name -contains $name) {
         $Probe[$name] = $ObjectInfo.$name
     }
 }
 $ProbePath = Join-Path $Workspace 'object_info_spike.json'
-$Probe | ConvertTo-Json -Depth 30 | Set-Content -Path $ProbePath -Encoding utf8
+$Probe | ConvertTo-Json -Depth 40 | Set-Content -Path $ProbePath -Encoding utf8
 Write-Host ''
 Write-Host "Saved exact installed node schemas to: $ProbePath" -ForegroundColor Green
 
-$LogCandidates = @(
-    (Join-Path $Workspace "user\comfyui_$Port.log"),
-    (Join-Path $ComfyRoot "user\comfyui_$Port.log")
-) | Select-Object -Unique
-foreach ($Log in $LogCandidates) {
+foreach ($Log in @($StderrLog, $StdoutLog)) {
     if (Test-Path $Log) {
-        Write-Host ''
-        Write-Host "ComfyUI log: $Log"
         $imports = Select-String -Path $Log -Pattern 'IMPORT FAILED|Rebels|GGUF|WanAnimate2|Animate2' -SimpleMatch:$false
-        if ($imports) { $imports | Select-Object -Last 40 | ForEach-Object { $_.Line } }
+        if ($imports) {
+            Write-Host ''
+            Write-Host "Relevant startup log lines from $Log"
+            $imports | Select-Object -Last 40 | ForEach-Object { $_.Line }
+        }
     }
 }
 
@@ -161,6 +215,6 @@ Write-Host 'CLI preflight PASSED.' -ForegroundColor Green
 if ($Route -eq 'base_q4_gguf') {
     Write-Host 'GGUF route: model class=WAN_Animate2 must be proven at actual model load.' -ForegroundColor Yellow
 } else {
-    Write-Host 'Official Base INT8 route: the safetensors checkpoint carries native Animate-2 metadata; actual model loading will still be checked in the run log.' -ForegroundColor Yellow
+    Write-Host 'Official Base INT8 route: actual Animate-2 model loading will be checked during the workflow run.' -ForegroundColor Yellow
 }
 Write-Host 'Next: prepare the 17-frame driver, then build the headless API workflow from these installed schemas.'
