@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **RefControl is rejected as a direct animation-frame generator after repeated structural failures, culminating in an extra third leg in V3. The next and final diffusion-based direct-frame test changes architecture to Qwen-Image-Edit-2509 using its native multi-image/keypoint-edit behavior. Qwen-Image-Edit-2511 is not the primary pose-control candidate because current evidence indicates its OpenPose/keypoint behavior is less reliable than 2509 for this exact use case. If the single hard 2509 topology test fails, direct diffusion frame synthesis ends and the project moves to deterministic rig-first animation.**
+Status: **Direct per-frame diffusion is no longer the active production architecture. RefControl is rejected after repeated topology/continuity failures, and the planned Qwen-Image-Edit-2509 single-pose test is PAUSED because a successful isolated pose would not answer the larger production problems: natural motion, temporal body consistency, stable accessories, stable clothing/hair structure, and scalable animation across many actions. The project now moves to a deterministic motion/topology architecture first, with generative models allowed only where they do not own body topology or temporal continuity.**
 
 This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
@@ -10,11 +10,14 @@ The animation pipeline must:
 
 - start from the approved Exilada identity reference;
 - preserve adult anatomy, face, long black hair mass, clothing state, scars/restraints and equipment state;
-- provide explicit inspectable pose/motion control;
+- provide explicit inspectable motion control;
+- guarantee normal body topology across every frame;
+- maintain stable anatomical side assignment for accessories/equipment;
+- produce natural locomotion rather than hand-authored approximate stick-figure motion;
 - run reproducibly on Windows 11 / RTX 3060 12 GB / ~48 GB RAM;
-- avoid routine manual frame-by-frame repainting, seed fishing and artistic retry loops;
-- use free/local/self-hosted code and weights unless explicitly approved otherwise;
-- scale to many characters, equipment states and actions.
+- avoid routine manual frame-by-frame repainting or hand animation;
+- use free/local/self-hosted tools and assets unless explicitly approved otherwise;
+- scale to many actions, characters, equipment states and world conditions.
 
 Canonical Exilada identity reference:
 
@@ -22,246 +25,280 @@ Canonical Exilada identity reference:
 
 It is a high-detail identity/design master, not the final gameplay sprite.
 
-## Architecture principle
+## Critical correction — provenance of the tested walk poses
 
-The useful decomposition remains:
+The four tested pose families:
 
-`motion/key poses -> explicit structure/control -> controlled character renderer/editor -> gameplay-scale/native-raster translation -> temporal completion if needed -> QA`
+- `contact_L`
+- `passing_L`
+- `contact_R`
+- `passing_R`
 
-The renderer/editor must preserve **body topology first**. Identity, pose quality, props and visual polish are irrelevant if the frame invents or loses major limbs.
+were **not** extracted from motion capture, a filmed walk, a kinematic solver, or a validated animation source.
 
-## Mandatory QA order — LOCKED
+They were manually parameterized in project scripts as a simplified gait-blocking experiment to test pose controllability.
 
-Every future generated pose/frame is evaluated in this order:
+That means they were valid only for answering:
 
-1. **topology/anatomy count:** exactly one head, one torso, two arms, two hands, two legs, two feet; no extra/duplicated/fused/missing major limbs;
-2. **pose adherence:** requested contact/passing/support/swing geometry is actually present;
-3. **identity continuity:** same Exilada face, body type, hair mass, clothing language and scars;
-4. **prop continuity:** shackles/chains/equipment remain on stable anatomical sides;
-5. **visual quality/gameplay readability.**
+> Can the renderer distinguish explicit pose controls while preserving the Exilada?
 
-Failure at level 1 is immediately eliminatory.
+They were **not** a valid foundation for judging a natural final walk.
 
-## RefControl research history — FROZEN
+A convincing full walk normally requires more than four crude phase drawings. At minimum, a real motion source must preserve:
 
-### V1
+- contact;
+- loading/down phase;
+- passing;
+- high/up phase;
+- opposite-side equivalents;
+- pelvis translation and rotation;
+- shoulder counter-rotation;
+- vertical center-of-mass motion;
+- knee/ankle arcs;
+- heel-to-toe foot roll;
+- cadence and asymmetry appropriate to the character.
 
-FLUX.2 Klein Base 4B FP8 + RefControl Pose, fixed seed `20260904`, four COCO-18 gait poses, one-shot/no-retry.
+Therefore the artificial feel observed in the tests is not solely a renderer problem; part of it came from using synthetic blocking poses rather than real motion.
 
-Result:
+## What the diffusion experiments actually proved
 
-- identity retention strong;
-- four phases distinct;
-- right-foot/toe error;
-- left-arm inconsistency;
-- small body drift;
-- chain/shackle drift.
+### RefControl V1
 
-Verdict: **CONDITIONAL PASS as research/upstream reference; FAIL as final walk.**
+Strengths:
 
-### V2
+- strongest Exilada identity retention obtained so far;
+- four requested controls rendered as visibly different poses.
 
-Changed control geometry + stricter anatomy/continuity prompt while holding model/seed/render settings constant.
+Failures:
+
+- foot/toe anatomy;
+- arm inconsistency;
+- body drift;
+- chain/shackle topology drift.
+
+Verdict: **useful research reference; not production animation.**
+
+### RefControl V2
 
 Improvements:
 
-- feet better;
-- arms better;
-- body stability better;
-- identity remained strong.
+- feet;
+- arms;
+- body stability.
 
-Critical failure:
+Failure:
 
-- `contact_L` ≈ `contact_R`;
-- `passing_L` ≈ `passing_R`.
+- opposite gait phases collapsed into near duplicates because screen-space geometry was too similar.
 
-Root cause: opposite phases used nearly identical screen-space silhouettes and relied too heavily on COCO semantic left/right labels.
+Verdict: **FAIL.**
 
-Verdict: **FAIL as usable walk.**
+### RefControl V3
 
-### V3
+Improvement:
 
-Changed actual screen-space geometry so all four controls had unique color-independent silhouettes.
+- four controls had genuinely different color-independent silhouettes;
+- left/right phase differentiation returned.
 
-STEP 8A controls: PASS.
+Catastrophic failure:
 
-Generated result:
+- `pose_01_passing_L_v3` contains three visible legs / three feet.
 
-- phase differentiation returned;
-- identity remained strong;
-- `pose_01_passing_L_v3` contains **three visible legs / three feet**;
-- chain/shackle drift remains.
+Secondary failures:
 
-Verdict: **catastrophic topology FAIL.**
+- chain/shackle topology still drifts;
+- clothing/body details vary between frames.
 
-### RefControl final decision — LOCKED
+Verdict: **FAIL as direct-frame generation. RefControl direct-frame route frozen.**
 
-Do **not** create V4. Do not prompt-tune, seed-fish, inpaint, or iterate further on direct RefControl frame generation.
+## Broader production conclusion — LOCKED
 
-RefControl is frozen as:
+The problem is not merely extra limbs.
 
-- research history;
-- possible non-final upstream pose/identity reference support only.
+Independent generative frames also create unresolved production risks:
 
-It is **rejected as the production direct-frame generator** because it does not reliably preserve body topology.
+- body dimensions change subtly frame to frame;
+- scars/clothing folds move or mutate;
+- shackles/chains can swap anatomical sides;
+- hair mass changes internally;
+- equipment topology may drift;
+- gait timing is not mechanically guaranteed;
+- motion arcs and center of mass are not shared across frames;
+- every new action can reopen the same failures.
 
-## New candidate architecture — Qwen-Image-Edit-2509
+Therefore **a model that passes one anatomically valid pose is not enough to qualify as the production animation system**.
 
-The final diffusion-based direct-frame topology test uses:
+The project was incorrectly trying to solve an animation-system problem as an image-generation problem.
 
-**Qwen-Image-Edit-2509**, local/self-hosted, Apache 2.0.
+## Qwen-Image-Edit-2509 status — PAUSED, NOT REJECTED
 
-Why 2509 rather than 2511 for this gate:
+Tooling under:
 
-- 2509 explicitly introduced native support for keypoint/control images and pose transformation;
-- its multi-image edit path can take the Exilada identity image together with a keypoint map;
-- 2511 improves general consistency/drift, but current evidence shows its OpenPose/keypoint behavior can regress relative to 2509;
-- this spike tests **pose-controlled topology**, not general image-edit quality.
+`tools/qwen-image-edit-2509-spike/`
 
-This is materially different from FLUX RefControl:
+is preserved as research infrastructure.
 
-- image-editing architecture;
-- identity image and keypoint map are native multi-image edit inputs;
-- no RefControl LoRA/reference-latent chain;
-- no attempt to rescue the FLUX route through another prompt or skeleton revision.
+Do **not** run the preflight/download/inference as the active next gate.
 
-## RTX 3060 12 GB model strategy — LOCKED FOR FIRST TEST
+Reason:
 
-Canonical new workspace:
+Even if Qwen produced one perfect difficult passing pose, that would still not prove:
 
-`Z:\AI\QwenImageEditSpike`
+- temporally coherent body proportions;
+- stable chains/accessories across a cycle;
+- natural gait;
+- stable clothing/hair topology;
+- production scalability across dozens of actions.
 
-First model set:
+Qwen may later be useful as a constrained editing/reference component inside a deterministic pipeline, but it is no longer being treated as the candidate that must solve animation by independently synthesizing frames.
 
-1. `Qwen-Image-Edit-2509-Q4_0.gguf` — ~11.9 GB transformer;
-2. `qwen_2.5_vl_7b_fp8_scaled.safetensors` — ~9.38 GB text encoder;
-3. `qwen_image_vae.safetensors` — ~0.25 GB VAE.
+## New production architecture — DETERMINISTIC MOTION FIRST
 
-No Lightning LoRA in the first topology test.
+The animation system is now decomposed as:
 
-Rationale:
+`real/procedural motion source -> deterministic rig/topology -> deterministic secondary attachments -> fixed camera/control passes -> final 2D/pixel representation -> QA`
 
-- Q4_0 is chosen over Q3 to avoid degrading the topology test more than necessary;
-- the 12 GB GPU is expected to require low-VRAM / CPU offload;
-- the machine has ~48 GB RAM and the workspace is on SSD;
-- if Q4_0 cannot run under controlled low-VRAM offload, do not silently change quantization. Reassess the runtime gate explicitly.
+### Layer 1 — motion source
 
-## New tooling — `tools/qwen-image-edit-2509-spike/`
+Do not invent walk key poses manually.
 
-### `00_preflight.ps1`
+Use either:
 
-Checks only:
+- real motion-capture data;
+- motion extracted from recorded human performance;
+- or a deterministic locomotion solver.
 
-- Windows 11;
-- >=40 GB visible system RAM for this spike;
-- ~12 GB NVIDIA VRAM;
-- >=40 GB free on the `Z:` workspace drive;
-- repository/master paths;
-- git/curl/7-Zip prerequisites.
+First preference for the validation spike: **real BVH locomotion data**.
 
-No downloads or installs.
+The CMU Graphics Lab Motion Capture Database is free for use, including in commercially sold products, subject to its stated terms. It contains locomotion/walking trials. Blender imports BVH directly as animated armature data.
 
-### `01_install_runtime.ps1`
+This gives us an actual measured walk instead of guessed contact/passing stick figures.
 
-Creates an isolated runtime in:
+### Layer 2 — topology-owning rig
 
-`Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
+A persistent rig must own:
 
-Installs:
+- one torso/head;
+- exactly two arms/hands;
+- exactly two legs/feet;
+- pelvis/shoulder relation;
+- attachment sockets for shackles/equipment;
+- stable left/right anatomical identity.
 
-- latest official NVIDIA ComfyUI Portable;
-- `city96/ComfyUI-GGUF` pinned to commit `6ea2651e7df66d7585f6ffee804b20e92fb38b8a`;
-- only the custom-node Python requirements.
+The rig, not diffusion, is responsible for body topology.
 
-No Qwen weights and no inference.
+### Layer 3 — deterministic secondary systems
 
-### `02_download_models.ps1`
+Persistent objects are separated from character-image synthesis:
 
-Downloads exactly the three locked files and validates SHA256:
+- wrist shackles attached to fixed wrist sockets;
+- ankle shackles attached to fixed ankle sockets;
+- chains attached to known endpoints;
+- weapons attached to sockets;
+- hair and cloth secondary motion driven by bones/curves/physics or other persistent deterministic structures.
 
-- `Qwen-Image-Edit-2509-Q4_0.gguf`
-  - SHA256 `4f6cda402e1dbc36ee4b601b10b9ee0da2dbefedfbfa53eae3efb0ddff48c3e2`
-- `qwen_2.5_vl_7b_fp8_scaled.safetensors`
-  - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
-- `qwen_image_vae.safetensors`
-  - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+This prevents accessories from changing sides simply because a model redraws the whole frame.
 
-No model load or inference.
+### Layer 4 — fixed camera / control representation
 
-### `03_prepare_inputs.ps1`
+The gameplay baseline remains:
 
-Creates one deliberately difficult topology stress-test input:
+**elevated 2D belt-scroller / false 3D**.
 
-- identity: byte-identical canonical `exilada_master.png`;
-- keypoint map: the same difficult passing-L structural case that caused the RefControl V3 extra-leg failure;
-- fixed seed `20260904`;
-- fixed `768×1024` control canvas;
-- explicit prompt requiring exactly two arms/hands/legs/feet and full-body visibility.
+The deterministic rig can render or export, per frame:
 
-No model load or inference.
+- silhouette;
+- body-part ID mask;
+- depth;
+- normals;
+- keypoints;
+- attachment positions;
+- optional flat-shaded reference render.
 
-### `04_validate_runtime_schema.ps1`
+These are stable across a motion sequence and may feed downstream 2D/pixel authoring.
 
-Starts isolated ComfyUI with `--lowvram`, performs only `GET /object_info`, and validates:
+### Layer 5 — final visual representation
 
-- `UnetLoaderGGUF` with the Q4_0 model visible;
-- `CLIPLoader` with `qwen_image` type and the locked encoder visible;
-- `VAELoader` with the locked VAE visible;
-- `TextEncodeQwenImageEditPlus` multi-image edit contract;
-- required sampler/decode/save nodes;
-- both prepared input images visible to `LoadImage`.
+Still open. Two candidate families remain:
 
-It sends **zero `/prompt` requests** and performs no inference.
+#### A. Deterministic 2D skeletal/mesh character
 
-## Hard single-pose topology gate
+Advantages:
 
-Do not generate four frames first.
+- final representation is genuinely 2D;
+- identity/art assets stay fixed;
+- equipment can be layered deterministically.
 
-The first Qwen inference, only after STEP 5 schema PASS, will use exactly one difficult passing pose — the same structural case that produced the V3 extra leg.
+Risks:
 
-Inputs:
+- can look like a cut-out puppet;
+- mesh deformation can damage pixel clusters;
+- complex hair/cloth requires careful rig design.
 
-1. canonical Exilada identity image;
-2. explicit OpenPose-style COCO-18 keypoint map;
-3. fixed prompt and seed.
+#### B. Hidden 3D rig rendered as 2D/native-raster art
 
-One output only. No retry. No seed fishing. No prompt iteration.
+Advantages:
 
-### Acceptance criteria
+- anatomy/topology guaranteed;
+- real mocap/IK directly usable;
+- arbitrary actions and camera-relative movement scale well;
+- equipment, chains, hair and collisions can attach mechanically;
+- much more scalable for many NPCs/actions.
 
-The single-pose spike passes only if all are true:
+Important clarification:
 
-- exactly **2 arms / 2 hands / 2 legs / 2 feet**;
-- no extra, fused or missing major limb;
-- requested passing pose is visibly obeyed;
-- Exilada identity/hair/body/clothing remain recognizably stable;
-- complete body remains visible;
-- no catastrophic prop-body fusion.
+**the game does not need to become visually 3D.**
 
-If it fails topology, **reject Qwen-Image-Edit-2509 as a direct-frame generator immediately**.
+The 3D rig may exist only as hidden production infrastructure. Gameplay can remain orthographic/oblique 2D belt-scroller, and the final representation can still target authored native-raster/pixel language.
 
-If it passes, only then run the four-pose set.
+Risk:
 
-## Deterministic fallback — HARD STOP
+- a naive low-resolution render or pixel filter would look like filtered 3D and is rejected;
+- the final raster/look still needs a deliberate production solution.
 
-If the Qwen one-pose topology gate fails, stop testing diffusion-based direct frame synthesis.
+## Current recommendation
 
-Next architecture becomes **deterministic rig-first animation**:
+For the project's constraints — no animation team, no manual frame-by-frame work, many characters/equipment states, systemic world — **hidden deterministic 3D rigging is currently the more scalable motion/topology backbone**.
 
-- 2D mesh/skeletal rig or hidden 3D rig;
-- body topology and gait guaranteed mechanically;
-- generative tools allowed only for non-topological roles such as concept/reference, texture/style guidance or downstream native-pixel authoring.
+This is a production recommendation, not a decision that final graphics must look 3D.
 
-This prevents an endless sequence of models hallucinating limbs while the project repeatedly repairs prompts.
+## Next validation spike — motion/topology only
 
-## Exact next gate
+Do not use the Exilada art yet.
 
-Run only STEP 1 preflight:
+Build a minimal neutral human rig test that answers only:
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+> Can we obtain a natural real walk, preserve exact topology, and view it through the intended elevated belt-scroller camera without manual animation?
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\qwen-image-edit-2509-spike\00_preflight.ps1"
-```
+Suggested minimal stack:
 
-Do not run STEP 2 or download models until STEP 1 output is reviewed and recorded.
+- Blender, local/free;
+- one generic human/armature proxy;
+- one real walking BVH from CMU Mocap;
+- orthographic/elevated belt-scroller camera;
+- render/export only simple silhouette/body-part diagnostic frames first.
+
+No pixel-art styling, no diffusion, no Exilada identity generation in this gate.
+
+### PASS criteria
+
+- exactly normal topology for the whole sequence;
+- natural measured gait rather than hand-authored contact/passing guesses;
+- stable ground contact/no obvious foot sliding after retargeting;
+- usable belt-scroller camera angle;
+- repeatable scripted/local workflow;
+- attachment sockets remain stable through the full walk.
+
+Only after this passes do we solve:
+
+> How is the approved Exilada visual design mapped onto this deterministic moving structure while retaining true modern pixel-art quality?
+
+## Mandatory QA order — UPDATED
+
+1. topology integrity for the full sequence;
+2. motion quality/grounding for the full sequence;
+3. stable body proportions and anatomical sides;
+4. stable attachments/equipment;
+5. identity mapping;
+6. final pixel-art quality/gameplay readability.
+
+A single good frame can never again qualify an animation architecture.
