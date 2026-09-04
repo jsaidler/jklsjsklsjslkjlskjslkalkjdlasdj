@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose remains the strongest character re-posing route tested so far. V1 preserved identity strongly but had anatomy/continuity defects. V2 improved anatomy but failed as a walk because left/right phase pairs collapsed into nearly repeated poses. V3 deterministic controls now PASS: all four gait phases have genuinely different screen-space geometry and unique color-independent silhouette hashes. The immediate next gate is one-shot V3 inference with the V2 correction prompt held constant.**
+Status: **FLUX.2 Klein Base 4B FP8 + RefControl Pose remains the strongest character re-posing route tested so far, but no walk cycle is approved. V1 preserved identity strongly but had anatomy/continuity defects. V2 improved anatomy but failed because left/right phase pairs collapsed into nearly repeated poses. V3 restored distinct screen-space gait phases, but visual QA exposed a catastrophic extra-limb hallucination: `pose_01_passing_L_v3` contains three legs / three visible feet. Therefore V3 FAILS as a usable walk set. QA order is now locked: gross anatomy/limb count first, gait semantics second, continuity/props third, visual quality last.**
 
 This document is canonical across chats. Update it after every material animation test, PASS/FAIL decision or pipeline change.
 
@@ -42,6 +42,53 @@ Motion generation and character re-posing are separate problems.
 
 FLUX.2 Klein + RefControl Pose currently owns the **character re-posing** layer. MoMask remains a possible later numeric motion/pose-sequence generator only after the renderer and gameplay-raster representation are stable.
 
+## Mandatory visual-QA order — LOCKED after V3 miss
+
+Every generated character frame must now be evaluated in this order. A frame that fails an earlier layer is not meaningfully judged on later layers.
+
+### QA-0 — gross anatomy / limb-count gate
+
+Immediate FAIL if any of the following occurs:
+
+- more or fewer than two legs;
+- more or fewer than two feet;
+- more or fewer than two arms;
+- more or fewer than two hands;
+- duplicated or fused major limb;
+- impossible attachment of a limb to pelvis/shoulder;
+- catastrophic hand/foot/body fusion.
+
+### QA-1 — requested pose / gait semantics
+
+Only after QA-0 passes:
+
+- target support leg correct;
+- target swing/contact leg correct;
+- left/right phase visibly distinct;
+- foot placement and weight transfer plausible;
+- no unintended phase collapse.
+
+### QA-2 — identity and continuity
+
+Only after QA-0/1 pass:
+
+- same Exilada body proportions;
+- same face/hair mass;
+- same clothing/scars;
+- restraints/chains remain on intended anatomical sides;
+- no unexplained body-size or topology drift.
+
+### QA-3 — visual quality / gameplay usefulness
+
+Only after QA-0/1/2 pass:
+
+- silhouette quality;
+- visual polish;
+- pixel-art suitability;
+- gameplay-scale readability.
+
+This order is mandatory specifically because the V3 review incorrectly discussed gait quality before noticing an obvious third leg.
+
 ## Rejected routes
 
 Do not revive casually:
@@ -70,15 +117,7 @@ RefControl expects an **OpenPose-style COCO-18** skeleton. COCO-18 has ankle joi
 
 ## V1 — strong identity / structural defects
 
-V1 fixed contract:
-
-- four walk key poses;
-- `768 × 1024` controls;
-- seed `20260904`;
-- one generation per pose;
-- no retry/inpainting/seed search/interpolation.
-
-Result:
+V1 result:
 
 - runtime: PASS;
 - identity retention: strong;
@@ -122,24 +161,7 @@ Secondary unresolved defect:
 
 ## V3 — structural left/right correction
 
-V3 changes the actual visible skeleton geometry so opposite gait phases remain different even if COCO colors are removed.
-
-### V3 control names
-
-- `pose_00_contact_L_v3`
-- `pose_01_passing_L_v3`
-- `pose_02_contact_R_v3`
-- `pose_03_passing_R_v3`
-
-### V3 geometry rules
-
-- four genuinely different screen-space limb geometries;
-- no crossed-leg X shapes;
-- support and swing legs readable directly from silhouette;
-- opposite contact phases use physically different stride geometry;
-- opposite passing phases use physically different support/swing geometry;
-- arm opposition changes with phase;
-- slight 3/4 side-facing-right asymmetry retained.
+V3 changed actual visible skeleton geometry so opposite gait phases remained different even if COCO colors were removed.
 
 ### STEP 8A — V3 controls: PASS
 
@@ -147,7 +169,7 @@ Tool:
 
 `tools/flux2-refcontrol-spike/08_prepare_v3_inputs.ps1`
 
-User-observed execution:
+Observed preparation:
 
 - `generated_v3_poses=4`;
 - `silhouette_uniqueness=PASS`;
@@ -161,49 +183,34 @@ Hashes:
 - `pose_02_contact_R_v3` — PNG `637ea37ebe25b43134d6374ec3e334646f9034b39c6e6b35be3c2ddb9cd08650`; silhouette `aa94a2f6a7d2908dfb20078aee8146b13b60d0b068342a0b2df89bb0096dfabd`;
 - `pose_03_passing_R_v3` — PNG `ff98c35f70f49136c9cb55c0d6f93fdbf5b6d449d164402ee0348ba72dcdc58a`; silhouette `476ff26d61e80d05140eda6c75862280c1fc4adcd96d6159de334c11220d4098`.
 
-Visual QA: **PASS to inference**.
+Control-level verdict: **PASS** — four genuinely different screen-space silhouettes.
 
-The intended gait semantics are visibly present in geometry:
+### STEP 8B — V3 inference: completed, visual set FAIL
 
-- contact_L: left leg physically leads;
-- passing_L: right supports, left swings;
-- contact_R: right leg physically leads;
-- passing_R: left supports, right swings.
+The user produced four V3 character outputs.
 
-## STEP 8B — V3 one-shot inference
+Positive result:
 
-Runner:
+- V3 did restore visible left/right phase differentiation; the V2 two-pose collapse did not recur.
 
-`tools/flux2-refcontrol-spike/09_run_v3.ps1`
+Catastrophic failure:
 
-Experimental isolation:
+- `pose_01_passing_L_v3` contains **three legs / three visible feet**;
+- this is an immediate QA-0 gross-anatomy FAIL and invalidates the frame regardless of gait/readability quality.
 
-**only V3 screen-space skeleton geometry changes relative to the V2 correction run.**
+Other unresolved issues visible across V3 remain secondary to QA-0:
 
-Held constant:
+- chain/shackle topology still varies;
+- some passing-pose anatomy remains awkward;
+- fine body/prop continuity is not yet production-stable.
 
-- canonical identity master;
-- FLUX.2 Klein Base 4B FP8;
-- RefControl Pose LoRA strength `1.0`;
-- V2 correction prompt contract;
-- seed `20260904`;
-- `768×1024`;
-- 20 steps;
-- CFG 5.0;
-- Euler;
-- one prompt submission per pose;
-- no retry, inpainting, interpolation or seed search.
+V3 verdict:
 
-Runner safeguards:
+**FAIL as a usable walk set.**
 
-- safe PowerShell JSON depths only (`<=64`);
-- validates `input_manifest_v3.json` revision;
-- validates every pose PNG against its spec hash;
-- requires four unique binary silhouette hashes;
-- refuses to run if V3 sentinel, run manifest or V3 PNG output already exists;
-- writes request JSON before submission;
-- writes accepted `prompt_id` evidence immediately after each successful submission;
-- writes history and final run manifest.
+Important research conclusion:
+
+**Distinct control geometry can restore phase differentiation, but FLUX.2 Klein + RefControl Pose still does not guarantee one-to-one major-limb topology. Extra-limb hallucination remains a production-blocking risk.**
 
 ## Workspace — LOCKED
 
@@ -217,19 +224,8 @@ Repository:
 
 ## Exact next gate
 
-Run exactly once:
+Do **not** expand to eight frames and do **not** approve any V3 frame set yet.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Before another inference round, decide how to handle major-limb topology failures. Any next experiment must explicitly target the extra-limb risk and retain the new mandatory QA-0 limb-count gate.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\flux2-refcontrol-spike\09_run_v3.ps1" -Workspace "Z:\AI\Flux2RefControlSpike"
-```
-
-Then stop and share:
-
-- the four V3 generated images;
-- `Z:\AI\Flux2RefControlSpike\run_v3\step8b_v3_run_manifest.json`.
-
-Next QA question:
-
-**Did V3 restore four distinct left/right gait phases while retaining the V2 anatomy gains and strong Exilada identity?**
+The next route should be chosen from evidence, not by simply rerunning V3 with another seed.
