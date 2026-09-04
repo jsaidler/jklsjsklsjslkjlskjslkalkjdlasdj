@@ -1,6 +1,6 @@
 # Character Animation Production — Living Decision Record
 
-Status: **Sprite Sheet Diffusion hybrid officially rejected; no production animation pipeline accepted; Wan-Animate-2 selected only as the next controlled validation candidate.**
+Status: **Sprite Sheet Diffusion hybrid rejected; Wan-Animate-2 Base INT8 spike rejected for production; no production animation pipeline accepted.**
 
 ## Production constraint
 
@@ -29,7 +29,8 @@ The following approaches are rejected as production foundations:
 - cutting a flattened PNG into rigid body parts and rotating them as a 2D puppet;
 - accepting conventional rendered/painted animation and applying a pixel filter afterward;
 - relying on manual frame-by-frame repainting;
-- **Sprite Sheet Diffusion hybrid public-weight reconstruction**.
+- **Sprite Sheet Diffusion hybrid public-weight reconstruction**;
+- **Wan-Animate-2 Base INT8 ConvRot local motion-transfer spike**.
 
 ## Sprite Sheet Diffusion hybrid — OFFICIALLY REJECTED
 
@@ -78,22 +79,55 @@ The tooling under `tools/sprite-animation/` remains as experimental/research his
 
 The next search is constrained by the exact failure mode observed above. A candidate must address identity and detail preservation under motion, not merely execute video generation.
 
-### Wan-Animate-2 — NEXT VALIDATION CANDIDATE, NOT ACCEPTED
+### Wan-Animate-2 — TESTED AND REJECTED FOR PRODUCTION
 
-Wan-Animate-2 (August 2026) is currently the strongest next experiment because its architecture directly targets a failure class relevant to the SSD result: it consumes the raw driving video inside a redesigned dual-branch Diffusion Transformer rather than depending on an intermediate skeleton/motion extractor. Its paper explicitly identifies extraction errors and cross-identity drift as shortcomings of explicit-pose pipelines. Training/evaluation includes diverse characters, including humans, anthropomorphic cartoon animals, robots and animals.
+Wan-Animate-2 (August 2026) was selected as the strongest next experiment because its architecture directly targets a failure class relevant to the SSD result: it consumes the raw driving video inside a redesigned dual-branch Diffusion Transformer rather than depending on an intermediate skeleton/motion extractor. Its paper explicitly identifies extraction errors and cross-identity drift as shortcomings of explicit-pose pipelines.
 
-For the RTX 3060 12 GB target, the official BF16 implementation is not viable as-is: official defaults target multi-A800 configurations. A community GGUF path exists for 8–12 GB GPUs, with Q4_K_M around 9.8 GB and ComfyUI chunking guidance of 33 frames for 12 GB. This makes a controlled local spike plausible, not proven on this exact machine.
+For the local RTX 3060 12 GB target, the public Base GGUF route became unavailable during setup. The controlled fallback used the official `Comfy-Org/Wan-Animate-2` **Base INT8 ConvRot** checkpoint rather than substituting the Distilled/Turbo model.
 
-Critical caveats before any production acceptance:
+Validated local route:
 
-- it is a general character-video model, not a sprite-native model;
-- authentic modern-pixel-art preservation is unproven;
-- it uses a driving video rather than the project's deterministic BODY_18 pose sequence;
-- cycle seam quality is not guaranteed;
-- the reference should roughly match the opening pose of the driver;
-- GGUF must be loaded with an Animate-2-aware custom loader; a stock GGUF loader can silently load it as ordinary Wan I2V and ignore the driving video.
+- Windows 11;
+- RTX 3060 12 GB;
+- 48 GB RAM;
+- ComfyUI native `WanAnimate2ToVideo`;
+- `wan_animate_2_int8_convrot.safetensors`;
+- `umt5_xxl_fp8_e4m3fn_scaled.safetensors`;
+- `clip_vision_h.safetensors`;
+- `Wan2_1_VAE_bf16.safetensors`;
+- no LightX2V distillation LoRA;
+- 384×576;
+- 17 frames;
+- 16 fps driver;
+- seed 42;
+- Euler;
+- 20 steps;
+- cache on CPU.
 
-Therefore Wan-Animate-2 is approved only for a **small identity/motion/style validation spike using the existing Exilada master**. It is not a production pipeline until it passes the same visual gate that SSD failed.
+The local workflow executed successfully. The `comfy-cli` client initially timed out while waiting on the WebSocket, but the ComfyUI generation itself continued and produced two 17-frame MP4 outputs: the generated animation and the side-by-side comparison with the driver. Therefore the visual rejection is not an installation, OOM or execution failure.
+
+### Visual rejection evidence — Exilada motion-transfer spike, 2026-09-04
+
+The produced animation preserved several coarse character traits better than the rejected SSD hybrid:
+
+- the Exilada remained recognizably the same adult character;
+- face and body proportions stayed relatively stable across the 17 frames;
+- long black hair remained coherent rather than collapsing into gross anatomy errors;
+- worn beige clothing and captivity chains remained substantially present;
+- no major extra limbs or catastrophic anatomical corruption appeared.
+
+However, it still failed the production gate for two decisive reasons:
+
+1. **Driving motion transfer was too weak.** The comparison video shows the real driver clearly walking across the 17-frame interval, while the generated Exilada remains largely planted in place with only a modest weight/limb shift. The requested locomotor action is not transferred with sufficient amplitude or fidelity to serve as a gameplay animation source.
+2. **The canonical modern-pixel-art language was not preserved.** The output reads as smooth painted/diffusion illustration, with continuous tonal rendering and soft contour treatment, rather than intentional modern pixel art with designed pixel clusters. This is a hard project requirement, not a cosmetic preference.
+
+Additional observed drift exists at the face and small costume details between the first and last frames, but those are secondary to the two failures above.
+
+Result: **Wan-Animate-2 Base INT8 is rejected as the production animation foundation for the Exilada.**
+
+Do not attempt to rescue this result with seed fishing, stronger reference strength, prompt cosmetics, post-generation pixel filters or manual repainting. A future revisit is justified only if a materially different model/checkpoint/integration specifically demonstrates both stronger raw-video motion adherence and native stylized/pixel-art preservation.
+
+The tooling under `tools/wan-animate2-spike/` remains as reproducible research history and must not be treated as the current production path.
 
 ### One-to-All Animation — high relevance, hardware not yet proven
 
@@ -115,20 +149,15 @@ MikuDance was designed specifically for stylized character art and addresses ref
 
 StableAnimator provides explicit pose control and reports 8 GB VRAM for its 16-frame 512×512 basic model; its pro U-Net requires about 10 GB while VAE decode can be moved to CPU. Its identity system is strongly face/human oriented and there is no strong evidence for preserving modern pixel-art character construction. It remains a fallback experiment, not the primary candidate.
 
-## Next validation gate: Wan-Animate-2
+## Next animation-pipeline search
 
-Do not install a large production stack before a minimal proof is defined. The first Wan-Animate-2 test must use the **existing Exilada master**, not a redesigned reference created to accommodate the model.
+The Wan-Animate-2 spike clarified the search target further. The next candidate must not merely preserve identity. It must demonstrate all three of the following before local installation is justified:
 
-The first test must be deliberately short and answer only four questions:
+1. strong adherence to explicit locomotor motion or pose control;
+2. stable stylized-character identity and anatomy;
+3. native preservation of deliberate pixel-art or similarly discrete game-art structure.
 
-1. Does the Exilada remain recognizably the same character through motion?
-2. Are adult anatomy, long hair, clothing and captivity markers stable rather than morphing?
-3. Does the driving motion transfer coherently without limb collapse?
-4. Does the output still read as intentional modern pixel art rather than generic painted/video diffusion imagery?
-
-If any of these fail by a large margin, Wan-Animate-2 is rejected without seed fishing or manual repair.
-
-Only after that identity/motion/style gate passes may the project test loopability, exact gameplay direction, equipment/weapon conditioning and sprite-sheet extraction.
+Candidates that only solve the first two while producing smooth painted/video output do not meet the project requirement.
 
 ## General production gate
 
@@ -148,5 +177,7 @@ A model being installable, runnable or capable of producing a video is not evide
 ## Repository tooling
 
 `tools/sprite-animation/` contains the rejected SSD experiment and remains useful only as research history unless explicitly repurposed.
+
+`tools/wan-animate2-spike/` contains the rejected Wan-Animate-2 Base INT8 validation tooling and remains useful as reproducible research history unless explicitly repurposed.
 
 Model checkpoints, dependency checkouts, build products and temporary generated files remain excluded from git.
