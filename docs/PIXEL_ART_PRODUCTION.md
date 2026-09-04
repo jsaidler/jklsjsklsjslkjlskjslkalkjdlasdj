@@ -1,6 +1,6 @@
 # Pixel Art Production — Living Document
 
-Status: **modern pixel-art production target locked; no Production Pixel Master approved. Direct high-resolution generation and primitive Python/Pillow authoring are rejected as final-art routes. The gameplay projection has changed to an elevated 2D belt-scroller / false-3D baseline, so the previous ~64 px / 96×96 / eight-direction assumptions are no longer valid production locks. The next gate is gameplay-composition and scale validation before a new native-grid Exilada master is authored.**
+Status: **modern pixel-art production target locked; no Production Pixel Master approved. Direct high-resolution generation and primitive Python/Pillow authoring are rejected as final-art routes. The gameplay projection is an elevated 2D belt-scroller / false-3D baseline. The current blocking gate is now the relationship between the existing high-resolution walk-cycle tests and the actual gameplay-scale raster: validate motion/readability at gameplay scale before locking a new Production Pixel Master size or authoring the final native-grid walk cycle.**
 
 This document is the canonical record for final raster production. It must be updated after every material pixel-art experiment, PASS/FAIL result, production-method change or approval.
 
@@ -88,7 +88,7 @@ Technical raster correctness must never again be confused with artistic adequacy
 
 The production sprite cannot be sized independently from gameplay composition.
 
-The current gameplay baseline is now:
+The current gameplay baseline is:
 
 **elevated 2D belt-scroller / false 3D**
 
@@ -105,6 +105,50 @@ Consequences:
 - the Exilada may be significantly larger on screen if that better serves anatomy, silhouette and combat readability;
 - left/right action families and mirroring may reduce animation multiplication, but the exact facing model must be validated rather than assumed.
 
+## Recovered walk-cycle checkpoint — 2026-09-04
+
+Before the production-raster question interrupted the animation work, two high-resolution eight-frame walk-cycle artifacts had already been produced for the Exilada:
+
+- **smoke:** `8` frames, `8 fps`, `384 × 576` pixels per frame;
+- **quality:** `8` frames, `8 fps`, `512 × 768` pixels per frame.
+
+These are **high-resolution motion/reference artifacts**, not approved production sprites.
+
+The unresolved methodological question is now explicit:
+
+> How much does generating/evaluating the walk cycle at `384 × 576` or `512 × 768` alter what survives when the character is viewed at the real gameplay raster and screen height?
+
+The project must not answer this by assuming that a high-resolution frame can simply be downscaled into final pixel art.
+
+### Locked separation: motion proxy versus final raster
+
+High-resolution frames may be used upstream to evaluate or derive:
+
+- pose sequence;
+- stride timing;
+- foot-contact phases;
+- body mechanics;
+- hair/clothing secondary motion;
+- identity continuity at the reference/rendering stage.
+
+They **cannot** by themselves validate:
+
+- final pixel clusters;
+- final palette;
+- gameplay-scale silhouette quality;
+- readability of facial/clothing details;
+- final native-grid animation stability.
+
+Therefore:
+
+`high-resolution motion/reference -> gameplay-scale readability test -> native-grid Production Pixel Master -> native-grid walk cycle`
+
+is valid as a staged production architecture.
+
+`high-resolution generated frames -> simple downscale/quantization -> final sprites`
+
+remains rejected.
+
 ## Native gameplay raster
 
 Provisional internal raster remains:
@@ -117,15 +161,44 @@ Reasons retained for testing:
 - 4× integer scale to 2560×1440;
 - a useful balance between authored pixel structure and scene area.
 
-However, this is now explicitly **subject to the next gameplay-composition test**. It may change if the belt-scroller framing proves too coarse or too dense.
+However, this is explicitly **subject to the current motion-aware gameplay-composition test**. It may change if the belt-scroller framing proves too coarse or too dense.
+
+## Current motion-aware scale gate
+
+The next validation must use the already-existing eight-frame walk cycle as a **motion proxy**, not as final art.
+
+At the provisional `640 × 360` gameplay raster, preview the same cycle at several candidate visible character heights. Initial comparison points may include approximately:
+
+- `112 px`;
+- `128 px`;
+- `144 px`.
+
+These are **test samples, not locked production sizes**.
+
+The preview should include a minimal representative belt-scroller space so that the cycle can be judged in context rather than against an empty background.
+
+Evaluate at native `1×`:
+
+1. whether the stride remains readable;
+2. whether heel/toe/foot-contact phases remain visually distinct;
+3. whether the body appears grounded rather than sliding;
+4. whether the Exilada's large hair mass still reads coherently in motion;
+5. whether arms/legs separate clearly during passing/contact poses;
+6. whether the character occupies too much or too little of the combat field;
+7. whether 3–5 enemies could coexist legibly around her;
+8. whether normal weapons/attack arcs have sufficient screen space;
+9. whether the belt depth still allows useful foreground/background positioning;
+10. whether `640 × 360` remains a viable native scene raster.
+
+This gate judges **motion readability and gameplay scale**, not final pixel-art quality. No result from this gate can be promoted directly to the Production Pixel Master merely because it looks acceptable after resize.
 
 ## Current production architecture candidate
 
-The preferred art-authoring class remains **agent-native pixel editing / structured native-grid editing**.
+The preferred final art-authoring class remains **agent-native pixel editing / structured native-grid editing**.
 
-Desired loop:
+Desired loop after the motion-aware scale gate:
 
-`identity/pose reference -> native pixel document -> draw/edit -> preview at 1× in gameplay composition -> critique -> repair clusters -> validate -> save`
+`identity + validated motion references -> native pixel document -> draw/edit -> preview at 1× in gameplay composition -> critique -> repair clusters -> validate -> save`
 
 The agent must be able to:
 
@@ -281,12 +354,14 @@ A candidate passes only if both are true:
 
 **PASS:** native-grid sprite construction is technically feasible.
 
+**PASS:** high-resolution walk-cycle artifacts are valid as **motion proxies/reference**, not as final pixel sprites.
+
 **FAIL:** direct high-resolution image generation as final sprite authoring.
 
 **FAIL:** primitive Python/Pillow drawing as final artistic authoring.
 
 **SUPERSEDED:** previous ~64 px / `96 × 96` / eight-direction baseline assumptions.
 
-**PAUSED:** mass animation production until gameplay composition and a convincing Production Pixel Master exist.
+**PAUSED:** final Production Pixel Master authoring until gameplay-scale walk readability is measured under the belt-scroller projection.
 
-**NEXT GATE:** create a representative **belt-scroller gameplay-composition blockout** at the provisional `640 × 360` native raster, determine the Exilada's actual on-screen height and safe action bounds from gameplay readability, and only then author the first native-grid Production Pixel Master candidate.
+**NEXT GATE:** run a **motion-aware belt-scroller composition/scale test** using the existing eight-frame walk-cycle artifact as a temporary motion proxy at several candidate screen heights. Lock the actual gameplay-scale character height only from that evidence. Then author the native-grid Production Pixel Master and the definitive base walk cycle at that scale.
