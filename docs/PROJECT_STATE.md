@@ -32,223 +32,179 @@ Canonical identity master:
 
 It is a high-detail identity/design reference, not the final gameplay sprite. Final visible art remains true modern pixel art; simple high-resolution generation followed by resize/quantization is not accepted as the final-sprite route.
 
-## RefControl direct-frame route — REJECTED
+## Direct per-frame diffusion route — NO LONGER ACTIVE
 
-FLUX.2 Klein + RefControl Pose is frozen after three controlled iterations.
+### RefControl
 
-### V1
+Three controlled iterations were tested.
+
+V1:
 
 - strong identity retention;
-- four phases distinct;
-- right-foot/toe error;
-- left-arm inconsistency;
-- small body drift;
-- unstable chains/shackles.
+- distinct gait phases;
+- foot/arm/body/chain inconsistencies.
 
-Verdict: **CONDITIONAL PASS as research/upstream reference; FAIL as final walk.**
-
-### V2
+V2:
 
 - feet/arms/body stability improved;
-- left/right gait pairs collapsed to effectively two repeated poses.
+- opposite gait phases collapsed to near duplicates.
 
-Verdict: **FAIL as walk.**
+V3:
 
-### V3
-
-- controls passed silhouette-uniqueness and restored real left/right geometry;
+- four controls had unique screen-space silhouettes;
 - generated `pose_01_passing_L_v3` contains **three visible legs / three feet**;
-- chain/shackle drift remains.
+- chain/shackle drift remained.
 
-Verdict: **catastrophic topology FAIL.**
+Final decision:
 
-### Locked decision
+**RefControl is rejected as the production direct-frame generator. No V4.**
 
-Do **not** create RefControl V4. No more prompt-tuning, skeleton micro-adjustment, seed fishing, inpainting or repeated repair of the same route.
+### Broader conclusion
 
-RefControl is rejected as the production direct-frame generator because it does not reliably preserve body topology.
+The failure is not only extra limbs.
 
-## Mandatory QA order — LOCKED
+Independent generated frames also fail to guarantee:
 
-All future generated character frames are judged in this order:
+- stable body dimensions;
+- natural locomotion timing/arcs;
+- stable scars/clothing structure;
+- stable hair structure;
+- stable side assignment for shackles/chains/equipment;
+- scalable consistency across many actions.
 
-1. exactly one head/torso, two arms, two hands, two legs, two feet; no extra/missing/fused major limbs;
-2. pose/gait adherence;
-3. identity continuity;
-4. prop/equipment continuity;
-5. visual quality/gameplay readability.
+Therefore the project will no longer judge a production animation architecture from isolated generated poses.
 
-Failure at step 1 immediately fails the output.
+## Important correction — tested walk-pose provenance
 
-## New active candidate — Qwen-Image-Edit-2509
+The `contact_L / passing_L / contact_R / passing_R` controls were **manually parameterized project test poses**, not real motion capture or a validated kinematic walk.
 
-The next and final diffusion-based direct-frame topology test changes architecture entirely.
+They were created to test pose controllability, not to define the final gait.
 
-Chosen model family:
+This means part of the artificial motion problem came from the motion source itself, not just the renderer.
 
-**Qwen-Image-Edit-2509**.
+Future locomotion must come from real captured motion, recorded human performance, or deterministic locomotion solving.
 
-Why 2509, not 2511:
+## Qwen-Image-Edit-2509 spike — PAUSED
 
-- 2509 explicitly introduced native keypoint/control-image support for pose changes;
-- it supports multi-image editing with identity image + keypoint map;
-- current evidence indicates 2511 can regress on the OpenPose/keypoint behavior that is central to our use case;
-- this gate is about topology + pose control, not general editing quality.
-
-If Qwen 2509 fails the single difficult topology test, diffusion-based direct frame synthesis ends for this project.
-
-## Qwen spike workspace — LOCKED
-
-New isolated workspace:
-
-`Z:\AI\QwenImageEditSpike`
-
-Frozen RefControl evidence remains in:
-
-`Z:\AI\Flux2RefControlSpike`
-
-Repository remains:
-
-`D:\GOOGLE DRIVE\DEV\Roguelite`
-
-## Qwen 2509 hardware/model strategy
-
-Target machine:
-
-- Windows 11;
-- RTX 3060 12 GB;
-- ~48 GB RAM;
-- SSD workspace on `Z:`.
-
-First locked model set:
-
-1. `Qwen-Image-Edit-2509-Q4_0.gguf` — ~11.9 GB;
-2. `qwen_2.5_vl_7b_fp8_scaled.safetensors` — ~9.38 GB;
-3. `qwen_image_vae.safetensors` — ~0.25 GB.
-
-No Lightning LoRA in the first test.
-
-Q4_0 is chosen instead of Q3 to avoid unnecessary quality degradation in a topology decision. Runtime will use controlled low-VRAM/offload behavior; if Q4_0 cannot run, do not silently substitute another quant.
-
-## New tooling — READY IN REPOSITORY
-
-Directory:
+Tooling is preserved under:
 
 `tools/qwen-image-edit-2509-spike/`
 
-Current scripts:
+Proposed workspace:
 
-- `00_preflight.ps1`
-- `01_install_runtime.ps1`
-- `02_download_models.ps1`
-- `03_prepare_inputs.ps1`
-- `04_validate_runtime_schema.ps1`
+`Z:\AI\QwenImageEditSpike`
 
-### STEP 1 — preflight
+Do **not** run the preflight/download/inference as the active next step.
 
-Checks only:
+Reason:
 
-- Windows 11;
-- >=40 GB system RAM;
-- ~12 GB NVIDIA VRAM;
-- >=40 GB free SSD space on the workspace drive;
-- canonical repo/master;
-- git/curl/7-Zip prerequisites.
+Even if Qwen produced one perfect passing pose, that would not prove temporal consistency, natural gait, stable accessories, stable clothing/hair structure, or production scalability.
 
-No downloads/install/inference.
+Qwen may later become a constrained editing/reference tool inside a deterministic pipeline, but it is no longer being treated as the system that must independently synthesize production animation frames.
 
-### STEP 2 — isolated runtime
+## New active architecture — DETERMINISTIC MOTION FIRST
 
-Installs only:
+Production decomposition:
 
-- official latest NVIDIA ComfyUI Portable under `Z:\AI\QwenImageEditSpike`;
-- `city96/ComfyUI-GGUF` pinned to `6ea2651e7df66d7585f6ffee804b20e92fb38b8a`;
-- its Python requirements.
+`real/procedural motion -> deterministic rig/topology -> deterministic attachments/secondary systems -> fixed camera/control passes -> final 2D/pixel representation -> QA`
 
-No Qwen weights/inference.
+### Motion source
 
-### STEP 3 — model download
+Do not manually invent final walk key poses.
 
-Downloads exactly three pinned files and SHA256-validates them:
+First validation preference:
 
-- Q4_0 GGUF: `4f6cda402e1dbc36ee4b601b10b9ee0da2dbefedfbfa53eae3efb0ddff48c3e2`
-- text encoder: `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
-- VAE: `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+- real walking BVH motion from the **CMU Graphics Lab Motion Capture Database**;
+- imported into Blender as animated armature data.
 
-No model load/inference.
+The CMU database states that its motion data is free for all uses and may be included in commercially sold products under its stated terms.
 
-### STEP 4 — hard input preparation
+### Rig/topology ownership
 
-Creates one difficult passing-L topology stress test using:
+A deterministic rig must own:
 
-- byte-identical canonical Exilada master;
-- OpenPose-style COCO-18 keypoint map using the same structural passing case that produced the extra third leg in RefControl V3;
-- fixed seed `20260904`;
-- fixed `768×1024` control canvas;
-- explicit topology prompt.
+- exactly one head/torso;
+- exactly two arms/hands;
+- exactly two legs/feet;
+- pelvis/shoulder mechanics;
+- fixed anatomical left/right identity;
+- attachment sockets for equipment/restraints.
 
-No model load/inference.
+Diffusion must no longer own these facts.
 
-### STEP 5 — runtime schema gate
+### Persistent accessories
 
-Starts isolated ComfyUI with `--lowvram` and performs only `GET /object_info`.
+Shackles, chains, weapons, hair masses and cloth secondary structures must be attached/driven as persistent objects or rigged systems rather than redrawn independently every frame.
 
-Validates:
+This directly addresses the observed side-swapping and topology drift.
 
-- GGUF loader + Q4_0 visibility;
-- Qwen text encoder + `qwen_image` CLIP mode;
-- Qwen VAE;
-- `TextEncodeQwenImageEditPlus` multi-image contract;
-- required sampling/decode/save nodes;
-- both prepared input images visible.
+## Recommended motion backbone
 
-Zero `/prompt` submissions. No inference.
+For the project constraints — no animator, no manual frame-by-frame work, many characters/actions/equipment states — the current recommendation is:
 
-## Hard single-pose topology gate — queued after STEP 5 PASS
+**hidden deterministic 3D rig as production/motion infrastructure**.
 
-Only after runtime schema PASS will an executable one-pose workflow be built.
+This does **not** mean the final game must look 3D.
 
-The first inference uses exactly **one difficult passing pose**.
+The gameplay presentation remains 2D belt-scroller / false 3D. The rig can exist only to guarantee anatomy, motion, attachments and camera-consistent control passes.
 
-One output. No retry. No seed fishing. No prompt iteration.
+A deterministic 2D skeletal/mesh route remains an alternative, but risks cut-out appearance and pixel-cluster deformation.
 
-Pass requires:
+## Exact next gate — motion/topology spike
 
-- exactly 2 arms / 2 hands / 2 legs / 2 feet;
-- no extra/fused/missing major limb;
-- requested passing pose obeyed;
-- full body visible;
-- Exilada identity/hair/body/clothing recognizably preserved;
-- no catastrophic prop-body fusion.
+Do **not** use the Exilada art and do **not** run Qwen yet.
 
-If topology fails: **reject Qwen-Image-Edit-2509 immediately as direct-frame generator.**
+Create a minimal local/free test using:
 
-If it passes: only then run the four-pose set.
+- Blender;
+- one generic human/armature proxy;
+- one real walking BVH from CMU Mocap;
+- orthographic/elevated belt-scroller camera;
+- diagnostic silhouette/body-part output only.
 
-## Deterministic fallback — HARD STOP
+The gate asks:
 
-If Qwen 2509 fails the one-pose topology gate, stop testing diffusion-based direct frame synthesis.
+> Can we get a natural measured walk, fixed topology, stable attachments and the intended belt-scroller camera without manual animation?
 
-Next architecture becomes deterministic rig-first animation:
+### PASS requires the full sequence to have
 
-- 2D mesh/skeletal rig or hidden 3D rig;
-- topology and gait guaranteed mechanically;
-- generative tools used only for non-topological roles such as concept/reference, texture/style guidance or downstream native-pixel authoring.
+- normal topology throughout;
+- natural gait rather than guessed four-pose motion;
+- acceptable ground contact/no obvious foot sliding after retargeting;
+- stable left/right anatomy;
+- stable attachment points;
+- usable elevated belt-scroller camera;
+- reproducible scripted/local workflow.
 
-## Exact next action — DO ONLY THIS
+Only after that passes do we solve how the Exilada's approved 2D/pixel identity is mapped to the deterministic moving structure.
 
-Run STEP 1 preflight:
+## Mandatory animation QA order — LOCKED
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+1. topology across the **full sequence**;
+2. motion/grounding across the full sequence;
+3. stable body proportions/anatomical sides;
+4. stable attachments/equipment;
+5. identity mapping;
+6. final pixel-art quality/gameplay readability.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\qwen-image-edit-2509-spike\00_preflight.ps1"
-```
+A single good generated frame is no longer sufficient evidence.
 
-Then stop and report the output. Do not run STEP 2 yet.
+## Workspace state
+
+Frozen RefControl evidence:
+
+`Z:\AI\Flux2RefControlSpike`
+
+Paused Qwen spike:
+
+`Z:\AI\QwenImageEditSpike`
+
+Repository:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite`
 
 ## Gameplay-scale / Production Pixel Master gate — queued
 
-Gameplay-scale/native-raster validation remains queued until an upstream animation representation passes the topology/pose gate.
+Gameplay-scale/native-raster validation remains queued until the deterministic motion/topology backbone passes.
 
-High-resolution AI outputs remain motion/identity references unless and until a separate native-grid production route is validated.
+The final visual layer must still satisfy the true modern pixel-art requirement; a naive 3D render followed by a pixel filter remains rejected.
