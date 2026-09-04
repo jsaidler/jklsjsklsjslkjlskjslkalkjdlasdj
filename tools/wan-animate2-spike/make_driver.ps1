@@ -7,7 +7,21 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Find-ComfyRoot([string]$Base) {
+    foreach ($candidate in @($Base, (Join-Path $Base 'ComfyUI'))) {
+        if ((Test-Path (Join-Path $candidate 'main.py')) -and (Test-Path (Join-Path $candidate '.git'))) {
+            return $candidate
+        }
+    }
+    return $null
+}
+
 if (-not (Test-Path $Source)) { throw "Source video not found: $Source" }
+
+$ComfyRoot = Find-ComfyRoot $Workspace
+if (-not $ComfyRoot) {
+    throw "ComfyUI not found at $Workspace or $(Join-Path $Workspace 'ComfyUI'). Run bootstrap.ps1 first."
+}
 
 if (-not (Get-Command ffmpeg.exe -ErrorAction SilentlyContinue)) {
     Write-Host 'ffmpeg not found; installing with winget...' -ForegroundColor Cyan
@@ -20,7 +34,7 @@ if (-not (Get-Command ffmpeg.exe -ErrorAction SilentlyContinue)) {
     throw 'ffmpeg was installed but is not visible in this PowerShell session. Reopen PowerShell and run this script again.'
 }
 
-$OutDir = Join-Path $Workspace 'ComfyUI\input'
+$OutDir = Join-Path $ComfyRoot 'input'
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $Out = Join-Path $OutDir 'exilada_driver_17f.mp4'
 
