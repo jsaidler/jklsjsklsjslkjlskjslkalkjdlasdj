@@ -1,6 +1,6 @@
 # Pixel Art Production — Living Document
 
-Status: **production pixel-art language is now specified at a first actionable level; Exilada production pixel master has not yet been generated or approved.**
+Status: **production pixel-art language is specified at a first actionable level; first direct image-generation attempt for the Exilada production pixel master was tested and rejected as a production asset.**
 
 This document defines the production-raster rules that separate true modern pixel art from the project's higher-detail identity/concept references. It is canonical across chats and must be updated whenever pixel-art production rules change.
 
@@ -385,6 +385,41 @@ Pass requires:
 
 If the three-view test fails, fix the **production-raster method**, not the identity master.
 
+## First direct image-generation attempt — rejected (2026-09-04)
+
+A direct image-generation attempt was made for a nominal `S` production sprite.
+
+Observed output properties:
+
+- file dimensions: **1024 × 1536 px RGBA**, not the required 96 × 96 native production canvas;
+- the visible character occupied almost the full high-resolution image rather than approximately 64 native pixels;
+- transparency existed, but the output still carried a high-resolution generative treatment rather than a native-grid sprite construction;
+- the result was visually close to the Exilada identity but technically incompatible with the Production Pixel Master specification.
+
+### What the attempt preserved successfully
+
+- adult female identity;
+- long dark hair as the dominant silhouette mass;
+- olive/brown skin;
+- minimal degraded chest and hip cloth;
+- broken restraints / chains;
+- barefoot initial state;
+- weaponless base state;
+- severe survival-oriented presence.
+
+### Why it failed the production gate
+
+- not generated on the 96 × 96 native canvas;
+- not approximately 64 pixels tall at native scale;
+- detail density remained closer to high-resolution illustration than authored native pixel art;
+- excessive surface texture remained on skin, cloth and hair;
+- hair was described through many fine internal strands rather than a small number of stable designed masses;
+- palette/value economy was not demonstrably controlled;
+- the output could not be inspected as a true 1× production sprite;
+- therefore it cannot be used as a canonical conditioning source for production animation.
+
+**Decision:** reject this output as a Production Pixel Master candidate. Keep only as evidence that the generator can preserve the broad Exilada identity. The next experiment must produce an actual native-grid asset rather than a large image that merely looks pixel-art-like.
+
 ## Relationship to the FLUX + RefControl pose spike
 
 The current FLUX.2 Klein + RefControl test remains useful as an isolated test of pose adherence and character preservation against the high-detail identity reference.
@@ -427,5 +462,7 @@ A candidate master fails if any of the following is true:
 **Locked:** identity master and production pixel master are separate canonical assets with different purposes.
 
 **Locked:** all art is approved first at 1× native scale.
+
+**Rejected:** first direct image-generation attempt as a production master because it produced a 1024 × 1536 high-detail image instead of a native 96 × 96 sprite.
 
 **Not yet approved:** any generated production pixel master image or the method that will create it reproducibly.
