@@ -26,7 +26,7 @@ After every material project step:
 2. update this file;
 3. commit tooling/documentation changes with a focused commit;
 4. record PASS/FAIL, observed result and next gate;
-5. do not rely only on chat history or model memory.
+5. do not rely only on chat history or memory.
 
 ## What the game is — canonical summary
 
@@ -67,13 +67,14 @@ This should substantially reduce the directional-art multiplication of an eight-
 
 ## Current active focus
 
-**Visual-production feasibility for the Exilada under the new belt-scroller projection.**
+**Resolve the Exilada base-walk production scale under the belt-scroller projection.**
 
 The project is intentionally focused on the protagonist before large-scale gameplay implementation because character art/animation is the principal production-feasibility risk. Code implementation capability is not the current unknown.
 
 The goal is to prove that the project can produce, reproducibly and without manual frame-by-frame work:
 
 - a convincing protagonist at actual gameplay scale;
+- a readable and physically grounded base walk;
 - animation suitable for the selected projection;
 - equipment/state variation;
 - scalable character production for NPCs, enemies and creatures.
@@ -120,9 +121,34 @@ Decision:
 
 Python/Pillow remains useful for deterministic QA/export/masks/palette checks, but not as the artistic authoring engine.
 
+## Recovered base-walk checkpoint — PASS as historical evidence
+
+The work had already reached an eight-frame Exilada walk-cycle test before the production-raster concern interrupted it.
+
+Recovered artifacts:
+
+- **smoke:** `8` frames, `8 fps`, `384 × 576` pixels per frame;
+- **quality:** `8` frames, `8 fps`, `512 × 768` pixels per frame.
+
+These artifacts prove that the active question was already the **base walk**, not a new static-sprite exercise.
+
+They are now classified as:
+
+**high-resolution motion/reference proxies — not approved production sprites.**
+
+The unresolved question is:
+
+> How much does evaluating/generating the walk at these high resolutions change what remains readable or usable at the real gameplay scale?
+
+Locked interpretation:
+
+- high-resolution output can still be useful for pose sequence, stride mechanics, foot contacts, identity continuity and secondary-motion reference;
+- it cannot establish final pixel clusters, palette, gameplay-scale detail or native-grid animation quality;
+- simple downscale/quantization of these frames is not an accepted final-art pipeline.
+
 ## Superseded pixel-scale assumptions
 
-The following previous values were tied to the old high-oblique/360° presentation hypothesis and are now **unlocked/superseded**:
+The following previous values were tied to the old high-oblique/360° presentation hypothesis and are **unlocked/superseded**:
 
 - Exilada visible height ~`64 px`;
 - tuning band `56–72 px`;
@@ -133,7 +159,7 @@ The following previous values were tied to the old high-oblique/360° presentati
 
 They must not be treated as current production requirements.
 
-The provisional internal gameplay raster remains `640 × 360` only as a starting point for the next composition test; it may change based on evidence.
+The provisional internal gameplay raster remains `640 × 360` only as a starting point for evidence gathering; it may change.
 
 ## Locked visual direction
 
@@ -146,29 +172,54 @@ The provisional internal gameplay raster remains `640 × 360` only as a starting
 
 ## Exact next gate — do not skip
 
-### Gameplay composition / camera-scale blockout
+### Motion-aware gameplay scale validation
 
-Before choosing a new sprite canvas or authoring another Exilada production sprite, create a representative belt-scroller gameplay composition at the provisional native raster (`640 × 360`).
+Do **not** author another final sprite first and do **not** resume full FLUX generation yet.
 
-The blockout must establish, by visual/gameplay evidence:
+Use the existing eight-frame high-resolution walk cycle only as a **motion proxy** inside a representative elevated belt-scroller composition at the provisional `640 × 360` native raster.
 
-1. camera elevation/pitch language;
-2. walkable depth-band size;
-3. Exilada on-screen height and body readability;
-4. enemy scale relative to the protagonist;
-5. amount of visible world needed around combat;
-6. foreground/background depth and occlusion behavior;
-7. safe action/silhouette bounds for attacks and weapons;
-8. whether `640 × 360` remains an appropriate native raster;
-9. minimum facing-family requirement for locomotion/combat under the belt-scroller model.
+Test several provisional visible Exilada heights, initially around:
 
-**Do not lock another sprite size before this composition gate.**
+- `112 px`;
+- `128 px`;
+- `144 px`.
 
-Only after the blockout passes should `docs/PIXEL_ART_PRODUCTION.md` receive a new native character scale/canvas target and the first Production Pixel Master be authored.
+These are comparison samples, not production locks.
+
+The test must establish, at native `1×`:
+
+1. stride readability;
+2. distinct foot-contact / passing phases;
+3. whether the feet feel grounded or appear to slide;
+4. hair-mass readability during motion;
+5. arm/leg separation across the cycle;
+6. protagonist screen occupancy;
+7. ability to read approximately 3–5 simultaneous nearby enemies;
+8. available space for ordinary weapon/attack arcs;
+9. usable walkable depth band for foreground/background combat positioning;
+10. whether `640 × 360` remains viable.
+
+This is explicitly a **motion + gameplay-scale gate**, not an approval of the resized high-resolution art.
+
+### Gate output
+
+Only after this comparison should the project lock:
+
+- protagonist visible pixel height;
+- idle/locomotion canvas bounds;
+- ordinary action canvas bounds;
+- ground/pivot convention;
+- facing-family requirement under the belt-scroller model.
+
+Then:
+
+1. author the first real native-grid Production Pixel Master at that scale;
+2. build the definitive native-grid eight-frame base walk from the validated motion language;
+3. evaluate it in the same gameplay composition at `1×`.
 
 ## Animation pipeline — preserved but paused at visual dependency
 
-The FLUX.2 Klein + RefControl local spike remains preserved and technically relevant, but it is not the immediate next action.
+The FLUX.2 Klein + RefControl local spike remains preserved and technically relevant as an upstream character re-posing/reference route, but it is not the immediate next action.
 
 Validated state remains:
 
@@ -182,7 +233,7 @@ Active tooling:
 
 `tools/flux2-refcontrol-spike/`
 
-Do not discard or silently restart that work. Resume it only when the new production projection/character requirements are defined enough to make the test relevant again, unless the user explicitly reprioritizes it.
+Do not discard or silently restart that work. Resume it only after the gameplay-scale walk gate establishes what representation the renderer must ultimately serve, unless the user explicitly reprioritizes it.
 
 ## Rejected / stopped routes
 
@@ -209,4 +260,4 @@ Do not revive casually:
 
 **Do not generate another character sprite yet.**
 
-Next: define and validate the representative elevated belt-scroller gameplay composition first. The resulting camera/scale evidence will determine the actual Production Pixel Master dimensions and character pixel density.
+Next: use the already-existing eight-frame walk as a temporary motion proxy and perform the belt-scroller gameplay-scale comparison. The result will determine the real character pixel density; only then do we author the Production Pixel Master and definitive native-grid base walk.
