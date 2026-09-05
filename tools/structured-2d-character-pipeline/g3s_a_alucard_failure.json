@@ -1,0 +1,31 @@
+{
+  "gate": "G3S-A-ALUCARD",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "decision": "CLOSE_ALUCARD_AND_CLOSE_AUTOMATED_LOCAL_GENERATIVE_SOURCE_SEARCH",
+  "reference_conditioned_test": {
+    "status": "INVALID",
+    "reason": "An arbitrary Qwen-derived image was passed as Alucard ref even though upstream documents ref as a previous sprite/animation frame. This result is retained only as harness evidence.",
+    "marker": "tools/structured-2d-character-pipeline/g3s_a_alucard_reference_invalid.json"
+  },
+  "text_only_upstream_control": {
+    "status": "FAIL",
+    "revision": "ALUCARD_NATIVE_128_TEXT_ONLY_UPSTREAM_CONTROL_V1",
+    "seed": 20260905,
+    "steps": 20,
+    "cfg_text": 5.0,
+    "reference": null,
+    "alucard_code_commit": "02d1c60a16142015f7838a6a033da5e6ac9ce4f7",
+    "model_revision": "b8e7602",
+    "model_sha256": "2f502cc676c9fc34009d6c57caa4e782512a2643f436bc16408f477c352ccc2c",
+    "raw_sha256": "c3143b76444abc7c5b6f7b1fe6c0d66a51e7f83d4fff7519018fe3a97739bc5a",
+    "alpha_pixels": 12525,
+    "alpha_bbox": [0, 0, 127, 127],
+    "visible_height": 128,
+    "visible_width": 128,
+    "unique_opaque_rgb": 12059,
+    "visual": "full-canvas mottled/noisy texture with no coherent character silhouette, anatomy or sprite readability"
+  },
+  "conclusion": "The documented text-to-sprite mode was exercised with no reference input, fixed seed and documented default sampling and still did not produce a coherent sprite. No seed, CFG, prompt or sampling fishing is permitted for G3S-A. Alucard is rejected for this project gate.",
+  "next": "G3S-A becomes an authored canonical native-source problem. Stop searching additional local generative sprite models. Use the coherent Qwen control only as a design/tracing scaffold, then perform deterministic native-grid authoring/correction under explicit patch data."
+}
