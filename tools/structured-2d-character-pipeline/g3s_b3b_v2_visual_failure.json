@@ -1,0 +1,33 @@
+{
+  "gate": "G3S-B3-B-NATIVE-2D-BODY-SOURCE",
+  "revision": "G3S_B3B_NATIVE_2D_BODY_SOURCE_V2",
+  "status": "FAIL_CLOSED_VISUAL_ROUTE",
+  "date": "2026-09-05",
+  "source_sha256": "0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53",
+  "review_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b3b_authored_body_v2\\g3s_b3b_contact_sheet_v2.png",
+  "verdict": "The source is technically native 2D and correctly independent from B3A visible ownership, but visually fails the canonical body-source gate and the procedural-mannequin kill switch.",
+  "visual_failures": [
+    "grossly oversized torso relative to head and legs",
+    "generic mannequin anatomy rather than Exilada-compatible lean resilient proportions",
+    "blocky hands and feet with poor anatomical readability at native 1x",
+    "pelvis and thigh transition reads as assembled primitives rather than coherent anatomy",
+    "high-contrast palette banding exaggerates a pseudo-3D mannequin appearance",
+    "neutral pose and silhouette are stiff and unsuitable as a convincing production body source",
+    "character identity is absent beyond generic adult-female markers",
+    "overall result does not read as intentional modern pixel-art character art"
+  ],
+  "canonical_consequence": {
+    "b3a_status": "PASS_CLOSED_STRUCTURAL_GUIDE_ONLY",
+    "b3b_v2_status": "FAIL_CLOSED_VISUAL_ROUTE",
+    "hair_blocked": true,
+    "clothing_blocked": true,
+    "animation_blocked": true,
+    "do_not_reuse_v2_source_as_art": true,
+    "do_not_reopen_3d_mask_authoring": true,
+    "do_not_reopen_local_sprite_model_search": true
+  },
+  "cleanup": {
+    "downloaded_model_files": [],
+    "reason": "No model was downloaded by B3B V2. Only small local review outputs exist."
+  }
+}
