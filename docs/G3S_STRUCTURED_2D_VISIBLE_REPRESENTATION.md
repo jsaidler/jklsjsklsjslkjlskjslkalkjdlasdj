@@ -2,13 +2,13 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B3A V2 CORRECTED FEMALE ANATOMY GUIDE NEXT**
+Gate status: **ACTIVE — G3S-B3B NATIVE 128×128 NUDE BODY SOURCE NEXT**
 
 ## Locked architecture
 
 `real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel assets -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
-Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible color pixels.
+Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB pixels.
 
 ## Production constraints
 
@@ -74,12 +74,6 @@ Failure marker:
 
 ## G3S-B2 — PASS/CLOSED DIAGNOSTIC
 
-Canonical log:
-
-`docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
-
-B2 successfully demonstrated the problem instead of solving it by fake subtraction.
-
 Measured facts:
 
 - exact recomposition: PASS;
@@ -96,8 +90,6 @@ Approval marker:
 `tools/structured-2d-character-pipeline/g3s_b2_approval.json`
 
 # Correct staged character build — LOCKED
-
-The structured character is now authored in this order:
 
 1. **G3S-B3 — complete nude body base**
    - adult female body;
@@ -132,8 +124,6 @@ Runtime composition:
 
 `complete body base + optional hair + body-state overlays + zero or more garment/equipment/accessory layers`
 
-A nude state therefore means garment/equipment layers are absent. The complete adult body already exists underneath.
-
 Consequences:
 
 - no censor garment is structurally required;
@@ -149,48 +139,71 @@ Canonical log:
 
 `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
-The master/Qwen composite is reference only. B3 must create a dedicated body asset rather than remove hair/clothes from a composite.
-
-B3 internal bounded sequence:
-
-- **B3-A deterministic anatomy guide** from the existing hidden-rig/MPFB infrastructure; guide only, not final art;
-- **B3-B native `128×128` body source**, visually reviewed as standalone intentional pixel art.
-
-No hair, clothing or restraint asset is authored before B3-B passes.
+The master/Qwen composite is reference only. B3 creates a dedicated body asset rather than removing hair/clothes from a composite.
 
 ## G3S-B3A V1 — FAIL/CLOSED REVISION
 
-The first B3A run technically produced a complete `128 px` hairless/unclothed body guide with zero hair, clothing, restraint and chain objects. However the V1 script set MPFB `gender = 1.0`.
-
-The pinned MPFB semantics define `0.0 = female` and `1.0 = male`; the target map likewise resolves low to `female` and high to `male`. Therefore the submitted V1 did **not** satisfy the required adult-female phenotype even though the layer/scale mechanics were valid.
+The first guide run produced valid layer/scale mechanics but used `MPFB gender = 1.0`, which resolves male in the pinned MPFB semantics. This was a revision error, not a route/model rejection.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
 
-This does not reject MPFB or the B3A route. MPFB `2.0.17` remains the active structural dependency, so no cleanup command applies.
+MPFB `2.0.17` remains active; no cleanup command applies.
 
-## G3S-B3A V2 — READY TO RUN
+## G3S-B3A V2 — PASS/CLOSED
 
-The corrected guide now enforces phenotype rather than trusting a numeric macro convention:
+The corrected V2 guide passes structural review:
 
-- macro `gender = 0.0`;
-- resolved target stack must contain female target(s);
-- resolved target stack must contain zero male targets;
-- manifest contains a `phenotype_audit`;
-- contact sheet exposes resolved gender and target counts;
-- runner blocks B3A if the V2 phenotype invariants fail.
+- resolved gender `female`;
+- resolved life stage `adult`;
+- female targets `21`, male targets `0`;
+- adult targets `21`, minor targets `0`;
+- complete body geometry;
+- zero hair/clothing/restraint/chain objects;
+- visible height `128 px`;
+- locked G1 camera/scale;
+- guide-only art authority.
 
-B3-B remains blocked until the V2 contact sheet passes structural review.
+Approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
+
+B3A is closed. Its lit RGB is never promoted to final art.
+
+## G3S-B3B — ACTIVE
+
+B3B owns the actual native visible body source.
+
+V1 implementation rules:
+
+- native canvas `128×128`;
+- body stays at approximately the locked `128 px` gameplay height;
+- B3A binary mask and projected joints are structural guides only;
+- no B3A lit RGB/shading is sampled or transferred;
+- visible RGB is authored by explicit native palette and pixel-cluster rules;
+- binary alpha;
+- no hair, clothing, binding, restraint or chain pixels;
+- deterministic source, mask, gameplay preview, manifest and contact sheet;
+- visual review at 1× is mandatory before promotion.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
+
+Expected review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
 
 # G3S-B4 — Hair
 
-Blocked until B3 body approval.
+Blocked until B3B body approval.
 
 # G3S-B5 — Clothing / restraints / chains
 
-Blocked until B3 body approval; hair may be validated before or alongside these overlays, but all remain independent assets.
+Blocked until B3B body approval.
 
 # G3S-C — Four-phase walk proof
 
-Blocked until the layered base is structurally correct.
+Blocked until B3/B4/B5 are structurally correct.
