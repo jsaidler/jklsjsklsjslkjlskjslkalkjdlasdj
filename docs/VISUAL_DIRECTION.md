@@ -68,10 +68,28 @@ At gameplay scale:
 - weapons are gameplay-variable equipment and are not permanent identity anchors unless explicitly defined for another character;
 - clothing/equipment may evolve without erasing underlying body, hair and posture identity;
 - anatomy remains adult and materially grounded;
-- exposed skin or nudity may be used when narratively/materially appropriate without forced erotic framing;
+- exposed skin, partial nudity and full adult nudity are valid parts of the visual language when appropriate to character, scene and state;
 - dirt, wounds, blood, scars and wear should preferably express actual simulated history/state rather than arbitrary decoration.
 
 The protagonist-specific rules live in `docs/CHARACTERS.md`.
+
+## Erotic charge and adult-body language — LOCKED 2026-09-05
+
+The project does **not** treat erotic charge as something to be automatically removed or sanitized.
+
+The principal visual references invoked for this universe — **Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell** — repeatedly use idealized adult bodies, sensuality, nudity, sexual confidence, fetishized materials, dramatic poses and erotic tension as part of their sword-and-sorcery / fantasy vocabulary. Avoiding that dimension by default would move the project away from its own reference lineage.
+
+Locked interpretation:
+
+- eroticism is an allowed and intentional part of the mature visual vocabulary;
+- adult characters may be beautiful, sensual, sexualized, nude or partially nude without this being treated as a defect;
+- nudity does not need to be visually neutralized or disguised merely because it is nudity;
+- erotic charge is not mandatory in every scene or every character state;
+- heroic, violent, grotesque, vulnerable, erotic and matter-of-fact body readings may coexist in the same universe;
+- the direction should preserve adult agency and scene intent rather than impose a blanket rule of either desexualization or sexualization;
+- captivity, violence and coercion may be depicted directly, but the project should distinguish the erotic charge of an adult character/body from making coercion itself the only erotic subject unless that is an explicit narrative/art-direction choice.
+
+For the Exilada specifically, her body may carry erotic charge even when the state is harsh, wounded, dirty, deprived or minimally clothed. The production rule is therefore **not “avoid erotic framing”; it is “do not sanitize the mature body language of the project, and make framing intentional.”**
 
 ## Systemic visual rule
 
@@ -214,10 +232,12 @@ A representative visual validation sequence must eventually demonstrate:
 
 **LOCKED:** mature, severe, physical, atmospheric and systemic presentation.
 
+**LOCKED:** erotic charge, sensuality and adult nudity are legitimate parts of the visual language and must not be automatically sanitized away.
+
 **LOCKED:** gameplay projection baseline is elevated 2D belt-scroller / false 3D, not pure side-scroller and not the previous high-oblique 360° character system.
 
 **LOCKED:** visually relevant character/world state should be causal whenever feasible.
 
 **LOCKED:** character production must remain scalable without manual art labor from the user or hired artists.
 
-**NEXT VISUAL GATE:** build and evaluate a representative gameplay-composition blockout first, then derive the Exilada's actual native sprite height/canvas and pixel-density target from that composition before authoring the Production Pixel Master.
+**NEXT VISUAL GATE:** continue the G3S structured-2D body-first pipeline: complete nude/hairless body base first, then hair, clothing and accessories as separate layers before layered motion proof.
