@@ -41,11 +41,15 @@ def info_panel(manifest: dict, size=(640, 360)) -> Image.Image:
     d = ImageDraw.Draw(out)
     font = ImageFont.load_default()
     d.rectangle([4, 4, size[0] - 4, 26], fill=(0, 0, 0))
-    d.text((10, 9), "D structural audit - GUIDE ONLY, NOT FINAL PIXEL ART", fill=FG, font=font)
+    d.text((10, 9), "D structural + phenotype audit - GUIDE ONLY, NOT FINAL PIXEL ART", fill=FG, font=font)
     audit = manifest["layer_audit"]
+    phenotype = manifest["phenotype_audit"]
     cam = manifest["camera"]
     lines = [
-        "G3S-B3A establishes anatomy ownership only.",
+        "G3S-B3A establishes female anatomy ownership only.",
+        f"revision = {manifest['revision']}",
+        f"gender_value = {phenotype['gender_value']} | resolved_gender = {phenotype['resolved_gender']}",
+        f"female_targets = {phenotype['female_target_count']} | male_targets = {phenotype['male_target_count']}",
         "",
         f"complete_body_geometry = {audit['complete_body_geometry']}",
         f"hair_objects = {audit['hair_objects']}",
@@ -59,12 +63,11 @@ def info_panel(manifest: dict, size=(640, 360)) -> Image.Image:
         "Runtime nude state = complete body base with garment/equipment layers absent.",
         "",
         "NEXT AFTER REVIEW: author native 128x128 body source (B3-B).",
-        "Hair comes only after the native nude body source passes.",
     ]
-    y = 48
+    y = 44
     for line in lines:
         d.text((24, y), line, fill=FG if not line.startswith("NEXT") else (255, 215, 90), font=font)
-        y += 18
+        y += 17
     return out
 
 
@@ -79,6 +82,11 @@ def main():
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("gate") != "G3S-B3-A-NUDE-ANATOMY-GUIDE":
         raise RuntimeError("Unexpected G3S-B3A manifest")
+    if manifest.get("revision") != "G3S_B3A_NUDE_ANATOMY_GUIDE_V2":
+        raise RuntimeError("Contact-sheet helper requires corrected G3S-B3A V2 manifest")
+    phenotype = manifest.get("phenotype_audit") or {}
+    if phenotype.get("resolved_gender") != "female" or int(phenotype.get("male_target_count", -1)) != 0:
+        raise RuntimeError("Contact-sheet helper phenotype audit is not clean female")
 
     lit = Image.open(manifest["outputs"]["lit"]).convert("RGBA")
     mask = Image.open(manifest["outputs"]["mask"]).convert("RGBA")
@@ -86,9 +94,9 @@ def main():
     zoom = crop_from_bbox(lit, bbox, margin=8)
 
     cells = [
-        fit_panel(lit, "A complete nude/hairless anatomy guide - NOT final art", nearest=False),
-        fit_panel(mask, "B complete body silhouette - no hair/clothing/restraints", nearest=True),
-        fit_panel(zoom, "C anatomy zoom - structural reference only", nearest=True),
+        fit_panel(lit, "A complete adult female nude/hairless anatomy guide - NOT final art", nearest=False),
+        fit_panel(mask, "B complete female body silhouette - no hair/clothing/restraints", nearest=True),
+        fit_panel(zoom, "C female anatomy zoom - structural reference only", nearest=True),
         info_panel(manifest),
     ]
     sheet = Image.new("RGB", (1280, 720), BG)
