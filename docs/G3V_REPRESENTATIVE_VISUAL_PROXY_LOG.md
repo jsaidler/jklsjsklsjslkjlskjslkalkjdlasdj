@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN AFTER HEADLESS MPFB ACTIVATION FIX.**
+Current status: **READY TO RERUN WITH ONE-PROCESS DIRECT MPFB BOOTSTRAP.**
 
 ## Why this gate exists
 
@@ -29,6 +29,7 @@ G3V tests the real visible hypothesis before any finished Exilada model is built
 ## Tooling
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
+- `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
 Workspace:
@@ -37,20 +38,29 @@ Workspace:
 
 The user performs no Blender/MPFB GUI work.
 
-## MPFB dependency
+## MPFB dependency — current locked loading mode
 
 G3V pins **MPFB 2.0.17**.
 
-The PowerShell runner:
+The runner now deliberately **does not depend on Blender extension repositories, add-on activation state or GUI preferences**.
 
-1. queries the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
-2. downloads the official extension archive;
-3. verifies the SHA256 advertised by the Blender Extensions API;
-4. creates a dedicated Blender extension repository `roguelite_g3v` under the project workspace;
-5. installs/enables MPFB through Blender's command-line extension system;
-6. explicitly starts fresh background Blender processes with `--addons bl_ext.roguelite_g3v.mpfb` so the extension is registered before project Python code runs;
-7. performs a fresh-process MPFB import probe before starting the expensive G3V render;
-8. records archive URL/hash/module in `g3v_result.json`.
+Current sequence:
+
+1. query the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
+2. download the official archive only when the verified cached copy is absent;
+3. verify the SHA256 advertised by the Blender Extensions API;
+4. extract the pinned archive to the project dependency workspace;
+5. locate the actual MPFB Python package root by requiring `__init__.py + services/ + data/`;
+6. start **one** Blender process with `--background`;
+7. `g3v_mpfb_bootstrap.py` loads MPFB directly from that verified package root and initializes only its service layer required by G3V;
+8. MPFB user-writable paths are redirected to a deterministic project-local directory;
+9. the bootstrap then runs the G3V representative proxy script in the same Blender process.
+
+This intentionally bypasses extension installation/enablement mechanics while still using the exact official pinned package contents.
+
+Expected MPFB archive SHA256 from the successful local download:
+
+`4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87`
 
 The runner refuses silently substituting a newer MPFB version.
 
@@ -62,25 +72,30 @@ The initial runner contained an interpolated string with `$code:`. Windows Power
 
 Fix: delimit the variable as `${code}:`.
 
-### Incident 2 — MPFB installed but absent from a fresh headless process
+### Incident 2 — extension installed but unavailable to project script
 
 Observed locally:
 
 - MPFB `2.0.17` downloaded successfully;
-- archive SHA256 validated as `4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87`;
+- archive SHA256 validated;
 - extension install commands completed;
-- the subsequent background render process reached the G3V Python script;
-- `mpfb_class(...)` found no loaded MPFB module and failed with `searched roots: []`.
+- the subsequent G3V process reached the project Python script;
+- no MPFB module was present in `sys.modules` and the script failed with `searched roots: []`.
 
-Root issue: successful extension installation/enabling was not sufficient evidence that a newly started background Blender process had registered the add-on before the project script executed.
+The first attempted fix used `--addons bl_ext.roguelite_g3v.mpfb` plus a fresh-process import probe.
 
-Fix:
+### Incident 3 — extension activation probe still failed and created useless Blender process churn
 
-- canonical extension module is explicitly addressed as `bl_ext.roguelite_g3v.mpfb`;
-- runner now passes `--addons bl_ext.roguelite_g3v.mpfb` to the render process;
-- runner performs a separate fresh-background import probe first and stops immediately if MPFB cannot actually load.
+The explicit activation probe still could not load `bl_ext.roguelite_g3v.mpfb` in a newly started background process. At that point the extension-management path was judged to be solving the wrong problem: G3V needs MPFB's deterministic service code and data, not persistent Blender GUI add-on state.
 
-This converts extension activation from an assumption into a tested prerequisite.
+Decision:
+
+- **stop managing a custom Blender extension repository for G3V**;
+- **stop opening multiple Blender processes for repo-list/repo-add/install/probe**;
+- load the verified MPFB package directly in Python;
+- normal G3V execution now launches one Blender background process only.
+
+This is the canonical dependency-loading route unless the direct service bootstrap itself proves technically incompatible.
 
 ## Representative body / rig
 
