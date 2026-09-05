@@ -107,7 +107,7 @@ try {
                 $y = $row * $cellH
                 $graphics.DrawImage($img, $x, $y, $cellW, $cellH)
                 $graphics.FillRectangle($bgBrush, $x + 8, $y + 8, 260, 32)
-                $graphics.DrawString(("pitch {0}° | hero {1}px" -f $pitch,$height), $font, $labelBrush, $x + 14, $y + 12)
+                $graphics.DrawString(("pitch {0}deg | hero {1}px" -f $pitch,$height), $font, $labelBrush, $x + 14, $y + 12)
             }
             finally { $img.Dispose() }
         }
