@@ -1,0 +1,24 @@
+{
+  "gate": "G3S-B-PERSISTENT-PART-DECOMPOSITION-V1",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "technical_result": {
+    "exact_recomposition": true,
+    "source_alpha_pixels": 2974,
+    "covered_by_named_parts": 2895,
+    "residual_pixels": 79,
+    "residual_fraction": 0.026564
+  },
+  "visual_architecture_failure": {
+    "body_base_contains_clothing": true,
+    "limb_parts_contain_wraps_or_restraint_pixels": true,
+    "hair_masks_contain_non_hair_pixels": true,
+    "complete_body_under_clothing": false,
+    "complete_body_under_hair": false,
+    "reason": "The decomposition was pixel-exact but violated the canonical layer stack. Body base must exist independently of clothing; hair must be a separate persistent secondary layer; clothing must be separate overlays; hidden body pixels under those occluders must exist before animation/damage systems can be valid."
+  },
+  "operator_feedback": "Do not bake clothing into body parts. Hair must be treated as its own piece/layer. Clothing pieces are overlaid on a complete body base.",
+  "canonical_reference": "docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md",
+  "next_gate": "G3S-B2-LAYER-STACK-PREFLIGHT",
+  "model_cleanup_required": false
+}
