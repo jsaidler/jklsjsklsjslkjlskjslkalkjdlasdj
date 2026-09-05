@@ -86,6 +86,14 @@ def main():
         target_script = v2
         print("G3V_RETARGET_BOOTSTRAP_SOLVER=V2")
 
+    # runpy.run_path() does not automatically add the script directory to sys.path.
+    # V3 imports the sibling V2 solver module, so background Blender must expose the
+    # deterministic-character-pipeline directory explicitly before executing V3.
+    helper_dir = str(target_script.parent)
+    if helper_dir not in sys.path:
+        sys.path.insert(0, helper_dir)
+    print("G3V_RETARGET_HELPER_PATH=BOUND")
+
     bootstrap_mpfb(mpfb_root, user_root)
     namespace = runpy.run_path(str(target_script), run_name="g3v_retarget_preflight")
     target_main = namespace.get("main")
