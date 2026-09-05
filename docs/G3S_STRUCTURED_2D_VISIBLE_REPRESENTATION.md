@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A READY TO RUN**
+Gate status: **ACTIVE — G3S-A BOOTSTRAP + RUN READY**
 
 ## Why G3S exists
 
@@ -70,26 +70,56 @@ Required characteristics:
 
 ## G3S-A source route — LOCKED FOR THIS SPIKE
 
-Qwen-Image-Edit-2509 returns **only as a constrained one-time static source-art candidate**. The temporal-consistency objection that paused Qwen no longer applies to this specific test because it generates no animation frames.
+Qwen-Image-Edit-2509 returns **only as a constrained one-time static source-art candidate**. It is not permitted to generate animation frames.
 
-Runtime reused from:
+Runtime workspace:
 
 `Z:\AI\QwenImageEditSpike`
 
-Pinned local model set already expected there:
+Pinned model set:
 
-- `Qwen-Image-Edit-2509-Q4_0.gguf`;
-- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
-- `qwen_image_vae.safetensors`.
+- `Qwen-Image-Edit-2509-Q4_0.gguf` — about `11.9 GB`;
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors` — about `9.38 GB`;
+- `qwen_image_vae.safetensors` — about `0.25 GB`.
 
-The G3S-A runner downloads **nothing**. If these existing files are absent it fails rather than silently downloading ~large model dependencies.
+Total model payload is about **21.5 GB**, plus the isolated ComfyUI portable runtime.
+
+### Dependency state discovered on first G3S-A run
+
+The first `01_run_g3s_a.ps1` invocation correctly refused to infer because the isolated Qwen workspace had never actually been provisioned. Missing were:
+
+- embedded Python / ComfyUI runtime;
+- Qwen edit GGUF;
+- Qwen VL text encoder;
+- Qwen image VAE.
+
+This is a provisioning-state failure, not a G3S-A visual result.
+
+### One-command bootstrap — CURRENT
+
+New runner:
+
+`tools/structured-2d-character-pipeline/00_bootstrap_and_run_g3s_a.ps1`
+
+It performs, in order and only when necessary:
+
+1. preserved Qwen preflight, including at least `40 GB` free workspace disk before setup;
+2. isolated ComfyUI portable setup;
+3. pinned `ComfyUI-GGUF` setup;
+4. the three pinned model downloads with SHA256 validation;
+5. the normal G3S-A static-source runner.
+
+Existing valid runtime/model files are reused. Model files are not silently replaced when their SHA256 is wrong.
+
+The direct runner `01_run_g3s_a.ps1` still downloads nothing; it remains the inference-only path after the workspace exists.
 
 Tooling:
 
+- `tools/structured-2d-character-pipeline/00_bootstrap_and_run_g3s_a.ps1`
 - `tools/structured-2d-character-pipeline/01_run_g3s_a.ps1`
 - `tools/structured-2d-character-pipeline/g3s_a_static_source.py`
 
-Workspace:
+Output workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a`
 
@@ -185,8 +215,10 @@ Run only:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\01_run_g3s_a.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\00_bootstrap_and_run_g3s_a.ps1"
 ```
+
+The first execution may download about `21.5 GB` of model weights plus ComfyUI portable after the disk/hardware preflight passes.
 
 Then STOP. If the runner reaches `G3S-A: REVIEW REQUIRED`, share:
 
