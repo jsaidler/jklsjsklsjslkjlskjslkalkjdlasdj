@@ -59,9 +59,12 @@ Normal production must remain scriptable/headless. The user must not need routin
 - local-axis `REST_COMPENSATED_FK` — REJECTED;
 - MPFB pose API for this source/target pair — REJECTED;
 - Qwen-Image-Edit-2509 direct native `640×360` generation — REJECTED after flat collapse;
-- **SD1.5 + pixel-art LoRA direct native `640×360` re-author — REJECTED after block/mannequin identity collapse.**
+- SD1.5 + pixel-art LoRA direct native `640×360` re-author — REJECTED after block/mannequin identity collapse;
+- **PixelLock as initial G3S-A source generator — REJECTED after a footprint-perfect but single-color 128×128 silhouette.**
 
 Qwen official-resolution generation is retained only as a one-time design/pose reference. It cannot be resized/quantized into final art and remains forbidden as independent animation-frame owner.
+
+PixelLock may return only later as a footprint-safe recolor/restyle tool after a good canonical sprite already exists.
 
 ## Active architecture — LOCKED
 
@@ -84,7 +87,8 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
     - Qwen V2 native `640×360` — FAIL/CLOSED
     - Qwen official-resolution control — PASS AS MODEL-FUNCTION CONTROL / CLOSED
     - SD1.5 native re-author — FAIL/CLOSED
-    - **PixelLock native pixel-grid source** ← READY TO RUN
+    - PixelLock native-grid source — FAIL/CLOSED
+    - **Alucard purpose-built native `128×128 RGBA` proof** ← READY TO RUN / RESEARCH ONLY
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -137,26 +141,9 @@ Canonical design:
 
 Goal: final pixels come from persistent 2D assets while hidden motion/topology supplies deterministic control.
 
-## Qwen source experiment — CLOSED
+## Qwen direct-native — FAIL / CLOSED
 
-### Direct native `640×360` — FAIL
-
-The corrected Qwen graph completed normally but produced a flat native output:
-
-- SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
-- mean luma `70.3017`;
-- p99 `71`;
-- target stddev `0.4336`.
-
-### Official-resolution control — PASS AS CONTROL / CLOSED
-
-Restoring Qwen's preferred-resolution preprocessing produced a coherent `1392×752` Exilada-like woman. That proves the model/runtime functions, but the result is high-resolution illustration/pseudo-pixel styling and is not final-art eligible.
-
-The Qwen control remains at:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
-
-It may supply one-time pose/design conditioning only.
+The corrected native Qwen run completed but produced a flat raster. The official-resolution control at `1392×752` is coherent and proves Qwen works, but remains reference-only because high-res shrink/quantization is forbidden.
 
 ## SD1.5 native re-author — FAIL / CLOSED
 
@@ -164,54 +151,60 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
 
-The bounded native run sampled final pixels directly at `640×360` using SD1.5 + pixel-art LoRA, seed `20260905`, 30 steps, CFG 6, DPM++ 2M/Karras, denoise 0.72, no final resize.
+The one native `640×360` SD1.5 + pixel-LoRA run produced a block/mannequin and lost identity-bearing detail. No further SD1.5 tuning is allowed.
 
-Evidence:
+## PixelLock native-grid — FAIL / CLOSED
 
-- conditioning subject `48×128`;
-- raw SHA256 `294a412ffc0aa859c7fdf4128b13755e1e89fec4f3ea1d96c63e735a10ed92b0`;
-- result was a coarse block/mannequin;
-- Exilada identity, long hair, degraded cloth, restraints, hands and feet did not survive at production quality.
+Failure marker:
 
-Conclusion: do not tune SD1.5, LoRA, seed or prompt further. Standard image-latent diffusion at the full gameplay canvas is rejected for this tiny identity-rich sprite source problem.
+`tools/structured-2d-character-pipeline/g3s_a_pixellock_failure.json`
 
-# G3S-A PixelLock native-grid — CURRENT
+The model completed normally and `footprint_perfect == true`, but the native output had:
 
-This test changes representation rather than diffusion parameters.
+- `128×128` raster;
+- visible height `124 px`;
+- `3416` opaque pixels;
+- **exactly one opaque RGB value `[99,9,25]`**;
+- raw SHA256 `a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b`.
 
-PixelLock serializes small pixel sprites as palette-indexed text grids and uses a per-sprite llama.cpp GBNF grammar to lock the silhouette/alpha footprint. The model authors discrete grid cells instead of an 8×-compressed image latent.
+This is a monochrome silhouette, not a viable Exilada source. The failure is architectural: PixelLock's hard footprint grammar preserves an existing silhouette; it does not solve initial sprite authorship. Do not tune it for G3S-A.
 
-Pinned components:
+# G3S-A Alucard native-128 proof — CURRENT
 
-- PixelLock code commit `bb682f9919fcd302eaa5226b7e6965dfdf151beb` (MIT code);
-- PixelLock Gemma-4 12B pixel-art GGUF Q4_K_M, ~7.38 GB;
-- model revision `d35e3bcc3c8651603393042df4dbf2a1d37173ea`;
-- llama.cpp `b10516`, Windows CUDA 12.4;
-- llama main ZIP SHA256 `96d64faeb5b8e655341f32b26ad3e51fbea8bff0bc8120ad3dbffdc0b05b8ad3`;
-- CUDA runtime ZIP SHA256 `8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6`.
+Next runner:
 
-Representation test:
+- `tools/structured-2d-character-pipeline/g3s_a_alucard_native.py`
+- `tools/structured-2d-character-pipeline/05_bootstrap_and_run_g3s_a_alucard.ps1`
 
-`Qwen control -> 64×64 transparent conditioning scaffold (~62 px person) -> PixelLock grammar-constrained 2× generation -> 128×128 pixel asset -> 640×360 gameplay preview`
+Pinned upstream code commit:
 
-The generated 128×128 grid is **not a post-generation resize**. PixelLock's 2× mode samples the output cells while grammar guarantees the exact scaled footprint. Hard checks require `footprint_perfect`, exact `128×128` output, visible height `116–128 px`, and no post-generation resize.
+`02d1c60a16142015f7838a6a033da5e6ac9ce4f7`
 
-Tooling:
+Alucard is a purpose-built ~32M parameter sprite model whose native input/output is `128×128 RGBA`. Unlike PixelLock it is allowed to change the footprint and generate a new sprite. The coherent Qwen control is converted only into a transparent `128×128` conditioning reference; final Alucard output is independently sampled at `128×128` with no post-generation resize.
 
-- `tools/structured-2d-character-pipeline/g3s_a_pixellock_native.py`
-- `tools/structured-2d-character-pipeline/04_bootstrap_and_run_g3s_a_pixellock.ps1`
+Fixed test:
+
+- one candidate only;
+- seed `20260905`;
+- 20 Euler ODE steps;
+- text CFG `5.0`;
+- reference CFG `2.0`;
+- output exactly `128×128 RGBA`;
+- gameplay preview composites it 1:1 into `640×360`.
 
 Dependency workspace:
 
-`Z:\AI\PixelLockSpike`
+`Z:\AI\AlucardSpike`
 
 Output:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard`
 
-First run downloads approximately `7.4 GB` for the PixelLock model plus the pinned llama.cpp CUDA runtime. The runner automatically retries lower GPU-layer offload if full offload does not start on the RTX 3060 12 GB.
+## Alucard license boundary
 
-Kill rule: one candidate only. If the footprint-locked model merely recolors a coarse scaffold and cannot make an identity-bearing Exilada sprite with intentional clusters, close this source route without prompt/temperature fishing.
+This is **research-only** until licensing is resolved. Alucard uses FAIR License 1.0.0: published terms permit non-commercial personal/research use; commercial use requires visible attribution; Business Use requires a separate signed commercial agreement with the author. A visual PASS therefore does not automatically authorize production adoption.
+
+Kill rule: if this one purpose-built native-128 candidate still cannot produce credible Exilada pixel art, close the automated local generative-source search rather than tuning endlessly. G3S-A would then need to be re-scoped as an authored canonical-source problem.
 
 ## Exact next action — ONLY THIS
 
@@ -219,12 +212,12 @@ Kill rule: one candidate only. If the footprint-locked model merely recolors a c
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\04_bootstrap_and_run_g3s_a_pixellock.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\05_bootstrap_and_run_g3s_a_alucard.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A PIXELLOCK: REVIEW REQUIRED`, share:
+Then STOP. If it reaches `G3S-A ALUCARD: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock\g3s_a_pixellock_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard\g3s_a_alucard_contact_sheet.png`
 
 If it fails, share the complete console output. Do not run G3S-B or G4.
 
@@ -233,6 +226,7 @@ If it fails, share the complete console output. Do not run G3S-B or G4.
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - hidden deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
 - Qwen runtime/reference: `Z:\AI\QwenImageEditSpike`
-- PixelLock dependency workspace: `Z:\AI\PixelLockSpike`
+- PixelLock evidence/dependencies: `Z:\AI\PixelLockSpike`
+- Alucard research dependency workspace: `Z:\AI\AlucardSpike`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
