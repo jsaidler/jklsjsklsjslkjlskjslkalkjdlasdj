@@ -58,9 +58,10 @@ Normal production must remain scriptable/headless. The user must not need routin
 - raw per-frame `matrix_basis` copy — REJECTED;
 - local-axis `REST_COMPENSATED_FK` — REJECTED;
 - MPFB pose API for this source/target pair — REJECTED;
-- **Qwen-Image-Edit-2509 direct native `640×360` source generation — REJECTED after G3S-A V2 flat-collapse.**
+- Qwen-Image-Edit-2509 direct native `640×360` generation — REJECTED after flat collapse;
+- **SD1.5 + pixel-art LoRA direct native `640×360` re-author — REJECTED after block/mannequin identity collapse.**
 
-Qwen remains forbidden as independent animation-frame generator. Its official-resolution control has now completed and proved that the model/runtime functions when allowed to operate at its preferred high-resolution raster. That high-resolution output is reference/provenance only and is never eligible as final sprite art.
+Qwen official-resolution generation is retained only as a one-time design/pose reference. It cannot be resized/quantized into final art and remains forbidden as independent animation-frame owner.
 
 ## Active architecture — LOCKED
 
@@ -82,7 +83,8 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
     - Qwen V1 harness — INVALID/CLOSED
     - Qwen V2 native `640×360` — FAIL/CLOSED
     - Qwen official-resolution control — PASS AS MODEL-FUNCTION CONTROL / CLOSED
-    - **SD1.5 native pixel re-author** ← READY TO RUN
+    - SD1.5 native re-author — FAIL/CLOSED
+    - **PixelLock native pixel-grid source** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -129,79 +131,87 @@ Failure marker: `tools/deterministic-character-pipeline/g3v_failure.json`.
 
 # G3S — current
 
-Canonical design: `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`.
+Canonical design:
+
+`docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
 
 Goal: final pixels come from persistent 2D assets while hidden motion/topology supplies deterministic control.
 
 ## Qwen source experiment — CLOSED
 
-Provisioned runtime remains under:
+### Direct native `640×360` — FAIL
 
-`Z:\AI\QwenImageEditSpike`
+The corrected Qwen graph completed normally but produced a flat native output:
 
-### Qwen V1 — INVALID
-
-Harness graph was wrong relative to official ComfyUI Qwen 2509 workflow. Not a model-quality verdict.
-
-### Qwen V2 native `640×360` — FAIL
-
-Corrected graph completed normally but produced a genuinely flat native output:
-
-- raw SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
+- SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
 - mean luma `70.3017`;
 - p99 `71`;
 - target stddev `0.4336`.
 
-No seed/prompt/threshold rescue attempts are allowed.
+### Official-resolution control — PASS AS CONTROL / CLOSED
 
-### Qwen official-resolution control — PASS AS CONTROL / CLOSED
+Restoring Qwen's preferred-resolution preprocessing produced a coherent `1392×752` Exilada-like woman. That proves the model/runtime functions, but the result is high-resolution illustration/pseudo-pixel styling and is not final-art eligible.
 
-Restoring the official `FluxKontextImageScale` produced a coherent output rather than collapse.
-
-Uploaded artifact facts:
-
-- raster `1392×752`;
-- coherent full-body adult woman;
-- long dark hair, degraded beige cloth and bare feet readable;
-- visually conventional high-resolution illustration/pseudo-pixel styling rather than native gameplay pixel art.
-
-Conclusion: **Qwen/model/runtime are functional, but Qwen is unsuitable as the direct native sprite generator.** The working high-resolution Qwen image is retained only as a one-time identity/composition reference. It must not be simply shrunk/quantized into final art.
-
-# G3S-A SD1.5 native pixel re-author — CURRENT
-
-New tooling:
-
-- `tools/structured-2d-character-pipeline/g3s_a_sd15_native_reauthor.py`
-- `tools/structured-2d-character-pipeline/03_bootstrap_and_run_g3s_a_sd15_native.ps1`
-
-Purpose: use the coherent Qwen control **only as conditioning**, then have Stable Diffusion 1.5 re-author the final image through diffusion directly at native `640×360` with a dedicated pixel-art LoRA.
-
-This is not the rejected high-res-shrink route: the high-res source is reduced only to create an img2img conditioning/latent guide; the final generated pixels are newly sampled at `640×360` and are never resized after inference.
-
-Input:
+The Qwen control remains at:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
+It may supply one-time pose/design conditioning only.
+
+## SD1.5 native re-author — FAIL / CLOSED
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
+
+The bounded native run sampled final pixels directly at `640×360` using SD1.5 + pixel-art LoRA, seed `20260905`, 30 steps, CFG 6, DPM++ 2M/Karras, denoise 0.72, no final resize.
+
+Evidence:
+
+- conditioning subject `48×128`;
+- raw SHA256 `294a412ffc0aa859c7fdf4128b13755e1e89fec4f3ea1d96c63e735a10ed92b0`;
+- result was a coarse block/mannequin;
+- Exilada identity, long hair, degraded cloth, restraints, hands and feet did not survive at production quality.
+
+Conclusion: do not tune SD1.5, LoRA, seed or prompt further. Standard image-latent diffusion at the full gameplay canvas is rejected for this tiny identity-rich sprite source problem.
+
+# G3S-A PixelLock native-grid — CURRENT
+
+This test changes representation rather than diffusion parameters.
+
+PixelLock serializes small pixel sprites as palette-indexed text grids and uses a per-sprite llama.cpp GBNF grammar to lock the silhouette/alpha footprint. The model authors discrete grid cells instead of an 8×-compressed image latent.
+
+Pinned components:
+
+- PixelLock code commit `bb682f9919fcd302eaa5226b7e6965dfdf151beb` (MIT code);
+- PixelLock Gemma-4 12B pixel-art GGUF Q4_K_M, ~7.38 GB;
+- model revision `d35e3bcc3c8651603393042df4dbf2a1d37173ea`;
+- llama.cpp `b10516`, Windows CUDA 12.4;
+- llama main ZIP SHA256 `96d64faeb5b8e655341f32b26ad3e51fbea8bff0bc8120ad3dbffdc0b05b8ad3`;
+- CUDA runtime ZIP SHA256 `8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6`.
+
+Representation test:
+
+`Qwen control -> 64×64 transparent conditioning scaffold (~62 px person) -> PixelLock grammar-constrained 2× generation -> 128×128 pixel asset -> 640×360 gameplay preview`
+
+The generated 128×128 grid is **not a post-generation resize**. PixelLock's 2× mode samples the output cells while grammar guarantees the exact scaled footprint. Hard checks require `footprint_perfect`, exact `128×128` output, visible height `116–128 px`, and no post-generation resize.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_a_pixellock_native.py`
+- `tools/structured-2d-character-pipeline/04_bootstrap_and_run_g3s_a_pixellock.ps1`
+
+Dependency workspace:
+
+`Z:\AI\PixelLockSpike`
+
 Output:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock`
 
-Pinned first test:
+First run downloads approximately `7.4 GB` for the PixelLock model plus the pinned llama.cpp CUDA runtime. The runner automatically retries lower GPU-layer offload if full offload does not start on the RTX 3060 12 GB.
 
-- Stable Diffusion 1.5 `v1-5-pruned-emaonly.safetensors`, SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`;
-- SD1.5 pixel-art LoRA, SHA256 `ad5034703699e910d5f9525ea5db64abcbd8d7396ff8f771c09403f3adb048ad`;
-- guide figure automatically normalized to `128 px` height on `640×360`;
-- seed `20260905`;
-- `30` steps;
-- CFG `6.0`;
-- DPM++ 2M / Karras;
-- denoise `0.72`;
-- no final resize;
-- one candidate only.
-
-First run downloads about `4.27 GB` plus a ~`3.23 MB` LoRA. Existing isolated ComfyUI is reused.
-
-Kill rule: if the candidate still reads as smooth/pseudo-pixel diffusion art rather than deliberate native pixel clusters, reject this route without seed fishing or parameter sweeps.
+Kill rule: one candidate only. If the footprint-locked model merely recolors a coarse scaffold and cannot make an identity-bearing Exilada sprite with intentional clusters, close this source route without prompt/temperature fishing.
 
 ## Exact next action — ONLY THIS
 
@@ -209,12 +219,12 @@ Kill rule: if the candidate still reads as smooth/pseudo-pixel diffusion art rat
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\03_bootstrap_and_run_g3s_a_sd15_native.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\04_bootstrap_and_run_g3s_a_pixellock.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A SD15: REVIEW REQUIRED`, share:
+Then STOP. If it reaches `G3S-A PIXELLOCK: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock\g3s_a_pixellock_contact_sheet.png`
 
 If it fails, share the complete console output. Do not run G3S-B or G4.
 
@@ -222,6 +232,7 @@ If it fails, share the complete console output. Do not run G3S-B or G4.
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - hidden deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
-- Qwen runtime: `Z:\AI\QwenImageEditSpike`
+- Qwen runtime/reference: `Z:\AI\QwenImageEditSpike`
+- PixelLock dependency workspace: `Z:\AI\PixelLockSpike`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
