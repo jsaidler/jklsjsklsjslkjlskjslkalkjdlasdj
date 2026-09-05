@@ -1,0 +1,53 @@
+{
+  "revision": "G3S_B_PARTS_SPEC_V1",
+  "purpose": "persistent 2D decomposition of the provisional native Exilada scaffold; no generative model",
+  "source": {
+    "control_sha256": "ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e",
+    "control_size": [1392, 752],
+    "subject_bbox": [582, 40, 814, 705],
+    "native_canvas": [128, 128],
+    "subject_size": [43, 122],
+    "subject_xy": [42, 3],
+    "base_resample": "NEAREST_SCAFFOLD_ONLY"
+  },
+  "source_status": {
+    "macro_body": "PROVISIONALLY_ACCEPTED_FOR_DECOMPOSITION",
+    "head_face": "UNRESOLVED",
+    "mouth": "UNRESOLVED_AFTER_G3S_A1_V2_FAIL",
+    "animation_owner": false
+  },
+  "parts": [
+    {"id":"hair_back","label":"hair back mass","role":"secondary_mass","screen_side":"center","anatomical_side":null,"depth":0,"pivot":[61,22],"selector":{"mode":"dark_luma","max_luma":96},"polygons":[[[46,4],[69,4],[78,16],[80,64],[72,72],[65,59],[56,70],[46,66],[42,51],[46,25]]],"min_alpha_pixels":80},
+    {"id":"screen_left_upper_arm","label":"screen-left upper arm","role":"upper_limb","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":10,"pivot":[51,34],"selector":{"mode":"all"},"polygons":[[[46,29],[55,30],[53,45],[49,58],[43,59],[43,47]]],"min_alpha_pixels":20},
+    {"id":"screen_left_forearm","label":"screen-left forearm","role":"lower_limb","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":11,"pivot":[48,50],"selector":{"mode":"all"},"polygons":[[[42,48],[50,49],[49,67],[45,73],[40,72],[41,60]]],"min_alpha_pixels":18},
+    {"id":"screen_left_hand","label":"screen-left hand","role":"hand","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":12,"pivot":[45,68],"selector":{"mode":"all"},"polygons":[[[40,66],[49,66],[49,77],[44,80],[39,76]]],"min_alpha_pixels":5},
+    {"id":"screen_right_upper_arm","label":"screen-right upper arm","role":"upper_limb","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":20,"pivot":[73,34],"selector":{"mode":"all"},"polygons":[[[69,29],[77,30],[80,47],[79,59],[73,59],[71,45]]],"min_alpha_pixels":20},
+    {"id":"screen_right_forearm","label":"screen-right forearm","role":"lower_limb","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":21,"pivot":[77,50],"selector":{"mode":"all"},"polygons":[[[74,48],[82,49],[84,68],[82,75],[76,74],[75,61]]],"min_alpha_pixels":18},
+    {"id":"screen_right_hand","label":"screen-right hand","role":"hand","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":22,"pivot":[80,68],"selector":{"mode":"all"},"polygons":[[[77,66],[85,66],[87,76],[82,80],[77,76]]],"min_alpha_pixels":5},
+    {"id":"screen_left_thigh","label":"screen-left thigh","role":"upper_leg","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":15,"pivot":[55,73],"selector":{"mode":"all"},"polygons":[[[48,70],[61,70],[61,91],[58,105],[49,107],[46,92]]],"min_alpha_pixels":45},
+    {"id":"screen_left_shin","label":"screen-left shin","role":"lower_leg","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":16,"pivot":[54,94],"selector":{"mode":"all"},"polygons":[[[48,91],[60,91],[58,118],[54,125],[45,124],[47,107]]],"min_alpha_pixels":35},
+    {"id":"screen_left_foot","label":"screen-left foot","role":"foot","screen_side":"left","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":17,"pivot":[53,116],"selector":{"mode":"all"},"polygons":[[[43,113],[59,113],[61,126],[44,128],[38,124]]],"min_alpha_pixels":12},
+    {"id":"screen_right_thigh","label":"screen-right thigh","role":"upper_leg","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":25,"pivot":[68,73],"selector":{"mode":"all"},"polygons":[[[61,70],[75,70],[79,92],[76,106],[67,107],[63,91]]],"min_alpha_pixels":45},
+    {"id":"screen_right_shin","label":"screen-right shin","role":"lower_leg","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":26,"pivot":[72,94],"selector":{"mode":"all"},"polygons":[[[66,91],[79,91],[80,119],[76,126],[68,124],[66,106]]],"min_alpha_pixels":35},
+    {"id":"screen_right_foot","label":"screen-right foot","role":"foot","screen_side":"right","anatomical_side":"UNRESOLVED_UNTIL_G3S_C","depth":27,"pivot":[75,117],"selector":{"mode":"all"},"polygons":[[[68,114],[84,114],[88,126],[70,128],[66,124]]],"min_alpha_pixels":12},
+    {"id":"torso_pelvis","label":"torso and pelvis core","role":"body_core","screen_side":"center","anatomical_side":null,"depth":30,"pivot":[62,56],"selector":{"mode":"all"},"polygons":[[[50,27],[72,27],[76,52],[74,70],[68,81],[54,81],[47,68],[47,47]]],"min_alpha_pixels":150},
+    {"id":"cloth_front","label":"front hip cloth mass","role":"soft_cloth","screen_side":"center","anatomical_side":null,"depth":40,"pivot":[61,59],"selector":{"mode":"all"},"polygons":[[[50,53],[73,53],[77,70],[71,103],[63,94],[57,104],[49,86],[47,66]]],"min_alpha_pixels":70},
+    {"id":"head_face","label":"head and face placeholder","role":"head_face","screen_side":"center","anatomical_side":null,"depth":45,"pivot":[61,27],"selector":{"mode":"all"},"polygons":[[[53,8],[67,8],[71,17],[68,29],[54,30],[50,18]]],"min_alpha_pixels":45},
+    {"id":"hair_front_left","label":"front hair screen-left","role":"secondary_mass","screen_side":"left","anatomical_side":null,"depth":50,"pivot":[55,24],"selector":{"mode":"dark_luma","max_luma":105},"polygons":[[[47,8],[59,7],[58,23],[54,46],[50,61],[43,58],[45,36]]],"min_alpha_pixels":30},
+    {"id":"hair_front_right","label":"front hair screen-right","role":"secondary_mass","screen_side":"right","anatomical_side":null,"depth":51,"pivot":[67,24],"selector":{"mode":"dark_luma","max_luma":105},"polygons":[[[61,7],[72,10],[78,24],[78,52],[72,67],[67,54],[66,34]]],"min_alpha_pixels":30}
+  ],
+  "initial_accessories": [
+    {"id":"chain_wrist_screen_left","family":"broken_chain","socket":"screen_left_wrist","socket_canvas":[44,66],"art_status":"NOT_AUTHORED","baked_into_body":false,"initial_state":"OPTIONAL_INITIAL_EQUIPMENT"},
+    {"id":"chain_wrist_screen_right","family":"broken_chain","socket":"screen_right_wrist","socket_canvas":[81,66],"art_status":"NOT_AUTHORED","baked_into_body":false,"initial_state":"OPTIONAL_INITIAL_EQUIPMENT"},
+    {"id":"chain_ankle_screen_left","family":"broken_chain","socket":"screen_left_ankle","socket_canvas":[52,110],"art_status":"NOT_AUTHORED","baked_into_body":false,"initial_state":"OPTIONAL_INITIAL_EQUIPMENT"},
+    {"id":"chain_ankle_screen_right","family":"broken_chain","socket":"screen_right_ankle","socket_canvas":[80,117],"art_status":"NOT_AUTHORED","baked_into_body":false,"initial_state":"OPTIONAL_INITIAL_EQUIPMENT"}
+  ],
+  "rules": {
+    "no_generative_model": true,
+    "chains_are_accessories_not_body_pixels": true,
+    "head_face_is_replaceable": true,
+    "screen_side_to_anatomical_side_resolved_in_g3s_c": true,
+    "all_parts_are_persistent_assets": true,
+    "review_required_before_g3s_c": true
+  }
+}
