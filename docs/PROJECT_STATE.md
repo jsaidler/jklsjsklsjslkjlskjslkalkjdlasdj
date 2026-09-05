@@ -112,7 +112,7 @@ Validated on Windows 11 + Blender 5.1.1. Headless Python scene creation, `.blend
 Locked baseline:
 
 - native gameplay raster: **`640×360`**;
-- orthographic camera pitch: **`26 deg`**;
+- orthographic pitch: **`26 deg`**;
 - protagonist reference visible height: **`128 px`**.
 
 Canonical baseline: `tools/deterministic-character-pipeline/g1_baseline.json`.
@@ -129,7 +129,11 @@ Arbitrary cross-skeleton retargeting and production foot-lock cleanup are not ge
 
 ## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
 
-The primitive semantic proxy proved stable deterministic native-grid translation, but remained a technical mannequin / processed low-detail 3D.
+The primitive semantic proxy proved deterministic native-grid translation, but remained a technical mannequin / processed low-detail 3D.
+
+**2026-09-05 correction:** G3's four selected frames inherited fixed G2 sample indices `(0,3,6,9)` and can alias the gait cycle. G3 therefore does not independently prove four-phase temporal continuity. G2's full 12-sample review remains the authoritative motion/topology evidence. G3's visual-style conclusion remains valid.
+
+Detailed correction: `docs/G3_PIXEL_TRANSLATION_LOG.md`.
 
 ## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
 
@@ -137,7 +141,7 @@ Renderer-only contour/value/cluster changes could not invent authored human form
 
 Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
-## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / BINARY-MASK RERUN REQUIRED
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / GEOMETRY-PHASE RERUN REQUIRED
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
@@ -145,52 +149,74 @@ Tooling:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_geometry_phase_patch.py`
 - `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
 ### Current G3V facts
 
-The representative-human path itself is now proven to execute:
+The representative-human path itself executes reliably:
 
 - pinned MPFB 2.0.17 loads directly in one background Blender process;
 - MPFB `base.obj` imports;
 - continuous female body and CMU-compatible rig are created;
 - G2 real walk is reused;
 - representative hair/cloth/shackle geometry is created;
-- camera projects the representative geometry to **127 px**, matching the locked 128 px target;
-- Eevee writes the frame;
+- Eevee writes all diagnostic frames;
 - runtime patches are confirmed bound to `target_main.__globals__`.
 
-Latest valid diagnostic frame `1563`:
+### Latest binary-mask diagnosis — definitive
 
-`foreground=10148, height=127 px, skin=0, hair=667, cloth=9481, metal=0`.
+Four-frame run on the old fixed subset reported, on **every frame**:
 
-Therefore the earlier blank-render/classifier problems are no longer the current blocker. Hair and cloth genuinely reach the visible render; skin and metal do not.
+- skin: `visible=0`, `unoccluded=507`;
+- hair: `visible=709`;
+- cloth: `visible=9679`;
+- metal: `visible=0`, `unoccluded=75`.
 
-### Current semantic diagnostic — binary masks
+Sequence totals:
 
-The multi-color semantic diagnostic has been replaced by **four binary occlusion-aware masks per sampled frame**:
+`skin:0, hair:2836, cloth:38716, metal:0`
 
-- skin white / all other representative geometry black;
-- hair white / all other representative geometry black;
-- cloth white / all other representative geometry black;
-- metal white / all other representative geometry black.
+Interpretation is now exact:
 
-Black non-target geometry remains present, preserving depth and occlusion. Python composites the four masks into the semantic-ID frame.
+- body/skin exists and renders when isolated;
+- shackles/metal exist and render when isolated;
+- both are fully occluded in the representative composite;
+- cloth occupies almost the entire visible proxy;
+- blocker is **geometry/proportion/placement**, not classifier, material or Eevee.
 
-If any semantic has zero visible pixels, the same Blender process renders it again unoccluded:
+The identical counts on frames `1563,1612,1661,1710` also exposed that the old `(0,3,6,9)` selection was repeatedly sampling the same gait phase.
 
-- `visible=0, unoccluded>0` => proxy geometry is fully occluding it;
-- `visible=0, unoccluded=0` => that object/layer itself is not rendering or is offscreen; object mesh/modifier diagnostics are emitted.
+### Current fixes now committed
 
-Completeness is validated across the four sampled walk phases rather than demanding that a small attachment occupy pixels in every frame.
+`g3v_geometry_phase_patch.py` applies before semantic rendering:
 
-Expected console diagnostics include:
+1. **Representative scale from skeleton height**
+   - uses CMU-compatible head-to-foot height instead of the MPFB basemesh/helper bbox to size hair/cloth;
+   - emits body-geometry vs skeleton-height diagnostics.
 
-- `G3V_SEMANTIC_MODE=BINARY_OCCLUSION_MASKS`
-- `G3V_MASK_SKIN_FRAME_1563_VISIBLE=...`
-- `G3V_MASK_METAL_FRAME_1563_VISIBLE=...`
-- `G3V_MASK_SEQUENCE_TOTALS=skin:...,hair:...,cloth:...,metal:...`
+2. **Camera calibration from skeleton head-to-foot projection**
+   - accessory geometry can no longer define the 128 px scale by itself.
+
+3. **Oriented surface-visible shackles**
+   - wrist/ankle torus axes follow actual forearm/shin direction;
+   - cuff radius is modestly enlarged so metal is not embedded entirely inside the body mesh at gameplay scale.
+
+4. **Contact-derived four-phase sampling**
+   - derives a real gait period from G2 left/right foot-contact metadata;
+   - chooses quarter-cycle offsets;
+   - refuses guessed fixed-index fallback.
+
+Expected new console markers:
+
+- `G3V_GEOMETRY_SCALE=SKELETON_DERIVED`
+- `G3V_SHACKLES=ORIENTED_OVERSURFACE_CUFFS`
+- `G3V_PHASE_SELECTION=CONTACT_DERIVED_QUARTER_CYCLE`
+- `G3V_DERIVED_GAIT_PERIOD_FRAMES=...`
+- `G3V_PHASE_FRAMES=...`
+- `G3V_CAMERA_CALIBRATION=SKELETON_HEAD_FOOT`
+- `G3V_MASK_SEQUENCE_TOTALS=...`
 
 Expected valid review artifact:
 
@@ -211,7 +237,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
 ```
 
-Then STOP. If G3V reaches `REVIEW REQUIRED`, share `g3v_contact_sheet.png`. If it fails, the console should now distinguish occlusion from object/renderability failure.
+Then STOP. If G3V reaches `REVIEW REQUIRED`, share `g3v_contact_sheet.png`. If it fails, share the full console output.
 
 ## Workspace state
 
