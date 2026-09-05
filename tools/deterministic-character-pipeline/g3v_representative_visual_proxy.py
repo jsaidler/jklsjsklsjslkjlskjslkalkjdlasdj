@@ -16,10 +16,10 @@ ID_COLORS = {
     "metal": (0.95, 0.82, 0.08),
 }
 PALETTES = {
-    "skin": [(0.18,0.09,0.055),(0.31,0.16,0.095),(0.48,0.28,0.16),(0.67,0.45,0.27)],
-    "hair": [(0.012,0.012,0.018),(0.030,0.030,0.042),(0.060,0.060,0.082),(0.105,0.105,0.135)],
-    "cloth": [(0.18,0.15,0.105),(0.31,0.27,0.185),(0.48,0.43,0.31),(0.66,0.60,0.45)],
-    "metal": [(0.12,0.135,0.15),(0.25,0.28,0.31),(0.45,0.49,0.53),(0.70,0.74,0.77)],
+    "skin": [(0.18, 0.09, 0.055), (0.31, 0.16, 0.095), (0.48, 0.28, 0.16), (0.67, 0.45, 0.27)],
+    "hair": [(0.012, 0.012, 0.018), (0.030, 0.030, 0.042), (0.060, 0.060, 0.082), (0.105, 0.105, 0.135)],
+    "cloth": [(0.18, 0.15, 0.105), (0.31, 0.27, 0.185), (0.48, 0.43, 0.31), (0.66, 0.60, 0.45)],
+    "metal": [(0.12, 0.135, 0.15), (0.25, 0.28, 0.31), (0.45, 0.49, 0.53), (0.70, 0.74, 0.77)],
 }
 
 
@@ -89,6 +89,8 @@ def add_material(obj, rgb, name):
     mat.diffuse_color = (*rgb, 1.0)
     obj.data.materials.clear()
     obj.data.materials.append(mat)
+    for poly in obj.data.polygons:
+        poly.material_index = 0
 
 
 def tag_semantic(obj, semantic):
@@ -117,7 +119,7 @@ def add_uv_ellipsoid(name, center, scale, semantic, rig, bone):
     return obj
 
 
-def add_box(name, center, scale, semantic, rig, bone, rotation=(0.0,0.0,0.0)):
+def add_box(name, center, scale, semantic, rig, bone, rotation=(0.0, 0.0, 0.0)):
     bpy.ops.mesh.primitive_cube_add(size=2.0, location=center, rotation=rotation)
     obj = bpy.context.object
     obj.name = name
@@ -129,7 +131,13 @@ def add_box(name, center, scale, semantic, rig, bone, rotation=(0.0,0.0,0.0)):
 
 
 def add_shackle(name, center, radius, semantic, rig, bone):
-    bpy.ops.mesh.primitive_torus_add(major_radius=radius, minor_radius=radius*0.28, major_segments=10, minor_segments=4, location=center)
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=radius,
+        minor_radius=radius * 0.28,
+        major_segments=10,
+        minor_segments=4,
+        location=center,
+    )
     obj = bpy.context.object
     obj.name = name
     add_material(obj, PALETTES[semantic][2], name + "_MAT")
@@ -156,12 +164,15 @@ def bbox_world(objects):
             pts.extend(evaluated_points(obj))
     if not pts:
         raise RuntimeError("No visible representative mesh points")
-    xs=[p.x for p in pts]; ys=[p.y for p in pts]; zs=[p.z for p in pts]
-    return Vector((min(xs),min(ys),min(zs))), Vector((max(xs),max(ys),max(zs)))
+    xs = [p.x for p in pts]
+    ys = [p.y for p in pts]
+    zs = [p.z for p in pts]
+    return Vector((min(xs), min(ys), min(zs))), Vector((max(xs), max(ys), max(zs)))
 
 
 def bbox_px(scene, camera, objects):
-    xs=[]; ys=[]
+    xs = []
+    ys = []
     for obj in objects:
         if obj.type != "MESH" or obj.hide_render:
             continue
@@ -176,230 +187,423 @@ def calibrate_camera(scene, camera, objects, target_px):
     camera.data.ortho_scale = 5.0
     for _ in range(6):
         bpy.context.view_layer.update()
-        _,_,y0,y1 = bbox_px(scene,camera,objects)
-        h = y1-y0
+        _, _, y0, y1 = bbox_px(scene, camera, objects)
+        h = y1 - y0
         if h <= 0:
             raise RuntimeError("Projected G3V height is zero")
-        camera.data.ortho_scale *= h/float(target_px)
+        camera.data.ortho_scale *= h / float(target_px)
     bpy.context.view_layer.update()
+
+
+def move_to_collection(obj, collection):
+    for current in list(obj.users_collection):
+        current.objects.unlink(obj)
+    collection.objects.link(obj)
+
+
+def ensure_render_collection(scene):
+    old = bpy.data.collections.get("G3V_RENDER")
+    if old:
+        bpy.data.collections.remove(old, do_unlink=True)
+    col = bpy.data.collections.new("G3V_RENDER")
+    scene.collection.children.link(col)
+    col.hide_render = False
+    col.hide_viewport = False
+    return col
+
+
+def make_emission_material(name, color):
+    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputMaterial")
+    emit = nodes.new("ShaderNodeEmission")
+    emit.inputs["Color"].default_value = (*color, 1.0)
+    emit.inputs["Strength"].default_value = 1.0
+    links.new(emit.outputs["Emission"], out.inputs["Surface"])
+    return mat
+
+
+def make_diffuse_material(name, color=(0.62, 0.62, 0.62)):
+    mat = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    bsdf = nodes.get("Principled BSDF")
+    if bsdf is None:
+        nodes.clear()
+        out = nodes.new("ShaderNodeOutputMaterial")
+        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+        mat.node_tree.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+    bsdf.inputs["Roughness"].default_value = 1.0
+    return mat
+
+
+def assign_single_material(obj, mat):
+    obj.data.materials.clear()
+    obj.data.materials.append(mat)
+    for poly in obj.data.polygons:
+        poly.material_index = 0
+
+
+def set_world_background(scene, rgb_value, strength=1.0):
+    world = scene.world or bpy.data.worlds.new("G3V_WORLD")
+    scene.world = world
+    world.use_nodes = True
+    bg = world.node_tree.nodes.get("Background")
+    if bg is None:
+        world.node_tree.nodes.clear()
+        bg = world.node_tree.nodes.new("ShaderNodeBackground")
+        out = world.node_tree.nodes.new("ShaderNodeOutputWorld")
+        world.node_tree.links.new(bg.outputs["Background"], out.inputs["Surface"])
+    bg.inputs["Color"].default_value = (*rgb_value, 1.0)
+    bg.inputs["Strength"].default_value = strength
 
 
 def load_rgba(path):
     img = bpy.data.images.load(str(path), check_existing=False)
     try:
-        w,h = int(img.size[0]), int(img.size[1])
-        px = [0.0]*(w*h*4)
+        w, h = int(img.size[0]), int(img.size[1])
+        px = [0.0] * (w * h * 4)
         img.pixels.foreach_get(px)
-        return w,h,px
+        return w, h, px
     finally:
         bpy.data.images.remove(img)
 
 
-def save_rgba(path,w,h,px):
-    img=bpy.data.images.new(path.stem,width=w,height=h,alpha=True,float_buffer=False)
+def save_rgba(path, w, h, px):
+    img = bpy.data.images.new(path.stem, width=w, height=h, alpha=True, float_buffer=False)
     try:
         img.pixels.foreach_set(px)
-        img.filepath_raw=str(path)
-        img.file_format="PNG"
+        img.filepath_raw = str(path)
+        img.file_format = "PNG"
         img.save()
     finally:
         bpy.data.images.remove(img)
 
 
-def rgb(px,i):
-    j=i*4
-    return (px[j],px[j+1],px[j+2])
+def rgb(px, i):
+    j = i * 4
+    return (px[j], px[j + 1], px[j + 2])
 
 
-def put(px,i,c):
-    j=i*4
-    px[j]=c[0]; px[j+1]=c[1]; px[j+2]=c[2]; px[j+3]=1.0
+def put(px, i, c):
+    j = i * 4
+    px[j] = c[0]
+    px[j + 1] = c[1]
+    px[j + 2] = c[2]
+    px[j + 3] = 1.0
 
 
-def d2(a,b):
-    return sum((a[k]-b[k])**2 for k in range(3))
+def d2(a, b):
+    return sum((a[k] - b[k]) ** 2 for k in range(3))
 
 
 def classify_id(c):
-    best=(None,d2(c,BACKGROUND))
-    for sem,ic in ID_COLORS.items():
-        dd=d2(c,ic)
-        if dd < best[1]: best=(sem,dd)
+    best = (None, d2(c, BACKGROUND))
+    for sem, ic in ID_COLORS.items():
+        dd = d2(c, ic)
+        if dd < best[1]:
+            best = (sem, dd)
     if best[0] is None or best[1] > 0.12:
         return None
     return best[0]
 
 
-def quantile(vals,q):
-    if not vals: return 0.5
-    s=sorted(vals)
-    pos=(len(s)-1)*q
-    lo=int(math.floor(pos)); hi=int(math.ceil(pos))
-    if lo==hi: return s[lo]
-    t=pos-lo
-    return s[lo]*(1-t)+s[hi]*t
+def quantile(vals, q):
+    if not vals:
+        return 0.5
+    s = sorted(vals)
+    pos = (len(s) - 1) * q
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    if lo == hi:
+        return s[lo]
+    t = pos - lo
+    return s[lo] * (1 - t) + s[hi] * t
+
+
+def id_foreground_stats(path):
+    w, h, px = load_rgba(path)
+    xs = []
+    ys = []
+    counts = {k: 0 for k in ID_COLORS}
+    for y in range(h):
+        row = y * w
+        for x in range(w):
+            sem = classify_id(rgb(px, row + x))
+            if sem:
+                xs.append(x)
+                ys.append(y)
+                counts[sem] += 1
+    if not xs:
+        return {"foreground_pixels": 0, "bbox": None, "bbox_height_px": 0, "semantic_pixels": counts}
+    return {
+        "foreground_pixels": len(xs),
+        "bbox": [min(xs), min(ys), max(xs), max(ys)],
+        "bbox_height_px": max(ys) - min(ys) + 1,
+        "semantic_pixels": counts,
+    }
 
 
 def build_visible_outputs(frame_records, output_dir):
-    all_luma=[]
-    cached=[]
+    all_luma = []
+    cached = []
     for rec in frame_records:
-        w,h,idpx=load_rgba(Path(rec["id_pass"]))
-        w2,h2,lpx=load_rgba(Path(rec["light_pass"]))
-        if (w,h)!=(w2,h2): raise RuntimeError("ID/light pass size mismatch")
-        sems=[None]*(w*h)
-        for i in range(w*h):
-            sem=classify_id(rgb(idpx,i)); sems[i]=sem
+        w, h, idpx = load_rgba(Path(rec["id_pass"]))
+        w2, h2, lpx = load_rgba(Path(rec["light_pass"]))
+        if (w, h) != (w2, h2):
+            raise RuntimeError("ID/light pass size mismatch")
+        sems = [None] * (w * h)
+        for i in range(w * h):
+            sem = classify_id(rgb(idpx, i))
+            sems[i] = sem
             if sem:
-                c=rgb(lpx,i); all_luma.append(0.2126*c[0]+0.7152*c[1]+0.0722*c[2])
-        cached.append((rec,w,h,sems,lpx))
-    cuts=[quantile(all_luma,0.22),quantile(all_luma,0.50),quantile(all_luma,0.78)]
-    outputs=[]
-    for rec,w,h,sems,lpx in cached:
-        flat=[0.0]*(w*h*4); pix=[0.0]*(w*h*4)
-        for i,sem in enumerate(sems):
+                c = rgb(lpx, i)
+                all_luma.append(0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
+        cached.append((rec, w, h, sems, lpx))
+    if not all_luma:
+        raise RuntimeError("G3V semantic raster contained zero foreground pixels across all sampled frames")
+    cuts = [quantile(all_luma, 0.22), quantile(all_luma, 0.50), quantile(all_luma, 0.78)]
+    outputs = []
+    for rec, w, h, sems, lpx in cached:
+        flat = [0.0] * (w * h * 4)
+        pix = [0.0] * (w * h * 4)
+        for i, sem in enumerate(sems):
             if sem is None:
-                put(flat,i,BACKGROUND); put(pix,i,BACKGROUND); continue
-            put(flat,i,PALETTES[sem][2])
-            c=rgb(lpx,i); lum=0.2126*c[0]+0.7152*c[1]+0.0722*c[2]
-            band=0 if lum<cuts[0] else 1 if lum<cuts[1] else 2 if lum<cuts[2] else 3
-            put(pix,i,PALETTES[sem][band])
-        flat_path=output_dir/f"g3v_flat_f{rec['frame']:04d}.png"
-        pixel_path=output_dir/f"g3v_pixel_f{rec['frame']:04d}.png"
-        save_rgba(flat_path,w,h,flat); save_rgba(pixel_path,w,h,pix)
+                put(flat, i, BACKGROUND)
+                put(pix, i, BACKGROUND)
+                continue
+            put(flat, i, PALETTES[sem][2])
+            c = rgb(lpx, i)
+            lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+            band = 0 if lum < cuts[0] else 1 if lum < cuts[1] else 2 if lum < cuts[2] else 3
+            put(pix, i, PALETTES[sem][band])
+        flat_path = output_dir / f"g3v_flat_f{rec['frame']:04d}.png"
+        pixel_path = output_dir / f"g3v_pixel_f{rec['frame']:04d}.png"
+        save_rgba(flat_path, w, h, flat)
+        save_rgba(pixel_path, w, h, pix)
         outputs += [
-            {"variant":"flat_representative","frame":rec["frame"],"file":str(flat_path),"sha256":sha256_file(flat_path)},
-            {"variant":"pixel_4band_semantic","frame":rec["frame"],"file":str(pixel_path),"sha256":sha256_file(pixel_path)},
+            {"variant": "flat_representative", "frame": rec["frame"], "file": str(flat_path), "sha256": sha256_file(flat_path)},
+            {"variant": "pixel_4band_semantic", "frame": rec["frame"], "file": str(pixel_path), "sha256": sha256_file(pixel_path)},
         ]
-    return cuts,outputs
+    return cuts, outputs
 
 
-def render_pass(scene, path, semantic_objects, mode):
-    if mode=="id":
-        scene.display.shading.light="FLAT"; scene.display.shading.color_type="OBJECT"
-        for obj in semantic_objects: obj.color=(*ID_COLORS[obj["g3v_semantic"]],1.0)
-    elif mode=="light":
-        scene.display.shading.light="STUDIO"; scene.display.shading.color_type="OBJECT"
-        for obj in semantic_objects: obj.color=(0.67,0.67,0.67,1.0)
-    else: raise RuntimeError("Unknown pass mode")
-    scene.render.filepath=str(path)
+def render_pass(scene, path, semantic_objects, mode, id_materials, neutral_material):
+    if mode == "id":
+        set_world_background(scene, BACKGROUND, 1.0)
+        for obj in semantic_objects:
+            assign_single_material(obj, id_materials[obj["g3v_semantic"]])
+    elif mode == "light":
+        set_world_background(scene, (0.025, 0.028, 0.034), 0.35)
+        for obj in semantic_objects:
+            assign_single_material(obj, neutral_material)
+    else:
+        raise RuntimeError("Unknown pass mode")
+    scene.render.filepath = str(path)
+    bpy.context.view_layer.update()
     bpy.ops.render.render(write_still=True)
-    if not path.exists() or path.stat().st_size==0:
-        raise RuntimeError("Render missing: "+str(path))
+    if not path.exists() or path.stat().st_size == 0:
+        raise RuntimeError("Render missing: " + str(path))
 
 
 def main():
-    output_dir=Path(arg("--output-dir","")).resolve()
-    g2_blend=Path(arg("--g2-blend","")).resolve()
-    g2_manifest=Path(arg("--g2-manifest","")).resolve()
-    pitch=float(arg("--pitch","26")); hero_px=int(arg("--hero-px","128"))
-    if not g2_blend.exists() or not g2_manifest.exists(): raise RuntimeError("G2 artifacts missing")
-    output_dir.mkdir(parents=True,exist_ok=True)
+    output_dir = Path(arg("--output-dir", "")).resolve()
+    g2_blend = Path(arg("--g2-blend", "")).resolve()
+    g2_manifest = Path(arg("--g2-manifest", "")).resolve()
+    pitch = float(arg("--pitch", "26"))
+    hero_px = int(arg("--hero-px", "128"))
+    if not g2_blend.exists() or not g2_manifest.exists():
+        raise RuntimeError("G2 artifacts missing")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    HumanService, mpfb_root = mpfb_class("services.humanservice","HumanService")
-    TargetService, _ = mpfb_class("services.targetservice","TargetService")
+    HumanService, mpfb_root = mpfb_class("services.humanservice", "HumanService")
+    TargetService, _ = mpfb_class("services.targetservice", "TargetService")
 
-    meta=json.loads(g2_manifest.read_text(encoding="utf-8-sig"))
-    samples=meta.get("samples",[])
-    if len(samples)<10: raise RuntimeError("G2 manifest has too few samples")
-    frames=[int(samples[i]["frame"]) for i in (0,3,6,9)]
+    meta = json.loads(g2_manifest.read_text(encoding="utf-8-sig"))
+    samples = meta.get("samples", [])
+    if len(samples) < 10:
+        raise RuntimeError("G2 manifest has too few samples")
+    frames = [int(samples[i]["frame"]) for i in (0, 3, 6, 9)]
 
     bpy.ops.wm.open_mainfile(filepath=str(g2_blend))
-    scene=bpy.context.scene
-    source=bpy.data.objects.get("G2_CANONICAL_RIG")
-    if source is None or source.type!="ARMATURE" or not source.animation_data or not source.animation_data.action:
+    scene = bpy.context.scene
+    source = bpy.data.objects.get("G2_CANONICAL_RIG")
+    if source is None or source.type != "ARMATURE" or not source.animation_data or not source.animation_data.action:
         raise RuntimeError("G2 canonical animated rig missing")
 
     for obj in list(scene.objects):
-        if obj.type in {"MESH","CAMERA","LIGHT"}: obj.hide_render=True
-    source.hide_render=True
+        if obj.type in {"MESH", "CAMERA", "LIGHT"}:
+            obj.hide_render = True
+    source.hide_render = True
 
-    macro=TargetService.get_default_macro_info_dict()
-    macro.update({"gender":1.0,"age":0.48,"muscle":0.40,"weight":0.36,"proportions":0.56,"height":0.52,"cupsize":0.42,"firmness":0.55})
-    body=HumanService.create_human(mask_helpers=True,detailed_helpers=True,extra_vertex_groups=True,feet_on_ground=True,scale=0.1,macro_detail_dict=macro)
-    body.name="G3V_BODY"
-    for p in body.data.polygons: p.use_smooth=False
-    add_material(body,PALETTES["skin"][2],"G3V_SKIN")
-    tag_semantic(body,"skin")
-    body.hide_render=False
+    render_collection = ensure_render_collection(scene)
 
-    rig=HumanService.add_builtin_rig(body,"cmu_mb",import_weights=True)
-    if rig is None: raise RuntimeError("MPFB cmu_mb rig creation failed")
-    rig.name="G3V_CMU_RIG"
-    required=["Hips","Spine1","Neck1","Head","LeftArm","LeftForeArm","LeftHand","RightArm","RightForeArm","RightHand","LeftUpLeg","LeftLeg","LeftFoot","RightUpLeg","RightLeg","RightFoot"]
-    missing=[b for b in required if rig.pose.bones.get(b) is None]
-    if missing: raise RuntimeError("MPFB cmu_mb missing bones: "+", ".join(missing))
+    macro = TargetService.get_default_macro_info_dict()
+    macro.update({"gender": 1.0, "age": 0.48, "muscle": 0.40, "weight": 0.36, "proportions": 0.56, "height": 0.52, "cupsize": 0.42, "firmness": 0.55})
+    body = HumanService.create_human(mask_helpers=True, detailed_helpers=True, extra_vertex_groups=True, feet_on_ground=True, scale=0.1, macro_detail_dict=macro)
+    body.name = "G3V_BODY"
+    for p in body.data.polygons:
+        p.use_smooth = False
+    add_material(body, PALETTES["skin"][2], "G3V_SKIN")
+    tag_semantic(body, "skin")
+    body.hide_render = False
+    move_to_collection(body, render_collection)
 
-    matching=[]
+    rig = HumanService.add_builtin_rig(body, "cmu_mb", import_weights=True)
+    if rig is None:
+        raise RuntimeError("MPFB cmu_mb rig creation failed")
+    rig.name = "G3V_CMU_RIG"
+    rig.hide_render = True
+    move_to_collection(rig, render_collection)
+
+    required = [
+        "Hips", "Spine1", "Neck1", "Head",
+        "LeftArm", "LeftForeArm", "LeftHand", "RightArm", "RightForeArm", "RightHand",
+        "LeftUpLeg", "LeftLeg", "LeftFoot", "RightUpLeg", "RightLeg", "RightFoot",
+    ]
+    missing = [b for b in required if rig.pose.bones.get(b) is None]
+    if missing:
+        raise RuntimeError("MPFB cmu_mb missing bones: " + ", ".join(missing))
+
+    matching = []
     for pb in rig.pose.bones:
-        spb=source.pose.bones.get(pb.name)
+        spb = source.pose.bones.get(pb.name)
         if spb:
-            pb.rotation_mode=spb.rotation_mode; matching.append(pb.name)
-    rig.animation_data_create(); rig.animation_data.action=source.animation_data.action.copy(); rig.animation_data.action.name="G3V_CMU_NORMALWALK"
-    rig.location=source.location.copy(); rig.rotation_euler=source.rotation_euler.copy(); rig.scale=source.scale.copy()
+            pb.rotation_mode = spb.rotation_mode
+            matching.append(pb.name)
+    rig.animation_data_create()
+    rig.animation_data.action = source.animation_data.action.copy()
+    rig.animation_data.action.name = "G3V_CMU_NORMALWALK"
+    rig.location = source.location.copy()
+    rig.rotation_euler = source.rotation_euler.copy()
+    rig.scale = source.scale.copy()
 
-    scene.frame_set(frames[0]); bpy.context.view_layer.update()
-    lo,hi=bbox_world([body]); h=max(0.5,hi.z-lo.z)
-    head=bone_world(rig,"Head",True); neck=bone_world(rig,"Neck1"); spine=bone_world(rig,"Spine1"); hips=bone_world(rig,"Hips")
+    scene.frame_set(frames[0])
+    bpy.context.view_layer.update()
+    lo, hi = bbox_world([body])
+    h = max(0.5, hi.z - lo.z)
+    head = bone_world(rig, "Head", True)
+    neck = bone_world(rig, "Neck1")
+    spine = bone_world(rig, "Spine1")
+    hips = bone_world(rig, "Hips")
 
-    extras=[]
-    extras.append(add_uv_ellipsoid("G3V_HAIR_UPPER",(head+neck)*0.5,(h*0.105,h*0.060,h*0.18),"hair",rig,"Head"))
-    extras.append(add_uv_ellipsoid("G3V_HAIR_MID",(neck+spine)*0.5+Vector((0,h*0.045,-h*0.06)),(h*0.115,h*0.055,h*0.22),"hair",rig,"Neck1"))
-    extras.append(add_uv_ellipsoid("G3V_HAIR_LOWER",(spine+hips)*0.5+Vector((0,h*0.055,-h*0.05)),(h*0.12,h*0.050,h*0.24),"hair",rig,"Spine1"))
-    chest=(bone_world(rig,"Spine1")+bone_world(rig,"Neck1"))*0.5
-    extras.append(add_box("G3V_CLOTH_WRAP",chest,(h*0.105,h*0.055,h*0.10),"cloth",rig,"Spine1",(0.0,0.0,math.radians(-7))))
-    extras.append(add_box("G3V_CLOTH_WAIST",hips+Vector((0,-h*0.015,-h*0.03)),(h*0.11,h*0.06,h*0.045),"cloth",rig,"Hips"))
-    extras.append(add_box("G3V_CLOTH_DRAPE",hips+Vector((h*0.045,-h*0.02,-h*0.18)),(h*0.07,h*0.045,h*0.18),"cloth",rig,"Hips",(0.0,math.radians(-8),math.radians(-8))))
-    for side,bone in (("L","LeftHand"),("R","RightHand")):
-        extras.append(add_shackle("G3V_WRIST_"+side,bone_world(rig,bone),h*0.035,"metal",rig,bone))
-    for side,bone in (("L","LeftFoot"),("R","RightFoot")):
-        extras.append(add_shackle("G3V_ANKLE_"+side,bone_world(rig,bone),h*0.040,"metal",rig,bone))
+    extras = []
+    extras.append(add_uv_ellipsoid("G3V_HAIR_UPPER", (head + neck) * 0.5, (h * 0.105, h * 0.060, h * 0.18), "hair", rig, "Head"))
+    extras.append(add_uv_ellipsoid("G3V_HAIR_MID", (neck + spine) * 0.5 + Vector((0, h * 0.045, -h * 0.06)), (h * 0.115, h * 0.055, h * 0.22), "hair", rig, "Neck1"))
+    extras.append(add_uv_ellipsoid("G3V_HAIR_LOWER", (spine + hips) * 0.5 + Vector((0, h * 0.055, -h * 0.05)), (h * 0.12, h * 0.050, h * 0.24), "hair", rig, "Spine1"))
+    chest = (bone_world(rig, "Spine1") + bone_world(rig, "Neck1")) * 0.5
+    extras.append(add_box("G3V_CLOTH_WRAP", chest, (h * 0.105, h * 0.055, h * 0.10), "cloth", rig, "Spine1", (0.0, 0.0, math.radians(-7))))
+    extras.append(add_box("G3V_CLOTH_WAIST", hips + Vector((0, -h * 0.015, -h * 0.03)), (h * 0.11, h * 0.06, h * 0.045), "cloth", rig, "Hips"))
+    extras.append(add_box("G3V_CLOTH_DRAPE", hips + Vector((h * 0.045, -h * 0.02, -h * 0.18)), (h * 0.07, h * 0.045, h * 0.18), "cloth", rig, "Hips", (0.0, math.radians(-8), math.radians(-8))))
+    for side, bone in (("L", "LeftHand"), ("R", "RightHand")):
+        extras.append(add_shackle("G3V_WRIST_" + side, bone_world(rig, bone), h * 0.035, "metal", rig, bone))
+    for side, bone in (("L", "LeftFoot"), ("R", "RightFoot")):
+        extras.append(add_shackle("G3V_ANKLE_" + side, bone_world(rig, bone), h * 0.040, "metal", rig, bone))
 
-    semantic_objects=[body]+extras
-    for o in semantic_objects: o.hide_render=False
+    semantic_objects = [body] + extras
+    for o in extras:
+        o.hide_render = False
+        move_to_collection(o, render_collection)
+    for o in semantic_objects:
+        o.hide_render = False
 
     for obj in list(scene.objects):
-        if obj.type=="CAMERA": bpy.data.objects.remove(obj,do_unlink=True)
-    bpy.ops.object.camera_add(); camera=bpy.context.object; camera.name="G3V_CAMERA"; camera.data.type="ORTHO"; scene.camera=camera
+        if obj.type == "CAMERA":
+            bpy.data.objects.remove(obj, do_unlink=True)
+    bpy.ops.object.camera_add()
+    camera = bpy.context.object
+    camera.name = "G3V_CAMERA"
+    camera.data.type = "ORTHO"
+    camera.data.clip_start = 0.01
+    camera.data.clip_end = 1000.0
+    scene.camera = camera
+    move_to_collection(camera, render_collection)
 
-    scene.render.engine="BLENDER_WORKBENCH"
-    scene.render.resolution_x=640; scene.render.resolution_y=360; scene.render.resolution_percentage=100
-    scene.render.image_settings.file_format="PNG"; scene.render.film_transparent=False
-    scene.display.shading.show_shadows=False; scene.display.shading.show_cavity=False; scene.display.shading.show_specular_highlight=False
-    scene.display.shading.background_type="VIEWPORT"; scene.display.shading.background_color=BACKGROUND
-    try: scene.display.render_aa="OFF"
-    except Exception: pass
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.render.resolution_x = 640
+    scene.render.resolution_y = 360
+    scene.render.resolution_percentage = 100
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGBA"
+    scene.render.film_transparent = False
     try:
-        scene.view_settings.view_transform="Standard"; scene.view_settings.look="None"; scene.view_settings.exposure=0.0; scene.view_settings.gamma=1.0
-    except Exception: pass
+        scene.view_settings.view_transform = "Standard"
+        scene.view_settings.look = "None"
+        scene.view_settings.exposure = 0.0
+        scene.view_settings.gamma = 1.0
+    except Exception:
+        pass
 
-    scene.frame_set(frames[0]); bpy.context.view_layer.update(); lo,hi=bbox_world(semantic_objects); target=(lo+hi)*0.5
-    configure_camera(camera,pitch,target); calibrate_camera(scene,camera,semantic_objects,hero_px); locked_ortho=camera.data.ortho_scale
+    bpy.ops.object.light_add(type="SUN", location=(0.0, -4.0, 6.0))
+    sun = bpy.context.object
+    sun.name = "G3V_KEY_SUN"
+    sun.rotation_euler = (math.radians(35), 0.0, math.radians(-35))
+    sun.data.energy = 3.0
+    move_to_collection(sun, render_collection)
 
-    records=[]
+    id_materials = {sem: make_emission_material("G3V_ID_" + sem.upper(), color) for sem, color in ID_COLORS.items()}
+    neutral_material = make_diffuse_material("G3V_NEUTRAL", (0.62, 0.62, 0.62))
+
+    scene.frame_set(frames[0])
+    bpy.context.view_layer.update()
+    lo, hi = bbox_world(semantic_objects)
+    target = (lo + hi) * 0.5
+    configure_camera(camera, pitch, target)
+    calibrate_camera(scene, camera, semantic_objects, hero_px)
+    locked_ortho = camera.data.ortho_scale
+
+    records = []
     for frame in frames:
-        scene.frame_set(frame); bpy.context.view_layer.update(); lo,hi=bbox_world(semantic_objects); target=(lo+hi)*0.5
-        configure_camera(camera,pitch,target); camera.data.ortho_scale=locked_ortho
-        idp=output_dir/f"g3v_id_f{frame:04d}.png"; lightp=output_dir/f"g3v_light_f{frame:04d}.png"
-        render_pass(scene,idp,semantic_objects,"id"); render_pass(scene,lightp,semantic_objects,"light")
-        records.append({"frame":frame,"id_pass":str(idp),"light_pass":str(lightp)})
+        scene.frame_set(frame)
+        bpy.context.view_layer.update()
+        lo, hi = bbox_world(semantic_objects)
+        target = (lo + hi) * 0.5
+        configure_camera(camera, pitch, target)
+        camera.data.ortho_scale = locked_ortho
+        idp = output_dir / f"g3v_id_f{frame:04d}.png"
+        lightp = output_dir / f"g3v_light_f{frame:04d}.png"
+        render_pass(scene, idp, semantic_objects, "id", id_materials, neutral_material)
+        stats = id_foreground_stats(idp)
+        if stats["foreground_pixels"] < 200:
+            raise RuntimeError(f"G3V ID pass frame {frame} contains too little foreground: {stats}")
+        if not (80 <= stats["bbox_height_px"] <= 180):
+            raise RuntimeError(f"G3V ID pass frame {frame} has implausible visible height: {stats['bbox_height_px']} px; stats={stats}")
+        render_pass(scene, lightp, semantic_objects, "light", id_materials, neutral_material)
+        records.append({"frame": frame, "id_pass": str(idp), "light_pass": str(lightp), "foreground_stats": stats})
 
-    cuts,outputs=build_visible_outputs(records,output_dir)
-    blend=output_dir/"g3v_representative_proxy.blend"; bpy.ops.wm.save_as_mainfile(filepath=str(blend))
-    manifest={
-        "gate":"G3V","status":"REVIEW_REQUIRED","mpfb_module_root":mpfb_root,
-        "baseline":{"native_raster":[640,360],"camera_pitch_deg":pitch,"hero_px":hero_px,"ortho_scale":locked_ortho},
-        "macro":macro,"rig":"cmu_mb","matching_motion_bones":len(matching),"required_bones_missing":missing,
-        "source_frames":frames,"semantic_objects":[{"name":o.name,"semantic":o["g3v_semantic"]} for o in semantic_objects],
-        "luminance_cuts":cuts,"outputs":outputs,"debug_passes":records,"blend":str(blend),
-        "review_rule":"Judge whether representative continuous female geometry plus persistent hair/cloth/metal can survive deterministic native-grid translation. If this still reads only as generic 3D pixelization, reject hidden-3D as the direct visible-art generator before Exilada production modeling."
+    cuts, outputs = build_visible_outputs(records, output_dir)
+    blend = output_dir / "g3v_representative_proxy.blend"
+    bpy.ops.wm.save_as_mainfile(filepath=str(blend))
+    manifest = {
+        "gate": "G3V",
+        "status": "REVIEW_REQUIRED",
+        "mpfb_module_root": mpfb_root,
+        "baseline": {"native_raster": [640, 360], "camera_pitch_deg": pitch, "hero_px": hero_px, "ortho_scale": locked_ortho},
+        "macro": macro,
+        "rig": "cmu_mb",
+        "matching_motion_bones": len(matching),
+        "required_bones_missing": missing,
+        "source_frames": frames,
+        "semantic_objects": [{"name": o.name, "semantic": o["g3v_semantic"]} for o in semantic_objects],
+        "luminance_cuts": cuts,
+        "outputs": outputs,
+        "debug_passes": records,
+        "blend": str(blend),
+        "renderer": "BLENDER_EEVEE explicit emission ID pass + neutral lit pass",
+        "review_rule": "Judge whether representative continuous female geometry plus persistent hair/cloth/metal can survive deterministic native-grid translation. If this still reads only as generic 3D pixelization, reject hidden-3D as the direct visible-art generator before Exilada production modeling.",
     }
-    mp=output_dir/"g3v_manifest.json"; mp.write_text(json.dumps(manifest,indent=2),encoding="utf-8")
+    mp = output_dir / "g3v_manifest.json"
+    mp.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print("G3V_REPRESENTATIVE_PROXY=REVIEW_REQUIRED")
-    print("G3V_MPFB_ROOT="+mpfb_root)
-    print("G3V_MATCHING_MOTION_BONES="+str(len(matching)))
-    print("G3V_FRAMES="+",".join(map(str,frames)))
-    print("G3V_MANIFEST="+str(mp))
+    print("G3V_MPFB_ROOT=" + mpfb_root)
+    print("G3V_MATCHING_MOTION_BONES=" + str(len(matching)))
+    print("G3V_FRAMES=" + ",".join(map(str, frames)))
+    print("G3V_MANIFEST=" + str(mp))
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
