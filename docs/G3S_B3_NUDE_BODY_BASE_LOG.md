@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **B3-A V1 FAIL/CLOSED — V2 CORRECTED FEMALE GUIDE READY TO RUN / B3-B BLOCKED UNTIL V2 GUIDE REVIEW**
+Gate status: **B3-A V1 FAIL/CLOSED — V2 CORRECTED ADULT-FEMALE GUIDE READY TO RUN / B3-B BLOCKED UNTIL V2 GUIDE REVIEW**
 
 ## Why this gate exists
 
@@ -151,14 +151,17 @@ This is a **revision failure, not a route/model rejection**. MPFB `2.0.17`, the 
 
 ### B3-A V2 correction — READY TO RUN
 
-V2 keeps the same bounded structural route but adds explicit phenotype invariants:
+V2 keeps the same bounded structural route but now asserts both sex phenotype and adult life stage from the **resolved installed MPFB target stack**, rather than trusting numeric macro conventions alone:
 
 - MPFB macro `gender = 0.0`;
+- MPFB macro `age = 0.52`, intentionally on the adult `young -> old` side of the MPFB age boundary;
 - resolved macro stack must contain at least one `female` target;
 - resolved macro stack must contain zero `male` targets;
-- manifest records `phenotype_audit`;
-- runner refuses to continue unless revision is `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`, resolved gender is `female`, female target count is at least `1`, and male target count is `0`;
-- contact sheet surfaces the phenotype audit explicitly.
+- resolved macro stack must contain at least one adult (`young` or `old`) target;
+- resolved macro stack must contain zero minor (`baby` or `child`) targets;
+- manifest records the complete `phenotype_audit`;
+- runner refuses to continue unless revision is `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`, resolved gender is `female`, resolved life stage is `adult`, female/adult target counts are at least `1`, and male/minor target counts are `0`;
+- contact sheet surfaces the phenotype/life-stage audit explicitly.
 
 B3-B remains blocked until this corrected V2 contact sheet is reviewed.
 
@@ -175,7 +178,7 @@ No animation begins until B3-B passes.
 ### B3-A structural review
 
 1. one complete **adult female** human body with one head/torso, two arms/hands and two legs/feet;
-2. explicit MPFB phenotype audit resolves `female`, with at least one female macro target and zero male macro targets;
+2. explicit MPFB phenotype audit resolves `female` and `adult`, with at least one female target, at least one adult target, zero male targets and zero minor targets;
 3. no hair object/layer;
 4. no clothing/binding object/layer;
 5. no cuffs, shackles or chain objects;
