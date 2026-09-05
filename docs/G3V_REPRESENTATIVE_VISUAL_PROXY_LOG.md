@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V2. DO NOT RERUN BODY RENDER.**
+Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V3. DO NOT RERUN BODY RENDER.**
 
 ## Locked upstream baseline
 
@@ -29,14 +29,9 @@ Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V2. DO NOT RERUN BODY RENDE
 
 The first coherent body sheet showed one frozen pose across all four frames. Raw per-frame `matrix_basis` copying then produced visibly distinct phases, but later poses collapsed around pelvis/legs/trunk.
 
-That means:
+That isolated the blocker to **retargeting between incompatible rest spaces**.
 
-- source mocap is not the blocker;
-- frame selection is not the blocker;
-- MPFB rendering/weights exist;
-- the blocker is **retargeting between incompatible rest spaces**.
-
-Two shortcuts are therefore rejected:
+Rejected shortcuts:
 
 1. copying the source Blender `Action` onto MPFB;
 2. copying source `matrix_basis` directly into MPFB.
@@ -51,35 +46,39 @@ Runner:
 
 `tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
 
-V1 measured zero parent mismatches but very large rest-orientation differences:
+Locked rest-rig facts:
 
-- mean: `83.1874 deg`;
-- max: `180.0289 deg`.
+- required parent mismatches: `0`;
+- mean rest-orientation delta: `83.1874 deg`;
+- max rest-orientation delta: `180.0289 deg`.
 
-Its local-axis fallback failed with:
+V1 local-axis transfer failed.
 
-- mean joint-angle error: `25.0101 deg`;
-- max angle error: `43.6810 deg`;
-- endpoint RMS: `0.27541` body heights.
+V2 then proved an important distinction:
 
-V1 is closed.
+- `DIRECTION_SPACE_FK` reproduced elbow/knee articulation essentially exactly: mean `0.0000 deg`, max `0.0001 deg`, 4 unique poses;
+- MPFB's pose API remained much worse: mean `25.4032 deg`, max `44.3890 deg`;
+- V2 still failed because the old endpoint metric compared motion relative to each rig's incompatible rest pose.
 
-V2 now tests:
+That endpoint metric is invalid under an ~83 deg mean rest-orientation mismatch and is now closed.
 
-- context-correct MPFB pose API in actual Pose Mode;
-- `DIRECTION_SPACE_FK`, which matches posed bone directions in world/target armature space while keeping MPFB hierarchy, bone lengths, weights and roll convention.
+## G3V-R V3 — CURRENT
 
-The canonical `03d` command is unchanged; bootstrap automatically routes to V2.
+V3 keeps the successful axis-independent `DIRECTION_SPACE_FK` solver and replaces only the invalid endpoint test with a rest-independent chain-shape metric:
 
-## G3V resume condition
+`CHAIN_UNIT_DIRECTION_RMS`
 
-Do not return to the body render until G3V-R:
+It compares normalized posed direction chains for torso, arms and legs, so target bone lengths/proportions remain owned by MPFB instead of being falsely penalized against the source rest skeleton.
 
-1. passes numeric thresholds;
-2. produces a source-vs-target skeleton sheet;
-3. visually preserves gait phase, topology, knees/elbows and left/right alternation without collapse.
+No quality threshold was relaxed merely to obtain PASS.
 
-Only then replace the old motion binding and rerun G3V.
+G3V resumes only after V3:
+
+1. passes numeric articulation/chain-shape validation;
+2. produces source-vs-target skeleton contact sheet;
+3. is visually confirmed to preserve gait phase, left/right alternation and topology without collapse.
+
+Only then is the old G3V motion binding replaced and the body/pixel contact sheet rerun.
 
 ## G3V final kill switch
 
