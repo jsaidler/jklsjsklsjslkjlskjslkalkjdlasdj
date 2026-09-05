@@ -46,11 +46,11 @@ Canonical design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth in the initial equipped state, scars/wounds, captivity history, bare feet, canonical base weaponless.
+Adult woman, approximately 162 cm, lean/functional/resilient anatomy, olive-brown skin, severe mature face, very long heavy black hair, degraded beige cloth in the initial equipped state, scars/wounds, captivity history, bare feet, canonical base weaponless.
 
 The master defines design/identity, not hidden-body pixels and not final gameplay pixels.
 
-### Body-first clarification — LOCKED 2026-09-05
+### Body-first rule — LOCKED
 
 The production character owns a **complete nude adult body base independent of hair, clothing and restraints**.
 
@@ -62,17 +62,11 @@ The production character owns a **complete nude adult body base independent of h
 - nudity is a normal supported state, produced by omitting garment/equipment layers rather than generating a separate nude sprite;
 - the composite master cannot be used to recover hidden anatomy by subtraction.
 
-### Erotic charge — LOCKED 2026-09-05
+### Erotic charge — LOCKED
 
 The project does **not** impose blanket desexualization of adult bodies or nudity.
 
-Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell are explicit visual references, and their sensual/erotic adult-body vocabulary is considered part of the intended mature direction.
-
-- adult nudity may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent;
-- the Exilada may remain beautiful/sexually charged while also severe, dangerous, dirty, wounded, exhausted or deprived;
-- erotic charge is allowed but not mandatory in every scene;
-- no censor garment or anti-erotic framing is structurally required;
-- framing must be intentional rather than automatically sanitized or automatically sexualized.
+Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references. Adult nudity may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent. No censor garment or anti-erotic framing is structurally required.
 
 Canonical detail is in `docs/VISUAL_DIRECTION.md` and `docs/CHARACTERS.md`.
 
@@ -101,7 +95,7 @@ Preserve small evidence outputs and shared runtimes still used elsewhere.
 
 `camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> complete 2D body base -> separate hair -> separate clothing/equipment/accessories -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
-Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers. It does **not** own final visible character color pixels.
+Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers. It does **not** own final visible character RGB pixels.
 
 ## Canonical character layer stack — LOCKED
 
@@ -125,7 +119,7 @@ The body must exist under removable/damageable clothing and under hair. Hair and
 - G3 first native translation — TECHNICAL PASS / LOOK NOT APPROVED
 - G3R primitive renderer refinement — FAIL/CLOSED
 - G3V representative continuous human visual proxy — FAIL/CLOSED
-  - G3V-R retarget preflight — PASS/CLOSED
+  - G3V-R retarget preflight — PASS/CLOSED using `DIRECTION_SPACE_FK`
 - **G3S structured 2D visible representation** ← ACTIVE
   - G3S-A source-model search — CLOSED
   - authored native source V1 — FAIL/CLOSED
@@ -133,11 +127,11 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
   - G3S-B2 layer-stack preflight — **PASS/CLOSED DIAGNOSTIC**
   - **G3S-B3 complete nude body base** ← CURRENT
-    - G3S-B3A V1 deterministic nude anatomy guide — **FAIL/CLOSED REVISION: wrong MPFB phenotype polarity**
-    - **G3S-B3A V2 corrected adult-female anatomy guide** ← READY TO RUN
-    - G3S-B3B native `128×128` body source — BLOCKED UNTIL B3A V2 REVIEW
-  - G3S-B4 hair asset — BLOCKED UNTIL B3
-  - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3
+    - G3S-B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity
+    - G3S-B3A V2 corrected adult-female anatomy guide — **PASS/CLOSED**
+    - **G3S-B3B native `128×128` nude body source V1** ← ACTIVE / READY TO RUN
+  - G3S-B4 hair asset — BLOCKED UNTIL B3B PASS
+  - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
 - G5 temporal stress pack
@@ -165,9 +159,7 @@ Real motion source: CMU `105_34 NormalWalk`, 120 fps. Major-limb topology, left/
 
 ### G3V-R — PASS
 
-Accepted retarget: **`DIRECTION_SPACE_FK`**.
-
-Measured facts: `0` parent mismatches; mean rest-orientation difference `83.1874 deg`, max `180.0289 deg`; 4 unique target poses; mean elbow/knee error `0.0000 deg`, max `0.0001 deg`; rest-independent chain-shape metric passed; source/target skeleton comparison visually passed.
+Accepted retarget: **`DIRECTION_SPACE_FK`**. Retarget error on representative elbow/knee chain-shape metrics is effectively zero; source/target comparison visually passed.
 
 Marker:
 
@@ -193,30 +185,7 @@ SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-## G3S-A / A1 — face state
-
-The provisional 128×128 scaffold has acceptable macro body readability but its face is unresolved.
-
-V1 mouth patch was unreadable. V2 stronger mouth patch became an artificial block. The face remains a replaceable future component rather than blocking all architecture work.
-
-Markers:
-
-- `tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
-- `tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
-
-## G3S-B V1 — FAIL/CLOSED
-
-The V1 decomposition technically passed exact reconstruction, but visual review showed semantic ownership was wrong: body/limb parts retained garment/binding pixels, hair masks retained non-hair pixels, and the body did not exist independently underneath hair/clothing.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_b_v1_failure.json`
-
-Critical lesson: **pixel-exact reconstruction does not validate semantic ownership.**
-
 ## G3S-B2 — PASS/CLOSED DIAGNOSTIC
-
-B2 correctly proved the body-under-occluders problem rather than trying to fake the missing body.
 
 Measured:
 
@@ -233,10 +202,6 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b2_approval.json`
 
-Canonical log:
-
-`docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
-
 ## G3S-B3 Nude Body Base — CURRENT
 
 Canonical log:
@@ -250,52 +215,61 @@ Required production order:
 3. separate clothing/bindings/restraints/chains;
 4. layered motion proof.
 
-Nudity is a normal runtime state: the body base is always complete and garments/equipment are simply absent.
-
-B3 must not recover hidden anatomy by subtracting hair/clothing.
-
 ### B3-A V1 — FAIL/CLOSED REVISION
 
-The submitted B3A V1 output passed the intended layer/scale mechanics: complete geometry, `128 px` visible height, zero hair/clothing/restraint/chain objects, and guide-only art authority.
-
-It nevertheless failed the required adult-female criterion because the script set MPFB `gender = 1.0`. The pinned MPFB semantics used by this route define `0.0 = female` and `1.0 = male`, so V1 instantiated the wrong phenotype.
+V1 passed complete-geometry/layer/scale mechanics but used `MPFB gender = 1.0`, which resolves male in the pinned MPFB semantics. This was a script revision error, not a route/model rejection.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
 
-This is a revision failure only. MPFB `2.0.17` and the B3A structural route remain active; no model is discarded and no cleanup command applies.
+No cleanup command applies; MPFB `2.0.17` remains active structural infrastructure.
 
-### B3-A V2 — ready
+### B3-A V2 — PASS/CLOSED
 
-V2 corrects `gender = 0.0` and adds a resolved target-stack phenotype audit. PASS machinery now requires:
+The corrected contact sheet and phenotype audit pass B3-A structurally:
 
 - revision `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`;
 - resolved gender `female`;
-- at least one female macro target;
-- zero male macro targets;
+- resolved life stage `adult`;
+- female targets `21`, male targets `0`;
+- adult targets `21`, minor targets `0`;
 - complete body geometry;
-- zero hair, clothing, restraint and chain objects;
-- locked G1 scale/camera reference.
+- zero hair/clothing/restraint/chain objects;
+- visible height `128 px`;
+- locked `26 deg` pitch / `8 deg` guide yaw;
+- guide-only art authority.
 
-The contact sheet now exposes the phenotype audit instead of relying on the numeric macro value alone.
+Approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
+
+B3-A is closed. Do not treat the MPFB render as final body art.
+
+### B3-B — ACTIVE
+
+B3-B owns final visible body RGB pixels and now has a bounded deterministic V1 authoring route.
+
+The route:
+
+- consumes only the approved B3-A structural mask/joints as guides;
+- preserves 1:1 gameplay pixel scale into a native `128×128` asset;
+- does not transfer B3-A lit RGB/shading;
+- authors an explicit native skin palette and pixel clusters for silhouette/value/anatomical readability;
+- owns zero hair/clothing/binding/restraint/chain pixels;
+- outputs source, mask, gameplay preview, manifest and contact sheet;
+- requires visual review at native 1× before any downstream layer work.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_b3_mpfb_bootstrap.py`
-- `tools/structured-2d-character-pipeline/g3s_b3a_nude_anatomy_guide.py`
-- `tools/structured-2d-character-pipeline/g3s_b3a_contact_sheet.py`
-- `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`
+- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
 
 Output:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
 
-### B3-B — blocked
-
-After B3-A V2 structural review, author the actual native `128×128` nude body-base pixel source. Only B3-B can pass visible body art.
-
-No hair, clothing or animation starts before B3-B passes.
+No hair, clothing or animation starts before B3-B visually passes.
 
 ## Exact next action — ONLY THIS
 
@@ -303,22 +277,16 @@ No hair, clothing or animation starts before B3-B passes.
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\11_run_g3s_b3a_nude_anatomy_guide.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_native_body_source.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
 
 or the complete console error if the runner fails.
 
-Do not run G3S-C.
-
-## Next-chat handoff
-
-Canonical continuation prompt/state:
-
-`docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+Do not run G3S-B4/B5/C yet.
 
 ## Workspaces
 
