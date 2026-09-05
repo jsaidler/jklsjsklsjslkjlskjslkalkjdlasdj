@@ -2,13 +2,13 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B3B GENUINE NATIVE 2D BODY SOURCE METHOD NEXT**
+Gate status: **ACTIVE — G3S-B3B V2 AUTHORED NATIVE 2D BODY SOURCE READY FOR REVIEW**
 
 ## Locked architecture
 
 `real motion -> validated hidden rig -> projected joints/depth/sockets/guides -> persistent 2D pixel assets -> deterministic 2D transform/deformation -> depth-aware composition -> native sprite -> QA`
 
-Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB or final sprite silhouette.
+Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB, alpha or final sprite silhouette.
 
 ## Visible-ownership invariant — LOCKED
 
@@ -19,7 +19,7 @@ Therefore:
 - 3D may guide anatomy, motion, topology, sockets, contacts, depth and occlusion;
 - 3D may not be mechanically promoted into final visible sprite geometry;
 - a 3D render or mask is not a sprite template;
-- cropping/recoloring/quantizing a projected 3D mask or render is still a 3D-owned visible route;
+- cropping/recoloring/quantizing a projected 3D mask or render remains a 3D-owned visible route;
 - final character pixels are owned by persistent structured 2D assets;
 - runtime/export uses sprites.
 
@@ -39,72 +39,11 @@ Therefore:
 
 Whenever a model/route is declared **FAIL/CLOSED/REJECTED** and no longer required, the same response must include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved; small evidence outputs remain unless explicitly removed.
 
-### Current closed-model cleanup commands
-
-```powershell
-# Alucard
-Remove-Item -LiteralPath "Z:\AI\AlucardSpike" -Recurse -Force -ErrorAction SilentlyContinue
-
-# PixelLock
-Remove-Item -LiteralPath "Z:\AI\PixelLockSpike" -Recurse -Force -ErrorAction SilentlyContinue
-
-# SD1.5 native re-author
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.safetensors" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\loras\pixel-art-sd15.safetensors" -Force -ErrorAction SilentlyContinue
-
-# Qwen weights — fixed control retained; shared embedded Python runtime remains
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\unet\Qwen-Image-Edit-2509-Q4_0.gguf" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\vae\qwen_image_vae.safetensors" -Force -ErrorAction SilentlyContinue
-```
-
-## Closed source-model search
-
-Qwen native, SD1.5, PixelLock and Alucard were bounded source experiments. None produced an acceptable native production sprite. Do not reopen local model hunting.
-
-The coherent Qwen preferred-resolution control remains design/scaffold provenance only:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
-
-SHA256:
-
-`ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
-
-## G3S-A / A1 history
-
-- authored native V1 — FAIL/CLOSED: mouth not visually readable;
-- Facial/Anatomy Lock V2 — FAIL/CLOSED: mouth became an artificial block;
-- macro source retained only as provisional design/scale evidence;
-- head/face remains a replaceable asset problem rather than a reason to redraw the whole character.
-
-## G3S-B V1 — FAIL/CLOSED
-
-The first persistent-part decomposition was pixel-lossless but architecturally wrong. It carved body/hair/clothing pieces directly from a composite source, so production ownership was contaminated.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b_v1_failure.json`
-
-## G3S-B2 — PASS/CLOSED DIAGNOSTIC
-
-Measured facts:
-
-- exact recomposition: PASS;
-- source opaque pixels: `2974`;
-- visible body pixels: `1538`;
-- hair pixels: `826`;
-- clothing pixels: `610`;
-- hidden/unknown body pixels: `1205`.
-
-Conclusion: **the complete body cannot be recovered by subtracting hair/clothing from the master.**
-
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b2_approval.json`
+Closed direct sprite-model routes remain Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen model hunting.
 
 # Correct staged character build — LOCKED
 
-1. **G3S-B3 — complete nude body base**
+1. **G3S-B3 — complete body base**
    - adult female body;
    - hairless;
    - no clothing/bindings;
@@ -140,26 +79,18 @@ Runtime composition:
 
 `complete body base + optional hair + body-state overlays + zero or more garment/equipment/accessory layers`
 
-Consequences:
+The body remains complete beneath every removable layer. No censor garment is structurally required. Presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent.
 
-- no censor garment is structurally required;
-- no hidden body reconstruction is allowed when clothing is removed/damaged;
-- chest and pelvic anatomy must be coherent at native gameplay scale;
-- presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent;
-- body wounds/scars/blood/wetness remain attached to body regions;
-- sever/dismemberment operates on the same complete body while clothing/equipment inherits or detaches by state rules.
+# G3S-B3 — Body Base — CURRENT
 
-# G3S-B3 — Nude Body Base — CURRENT
+Canonical logs:
 
-Canonical log:
-
-`docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-
-The master/Qwen composite is reference only. B3 creates a dedicated body asset rather than removing hair/clothes from a composite.
+- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+- `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
 
 ## G3S-B3A V1 — FAIL/CLOSED REVISION
 
-The first guide run used the wrong MPFB gender polarity. This was a revision failure only.
+The first guide run used the wrong MPFB gender polarity. This was a script revision failure only.
 
 Failure marker:
 
@@ -167,17 +98,7 @@ Failure marker:
 
 ## G3S-B3A V2 — PASS/CLOSED
 
-The corrected V2 guide passes structural review:
-
-- resolved gender `female`;
-- resolved life stage `adult`;
-- female targets `21`, male targets `0`;
-- adult targets `21`, minor targets `0`;
-- complete body geometry;
-- zero hair/clothing/restraint/chain objects;
-- visible height `128 px`;
-- locked G1 camera/scale;
-- guide-only art authority.
+The corrected V2 structural guide validates adult-female anatomy, complete body geometry, zero forbidden layer objects and the locked `128 px` gameplay scale.
 
 Approval marker:
 
@@ -187,38 +108,51 @@ B3A is closed. Its RGB, mask and projected silhouette are reference/guide data o
 
 ## G3S-B3B V1 — FAIL/CLOSED ROUTE
 
-The first B3B implementation copied the B3A binary projected mask directly into final native alpha/silhouette and procedurally colored that shape.
-
-This was rejected because it still made hidden 3D the final visible silhouette owner and revived procedural mannequin-style authoring.
+V1 copied the B3A projected binary mask into the final native alpha/silhouette and procedurally colored it. It was rejected because hidden 3D still owned the visible silhouette.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-The invalid V1 script and runner were removed from `main` before user execution.
+The invalid V1 runner/script were removed before user execution. No model cleanup command applies.
 
-No model was downloaded/discarded by this route correction, so no model cleanup command applies.
+## G3S-B3B V2 — READY FOR REVIEW
 
-## G3S-B3B — CURRENT
+V2 commits the actual visible body source as an independently authored native 2D asset:
 
-B3B must produce a genuinely authored native `128×128` 2D body sprite source.
+`assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png`
 
-B3A may guide:
+SHA256:
 
-- anatomy;
-- proportions;
-- joints/topology;
-- scale/camera;
-- sanity checks.
+`0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53`
 
-B3A may not own:
+The asset itself owns:
 
-- final alpha;
-- final silhouette;
-- final RGB;
-- final pixel clusters/edge treatment.
+- visible RGB;
+- alpha;
+- silhouette;
+- pixel clusters/value structure.
 
-The approved 2D body source must itself own those decisions. Only after that source passes may hidden rig data be used to animate/deform persistent 2D parts.
+B3A rendered output is not loaded or sampled by the validator. It remains an already-passed structural reference only.
+
+Current source facts:
+
+- native `128×128`;
+- visible height `128 px`;
+- bbox `[17, 0, 120, 127]`;
+- 8 opaque palette colors;
+- binary alpha;
+- zero hair/clothing/binding/restraint/chain ownership.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_b3b_body_base_source_v2.json`
+- `tools/structured-2d-character-pipeline/g3s_b3b_validate_authored_body_v2.py`
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_authored_body_v2.ps1`
+
+Technical ownership is correct, but **visual PASS is not automatic**. The source must be reviewed at native 1× for anatomy, Exilada-compatible proportions, hands/feet, chest/pelvis and intentional modern pixel-art language.
+
+If V2 fails visually, revise the committed 2D asset directly. Do not return to 3D-mask authoring and do not reopen source-model search.
 
 # G3S-B4 — Hair
 
@@ -234,6 +168,15 @@ Blocked until B3/B4/B5 are structurally correct.
 
 ## Exact next action
 
-**No B3B runner is approved. Do not run one yet.**
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-First define the corrected native-2D B3B authoring method and verify that it preserves sprite ownership instead of mechanically promoting 3D guide pixels into final art.
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_authored_body_v2.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_authored_body_v2\g3s_b3b_contact_sheet_v2.png`
+
+or the complete console error.
