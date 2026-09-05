@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN AFTER CONFIRMED OCCLUSION + PHASE-SAMPLING FIXES.**
+Current status: **READY TO RERUN AFTER CONFIRMED BONE-PARENT SCALE FIX.**
 
 ## Why this gate exists
 
@@ -30,6 +30,7 @@ G3V asks:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_bone_attachment_patch.py`
 - `tools/deterministic-character-pipeline/g3v_geometry_phase_patch.py`
 - `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
@@ -42,17 +43,7 @@ The user performs no Blender/MPFB GUI work.
 
 ## MPFB dependency — locked loading mode
 
-G3V pins **MPFB 2.0.17**. The runner:
-
-1. queries the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
-2. downloads only when the verified cached copy is absent;
-3. verifies the advertised SHA256;
-4. extracts the pinned archive to the project dependency workspace;
-5. locates the MPFB Python package root;
-6. starts **one** Blender background process;
-7. bootstraps the MPFB service layer directly from the verified package, bypassing extension repository/add-on preference state;
-8. redirects MPFB writable paths to the project workspace;
-9. loads and executes the G3V target in the same Blender process.
+G3V pins **MPFB 2.0.17** and loads it directly from the verified archive in one background Blender process. Blender extension repository/add-on preference state is not part of the production path.
 
 Validated archive SHA256:
 
@@ -78,80 +69,66 @@ Frame `1563` initially reported only 143 recognized pixels, all cloth. Camera pr
 
 ### 6 — first classifier patch was bound to the wrong `runpy` namespace
 
-`runpy.run_path()` returned a dictionary separate from the globals actually referenced by target functions. The fix binds runtime patches directly through `target_main.__globals__` and asserts that binding before execution.
+`runpy.run_path()` returned a dictionary separate from the globals actually referenced by target functions. Runtime patches now bind through `target_main.__globals__`.
 
-### 7 — bound classifier proves a real visible-layer problem
+### 7 — correctly bound classifier proved a real visible-layer problem
 
-A correctly bound run produced frame `1563`:
+A bound run produced frame `1563` with substantial foreground but `skin=0` and `metal=0`, proving the remaining problem was not stale classification.
 
-`{'foreground_pixels': 10148, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 667, 'cloth': 9481, 'metal': 0}}`
+### 8 — binary masks isolated true occlusion
 
-This proved that substantial representative geometry really rendered and that skin/metal absence was not a stale classifier artifact.
-
-### 8 — binary masks isolate the exact blocker
-
-The binary occlusion-aware rerun completed all four sampled frames and reported identical per-frame values:
+The binary mask run reported:
 
 - skin: `visible=0`, `unoccluded=507`;
 - hair: `visible=709`;
 - cloth: `visible=9679`;
 - metal: `visible=0`, `unoccluded=75`.
 
-Sequence totals:
+Therefore skin and metal existed and rendered, but were fully occluded by representative geometry.
 
-`skin:0, hair:2836, cloth:38716, metal:0`
+### 9 — old four-frame subset aliased the gait cycle
 
-Therefore:
+Frames `1563, 1612, 1661, 1710` repeatedly landed on the same gait phase. G3V now derives a gait period from G2 contact metadata and samples quarter-cycle phases. G2's full 12-frame motion/topology approval remains valid; G3/G3R do not independently prove four-phase temporal diversity.
 
-- the MPFB body exists, is on camera and renders when isolated;
-- the shackles exist, are on camera and render when isolated;
-- **skin and metal are genuinely fully occluded by other representative geometry in the current proxy**;
-- cloth occupies almost the entire visible proxy, which is structurally wrong for the intended minimal-cloth character;
-- this is now a geometry/proportion/placement problem, not a material, classifier or render-engine problem.
+### 10 — skeleton calibration exposed Blender bone-parent scale inflation
 
-### 9 — the four G3V review frames were not four gait phases
+After switching to contact-derived phases and skeleton-based scale/camera, the next run produced:
 
-The same run exposed another correctness problem: frames `1563, 1612, 1661, 1710` are exactly 49 frames apart and produced byte-level-equivalent semantic counts. G3V inherited G3's fixed selection of G2 sample indices `(0,3,6,9)`. G2 itself sampled 12 evenly spaced frames across a 1.5 s / 120 fps real-motion window, so taking every third sample can alias the gait period and repeatedly hit the same phase.
+- `G3V_DERIVED_GAIT_PERIOD_FRAMES=80.000`;
+- `G3V_PHASE_FRAMES=1568,1588,1608,1628`;
+- `G3V_BODY_GEOMETRY_HEIGHT=1.713562`;
+- `G3V_SKELETON_HEIGHT=1.647693`;
+- camera calibration from skeleton head-to-foot;
+- but composite visible height **285 px**;
+- skin: `visible=0`, `unoccluded=2314`;
+- hair: `visible=3426`;
+- cloth: `visible=47692`;
+- metal: `visible=0`, `unoccluded=501`.
 
-This does **not** invalidate G2, whose full 12-sample sequence was reviewed and remains the approved real-motion/topology gate. It does mean G3/G3R/G3V must not claim temporal phase diversity from the old four-frame subset.
+The body and skeleton physical heights are sane and close to each other, while cloth occupied almost the entire 206×285 px visible bbox. At a 128 px skeleton height, the authored cloth dimensions should occupy only a small fraction of that area. This identifies the remaining blocker as **transform inflation from Blender BONE parenting of the proxy attachments**, not camera scale or MPFB body scale.
 
-G3V now derives one real gait period from the G2 left/right foot-contact metadata and chooses four quarter-cycle frames from that measured period. It refuses to fall back to guessed fixed indices if contact-derived phase selection cannot be established.
+Current fix: `g3v_bone_attachment_patch.py` replaces Blender bone parenting for representative hair/cloth/cuffs with explicit rigid bone-relative matrices:
 
-## Geometry / scale correction — CURRENT
+1. capture each proxy object's world matrix at creation;
+2. capture the owning pose bone's world translation+rotation only;
+3. store the object's relative transform to that rigid bone frame;
+4. keep the proxy object unparented;
+5. after every frame change, reconstruct `object_world = rigid_bone_world × relative`;
+6. deliberately ignore parent/bone scale inheritance.
 
-`g3v_geometry_phase_patch.py` now binds three corrections before rendering:
+This keeps physical proxy dimensions fixed while preserving deterministic attachment to animated bones. The patch installs **before** the geometry-phase shackle replacement so all representative attachments use the same safe transform owner.
 
-1. **Skeleton-derived representative scale**
-   - representative hair/cloth dimensions are based on the measured CMU-compatible head-to-foot skeleton height rather than the MPFB basemesh/helper bbox;
-   - stdout reports `G3V_BODY_GEOMETRY_HEIGHT` and `G3V_SKELETON_HEIGHT` for comparison.
+Expected markers:
 
-2. **Skeleton-calibrated camera**
-   - the locked `128 px` reference height is calibrated from head-to-feet skeleton projection;
-   - oversized accessories can no longer shrink the actual body merely by dominating the combined bbox;
-   - stdout reports `G3V_CAMERA_CALIBRATION=SKELETON_HEAD_FOOT`.
-
-3. **Surface-visible oriented shackles**
-   - wrist/ankle torus axes are aligned to the actual forearm/shin direction;
-   - cuff radius is enlarged modestly beyond the previous embedded joint radius so the metal layer has a legitimate chance to be visible at 128 px;
-   - stdout reports `G3V_SHACKLES=ORIENTED_OVERSURFACE_CUFFS`.
+- `G3V_ATTACHMENT_MODE=RIGID_RELATIVE_MATRIX`
+- `G3V_ATTACHMENT_SCALE_INHERITANCE=DISABLED`
+- `G3V_GEOMETRY_SCALE=SKELETON_DERIVED`
+- `G3V_PHASE_SELECTION=CONTACT_DERIVED_QUARTER_CYCLE`
+- `G3V_CAMERA_CALIBRATION=SKELETON_HEAD_FOOT`
 
 ## Binary semantic-mask mode
 
-`g3v_semantic_masks.py` renders four independent binary masks per sampled frame:
-
-- skin: target white, all other representative geometry black;
-- hair: target white, all other representative geometry black;
-- cloth: target white, all other representative geometry black;
-- metal: target white, all other representative geometry black.
-
-Black non-target geometry remains renderable, so normal depth/occlusion is preserved. The four masks are composited in Python into the canonical semantic-ID image.
-
-For any semantic with zero visible pixels, G3V immediately renders an additional unoccluded diagnostic mask:
-
-- `visible=0, unoccluded>0` => target exists/renders but is fully occluded;
-- `visible=0, unoccluded=0` => target itself does not render or is offscreen.
-
-Semantic completeness is validated across the sampled sequence rather than requiring every small attachment to occupy a pixel in every single phase.
+`g3v_semantic_masks.py` renders four independent binary masks per sampled frame with non-target geometry still present as black occluders. If a semantic has zero visible pixels, an additional unoccluded mask distinguishes true occlusion from offscreen/non-renderable geometry.
 
 ## Representative body / rig
 
