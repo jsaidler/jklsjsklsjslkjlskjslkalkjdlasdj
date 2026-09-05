@@ -109,7 +109,7 @@ $logDir = Join-Path $g0Dir 'logs'
 New-Item -ItemType Directory -Force -Path $g0Dir, $logDir | Out-Null
 
 # Remove only known G0 outputs so each run proves a fresh headless render.
-@('g0_probe.png', 'g0_probe.blend', 'g0_manifest.json') | ForEach-Object {
+@('g0_probe.png', 'g0_probe.blend', 'g0_manifest.json', 'g0_result.json') | ForEach-Object {
     $p = Join-Path $g0Dir $_
     if (Test-Path $p) { Remove-Item $p -Force }
 }
@@ -119,16 +119,21 @@ $stderr = Join-Path $logDir 'blender_stderr.log'
 Remove-Item $stdout, $stderr -Force -ErrorAction SilentlyContinue
 
 Write-Host '[RUN] Starting Blender in background/factory mode...' -ForegroundColor Cyan
-$args = @(
+$blenderArgs = @(
     '--background',
     '--factory-startup',
-    '--python', $probeScript,
+    '--python',
+    $probeScript,
     '--',
-    '--output-dir', $g0Dir
+    '--output-dir',
+    $g0Dir
 )
 
-$proc = Start-Process -FilePath $blender -ArgumentList $args -Wait -PassThru -NoNewWindow `
-    -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+# Do NOT use Start-Process -ArgumentList here. Windows PowerShell joins that array
+# into one command-line string and can split paths containing spaces. The call
+# operator with argument-array splatting preserves each path as one native argument.
+& $blender @blenderArgs 1> $stdout 2> $stderr
+$blenderExitCode = $LASTEXITCODE
 
 Get-Content $stdout -ErrorAction SilentlyContinue | Out-Host
 if (Test-Path $stderr) {
@@ -136,8 +141,8 @@ if (Test-Path $stderr) {
     if ($errText) { Write-Host $errText -ForegroundColor DarkYellow }
 }
 
-if ($proc.ExitCode -ne 0) {
-    Fail "Blender headless process exited with code $($proc.ExitCode). See $stdout and $stderr"
+if ($blenderExitCode -ne 0) {
+    Fail "Blender headless process exited with code $blenderExitCode. See $stdout and $stderr"
 }
 
 $png = Join-Path $g0Dir 'g0_probe.png'
