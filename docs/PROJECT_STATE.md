@@ -22,7 +22,8 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 14. `docs/G3_PIXEL_TRANSLATION_LOG.md`
 15. `docs/G3R_RENDERER_REFINEMENT_LOG.md`
 16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
-17. current tooling under `tools/deterministic-character-pipeline/`
+17. `docs/G3V_RETARGET_PREFLIGHT_LOG.md`
+18. current tooling under `tools/deterministic-character-pipeline/`
 
 After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -49,10 +50,12 @@ The master defines identity/design, not final gameplay pixels.
 - high-resolution beauty render followed by generic shrink/pixel filter: **REJECTED as final-art route**.
 - routine manual frame-by-frame repainting: **REJECTED as production burden**.
 - repeated outline/cluster/palette refinement on a primitive mannequin: **REJECTED after G3R**.
+- raw Blender `Action` copy between G2 and MPFB rigs: **REJECTED as retarget method**.
+- raw per-frame `matrix_basis` copy between G2 and MPFB rigs: **REJECTED as retarget method** because later gait phases visibly collapse under rest-space mismatch.
 
 ## Active deterministic architecture
 
-`gameplay camera/scale -> real motion -> deterministic rig/topology -> representative visual asset -> native semantic passes -> pixel-specific visible representation -> modular equipment/state composition -> sprite/runtime export -> automated QA`
+`gameplay camera/scale -> real motion -> deterministic rig/topology -> validated retarget -> representative visual asset -> native semantic passes -> pixel-specific visible representation -> modular equipment/state composition -> sprite/runtime export -> automated QA`
 
 Hard operator constraint:
 
@@ -73,6 +76,7 @@ Canonical operator pattern:
 - **G3 — first pixel translation feasibility**
 - **G3R — renderer-only refinement on primitive proxy**
 - **G3V — representative continuous human visual proxy**
+  - **G3V-R — retarget preflight** ← active sub-gate
 - **G4 — Exilada identity mapping**
 - **G5 — temporal stress pack**
 - **G6 — equipment/attachments**
@@ -115,11 +119,11 @@ Accepted scope:
 
 Canonical marker: `tools/deterministic-character-pipeline/g2_approval.json`.
 
-Arbitrary cross-skeleton retargeting and production foot-lock cleanup are not generally solved yet.
+Arbitrary cross-skeleton retargeting and production foot-lock cleanup were explicitly not solved by G2.
 
 ## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
 
-Deterministic native-grid translation works, but primitive proxy output remained a technical mannequin / low-detail 3D. The old four-frame G3 subset can alias gait phases; G2's 12-frame sequence remains the authoritative temporal evidence.
+Deterministic native-grid translation works, but primitive proxy output remained a technical mannequin / low-detail 3D. G2's 12-frame sequence remains the authoritative existing temporal evidence.
 
 ## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
 
@@ -127,89 +131,65 @@ Renderer-only changes could not invent authored human form, silhouette or identi
 
 Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
-## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / MOTION-BINDING RERUN REQUIRED
+## G3V — REPRESENTATIVE VISUAL PROXY: PAUSED AT RETARGET SUB-GATE
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
-
-Current tooling:
-
-- `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
-- `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
-- `tools/deterministic-character-pipeline/g3v_bone_attachment_patch.py`
-- `tools/deterministic-character-pipeline/g3v_geometry_phase_patch.py`
-- `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
-- `tools/deterministic-character-pipeline/g3v_motion_binding_patch.py`
-- `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
 ### Proven G3V infrastructure
 
 - pinned MPFB 2.0.17 loads directly in one Blender background process;
-- continuous female body and `cmu_mb` weighted rig are created;
+- continuous female body and weighted `cmu_mb` rig are created;
 - representative long hair / degraded cloth / wrist+ankle restraints render;
-- accessory scale inheritance has been removed through rigid relative transforms and local-scale bake;
+- accessory scale inheritance is controlled through rigid relative transforms and local-scale bake;
 - binary semantic masks provide skin/hair/cloth/metal ownership diagnostics;
-- gait phase selection derives from G2 contacts;
-- current quarter-cycle frames: `1568,1588,1608,1628`;
+- contact-derived gait period is `80` frames at 120 fps;
+- quarter-cycle frames are `1568,1588,1608,1628`;
 - camera remains under the locked G1 presentation.
 
-### First coherent contact sheet — important result but NOT VALID FOR PASS
+### Latest visual result — movement appears, deformation is wrong
 
-The first visually coherent G3V contact sheet finally shows a human rather than blank/exploded proxy geometry. Skin, long dark hair, cloth and restraints are legible and the native 4-band row is visually inspectable.
+The newest G3V sheet is no longer frozen: all four phases are visibly distinct. However later phases show severe target-body collapse, especially around pelvis/legs/trunk.
 
-However, quantitative review of the uploaded sheet found that the character area in all four columns is **byte-identical** for both rows. Frames `1568,1588,1608,1628` therefore display the same pose even though the frame selection itself is distinct.
-
-Consequence:
-
-**G3V remains technically invalid.** It cannot yet prove weighted deformation, gait, temporal continuity or attachment stability. Do not lock an aesthetic PASS/FAIL conclusion from this sheet and do not start G4.
-
-### Current blocker — MPFB target rig is frozen
-
-Boundary is now clear:
+This changes the diagnosis:
 
 - G2 source motion remains valid;
-- G3V phase selection is valid;
-- visible representative asset is valid enough for testing;
-- failure lies in motion transfer from `G2_CANONICAL_RIG` to `G3V_CMU_RIG`.
+- frame selection is valid;
+- MPFB body/weights render;
+- direct target animation is invalid because source and target rest spaces are not interchangeable.
 
-Copying the source Blender `Action` onto the MPFB rig is no longer trusted as motion authority.
+The old `matrix_basis` transfer is therefore rejected. Do not continue patching renderer, body, hair, cloth or pixel translation around a broken retarget.
 
-### Current fix — explicit per-frame motion binding
+## G3V-R — RETARGET PREFLIGHT: ACTIVE / READY TO RUN
 
-`g3v_motion_binding_patch.py` now:
+Canonical log:
 
-1. verifies required CMU bones on source and target rigs;
-2. verifies `G3V_BODY` has an Armature modifier bound to `G3V_CMU_RIG`;
-3. disables the MPFB target Action;
-4. before bbox/render, copies matching source pose-bone `matrix_basis` values from `G2_CANONICAL_RIG` into `G3V_CMU_RIG` for the current frame;
-5. updates Blender dependency graph;
-6. records target pose signatures;
-7. rejects review unless there are at least 3 unique target poses;
-8. rejects review unless there are at least 3 unique rendered skin masks.
+`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
 
-Expected markers:
+Tooling:
 
-- `G3V_MOTION_BINDING_MODE=EXPLICIT_PER_FRAME`
-- `G3V_MOTION_BINDING=EXPLICIT_MATRIX_BASIS_FROM_G2`
-- `G3V_TARGET_ACTION=DISABLED`
-- `G3V_BODY_ARMATURE_MODIFIER=PASS`
-- `G3V_MOTION_POSE_FRAME_...=BOUND`
-- `G3V_MOTION_UNIQUE_POSES=...`
-- `G3V_MOTION_UNIQUE_SKIN_MASKS=...`
-- `G3V_MOTION_DIVERSITY_AUDIT=PASS`
+- `tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
+- `tools/deterministic-character-pipeline/g3v_retarget_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_retarget_preflight.py`
 
-A new contact sheet cannot reach `REVIEW REQUIRED` while still containing four identical body poses.
+Purpose:
 
-### G3V visual kill switch after motion is valid
+- compare source/target hierarchy, rest orientation and proportions;
+- derive the same four real gait phases from G2 contacts;
+- evaluate MPFB's documented pose API and an explicit rest-compensated FK method in one deterministic run;
+- score joint-angle fidelity, endpoint-motion residual and pose diversity;
+- choose the objectively better method;
+- render source-vs-target skeleton contact sheet only after numeric PASS.
 
-Review order:
+Numeric preflight thresholds:
 
-1. topology integrity;
-2. actual motion/grounding;
-3. body proportions and deformation;
-4. attachment stability;
-5. visible representation / pixel-art headroom.
+- >= 3 distinct target poses;
+- mean elbow/knee absolute error <= 15 deg;
+- max elbow/knee error <= 35 deg;
+- normalized endpoint-motion RMS <= 0.18 body heights.
 
-If a technically valid representative human still reads only as conventional 3D made blocky, hidden 3D is rejected as owner of the final visible character while remaining the motion/topology/socket/physics backbone.
+Expected review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
 
 ### Exact next action — DO ONLY THIS
 
@@ -217,14 +197,17 @@ If a technically valid representative human still reads only as conventional 3D 
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03d_run_g3v_retarget_preflight.ps1"
 ```
 
-Then STOP. If it reaches `G3V: REVIEW REQUIRED`, share the new `g3v_contact_sheet.png`. If it fails, share the full console output. Do not run G4.
+Then STOP. If it reaches `G3V RETARGET PREFLIGHT: REVIEW REQUIRED`, share `g3v_retarget_contact_sheet.png`. If it fails, share the full console output.
+
+Do **not** rerun `03c_run_g3v.ps1` and do not start G4 until G3V-R passes.
 
 ## Workspace state
 
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
 - paused Qwen spike: `Z:\AI\QwenImageEditSpike`
 - active deterministic character pipeline: `Z:\AI\RogueliteCharacterPipeline`
+- retarget preflight workspace: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
