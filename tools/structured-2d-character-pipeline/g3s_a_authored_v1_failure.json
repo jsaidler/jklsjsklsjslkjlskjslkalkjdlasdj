@@ -1,0 +1,16 @@
+{
+  "gate": "G3S-A-AUTHORED-NATIVE-V1",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "reason": "The V1 deterministic patch wrote mouth-colored pixels, but the mouth still did not read visually at native scale. The previous guard only checked alpha presence, so it produced a false technical pass for facial anatomy.",
+  "visual_review": {
+    "source": "g3s_a_authored_contact_sheet.png",
+    "macro_silhouette": "acceptable",
+    "gameplay_scale": "acceptable",
+    "facial_microanatomy": "fail",
+    "mouth": "not visually readable",
+    "operator_feedback": "anatomical details are production-critical"
+  },
+  "lesson": "Facial/anatomical details require semantic readability checks and explicit nearest-neighbor diagnostic zooms; mere opaque-pixel existence is insufficient.",
+  "next_gate": "G3S-A1-FACIAL-ANATOMY-LOCK"
+}
