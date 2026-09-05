@@ -1,100 +1,135 @@
-# G3V Representative Visual Proxy — Gate Plan
+# G3V Representative Visual Proxy — Execution Log
 
 Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **PLANNED / IMPLEMENTATION NEXT.**
+Current status: **READY TO RUN.**
 
-## Purpose
+## Why this gate exists
 
-G3V exists because G3/G3R proved that renderer tuning on a primitive capsule/mannequin cannot answer the production-art question. The next test must introduce enough real authored form to make visual judgement meaningful without yet investing in the finished Exilada.
+G3/G3R proved that renderer tuning on a primitive capsule/mannequin cannot answer the production-art question. Post-processing cannot invent human form, authored silhouette, long-hair structure, clothing structure or identity-bearing shape absent from the source geometry.
 
-Question to answer:
+G3R is therefore canonically **FAIL / CLOSED**. Marker:
 
-**Can a coherent continuous human asset with representative silhouette/material structure, driven by the approved deterministic motion backbone, produce a convincing native-grid pixel result through a fully headless pipeline?**
+`tools/deterministic-character-pipeline/g3r_failure.json`
 
-## Locked upstream facts
+G3V tests the real visible hypothesis before any finished Exilada model is built:
+
+**Can a coherent continuous adult female human asset with representative hair/cloth/metal structure, driven by the approved real motion backbone, survive deterministic native-grid pixel translation convincingly enough to justify Exilada identity mapping?**
+
+## Locked upstream baseline
 
 - G0 headless automation: PASS;
-- G1 camera/scale: PASS — `640×360`, orthographic pitch `26 deg`, protagonist reference height `128 px`;
-- G2 real motion/topology: PASS — CMU `105_34 NormalWalk`;
-- G3 native translation: technical PASS only; visible look not approved;
-- G3R renderer-only refinement: FAIL / CLOSED.
+- G1: `640×360`, orthographic pitch `26 deg`, protagonist reference height `128 px`;
+- G2: CMU `105_34 NormalWalk`, deterministic persistent motion/topology PASS;
+- G3: technical native-raster translation PASS, look not approved;
+- G3R: renderer-only mannequin refinement FAIL.
 
-## Representative asset strategy
+## Tooling
 
-Preferred first candidate: **MakeHuman/MPFB 2.x core human system**.
+- `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
+- `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
-Reasons for testing it:
+Workspace:
 
-- continuous human basemesh rather than capsule segments;
-- scriptable human creation in Blender;
-- scriptable built-in rig creation/weight loading;
-- parameterized macro body attributes suitable for a lean adult female proxy;
-- core asset licensing compatible with project use;
-- Blender 5.1.1 is above MPFB2's minimum Blender requirement.
+`Z:\AI\RogueliteCharacterPipeline\g3v`
 
-The project will not assume MPFB is production-approved until headless creation, rigging and reuse actually pass locally.
+The user performs no Blender/MPFB GUI work.
 
-## Minimal G3V character
+## MPFB dependency
 
-This is not the final Exilada model. It must contain only enough structure to test the real visual hypothesis:
+G3V pins **MPFB 2.0.17**.
 
-1. continuous lean adult female body mesh;
-2. deformation rig and weights;
-3. large long dark hair mass as persistent geometry;
-4. one simple asymmetric degraded cloth piece;
-5. wrist and ankle restraint/metal markers on named sides;
-6. bare feet;
-7. simple material IDs: skin / hair / cloth / metal;
-8. stable body-part and attachment metadata.
+The PowerShell runner:
 
-No scars, gore, detailed garments, weapons, facial likeness or production-grade hair are required yet.
+1. queries the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
+2. downloads the official extension archive;
+3. verifies the SHA256 advertised by the Blender Extensions API;
+4. creates a dedicated Blender extension repository `roguelite_g3v` under the project workspace;
+5. installs/enables MPFB through Blender's command-line extension system;
+6. records archive URL/hash in `g3v_result.json`.
 
-## Motion integration
+The runner refuses silently substituting a newer MPFB version.
 
-G3V must reuse the already approved real walk basis. The first implementation may use one of two headless-safe methods:
+## Representative body / rig
 
-A. retarget the approved CMU walk to the representative human rig; or
-B. if the MPFB rig is deliberately made compatible with the canonical motion skeleton, bake equivalent transforms through an explicit scripted bone map.
+The script uses MPFB's public service API headlessly:
 
-Whichever route is chosen must be reproducible and may not require GUI retargeting.
+- `HumanService.create_human(...)` for a continuous basemesh;
+- `TargetService.get_default_macro_info_dict()` for macro body parameters;
+- `HumanService.add_builtin_rig(..., "cmu_mb")` for MPFB's built-in CMU MotionBuilder-compatible weighted rig.
 
-## Visual outputs
+The representative body is deliberately not the finished Exilada. Initial macro values create an adult female, relatively lean/resilient proxy. The exact macro dictionary is written to the manifest.
 
-At minimum:
+The `cmu_mb` rig is important because its naming/topology is designed for the same MotionBuilder-friendly CMU motion family already validated in G2. G3V copies the approved G2 action onto this compatible weighted human rig and verifies required major bone names before rendering.
 
-- one representative still at native `640×360` / `26 deg` / ~`128 px` character height;
-- four walk phases from the same asset;
-- flat semantic/debug render;
-- deterministic pixel-render result using material-aware palette bands and contour rules;
-- silhouette/mask diagnostics;
-- contact sheet at native review scale;
-- manifest with source/license/provenance, body parameters, rig mapping, renderer configuration and output hashes.
+## Representative identity-bearing structures
 
-## PASS criteria
+G3V adds only enough deterministic structure to make visual judgement meaningful:
 
-G3V can PASS only if all are true:
+- continuous female human body;
+- long dark hair represented by three persistent overlapping geometry masses attached to head/neck/spine bones;
+- simple asymmetric degraded-beige chest/waist/drape masses;
+- separate wrist and ankle metal shackles attached to named left/right bones;
+- bare body feet from the continuous human mesh;
+- semantic IDs for skin / hair / cloth / metal.
 
-1. human anatomy/silhouette reads as a coherent person rather than a technical mannequin;
-2. the representative hair/cloth/restraint masses remain structurally stable;
-3. the result at native 1× has a credible path toward intentional modern pixel art;
-4. the image is not merely a conventional 3D render made blocky by reduction;
-5. motion deformation remains coherent across sampled walk phases;
-6. the complete build/rig/motion/render process is headless and reproducible;
-7. the result contains enough visual headroom to justify beginning actual Exilada identity mapping.
+These are not production assets. They are a visual kill-switch proxy.
 
-## FAIL / kill switch
+## Visual translation test
 
-If a materially richer continuous human asset still reads as filtered/low-resolution 3D, the project stops trying to make hidden 3D own the final visible character image.
+Four approved real-walk frames are rendered at the locked `640×360 / 26 deg / 128 px` presentation.
 
-In that case:
+For each frame Blender creates two machine-readable passes:
 
-- retain hidden 3D for motion, topology, sockets, physics reference and semantic guides;
-- move the final visible character to a structured 2D representation driven by those deterministic guides;
-- do not spend time building a detailed Exilada 3D production model first.
+1. **semantic ID pass** — exact skin/hair/cloth/metal ownership;
+2. **neutral light pass** — deterministic Workbench lighting with no semantic color information.
 
-## Operator constraint
+The visible outputs are then constructed at the same native raster:
 
-The user must not install/configure/operate MPFB or Blender manually as a normal requirement. Tooling must own dependency acquisition/configuration and execute through one documented PowerShell command once the gate implementation is ready.
+### A — representative continuous geometry
+
+Semantic body/hair/cloth/metal structure displayed with fixed material colors. This row exists to judge whether the actual representative source structure is coherent.
+
+### B — native semantic 4-band pixel
+
+Semantic ownership comes from the ID pass; lighting value comes from the neutral light pass. A global set of four luminance bands is computed across all four sampled frames and mapped into material-specific pixel palettes.
+
+No high-resolution beauty render is shrunk. No bilinear scaling, diffusion, generative repainting or manual frame repaint is used.
+
+## Output / review artifact
+
+Expected contact sheet:
+
+`Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
+
+Layout:
+
+- 4 columns = four approved real walk phases;
+- top row = representative continuous geometry;
+- bottom row = native semantic 4-band pixel result.
+
+Other outputs:
+
+- `g3v_representative_proxy.blend`;
+- `g3v_manifest.json`;
+- `g3v_result.json`;
+- semantic ID/light debug passes;
+- SHA256 hashes for visible outputs and dependency provenance.
+
+## PASS / FAIL
+
+G3V can PASS only if:
+
+1. anatomy/silhouette reads as a coherent human rather than a primitive technical mannequin;
+2. real weighted deformation remains coherent across walk phases;
+3. hair/cloth/shackle side ownership remains structurally stable;
+4. the native-grid result has a credible path toward intentional modern pixel art;
+5. it does not merely read as a conventional 3D character made blocky;
+6. the entire dependency/body/rig/motion/render process runs headlessly;
+7. there is enough visual headroom to justify building the Exilada identity proxy next.
+
+If the representative continuous human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character. It remains useful for motion/topology/sockets/physics, and final character art moves to a structured 2D representation.
+
+G4 remains blocked until G3V is visually reviewed.
