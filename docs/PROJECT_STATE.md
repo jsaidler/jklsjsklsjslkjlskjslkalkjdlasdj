@@ -20,7 +20,8 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 12. `docs/G1_CAMERA_SCALE_LOG.md`
 13. `docs/G2_MOTION_TOPOLOGY_LOG.md`
 14. `docs/G3_PIXEL_TRANSLATION_LOG.md`
-15. current tooling under `tools/deterministic-character-pipeline/`
+15. `docs/G3R_RENDERER_REFINEMENT_LOG.md`
+16. current tooling under `tools/deterministic-character-pipeline/`
 
 After every material step: update the relevant thematic document(s) + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -85,7 +86,8 @@ Already architected in canonical thematic docs:
 - **G0 — automation**
 - **G1 — camera/native scale**
 - **G2 — real motion/topology**
-- **G3 — pixel translation**
+- **G3 — first pixel translation feasibility**
+- **G3R — renderer/style refinement**
 - **G4 — Exilada identity mapping**
 - **G5 — temporal stress pack**
 - **G6 — equipment/attachments**
@@ -117,18 +119,11 @@ Detailed log:
 
 ## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
 
-Corrected 3×3 matrix was visually reviewed after dependency-graph calibration hardening.
-
 Locked baseline:
 
 - native gameplay raster: **`640×360`**;
 - orthographic camera pitch: **`26 deg`**;
 - protagonist reference visible height: **`128 px`**.
-
-Reference alternatives retained only for later reconsideration if required:
-
-- `34 deg / 128 px` for more ground depth;
-- `26 deg / 144 px` if final identity readability proves insufficient at 128 px.
 
 Canonical baseline file:
 
@@ -164,34 +159,56 @@ Detailed log:
 
 `docs/G2_MOTION_TOPOLOGY_LOG.md`
 
-## G3 — NATIVE PIXEL TRANSLATION: ACTIVE / READY TO RUN
+## G3 — NATIVE PIXEL TRANSLATION: PASS TECHNICAL / LOOK NOT APPROVED
 
-This is the current gate and the key early visual kill switch.
-
-Tooling:
-
-- `tools/deterministic-character-pipeline/03_run_g3.ps1`
-- `tools/deterministic-character-pipeline/g3_pixel_translation.py`
-
-G3 consumes the successful local G2 `.blend` and manifest and renders a generic stylized semantic humanoid across four real walk phases using three deterministic strategies:
-
-1. **A — native flat semantic:** 640×360 direct flat semantic control;
-2. **B — palette-banded semantic:** 640×360 material-specific three-band skin/cloth/hair/metal renderer;
-3. **C — palette-banded 2× cluster:** same semantic palette logic at 320×180, displayed at 640×360 strictly with nearest-neighbor scaling to test deliberate coarser cluster density.
-
-Hard rule: no diffusion, no beauty-render shrink, no bilinear filtering, no Exilada production model and no manual repaint.
-
-G3 PASS requires at least one non-control method to read as a credible foundation for intentional modern pixel art rather than merely low-resolution 3D.
-
-Expected review artifact:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3\g3_contact_sheet.png`
 
-Do not start G4 until G3 is visually reviewed and explicitly recorded PASS.
+Findings:
+
+- deterministic hidden-3D motion/topology can become a stable native-grid sprite;
+- semantic skin/cloth/hair/metal regions remain controllable;
+- method B (`palette_banded`) is the strongest first technical baseline;
+- method C proves a coarser cluster experiment but is not production-ready;
+- none of A/B/C is approved as the final visible language because the proxy still reads as a technical mannequin / processed low-detail 3D.
+
+Canonical decision marker:
+
+`tools/deterministic-character-pipeline/g3_technical_approval.json`
+
+G4 remains blocked.
 
 Detailed log:
 
 `docs/G3_PIXEL_TRANSLATION_LOG.md`
+
+## G3R — RENDERER / STYLE REFINEMENT: ACTIVE / READY TO RUN
+
+Tooling:
+
+- `tools/deterministic-character-pipeline/03b_run_g3r.ps1`
+- `tools/deterministic-character-pipeline/g3r_renderer_refinement.py`
+
+Purpose: refine the visible deterministic pixel language before any Exilada production geometry is built.
+
+The same four approved real-walk frames are compared through:
+
+1. **D — outlined 4-band:** four discrete material bands + deterministic 1 px exterior outline;
+2. **E — edge-preserving cluster:** D plus 2×2 majority clustering only inside the silhouette, preserving native edge pixels;
+3. **F — selective contour cluster:** E plus directional lower/right silhouette darkening to test a less-uniform sprite contour.
+
+Automated diagnostics include foreground pixel count, character bbox, tiny-island count and per-output hashes.
+
+G3R PASS requires at least one method to be credible as the production rendering foundation at actual 1× gameplay scale. If all three still read as processed technical 3D, G4 must not start and the visible representation strategy changes while the proven motion/topology backbone may remain.
+
+Expected review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3r\g3r_contact_sheet.png`
+
+Detailed log:
+
+`docs/G3R_RENDERER_REFINEMENT_LOG.md`
 
 ## Workspace state
 
