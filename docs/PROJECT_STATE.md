@@ -17,7 +17,8 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 9. `docs/PIXEL_ART_PRODUCTION.md`
 10. `docs/ANIMATION_PIPELINE.md`
 11. `docs/G0_AUTOMATION_LOG.md`
-12. current tooling under `tools/deterministic-character-pipeline/`
+12. `docs/G1_CAMERA_SCALE_LOG.md`
+13. current tooling under `tools/deterministic-character-pipeline/`
 
 After every material step: update the relevant thematic document(s) + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -141,15 +142,13 @@ Validated PNG SHA256:
 
 `bb8c938d6fe64a84de264a7c01824b1dabad27f3abd307485f706553b0d19d53`
 
-The successful run emitted benign Blender 5.1 deprecation warnings to stderr, which Windows PowerShell 5.1 displayed as `NativeCommandError` records even though Blender completed and G0 passed. The launcher has since been hardened to use `Start-Process` with one explicitly quoted argument string and redirected logs, eliminating that parent-shell noise without reintroducing the old path-with-spaces bug.
-
 Detailed incident history:
 
 `docs/G0_AUTOMATION_LOG.md`
 
 **No G0 rerun is required for progression.**
 
-## G1 — CAMERA / NATIVE SCALE: ACTIVE NEXT GATE
+## G1 — CAMERA / NATIVE SCALE: RE-RUN REQUIRED
 
 Tooling:
 
@@ -158,21 +157,32 @@ Tooling:
 
 Purpose: establish gameplay framing before mocap, final art or Exilada production geometry.
 
-G1 renders the same primitive belt-scroller composition in a controlled 3×3 matrix at provisional native raster `640×360`:
+The first G1 run technically completed and produced all nine `640×360` renders, but visual QA found a critical calibration defect: the `18 deg / 112 px` candidate was massively zoomed/cropped and plainly did not correspond to a 112 px protagonist even though the manifest accepted it.
 
-- rows: camera pitch `18° / 26° / 34°`;
-- columns: protagonist visible height target `112 / 128 / 144 px`;
-- one protagonist proxy;
-- five enemy proxies at different depth positions;
-- walkable depth band;
-- attack/depth reach markers;
-- fixed orthographic camera family.
+Therefore the first matrix is **invalid for closing G1**. Do not advance to G2 from it.
 
-The Python script calibrates orthographic scale against measured projected protagonist height rather than assuming a guessed world-to-pixel conversion.
+Root cause: pre-render projection measurement could query stale Blender dependency-graph/camera state on the first candidate of a fresh headless session.
 
-Outputs include nine native renders, `g1_manifest.json`, `g1_blockout.blend`, `g1_result.json` and one labeled `g1_contact_sheet.png` for review.
+Hardening now implemented:
 
-G1 does **not** use Exilada art, mocap or the final pixel renderer.
+- explicit dependency-graph/view-layer updates before projection queries and after camera / orthographic-scale changes;
+- four calibration iterations;
+- pre-render height tolerance `<= 0.5 px`;
+- post-render re-measurement after Blender has evaluated the actual camera state;
+- hard failure if post-render protagonist height differs from target by more than `1.0 px`;
+- both pre/post measurements recorded in the manifest;
+- contact-sheet labels use ASCII `deg` to avoid PowerShell 5.1 `Â°` mojibake.
+
+Detailed log:
+
+`docs/G1_CAMERA_SCALE_LOG.md`
+
+Provisional qualitative reading from the eight sane cells, **not yet locked**:
+
+- `26–34 deg` is more promising than `18 deg` for readable belt-scroller depth;
+- `128–144 px` better supports the desired large full-body character than `112 px`;
+- `26 deg / 128 px` is the current provisional front-runner;
+- `26 deg / 144 px` and `34 deg / 128 px` remain credible alternatives.
 
 ### Exact next action — DO ONLY THIS
 
@@ -184,11 +194,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Rog
 
 Then **STOP**. Do not start G2.
 
-Share:
+Share only the newly generated:
 
 `Z:\AI\RogueliteCharacterPipeline\g1\g1_contact_sheet.png`
 
-The contact sheet is the primary G1 review artifact; console output is needed only if the runner fails.
+G1 closes only after the corrected matrix is visually reviewed and one baseline camera pitch + protagonist screen height is recorded.
 
 ## Workspace state
 
