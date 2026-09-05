@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Purpose: canonical cross-chat operational handoff. GitHub living documents are the source of truth.
+Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
 ## Read first
 
@@ -24,7 +24,6 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 17. `docs/G3V_RETARGET_PREFLIGHT_LOG.md`
 18. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-19. tooling under `tools/deterministic-character-pipeline/` and `tools/structured-2d-character-pipeline/`
 
 After every material step: update relevant thematic docs + this file and commit focused changes.
 
@@ -48,23 +47,24 @@ The master defines identity/design, not final gameplay pixels.
 
 Normal production must remain scriptable/headless. The user must not need routine Blender/Aseprite/rigging operation, frame-by-frame repainting or a hired specialist.
 
-## Rejected / paused routes
+## Rejected / closed routes
 
-- FLUX.2 Klein + RefControl direct-frame animation: REJECTED/FROZEN after topology drift and a three-leg frame;
-- direct per-frame diffusion as animation owner: REJECTED;
-- high-resolution beauty render + generic shrink/pixel filter: REJECTED as final-art route;
-- primitive mannequin renderer tuning: REJECTED after G3R;
-- raw Blender `Action` copy G2 -> MPFB: REJECTED as retarget method;
-- raw per-frame `matrix_basis` copy G2 -> MPFB: REJECTED as retarget method;
-- local-axis `REST_COMPENSATED_FK`: REJECTED after G3V-R V1;
-- MPFB pose API for this G2/MPFB pair: REJECTED after measured articulation error;
-- hidden 3D as owner of final visible character color pixels: REJECTED after G3V visual kill switch.
+- FLUX.2 Klein + RefControl direct-frame animation — REJECTED/FROZEN after topology drift and a three-leg frame;
+- direct per-frame diffusion as animation owner — REJECTED;
+- high-resolution beauty render + generic shrink/pixel filter — REJECTED as final-art route;
+- primitive mannequin renderer tuning — REJECTED after G3R;
+- hidden 3D as owner of final visible character color pixels — REJECTED after G3V kill switch;
+- raw Blender `Action` copy G2 -> MPFB — REJECTED;
+- raw per-frame `matrix_basis` copy — REJECTED;
+- local-axis `REST_COMPENSATED_FK` — REJECTED;
+- MPFB pose API for this source/target pair — REJECTED;
+- **Qwen-Image-Edit-2509 direct native `640×360` source generation — REJECTED after G3S-A V2 flat-collapse.**
 
-Qwen-Image-Edit-2509 remains forbidden as independent per-frame animation owner. It is active only as a bounded one-time static source-art candidate in G3S-A.
+Qwen remains forbidden as independent animation-frame generator. One final official-resolution control is allowed only to determine whether the model/runtime itself works under its intended preprocessing; that control can never become final art.
 
 ## Active architecture — LOCKED
 
-`camera/scale -> real motion -> deterministic hidden topology -> validated DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
+`camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
 Hidden 3D owns control/infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers.
 
@@ -74,11 +74,14 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
 - G1 camera/native scale — PASS/CLOSED
 - G2 real motion/topology — PASS/CLOSED
 - G3 first native translation — TECHNICAL PASS / LOOK NOT APPROVED
-- G3R primitive-renderer refinement — FAIL/CLOSED
+- G3R primitive renderer refinement — FAIL/CLOSED
 - G3V representative continuous human visual proxy — FAIL/CLOSED
   - G3V-R retarget preflight — PASS/CLOSED
 - **G3S structured 2D visible representation** ← ACTIVE
-  - **G3S-A static Exilada source sprite V2** ← READY TO RUN
+  - G3S-A static source — ACTIVE
+    - Qwen V1 harness — INVALID/CLOSED
+    - Qwen V2 native `640×360` — FAIL/CLOSED
+    - **Qwen official-resolution control** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -93,140 +96,116 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
 
 # Validated history
 
-## G0 — PASS / CLOSED
+## G0 — PASS
 
 Windows 11 + Blender 5.1.1 headless automation validated.
 
-## G1 — PASS / CLOSED
+## G1 — PASS
 
-Locked: `640×360`, orthographic pitch `26 deg`, protagonist visible height `128 px`.
+Locked `640×360`, orthographic pitch `26 deg`, protagonist visible reference height `128 px`.
 
-## G2 — PASS / CLOSED
+## G2 — PASS
 
-Source: CMU `105_34 NormalWalk`, 120 fps. Real locomotion, stable major-limb topology, left/right alternation and deterministic structure validated.
+CMU `105_34 NormalWalk`, 120 fps. Real locomotion basis, major-limb topology, left/right alternation and deterministic structure validated.
 
 ## G3 / G3R
 
 G3 proved deterministic native-grid processing technically possible but not production-looking. G3R proved renderer-only refinement cannot invent authored 2D form from a primitive source.
 
-## G3V-R — PASS / CLOSED
+## G3V-R — PASS
 
-Accepted cross-rig method: **`DIRECTION_SPACE_FK`**.
+Accepted retarget: **`DIRECTION_SPACE_FK`**.
 
-Measured facts:
-
-- source/target parent mismatches: `0`;
-- mean rest-orientation difference: `83.1874 deg`;
-- max: `180.0289 deg`;
-- 4 unique target poses;
-- mean elbow/knee error: `0.0000 deg`;
-- max: `0.0001 deg`;
-- rest-independent chain-shape metric passed;
-- source/target skeleton sheet visually passed topology and gait-phase correspondence.
+Measured facts: `0` parent mismatches; mean rest-orientation difference `83.1874 deg`, max `180.0289 deg`; 4 unique target poses; mean elbow/knee error `0.0000 deg`, max `0.0001 deg`; rest-independent chain-shape metric passed; source/target skeleton sheet visually passed.
 
 Marker: `tools/deterministic-character-pipeline/g3v_retarget_approval.json`.
 
-## G3V — FAIL / CLOSED
+## G3V — FAIL
+
+Representative MPFB body animated coherently after validated retarget, but native semantic/palette output still read as coarse 3D rather than deliberate modern pixel art. Hidden 3D therefore remains infrastructure only.
 
 Failure marker: `tools/deterministic-character-pipeline/g3v_failure.json`.
 
-Final reviewed body/pixel sheet at frames `1568,1588,1608,1628` was technically coherent but visually still read as simplified conventional 3D translated into coarse native-raster/palette output. Hidden 3D therefore remains infrastructure only.
-
-# G3S — STRUCTURED 2D VISIBLE REPRESENTATION
+# G3S — current
 
 Canonical design: `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`.
 
-Goal: final visible pixels come from persistent authored 2D pixel assets while validated hidden motion/topology provides control data.
+Goal: final pixels come from persistent 2D assets while hidden motion/topology supplies deterministic control.
 
-## G3S-A dependency state
+## G3S-A Qwen runtime
 
-The isolated Qwen runtime is now provisioned under:
+Provisioned workspace:
 
 `Z:\AI\QwenImageEditSpike`
 
-with pinned Qwen 2509 Q4_0 GGUF, Qwen VL encoder and Qwen image VAE.
+Model set:
 
-One-command operator path:
+- `Qwen-Image-Edit-2509-Q4_0.gguf`;
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
+- `qwen_image_vae.safetensors`.
 
-`tools/structured-2d-character-pipeline/00_bootstrap_and_run_g3s_a.ps1`
+ComfyUI successfully ran V2 on RTX 3060 12 GB / ~48 GB RAM in LOW_VRAM. The 20-step inference itself completed in about `468.19 s`; this was not a CUDA/runtime crash.
 
-## G3S-A V1 — INVALID INFERENCE / HARNESS FAIL
+## Qwen V1 — INVALID
 
-The first completed G3S-A inference produced an almost-black raw frame/contact sheet. This is **not** a Qwen visual/model verdict.
+Harness graph was wrong relative to official ComfyUI Qwen 2509 workflow. Not a model-quality verdict.
 
-Inspection found the V1 API graph was wrong relative to the official ComfyUI Qwen 2509 workflow:
+## Qwen V2 native 640×360 — FAIL
 
-- `image1` conditioning was the Exilada master while the sampled latent came from the guide;
-- `CFGNorm` was missing;
-- negative conditioning lacked the same refs/VAE structure;
-- `20 steps / CFG 4.0` mixed two different official setting families.
+Workflow revision: `QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`.
 
-Therefore V1 is classified **INVALID INFERENCE / HARNESS FAIL**, not G3S-A visual FAIL.
+Corrected graph used same guide for primary conditioning/latent, canonical master as second ref, same refs/VAE on positive and negative, `AuraFlow -> CFGNorm`, and `20 steps / CFG 2.5`.
 
-## G3S-A V2 — READY
+Only deliberate deviation from the official blueprint: omitted `FluxKontextImageScale` to preserve a true native `640×360` sampled/output raster.
 
-New helper:
+The output was a real flat collapse, not a guard false positive:
 
-`tools/structured-2d-character-pipeline/g3s_a_static_source_v2.py`
+- raw SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
+- mean luma `70.3017`;
+- p99 `71`;
+- target mean `70.2322`;
+- target p95 `71`;
+- target stddev `0.4336`.
 
-Runner `01_run_g3s_a.ps1` now points to V2.
+Therefore direct native Qwen output is rejected. No seed/prompt/threshold rescue attempts.
 
-Workflow revision:
+## Qwen official-resolution control — CURRENT
 
-`QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`
+Tooling:
 
-V2 locks:
+- `tools/structured-2d-character-pipeline/g3s_a_qwen_official_control.py`
+- `tools/structured-2d-character-pipeline/02_run_g3s_a_official_control.ps1`
 
-- Picture 1 = generated 640×360 pose/scale guide;
-- Picture 1 is also the VAE-encoded `latent_image`;
-- Picture 2 = exact canonical Exilada master;
-- positive and negative Qwen edit conditioning both receive both refs + VAE;
-- model path `UnetLoaderGGUF -> ModelSamplingAuraFlow(3.0) -> CFGNorm(1.0)`;
-- `20` steps / CFG `2.5` / Euler / simple / denoise `1.0`;
-- fixed seed `20260905`;
-- no post-inference resize.
+It restores the official `FluxKontextImageScale` before primary VAE encoding/sampling and otherwise keeps the corrected V2 graph.
 
-The official blueprint's `FluxKontextImageScale` is intentionally omitted because G3S-A specifically tests true 640×360 output instead of a ~1MP primary raster followed by shrink.
+The output is **diagnostic only**. It is never eligible as final sprite art, and post-run downscaling/promotion is forbidden.
 
-V2 includes an automatic near-black/flat-output guard. Invalid output now fails before `REVIEW_REQUIRED` instead of wasting a visual review.
+Decision rule:
 
-Expected valid-review artifact:
+- coherent control => Qwen/runtime functional but unsuitable for our direct-native final-art requirement; move to another structured 2D source route;
+- collapsed control => reject this Qwen route entirely and move to another structured 2D source route.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`
+There is no Qwen V4 prompt/seed fishing after this control.
 
-Review order remains:
-
-1. topology: one head/torso, two arms/hands, two legs/feet;
-2. Exilada identity/design continuity;
-3. ~128 px gameplay scale and lateral/slight-3/4 presentation;
-4. intentional modern pixel cluster language at native 1×;
-5. long hair / degraded cloth / restraints / bare feet readability.
-
-## G3S-B / C — BLOCKED
-
-Only after one G3S-A static source is visually approved: decompose into persistent side-aware parts, then drive those parts from the validated hidden rig across frames `1568,1588,1608,1628` without per-frame generation.
-
-## G4 — RESCOPED / BLOCKED
-
-After G3S passes, G4 becomes the Exilada production 2D identity system: canonical sprite parts, palette/material families, hair/cloth/restraint structure, sockets/occlusion metadata and damage-ready layers.
-
-# Exact next action — ONLY THIS
+## Exact next action — ONLY THIS
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\00_bootstrap_and_run_g3s_a.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\02_run_g3s_a_official_control.ps1"
 ```
 
-Runtime/models should be reused; this should proceed directly to V2 inference.
+Then STOP. If it reaches `G3S-A CONTROL: REVIEW CONTROL`, share:
 
-Then STOP. If it reaches `G3S-A: REVIEW REQUIRED`, share `Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`. If it fails, share the complete console output. Do not start G3S-B or G4.
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+
+If it fails, share the console output. Do not run G3S-B or G4.
 
 ## Workspace
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - hidden deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
-- Qwen static-source runtime: `Z:\AI\QwenImageEditSpike`
+- Qwen runtime: `Z:\AI\QwenImageEditSpike`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
