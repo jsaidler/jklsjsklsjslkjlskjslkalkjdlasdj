@@ -24,7 +24,41 @@ Hidden 3D may own motion, topology, left/right identity, sockets, contacts, dept
 - no generic beauty-render shrink/pixel-filter route as final production method;
 - no bilinear filtering;
 - recurring production remains scriptable/headless;
-- one-time native source authoring may use deterministic explicit pixel edits, but future animation must consume persistent structured assets rather than regenerate frames.
+- one-time native source authoring may use deterministic explicit pixel edits, but future animation must consume persistent structured assets rather than regenerate frames;
+- **whenever a model is rejected/closed and no longer required, the same response must include an exact PowerShell cleanup command for its downloaded model-specific files.** Shared runtimes still in use must be preserved; small evidence outputs/logs remain unless explicitly removed.
+
+## Current rejected-model cleanup commands
+
+These are safe model/dependency cleanups for the G3S source experiments already closed. They intentionally preserve the small evidence outputs under `Z:\AI\RogueliteCharacterPipeline`.
+
+### Alucard — isolated workspace
+
+```powershell
+Remove-Item -LiteralPath "Z:\AI\AlucardSpike" -Recurse -Force -ErrorAction SilentlyContinue
+```
+
+### PixelLock — isolated workspace
+
+```powershell
+Remove-Item -LiteralPath "Z:\AI\PixelLockSpike" -Recurse -Force -ErrorAction SilentlyContinue
+```
+
+### SD1.5 native re-author — shared ComfyUI runtime, model-specific files only
+
+```powershell
+Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.safetensors" -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\loras\pixel-art-sd15.safetensors" -Force -ErrorAction SilentlyContinue
+```
+
+### Qwen-Image-Edit-2509 — direct sprite route closed, fixed control retained
+
+The authored-native runner still reuses the ComfyUI embedded Python, so the shared portable runtime must remain. The three Qwen model weights are no longer needed once `g3s_a_control_official_raw.png` is pinned and retained:
+
+```powershell
+Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\unet\Qwen-Image-Edit-2509-Q4_0.gguf" -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors" -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\vae\qwen_image_vae.safetensors" -Force -ErrorAction SilentlyContinue
+```
 
 # G3S-A — static source sprite gate
 
