@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RUN after runner parser fix.**
+Current status: **READY TO RERUN AFTER HEADLESS MPFB ACTIVATION FIX.**
 
 ## Why this gate exists
 
@@ -37,12 +37,6 @@ Workspace:
 
 The user performs no Blender/MPFB GUI work.
 
-## Runner incident — 2026-09-05
-
-The first G3V invocation failed before execution because PowerShell parsed an interpolated error string containing `$code:` as an invalid scoped-variable reference. This was a runner syntax bug, not a Blender/MPFB failure.
-
-Fix committed: delimit the interpolated variable as `${code}:` in `Invoke-BlenderArgs`. The rest of the runner was reviewed for the same un-delimited variable-followed-by-colon pattern; only the intended `$env:` / `$script:` scoped-variable forms remain.
-
 ## MPFB dependency
 
 G3V pins **MPFB 2.0.17**.
@@ -54,9 +48,39 @@ The PowerShell runner:
 3. verifies the SHA256 advertised by the Blender Extensions API;
 4. creates a dedicated Blender extension repository `roguelite_g3v` under the project workspace;
 5. installs/enables MPFB through Blender's command-line extension system;
-6. records archive URL/hash in `g3v_result.json`.
+6. explicitly starts fresh background Blender processes with `--addons bl_ext.roguelite_g3v.mpfb` so the extension is registered before project Python code runs;
+7. performs a fresh-process MPFB import probe before starting the expensive G3V render;
+8. records archive URL/hash/module in `g3v_result.json`.
 
 The runner refuses silently substituting a newer MPFB version.
+
+## Runtime incidents
+
+### Incident 1 — PowerShell parser error
+
+The initial runner contained an interpolated string with `$code:`. Windows PowerShell interpreted the colon as part of a scoped/drive-style variable reference and rejected the file before execution.
+
+Fix: delimit the variable as `${code}:`.
+
+### Incident 2 — MPFB installed but absent from a fresh headless process
+
+Observed locally:
+
+- MPFB `2.0.17` downloaded successfully;
+- archive SHA256 validated as `4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87`;
+- extension install commands completed;
+- the subsequent background render process reached the G3V Python script;
+- `mpfb_class(...)` found no loaded MPFB module and failed with `searched roots: []`.
+
+Root issue: successful extension installation/enabling was not sufficient evidence that a newly started background Blender process had registered the add-on before the project script executed.
+
+Fix:
+
+- canonical extension module is explicitly addressed as `bl_ext.roguelite_g3v.mpfb`;
+- runner now passes `--addons bl_ext.roguelite_g3v.mpfb` to the render process;
+- runner performs a separate fresh-background import probe first and stops immediately if MPFB cannot actually load.
+
+This converts extension activation from an assumption into a tested prerequisite.
 
 ## Representative body / rig
 
