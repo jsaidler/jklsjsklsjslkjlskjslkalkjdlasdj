@@ -1,0 +1,26 @@
+{
+  "gate": "G3S-B3-A-NUDE-ANATOMY-GUIDE",
+  "status": "PASS_CLOSED",
+  "date": "2026-09-05",
+  "revision": "G3S_B3A_NUDE_ANATOMY_GUIDE_V2",
+  "review": {
+    "adult_female": true,
+    "resolved_gender": "female",
+    "resolved_life_stage": "adult",
+    "female_target_count": 21,
+    "male_target_count": 0,
+    "adult_target_count": 21,
+    "minor_target_count": 0,
+    "complete_body_geometry": true,
+    "hair_objects": 0,
+    "clothing_objects": 0,
+    "restraint_objects": 0,
+    "chains_objects": 0,
+    "visible_height_px": 128.0,
+    "camera_pitch_deg": 26.0,
+    "camera_yaw_deg": 8.0
+  },
+  "visual_conclusion": "B3A V2 passes as structural anatomy guide only: complete adult female hairless/unclothed body, correct phenotype audit, clean layer ownership and locked G1 scale. It is not final visible art.",
+  "art_authority": "STRUCTURAL_GUIDE_ONLY_NOT_FINAL_PIXEL_ART",
+  "next_gate": "G3S-B3-B-NATIVE-NUDE-BODY-SOURCE"
+}
