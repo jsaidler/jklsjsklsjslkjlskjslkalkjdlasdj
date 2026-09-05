@@ -24,7 +24,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 17. `docs/G3V_RETARGET_PREFLIGHT_LOG.md`
 18. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-19. tooling under `tools/deterministic-character-pipeline/`
+19. current tooling under `tools/deterministic-character-pipeline/` and `tools/structured-2d-character-pipeline/`
 
 After every material step: update relevant thematic docs + this file and commit focused changes.
 
@@ -60,16 +60,16 @@ Normal production must remain scriptable/headless. The user must not need routin
 - MPFB pose API for this G2/MPFB pair: REJECTED after measured articulation error;
 - **hidden 3D as owner of the final visible character color image: REJECTED after G3V visual kill switch.**
 
-Qwen-Image-Edit-2509 remains unavailable as a per-frame animation owner. It may return only as a constrained **one-time static source-art candidate** under G3S-A, subject to topology/identity/pixel-art QA.
+Qwen-Image-Edit-2509 remains forbidden as an independent per-frame animation owner. It is reactivated only as a bounded **one-time static source-art candidate** in G3S-A.
 
-## Active architecture — UPDATED
+## Active architecture — LOCKED
 
 `camera/scale -> real motion -> deterministic hidden topology -> validated DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
-Hidden 3D remains useful, but only as infrastructure for:
+Hidden 3D now owns only control/infrastructure:
 
 - real motion;
-- topology/side identity;
+- topology/left-right identity;
 - sockets;
 - contacts/root data;
 - physics;
@@ -86,12 +86,12 @@ It no longer owns final visible color pixels.
 - G2 real motion/topology — PASS/CLOSED
 - G3 first native translation — TECHNICAL PASS / LOOK NOT APPROVED
 - G3R primitive-renderer refinement — FAIL/CLOSED
-- G3V representative continuous human visual proxy — **FAIL/CLOSED**
+- G3V representative continuous human visual proxy — FAIL/CLOSED
   - G3V-R retarget preflight — PASS/CLOSED
-- **G3S structured 2D visible representation** ← ACTIVE NEXT
-  - G3S-A static Exilada source sprite
-  - G3S-B persistent part decomposition
-  - G3S-C four-phase walk proof
+- **G3S structured 2D visible representation** ← ACTIVE
+  - **G3S-A static Exilada source sprite** ← READY TO RUN
+  - G3S-B persistent part decomposition — BLOCKED
+  - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
 - G5 temporal stress pack
 - G6 equipment/attachments
@@ -102,7 +102,7 @@ It no longer owns final visible color pixels.
 - G7 systemic state/dynamic lighting
 - G8 production scaling
 
-# Current execution state
+# Validated history
 
 ## G0 — PASS / CLOSED
 
@@ -132,55 +132,34 @@ Accepted cross-rig method:
 
 **`DIRECTION_SPACE_FK`**
 
-Source/target rest-rig facts:
+Measured facts:
 
-- parent mismatches: `0`;
+- source/target parent mismatches: `0`;
 - mean rest-orientation difference: `83.1874 deg`;
-- max: `180.0289 deg`.
-
-Measured accepted solver articulation:
-
-- 4 unique poses;
+- max: `180.0289 deg`;
+- 4 unique target poses;
 - mean elbow/knee error: `0.0000 deg`;
 - max: `0.0001 deg`;
-- V3 rest-independent chain-shape metric passed;
+- rest-independent chain-shape metric passed;
 - source/target skeleton sheet visually passed topology and gait-phase correspondence.
 
 Marker:
 
 `tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
-Retarget is retained as hidden production infrastructure.
+This retarget remains hidden production infrastructure.
 
 ## G3V — FAIL / CLOSED
-
-Canonical log:
-
-`docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 
 Failure marker:
 
 `tools/deterministic-character-pipeline/g3v_failure.json`
 
-Final reviewed body/pixel sheet used frames:
+The final reviewed body/pixel sheet at frames `1568,1588,1608,1628` was technically coherent: distinct motion phases, stable major topology, no retarget collapse, reproducible representative hair/cloth/restraints.
 
-`1568,1588,1608,1628`
+Visual result: **FAIL.** The character still read as simplified conventional 3D translated into coarse native-raster/palette output rather than intentional modern pixel art. The defined kill switch was triggered. No G3V2 renderer refinement will be attempted.
 
-Technical result:
-
-- motion phases distinct;
-- major topology coherent;
-- no duplicated/missing major limbs;
-- no retarget collapse;
-- representative human/hair/cloth/restraints render reproducibly.
-
-Visual result:
-
-**FAIL.** The native semantic/palette row still reads as conventional simplified 3D made coarse/blocky. It does not exhibit enough intentional native pixel-art shape/value-cluster language to justify hidden 3D as final visible-image owner.
-
-This triggers the previously defined kill switch. No G3V2 renderer refinement will be attempted.
-
-## G3S — STRUCTURED 2D VISIBLE REPRESENTATION: ACTIVE NEXT
+# G3S — STRUCTURED 2D VISIBLE REPRESENTATION
 
 Canonical design:
 
@@ -188,38 +167,88 @@ Canonical design:
 
 Goal:
 
-Use validated hidden motion/topology only as control data while final visible pixels come from persistent 2D pixel assets.
+Use validated hidden motion/topology only as control data while final visible pixels come from persistent authored 2D pixel assets.
 
-### G3S-A — immediate risk
+## G3S-A — READY TO RUN
 
-Create one approved static gameplay-scale Exilada sprite before attempting any animation.
+Tooling now exists and has been verified in the repository:
 
-Requirements include:
+- `tools/structured-2d-character-pipeline/01_run_g3s_a.ps1`
+- `tools/structured-2d-character-pipeline/g3s_a_static_source.py`
 
-- ~128 px visible height at native raster;
-- lateral/slight-3/4 gameplay presentation;
-- true native pixel clusters, no antialiased pseudo-pixel look;
-- identity-bearing long black hair, degraded beige cloth, restraints, bare feet and lean adult anatomy;
-- topology and recognizability against the canonical master.
+Runtime reused from the preserved local Qwen spike:
 
-The existing Qwen-Image-Edit-2509 local tooling may be reactivated **only for this one-time static source-art spike**. It is not permitted to generate independent animation frames.
+`Z:\AI\QwenImageEditSpike`
 
-### G3S-B / C — after one static source is approved
+Expected existing models:
 
-Decompose the sprite into persistent side-aware parts and drive those parts from the validated hidden rig through deterministic 2D transforms/deformation/depth composition across the four known gait phases.
+- `Qwen-Image-Edit-2509-Q4_0.gguf`;
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
+- `qwen_image_vae.safetensors`.
+
+The G3S-A runner itself downloads nothing. Missing large dependencies are a hard fail rather than an implicit download.
+
+Test contract:
+
+- exact canonical `exilada_master.png` as identity/design input;
+- generated abstract pose/scale guide as second reference;
+- direct native `640×360` output canvas;
+- target figure ≈`128 px` high;
+- fixed seed `20260905`;
+- one static candidate only;
+- no post-inference resize;
+- a 32-color same-raster version is generated only for inspection;
+- topology/identity/pixel-art quality remain a visual review gate.
+
+Expected output:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`
+
+Review order:
+
+1. topology: exactly one head/torso, two arms/hands, two legs/feet;
+2. Exilada identity/design continuity;
+3. approximately 128 px gameplay scale and correct lateral/slight-3/4 presentation;
+4. intentional modern pixel cluster language at native 1×;
+5. long hair / degraded cloth / restraints / bare feet readability.
+
+Do not approve merely because the enlarged zoom looks attractive.
+
+## G3S-B / C — BLOCKED
+
+Only after one G3S-A static source is visually approved:
+
+- decompose it into persistent side-aware parts;
+- drive those parts from the validated hidden rig;
+- test four gait phases `1568,1588,1608,1628` without per-frame generation.
 
 No per-frame diffusion and no routine frame-by-frame repainting.
 
 ## G4 — RESCOPED / BLOCKED
 
-The old assumption of building a detailed Exilada 3D proxy for direct final pixel rendering is closed.
-
 After G3S passes, G4 becomes the **Exilada production 2D identity system**: canonical sprite parts, palette/material families, hair/cloth/restraint structure, sockets/occlusion metadata and damage-ready layers.
+
+# Exact next action — ONLY THIS
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\01_run_g3s_a.ps1"
+```
+
+Then STOP.
+
+If it reaches `G3S-A: REVIEW REQUIRED`, share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`
+
+If it fails, share the complete console output. Do not start G3S-B or G4.
 
 ## Workspace
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
-- hidden deterministic backbone: `Z:\AI\RogueliteCharacterPipeline`
+- hidden deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
+- Qwen static-source runtime: `Z:\AI\QwenImageEditSpike`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
-- paused/static-source candidate workspace: `Z:\AI\QwenImageEditSpike`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
