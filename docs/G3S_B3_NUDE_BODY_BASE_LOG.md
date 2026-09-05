@@ -61,12 +61,15 @@ A fully nude state is therefore the same persistent body base with garment/equip
 Production consequences:
 
 - the body must be anatomically complete at gameplay scale, including chest and pelvic anatomy required for a coherent adult human silhouette;
-- representation remains matter-of-fact and non-erotic;
+- nudity may be framed matter-of-factly, heroically, sensually, erotically, vulnerably or brutally according to scene intent; there is no blanket anti-erotic rule;
+- the project references Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell, so erotic charge is a legitimate part of the visual vocabulary rather than something to sanitize away;
 - native pixel resolution naturally limits microdetail;
 - no censor garment is structurally required;
 - clothing removal/damage never requires reconstructing hidden body pixels;
 - blood, wounds, scars, wetness and dirt attach to the body owner where appropriate;
 - sever/dismemberment operates on the complete body regions, while clothing/accessories inherit or detach according to their own state rules.
+
+The production distinction is **intentional framing**, not mandatory desexualization. Adult attractiveness and erotic charge may coexist with danger, suffering, violence, dirt, wounds and vulnerability.
 
 ## Source strategy
 
@@ -148,6 +151,8 @@ No animation begins until B3-B passes.
 7. gameplay preview remains readable at `640×360` with the locked ~`128 px` protagonist scale;
 8. the source reads as authored pixel art, not a filtered 3D render;
 9. output is deterministic and reusable as the base owner for later layers.
+
+Erotic charge is neither a PASS nor FAIL requirement by itself. The body asset must be capable of supporting intentional mature framing without structural censorship or forced neutralization.
 
 ## After PASS
 
