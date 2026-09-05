@@ -59,11 +59,12 @@ No routine Blender GUI operation, manual rigging/animation burden, frame-by-fram
 - primitive mannequin renderer tuning: REJECTED after G3R;
 - raw Blender `Action` copy G2 -> MPFB: REJECTED as retarget method;
 - raw per-frame `matrix_basis` copy G2 -> MPFB: REJECTED as retarget method;
-- local-axis `REST_COMPENSATED_FK`: REJECTED after G3V-R V1.
+- local-axis `REST_COMPENSATED_FK`: REJECTED after G3V-R V1;
+- MPFB pose API for this G2/MPFB pair: REJECTED after measured articulation error.
 
 ## Active deterministic architecture
 
-`camera/scale -> real motion -> deterministic topology -> validated retarget -> representative visual asset -> semantic/native-grid representation -> modular equipment/state -> sprite/runtime export -> QA`
+`camera/scale -> real motion -> deterministic topology -> validated direction-space retarget -> representative visual asset -> semantic/native-grid representation -> modular equipment/state -> sprite/runtime export -> QA`
 
 ## Gate order
 
@@ -72,8 +73,8 @@ No routine Blender GUI operation, manual rigging/animation burden, frame-by-fram
 - G2 real motion/topology
 - G3 first native translation
 - G3R primitive-renderer refinement
-- G3V representative continuous human visual proxy
-  - **G3V-R retarget preflight** ← ACTIVE
+- **G3V representative continuous human visual proxy** ← ACTIVE
+  - G3V-R retarget preflight — PASS/CLOSED
 - G4 Exilada identity mapping
 - G5 temporal stress pack
 - G6 equipment/attachments
@@ -122,9 +123,50 @@ Renderer-only changes could not invent missing authored human form. No G3R2.
 
 Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
-## G3V — PAUSED AT RETARGET
+## G3V-R — RETARGET PREFLIGHT: PASS / CLOSED
 
-Proven:
+Canonical log:
+
+`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
+
+Approval marker:
+
+`tools/deterministic-character-pipeline/g3v_retarget_approval.json`
+
+Locked facts:
+
+- source and target identify as `cmu_mb`;
+- required parent mismatches: `0`;
+- mean rest-orientation delta: `83.1874 deg`;
+- max rest-orientation delta: `180.0289 deg`.
+
+Accepted method:
+
+**`DIRECTION_SPACE_FK`**
+
+It transfers posed bone directions through world/target-armature space while preserving MPFB's own hierarchy, bone lengths, weights and roll convention.
+
+Measured preflight articulation:
+
+- 4 unique target poses;
+- mean elbow/knee error `0.0000 deg`;
+- max error `0.0001 deg`.
+
+V3 replaced the invalid rest-subtracted endpoint metric with rest-independent `CHAIN_UNIT_DIRECTION_RMS`. The runner's numeric audit passed and produced the review sheet.
+
+Visual review of source-vs-target skeletons at frames `1568,1588,1608,1628`:
+
+- coherent major-limb topology;
+- no collapse;
+- same gait phases preserved;
+- left/right alternation preserved;
+- knees/elbows correspond correctly.
+
+Decision: **G3V-R PASS / CLOSED.**
+
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / BODY RERUN READY
+
+Proven infrastructure:
 
 - pinned MPFB 2.0.17 loads directly in one Blender background process;
 - continuous female body and weighted `cmu_mb` rig are created;
@@ -133,78 +175,29 @@ Proven:
 - semantic skin/hair/cloth/metal masks work;
 - gait period is contact-derived: `80` frames;
 - phases: `1568,1588,1608,1628`;
-- G1 camera/scale are usable.
+- G1 camera/scale remain usable.
 
-The latest body sheet produced real phase changes but severe later-phase deformation collapse. The blocker is retargeting, not renderer/camera/source mocap.
+The old body-motion binding has now been replaced with the G3V-R validated solver in:
 
-Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
+`tools/deterministic-character-pipeline/g3v_motion_binding_patch.py`
 
-## G3V-R — RETARGET PREFLIGHT: V3 ACTIVE / BOOTSTRAP IMPORT FIXED
+Expected marker:
 
-Detailed log: `docs/G3V_RETARGET_PREFLIGHT_LOG.md`.
+`G3V_MOTION_BINDING=DIRECTION_SPACE_FK_VALIDATED_G3V_R`
 
-Canonical runner:
+The next G3V run is the first body/pixel contact sheet eligible for the real visual kill switch.
 
-`tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
+Review order:
 
-### Locked rest-rig facts
+1. topology integrity;
+2. motion/grounding;
+3. weighted body deformation;
+4. attachment stability;
+5. visible pixel-art headroom.
 
-- source/target identify as `cmu_mb`;
-- required parent mismatches: `0`;
-- mean rest-orientation delta: `83.1874 deg`;
-- max rest-orientation delta: `180.0289 deg`.
+If the technically coherent representative human still reads only as blocky/filtered conventional 3D, hidden 3D is rejected as owner of the final visible character image but retained for motion/topology/sockets/physics/semantic guides.
 
-Therefore naming/hierarchy match, but local/rest axes do not.
-
-### V1 — FAIL / CLOSED
-
-Local-axis fallback:
-
-- 4 unique poses;
-- mean elbow/knee angle error `25.0101 deg`;
-- max error `43.6810 deg`;
-- old endpoint RMS `0.27541`.
-
-### V2 — solver result
-
-`DIRECTION_SPACE_FK`:
-
-- 4 unique poses;
-- mean elbow/knee error `0.0000 deg`;
-- max error `0.0001 deg`;
-- old endpoint metric `0.24744`.
-
-`MPFB_POSE_API`:
-
-- 4 unique poses;
-- mean elbow/knee error `25.4032 deg`;
-- max error `44.3890 deg`;
-- old endpoint metric `0.23865`.
-
-Conclusion: direction-space transfer is decisively better for articulation. V2 failed only because the old endpoint metric subtracts each rig's incompatible rest pose, making it invalid under the measured ~83 deg rest mismatch.
-
-### V3 — CURRENT
-
-V3 retains V2's solvers and replaces only the invalid endpoint test with rest-independent:
-
-`CHAIN_UNIT_DIRECTION_RMS`
-
-The first V3 run did not execute the solver because Blender's `runpy.run_path()` did not expose the sibling script directory on `sys.path`, causing:
-
-`ModuleNotFoundError: No module named 'g3v_retarget_preflight_v2'`
-
-This was a bootstrap/package-path bug, not a retarget regression.
-
-`g3v_retarget_bootstrap.py` now inserts `target_script.parent` into `sys.path` before executing V3. Expected marker:
-
-`G3V_RETARGET_HELPER_PATH=BOUND`
-
-Guard values remain unchanged:
-
-- >= 3 unique poses;
-- mean elbow/knee error <= 15 deg;
-- max error <= 35 deg;
-- chain-shape RMS <= 0.18.
+If the result shows credible headroom toward intentional modern pixel art, G3V can PASS and G4 may begin.
 
 ### Exact next action — ONLY THIS
 
@@ -212,18 +205,18 @@ Guard values remain unchanged:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03d_run_g3v_retarget_preflight.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
 ```
 
 Then STOP.
 
-If numeric PASS is reached, share:
+If it reaches `G3V: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
 
 If it fails, share the complete console output.
 
-Do **not** rerun `03c_run_g3v.ps1` and do not start G4.
+Do not start G4 yet.
 
 ## Workspace
 
