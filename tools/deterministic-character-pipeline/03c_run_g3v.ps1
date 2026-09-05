@@ -26,22 +26,22 @@ function Find-BlenderExe {
     return ($found | Sort-Object -Descending | Select-Object -First 1)
 }
 
-function Invoke-BlenderArgs([string[]]$Args, [switch]$AllowFail) {
-    $old = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        $out = @(& $script:BlenderExe @Args 2>&1)
-        $code = $LASTEXITCODE
+function Find-MpfbPackageRoot([string]$Root) {
+    if (-not (Test-Path $Root -PathType Container)) { return $null }
+    $candidates = Get-ChildItem -Path $Root -Filter '__init__.py' -File -Recurse -ErrorAction SilentlyContinue
+    foreach ($init in $candidates) {
+        $dir = $init.Directory.FullName
+        if ((Test-Path (Join-Path $dir 'services') -PathType Container) -and
+            (Test-Path (Join-Path $dir 'data') -PathType Container)) {
+            return $dir
+        }
     }
-    finally { $ErrorActionPreference = $old }
-    if ($out) { $out | ForEach-Object { Write-Host $_ } }
-    if ($code -ne 0 -and -not $AllowFail) { Fail "Blender command failed with exit code ${code}: $($Args -join ' ')" }
-    return [pscustomobject]@{ ExitCode=$code; Output=($out -join "`n") }
+    return $null
 }
 
 Write-Host ''
 Write-Host 'Roguelite deterministic character pipeline - G3V REPRESENTATIVE VISUAL PROXY' -ForegroundColor Cyan
-Write-Host 'This gate stops testing primitive mannequins. It creates a continuous adult female MPFB body, a CMU-compatible rig, representative long hair / asymmetric cloth / shackles, reuses the approved real walk, and renders the actual native-grid translation test.'
+Write-Host 'One Blender background process only. MPFB is loaded directly from the pinned verified archive; Blender extension repository/preferences are not used.'
 Write-Host ''
 
 if (-not (Test-Path $RepoRoot -PathType Container)) { Fail "Repository root not found: $RepoRoot" }
@@ -52,7 +52,9 @@ if ($failure.gate -ne 'G3R' -or $failure.status -ne 'FAIL') { Fail 'G3R is not c
 
 $baselinePath = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g1_baseline.json'
 $g2ApprovalPath = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g2_approval.json'
-foreach ($p in @($baselinePath,$g2ApprovalPath)) { if (-not (Test-Path $p -PathType Leaf)) { Fail "Required upstream marker missing: $p" } }
+foreach ($p in @($baselinePath,$g2ApprovalPath)) {
+    if (-not (Test-Path $p -PathType Leaf)) { Fail "Required upstream marker missing: $p" }
+}
 $baseline = Get-Content $baselinePath -Raw | ConvertFrom-Json
 $g2Approval = Get-Content $g2ApprovalPath -Raw | ConvertFrom-Json
 if ($baseline.status -ne 'PASS' -or $g2Approval.status -ne 'PASS') { Fail 'G1/G2 upstream gates are not PASS.' }
@@ -60,19 +62,21 @@ if ($baseline.status -ne 'PASS' -or $g2Approval.status -ne 'PASS') { Fail 'G1/G2
 $g2Dir = Join-Path $Workspace 'g2'
 $g2Blend = Join-Path $g2Dir 'g2_motion_topology.blend'
 $g2Manifest = Join-Path $g2Dir 'g2_manifest.json'
-foreach ($p in @($g2Blend,$g2Manifest)) { if (-not (Test-Path $p -PathType Leaf)) { Fail "Required local G2 artifact missing: $p" } }
+foreach ($p in @($g2Blend,$g2Manifest)) {
+    if (-not (Test-Path $p -PathType Leaf)) { Fail "Required local G2 artifact missing: $p" }
+}
 
-$scriptPath = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_representative_visual_proxy.py'
-if (-not (Test-Path $scriptPath -PathType Leaf)) { Fail "G3V Python script missing: $scriptPath" }
+$targetScript = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_representative_visual_proxy.py'
+$bootstrapScript = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_mpfb_bootstrap.py'
+foreach ($p in @($targetScript,$bootstrapScript)) {
+    if (-not (Test-Path $p -PathType Leaf)) { Fail "Required G3V script missing: $p" }
+}
 
 $script:BlenderExe = Find-BlenderExe
 if (-not $script:BlenderExe) { Fail 'Blender could not be located.' }
 Write-Host "[OK] Blender: $script:BlenderExe" -ForegroundColor Green
-$ver = Invoke-BlenderArgs @('--version')
-if ($ver.Output -notmatch 'Blender 5\.1\.') { Write-Host '[WARN] G3V was authored against Blender 5.1.x; continuing with installed version.' -ForegroundColor DarkYellow }
 
-# Pin the exact MPFB version used by this gate. The official Blender Extensions API supplies
-# the archive URL and SHA256; the runner refuses silently changing to a newer package.
+# Pin exact MPFB package and verify the archive before using it.
 $deps = Join-Path $Workspace 'dependencies\g3v'
 New-Item -ItemType Directory -Force -Path $deps | Out-Null
 $mpfbVersion = '2.0.17'
@@ -89,9 +93,12 @@ foreach ($api in $apiUrls) {
         $pkg = @($meta.data | Where-Object { $_.id -eq 'mpfb' -and $_.version -eq $mpfbVersion }) | Select-Object -First 1
         if ($pkg) { break }
     }
-    catch { Write-Host "[WARN] MPFB metadata query failed at $api : $($_.Exception.Message)" -ForegroundColor DarkYellow }
+    catch {
+        Write-Host "[WARN] MPFB metadata query failed at ${api}: $($_.Exception.Message)" -ForegroundColor DarkYellow
+    }
 }
 if (-not $pkg) { Fail "Official Blender Extensions API did not return pinned MPFB $mpfbVersion for Blender 5.1.1." }
+
 $archiveUrl = [string]$pkg.archive_url
 if ($archiveUrl -notmatch '^https?://') { $archiveUrl = 'https://extensions.blender.org' + $archiveUrl }
 $expectedHash = ([string]$pkg.archive_hash) -replace '^sha256:',''
@@ -108,53 +115,57 @@ if ($needDownload) {
     catch { Fail "Could not download MPFB: $($_.Exception.Message)" }
 }
 $actualHash = (Get-FileHash -Algorithm SHA256 $mpfbZip).Hash.ToLowerInvariant()
-if ($actualHash -ne $expectedHash.ToLowerInvariant()) { Fail "MPFB SHA256 mismatch. Expected $expectedHash, got $actualHash" }
+if ($actualHash -ne $expectedHash.ToLowerInvariant()) {
+    Fail "MPFB SHA256 mismatch. Expected $expectedHash, got $actualHash"
+}
 Write-Host "[OK] MPFB $mpfbVersion archive SHA256 $actualHash" -ForegroundColor Green
 
-# Install into a dedicated Blender extension repository so the project controls this dependency
-# without asking the user to touch Blender preferences.
-$repoId = 'roguelite_g3v'
-$extRepoDir = Join-Path $Workspace 'blender_extensions\roguelite_g3v'
-$repoList = Invoke-BlenderArgs @('--command','extension','repo-list') -AllowFail
-if ($repoList.Output -match "(?m)^$repoId\s*:") {
-    Invoke-BlenderArgs @('--command','extension','repo-remove',$repoId) -AllowFail | Out-Null
+# Extract once and load MPFB directly as a Python package. This deliberately bypasses
+# Blender extension repository state, add-on activation and GUI preferences.
+$mpfbExtract = Join-Path $deps "mpfb-$mpfbVersion-unpacked"
+$mpfbRoot = Find-MpfbPackageRoot $mpfbExtract
+if (-not $mpfbRoot) {
+    if (Test-Path $mpfbExtract) { Remove-Item $mpfbExtract -Recurse -Force }
+    New-Item -ItemType Directory -Force -Path $mpfbExtract | Out-Null
+    Write-Host '[SETUP] Extracting pinned MPFB archive locally...' -ForegroundColor Cyan
+    try { Expand-Archive -Path $mpfbZip -DestinationPath $mpfbExtract -Force }
+    catch { Fail "Could not extract MPFB archive: $($_.Exception.Message)" }
+    $mpfbRoot = Find-MpfbPackageRoot $mpfbExtract
 }
-if (Test-Path $extRepoDir) { Remove-Item $extRepoDir -Recurse -Force }
-New-Item -ItemType Directory -Force -Path $extRepoDir | Out-Null
-Invoke-BlenderArgs @('--command','extension','repo-add',$repoId,'--name','Roguelite G3V','--directory',$extRepoDir) | Out-Null
-Invoke-BlenderArgs @('--online-mode','--command','extension','install-file','-r',$repoId,'-e',$mpfbZip) | Out-Null
-
-# Blender extensions live under bl_ext.<repository_id>.<package_id>. The extension install
-# command enables the package in preferences, but a fresh background process is explicitly
-# given --addons as well so MPFB is guaranteed to register before the G3V Python script runs.
-$mpfbAddonModule = "bl_ext.$repoId.mpfb"
-Write-Host "[CHECK] Loading MPFB add-on module $mpfbAddonModule in a fresh background process..." -ForegroundColor Cyan
-$probeExpr = "import importlib; importlib.import_module('$mpfbAddonModule'); print('G3V_MPFB_IMPORT=PASS')"
-$probe = Invoke-BlenderArgs @('--background','--addons',$mpfbAddonModule,'--python-exit-code','1','--python-expr',$probeExpr) -AllowFail
-if ($probe.ExitCode -ne 0 -or $probe.Output -notmatch 'G3V_MPFB_IMPORT=PASS') {
-    Fail "MPFB installed but could not be activated in a fresh Blender process as $mpfbAddonModule."
-}
-Write-Host '[OK] MPFB loads in headless Blender.' -ForegroundColor Green
+if (-not $mpfbRoot) { Fail "Could not locate MPFB package root after extraction: $mpfbExtract" }
+$mpfbUserRoot = Join-Path $deps 'mpfb_user'
+New-Item -ItemType Directory -Force -Path $mpfbUserRoot | Out-Null
+Write-Host "[OK] MPFB direct package root: $mpfbRoot" -ForegroundColor Green
 
 $g3vDir = Join-Path $Workspace 'g3v'
 $logDir = Join-Path $g3vDir 'logs'
 New-Item -ItemType Directory -Force -Path $g3vDir,$logDir | Out-Null
 Get-ChildItem $g3vDir -Filter 'g3v_*.png' -ErrorAction SilentlyContinue | Remove-Item -Force
 @('g3v_manifest.json','g3v_result.json','g3v_representative_proxy.blend','g3v_contact_sheet.png') | ForEach-Object {
-    $p=Join-Path $g3vDir $_; if (Test-Path $p) { Remove-Item $p -Force }
+    $p = Join-Path $g3vDir $_
+    if (Test-Path $p) { Remove-Item $p -Force }
 }
 $stdout = Join-Path $logDir 'blender_stdout.log'
 $stderr = Join-Path $logDir 'blender_stderr.log'
 Remove-Item $stdout,$stderr -Force -ErrorAction SilentlyContinue
 
-$pitch=[int]$baseline.camera_pitch_deg
-$heroPx=[int]$baseline.protagonist_reference_height_px
-Write-Host "[RUN] G3V headless | representative woman | CMU real walk | 640x360 / ${pitch}deg / ${heroPx}px..." -ForegroundColor Cyan
-$argumentString = '--background --addons "{0}" --python-exit-code 1 --python "{1}" -- --g2-blend "{2}" --g2-manifest "{3}" --output-dir "{4}" --pitch {5} --hero-px {6}' -f $mpfbAddonModule,$scriptPath,$g2Blend,$g2Manifest,$g3vDir,$pitch,$heroPx
+$pitch = [int]$baseline.camera_pitch_deg
+$heroPx = [int]$baseline.protagonist_reference_height_px
+Write-Host "[RUN] ONE Blender background process | G3V | 640x360 / ${pitch}deg / ${heroPx}px..." -ForegroundColor Cyan
+
+$argumentString = '--background --python-exit-code 1 --python "{0}" -- --mpfb-root "{1}" --mpfb-user-root "{2}" --target-script "{3}" --g2-blend "{4}" --g2-manifest "{5}" --output-dir "{6}" --pitch {7} --hero-px {8}' -f $bootstrapScript,$mpfbRoot,$mpfbUserRoot,$targetScript,$g2Blend,$g2Manifest,$g3vDir,$pitch,$heroPx
 $proc = Start-Process -FilePath $script:BlenderExe -ArgumentList $argumentString -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 Get-Content $stdout -ErrorAction SilentlyContinue | Out-Host
-if (Test-Path $stderr) { $e=Get-Content $stderr -Raw -ErrorAction SilentlyContinue; if ($e) { Write-Host $e -ForegroundColor DarkYellow } }
+if (Test-Path $stderr) {
+    $e = Get-Content $stderr -Raw -ErrorAction SilentlyContinue
+    if ($e) { Write-Host $e -ForegroundColor DarkYellow }
+}
 if ($proc.ExitCode -ne 0) { Fail "Blender exited with code $($proc.ExitCode). See $stdout and $stderr" }
+
+$stdoutText = Get-Content $stdout -Raw -ErrorAction SilentlyContinue
+if ($stdoutText -notmatch 'G3V_MPFB_BOOTSTRAP=PASS') {
+    Fail 'Blender exited successfully but the direct MPFB service bootstrap did not report PASS.'
+}
 
 $manifestPath = Join-Path $g3vDir 'g3v_manifest.json'
 if (-not (Test-Path $manifestPath -PathType Leaf)) { Fail 'G3V manifest was not created.' }
@@ -164,11 +175,11 @@ if ($manifest.outputs.Count -ne 8) { Fail "Expected 8 visible G3V outputs, got $
 if ([int]$manifest.matching_motion_bones -lt 18) { Fail "Too few CMU-compatible matching bones: $($manifest.matching_motion_bones)" }
 foreach ($o in $manifest.outputs) {
     if (-not (Test-Path $o.file -PathType Leaf)) { Fail "G3V output missing: $($o.file)" }
-    $h=(Get-FileHash -Algorithm SHA256 $o.file).Hash.ToLowerInvariant()
+    $h = (Get-FileHash -Algorithm SHA256 $o.file).Hash.ToLowerInvariant()
     if ($h -ne $o.sha256.ToString().ToLowerInvariant()) { Fail "G3V output hash mismatch: $($o.file)" }
 }
 
-# 4 real walk phases x 2 rows: representative flat structure and actual 4-band pixel candidate.
+# 4 real walk phases x 2 rows.
 Add-Type -AssemblyName System.Drawing
 $cellW=640; $cellH=360; $cols=4; $rows=2
 $sheet=New-Object System.Drawing.Bitmap ($cellW*$cols),($cellH*$rows)
@@ -196,14 +207,16 @@ try {
     }
     $sheetPath=Join-Path $g3vDir 'g3v_contact_sheet.png'
     $sheet.Save($sheetPath,[System.Drawing.Imaging.ImageFormat]::Png)
-} finally { $g.Dispose(); $sheet.Dispose(); $font.Dispose(); $white.Dispose(); $black.Dispose() }
+} finally {
+    $g.Dispose(); $sheet.Dispose(); $font.Dispose(); $white.Dispose(); $black.Dispose()
+}
 if (-not (Test-Path $sheetPath -PathType Leaf)) { Fail 'G3V contact sheet was not created.' }
 $sheetHash=(Get-FileHash -Algorithm SHA256 $sheetPath).Hash.ToLowerInvariant()
 
 $result=[ordered]@{
     gate='G3V'; status='REVIEW_REQUIRED'; timestamp=(Get-Date).ToString('o')
     mpfb_version=$mpfbVersion; mpfb_archive_sha256=$actualHash; mpfb_archive_url=$archiveUrl
-    mpfb_addon_module=$mpfbAddonModule
+    mpfb_load_mode='direct_archive_service_bootstrap'; mpfb_package_root=$mpfbRoot
     baseline=$baseline; source_gate='G2'; contact_sheet=$sheetPath; contact_sheet_sha256=$sheetHash
     manifest=$manifestPath; blend=$manifest.blend; stdout_log=$stdout; stderr_log=$stderr
 }
@@ -214,7 +227,7 @@ Write-Host ''
 Write-Host 'G3V: REVIEW REQUIRED' -ForegroundColor Yellow
 Write-Host "CONTACT SHEET: $sheetPath"
 Write-Host "RESULT:        $resultPath"
-Write-Host "MPFB:          $mpfbVersion | $actualHash"
+Write-Host "MPFB:          $mpfbVersion | direct pinned archive | $actualHash"
 Write-Host "SHEET SHA256:  $sheetHash"
 Write-Host ''
 Write-Host 'STOP. Share g3v_contact_sheet.png. Do not start G4 until this representative visual kill switch is reviewed.' -ForegroundColor Yellow
