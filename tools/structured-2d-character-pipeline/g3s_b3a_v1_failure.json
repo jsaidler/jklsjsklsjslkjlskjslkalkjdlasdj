@@ -1,0 +1,34 @@
+{
+  "gate": "G3S-B3-A-NUDE-ANATOMY-GUIDE",
+  "status": "FAIL_CLOSED_REVISION_V1",
+  "date": "2026-09-05",
+  "revision": "G3S_B3A_NUDE_ANATOMY_GUIDE_V1",
+  "review_artifact": "g3s_b3a_contact_sheet.png",
+  "technical_output_was_valid": true,
+  "failure_reason": "The guide was required to be an adult female body, but V1 set MPFB macro gender=1.0. In the pinned MPFB macro target configuration, gender low=\"female\" and high=\"male\"; the HumanObjectProperties gender definition explicitly states 0.0=female and 1.0=male. V1 therefore instantiated the wrong phenotype despite correctly producing a complete hairless/unclothed body and clean layer audit.",
+  "evidence": {
+    "submitted_manifest_macro_gender": 1.0,
+    "submitted_visible_height_px": 128.0,
+    "submitted_pitch_deg": 26.0,
+    "submitted_yaw_deg": 8.0,
+    "submitted_lit_sha256": "8c296c8b80ea0705e26617948eb7a132eccd459f128737cfded2cc82bccea0ea",
+    "submitted_mask_sha256": "ad98ab36381a85545c7791d4de4e2f12fb53d045dcbd1db6f27e98373daa6a46",
+    "submitted_contact_sheet_sha256": "b24721e5d38547b3f329671f61e112aa980f24b35517377f643aaee6977738e1",
+    "upstream_gender_definition": "MPFB src/mpfb/entities/objectproperties/humanproperties/gender.json: 0.0 is female and 1.0 is male",
+    "upstream_macro_mapping": "MPFB src/mpfb/data/targets/macrodetails/macro.json: gender low=female, high=male"
+  },
+  "what_remains_valid": [
+    "B3A route itself remains valid",
+    "MPFB 2.0.17 remains the pinned structural dependency",
+    "headless bootstrap/rig/camera/scale pipeline remains valid",
+    "zero hair/clothing/restraint/chain object audit remains valid",
+    "B3A is still guide-only and does not own final visible pixels"
+  ],
+  "required_fix": [
+    "set macro gender to 0.0",
+    "audit the resolved MPFB target stack and require female targets with zero male targets",
+    "surface the phenotype audit in the manifest/contact sheet",
+    "rerun the same bounded B3A gate before B3B"
+  ],
+  "next_gate": "G3S-B3A V2 CORRECTED FEMALE PHENOTYPE GUIDE"
+}
