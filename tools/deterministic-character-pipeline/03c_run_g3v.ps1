@@ -124,6 +124,18 @@ New-Item -ItemType Directory -Force -Path $extRepoDir | Out-Null
 Invoke-BlenderArgs @('--command','extension','repo-add',$repoId,'--name','Roguelite G3V','--directory',$extRepoDir) | Out-Null
 Invoke-BlenderArgs @('--online-mode','--command','extension','install-file','-r',$repoId,'-e',$mpfbZip) | Out-Null
 
+# Blender extensions live under bl_ext.<repository_id>.<package_id>. The extension install
+# command enables the package in preferences, but a fresh background process is explicitly
+# given --addons as well so MPFB is guaranteed to register before the G3V Python script runs.
+$mpfbAddonModule = "bl_ext.$repoId.mpfb"
+Write-Host "[CHECK] Loading MPFB add-on module $mpfbAddonModule in a fresh background process..." -ForegroundColor Cyan
+$probeExpr = "import importlib; importlib.import_module('$mpfbAddonModule'); print('G3V_MPFB_IMPORT=PASS')"
+$probe = Invoke-BlenderArgs @('--background','--addons',$mpfbAddonModule,'--python-exit-code','1','--python-expr',$probeExpr) -AllowFail
+if ($probe.ExitCode -ne 0 -or $probe.Output -notmatch 'G3V_MPFB_IMPORT=PASS') {
+    Fail "MPFB installed but could not be activated in a fresh Blender process as $mpfbAddonModule."
+}
+Write-Host '[OK] MPFB loads in headless Blender.' -ForegroundColor Green
+
 $g3vDir = Join-Path $Workspace 'g3v'
 $logDir = Join-Path $g3vDir 'logs'
 New-Item -ItemType Directory -Force -Path $g3vDir,$logDir | Out-Null
@@ -138,7 +150,7 @@ Remove-Item $stdout,$stderr -Force -ErrorAction SilentlyContinue
 $pitch=[int]$baseline.camera_pitch_deg
 $heroPx=[int]$baseline.protagonist_reference_height_px
 Write-Host "[RUN] G3V headless | representative woman | CMU real walk | 640x360 / ${pitch}deg / ${heroPx}px..." -ForegroundColor Cyan
-$argumentString = '--background --python-exit-code 1 --python "{0}" -- --g2-blend "{1}" --g2-manifest "{2}" --output-dir "{3}" --pitch {4} --hero-px {5}' -f $scriptPath,$g2Blend,$g2Manifest,$g3vDir,$pitch,$heroPx
+$argumentString = '--background --addons "{0}" --python-exit-code 1 --python "{1}" -- --g2-blend "{2}" --g2-manifest "{3}" --output-dir "{4}" --pitch {5} --hero-px {6}' -f $mpfbAddonModule,$scriptPath,$g2Blend,$g2Manifest,$g3vDir,$pitch,$heroPx
 $proc = Start-Process -FilePath $script:BlenderExe -ArgumentList $argumentString -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 Get-Content $stdout -ErrorAction SilentlyContinue | Out-Host
 if (Test-Path $stderr) { $e=Get-Content $stderr -Raw -ErrorAction SilentlyContinue; if ($e) { Write-Host $e -ForegroundColor DarkYellow } }
@@ -191,6 +203,7 @@ $sheetHash=(Get-FileHash -Algorithm SHA256 $sheetPath).Hash.ToLowerInvariant()
 $result=[ordered]@{
     gate='G3V'; status='REVIEW_REQUIRED'; timestamp=(Get-Date).ToString('o')
     mpfb_version=$mpfbVersion; mpfb_archive_sha256=$actualHash; mpfb_archive_url=$archiveUrl
+    mpfb_addon_module=$mpfbAddonModule
     baseline=$baseline; source_gate='G2'; contact_sheet=$sheetPath; contact_sheet_sha256=$sheetHash
     manifest=$manifestPath; blend=$manifest.blend; stdout_log=$stdout; stderr_log=$stderr
 }
