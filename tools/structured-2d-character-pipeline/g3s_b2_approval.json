@@ -1,0 +1,23 @@
+{
+  "gate": "G3S-B2-LAYER-STACK-PREFLIGHT",
+  "status": "PASS_CLOSED_DIAGNOSTIC_ONLY",
+  "date": "2026-09-05",
+  "revision": "G3S_B2_LAYER_STACK_PREFLIGHT_V1",
+  "technical_findings": {
+    "exact_recomposition": true,
+    "source_alpha_pixels": 2974,
+    "body_visible_pixels": 1538,
+    "hair_pixels": 826,
+    "clothing_pixels": 610,
+    "unresolved_underbody_pixels": 1205
+  },
+  "visual_conclusion": "The diagnostic correctly demonstrates that a complete body base cannot be obtained by subtracting hair/clothing from the composite source. Hidden anatomy must be authored as its own canonical asset before hair, clothing or restraints are layered.",
+  "locked_staging": [
+    "G3S-B3 complete nude hairless body base",
+    "G3S-B4 independent hair asset",
+    "G3S-B5 independent clothing and restraint/accessory assets",
+    "G3S-C layered four-phase walk proof"
+  ],
+  "nudity_rule": "Nudity is a normal character state: render the complete adult body base with clothing/equipment layers omitted. No special generated nude variant is created at runtime.",
+  "next_gate": "G3S-B3-NUDE-BODY-BASE"
+}
