@@ -1,0 +1,20 @@
+{
+  "gate": "G3S-A1-FACIAL-ANATOMY-LOCK-V2",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "reason": "Visual review rejected the V2 facial patch: the mouth reads as an artificial dark/red block rather than a plausible small mouth at gameplay scale.",
+  "operator_decision": {
+    "mouth": "FAIL",
+    "chains": "DO_NOT_BAKE_INTO_BASE_CHARACTER",
+    "chains_future_role": "INITIAL_ACCESSORIES",
+    "proceed_with_planned_pipeline": true
+  },
+  "production_decision": {
+    "head_face_part": "UNRESOLVED_AND_REPLACEABLE_DURING_STRUCTURED_2D_PIPELINE",
+    "macro_body_source": "PROVISIONALLY_ACCEPTED_FOR_PART_DECOMPOSITION",
+    "g3s_b_unblocked": true,
+    "g3s_c_still_blocked_until_g3s_b_visual_review": true
+  },
+  "lesson": "A bad facial patch should not force repeated whole-character editing. Isolate head/face as a persistent replaceable part. Broken chains belong to accessory state, not the permanent body sprite.",
+  "next_gate": "G3S-B-PERSISTENT-PART-DECOMPOSITION"
+}
