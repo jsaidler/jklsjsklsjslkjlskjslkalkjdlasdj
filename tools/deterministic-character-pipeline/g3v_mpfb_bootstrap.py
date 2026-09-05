@@ -29,10 +29,6 @@ def bootstrap_mpfb(mpfb_root: Path, user_root: Path):
 
     user_root.mkdir(parents=True, exist_ok=True)
 
-    # LocationService normally asks Blender for a writable directory associated with
-    # an installed extension. G3V intentionally loads the pinned package directly,
-    # so provide a deterministic project-local path instead of depending on Blender
-    # extension repository state/preferences.
     original_extension_path_user = bpy.utils.extension_path_user
 
     def project_extension_path_user(package, *, path="", create=False):
@@ -57,9 +53,6 @@ def bootstrap_mpfb(mpfb_root: Path, user_root: Path):
     sys.modules["mpfb"] = module
     spec.loader.exec_module(module)
 
-    # We only need MPFB's service layer for headless character construction/rigging.
-    # Avoid registering the GUI extension entirely. Preferences are therefore replaced
-    # by neutral defaults and contextual package information is initialized explicitly.
     module.get_preference = lambda _name: None
     module.MPFB_CONTEXTUAL_INFORMATION = {
         "__package__": "mpfb",
@@ -80,28 +73,21 @@ def bootstrap_mpfb(mpfb_root: Path, user_root: Path):
     print(f"G3V_MPFB_USER_ROOT={user_root}")
 
 
-def install_g3v_runtime_fixes(namespace):
-    """Patch fragile diagnostic behavior without changing the production hypothesis.
+def install_g3v_runtime_fixes(target_globals):
+    """Install diagnostic fixes into the *actual* globals used by target functions.
 
-    PNG color management can move emission RGB values significantly. The original
-    classifier required an arbitrary absolute distance threshold after already deciding
-    that a pixel was closer to a semantic color than to the background. That caused
-    valid rendered skin/hair/metal pixels to be discarded while some cloth pixels
-    survived. For an ID pass the correct decision is categorical: choose the closest
-    semantic only when it beats the background.
-
-    The ID render also uses Raw view transform so the encoded diagnostic colors stay as
-    close as possible to their linear emission values. The neutral-light pass restores
-    Standard transform for the visual shading measurement.
+    runpy.run_path() returns a copied namespace. Mutating that returned dictionary does
+    not necessarily alter function.__globals__. Therefore this function must receive
+    main.__globals__, not the dictionary returned by runpy.
     """
     required = ("BACKGROUND", "ID_COLORS", "d2", "render_pass", "id_foreground_stats", "main")
-    missing = [name for name in required if name not in namespace]
+    missing = [name for name in required if name not in target_globals]
     if missing:
         raise RuntimeError("G3V target missing runtime-patch symbols: " + ", ".join(missing))
 
-    background = namespace["BACKGROUND"]
-    id_colors = namespace["ID_COLORS"]
-    d2 = namespace["d2"]
+    background = target_globals["BACKGROUND"]
+    id_colors = target_globals["ID_COLORS"]
+    d2 = target_globals["d2"]
 
     def robust_classify_id(color):
         background_distance = d2(color, background)
@@ -114,9 +100,9 @@ def install_g3v_runtime_fixes(namespace):
                 best_distance = distance
         return best_semantic
 
-    namespace["classify_id"] = robust_classify_id
+    target_globals["classify_id"] = robust_classify_id
 
-    original_render_pass = namespace["render_pass"]
+    original_render_pass = target_globals["render_pass"]
 
     def robust_render_pass(scene, path, semantic_objects, mode, id_materials, neutral_material):
         previous_transform = None
@@ -137,9 +123,9 @@ def install_g3v_runtime_fixes(namespace):
                 except Exception:
                     pass
 
-    namespace["render_pass"] = robust_render_pass
+    target_globals["render_pass"] = robust_render_pass
 
-    original_stats = namespace["id_foreground_stats"]
+    original_stats = target_globals["id_foreground_stats"]
 
     def strict_semantic_stats(path):
         stats = original_stats(path)
@@ -153,8 +139,16 @@ def install_g3v_runtime_fixes(namespace):
             )
         return stats
 
-    namespace["id_foreground_stats"] = strict_semantic_stats
+    target_globals["id_foreground_stats"] = strict_semantic_stats
 
+    if target_globals["classify_id"] is not robust_classify_id:
+        raise RuntimeError("G3V classifier runtime patch did not bind to target globals")
+    if target_globals["render_pass"] is not robust_render_pass:
+        raise RuntimeError("G3V render-pass runtime patch did not bind to target globals")
+    if target_globals["id_foreground_stats"] is not strict_semantic_stats:
+        raise RuntimeError("G3V semantic-stats runtime patch did not bind to target globals")
+
+    print("G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN")
     print("G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND")
     print("G3V_ID_COLOR_TRANSFORM=RAW")
     print("G3V_REQUIRED_SEMANTICS=skin,hair,cloth,metal")
@@ -170,12 +164,16 @@ def main():
 
     bootstrap_mpfb(mpfb_root, user_root)
 
-    # Load the target without triggering its __main__ block, install diagnostic fixes,
-    # then call main explicitly. Functions created by runpy retain this namespace as
-    # their globals, so the patched classifier/render_pass are used throughout G3V.
-    namespace = runpy.run_path(str(target_script), run_name="g3v_target")
-    install_g3v_runtime_fixes(namespace)
-    namespace["main"]()
+    namespace_copy = runpy.run_path(str(target_script), run_name="g3v_target")
+    target_main = namespace_copy.get("main")
+    if target_main is None or not callable(target_main):
+        raise RuntimeError("G3V target did not expose callable main()")
+
+    # Critical: runpy returns a copied dictionary. Patch the globals actually referenced
+    # by the target functions, then invoke main from that same globals dictionary.
+    target_globals = target_main.__globals__
+    install_g3v_runtime_fixes(target_globals)
+    target_globals["main"]()
 
 
 if __name__ == "__main__":
