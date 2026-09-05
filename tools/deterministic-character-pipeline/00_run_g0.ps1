@@ -30,7 +30,6 @@ function Find-BlenderExe {
     $found = @($candidates | Where-Object { $_ -and (Test-Path $_ -PathType Leaf) } | Select-Object -Unique)
     if ($found.Count -eq 0) { return $null }
 
-    # Prefer the newest installed path lexically/version-wise when more than one exists.
     return ($found | Sort-Object -Descending | Select-Object -First 1)
 }
 
@@ -54,7 +53,6 @@ if (-not (Test-Path $probeScript -PathType Leaf)) {
     Fail "Probe script not found: $probeScript. Run git pull --ff-only first."
 }
 
-# Basic host validation.
 $os = Get-CimInstance Win32_OperatingSystem
 Write-Host ("[INFO] OS: {0} {1}" -f $os.Caption, $os.Version)
 if ($os.Caption -notmatch 'Windows 11') {
@@ -108,7 +106,6 @@ $g0Dir = Join-Path $Workspace 'g0'
 $logDir = Join-Path $g0Dir 'logs'
 New-Item -ItemType Directory -Force -Path $g0Dir, $logDir | Out-Null
 
-# Remove only known G0 outputs so each run proves a fresh headless render.
 @('g0_probe.png', 'g0_probe.blend', 'g0_manifest.json', 'g0_result.json') | ForEach-Object {
     $p = Join-Path $g0Dir $_
     if (Test-Path $p) { Remove-Item $p -Force }
@@ -122,6 +119,8 @@ Write-Host '[RUN] Starting Blender in background/factory mode...' -ForegroundCol
 $blenderArgs = @(
     '--background',
     '--factory-startup',
+    '--python-exit-code',
+    '1',
     '--python',
     $probeScript,
     '--',
@@ -129,9 +128,9 @@ $blenderArgs = @(
     $g0Dir
 )
 
-# Do NOT use Start-Process -ArgumentList here. Windows PowerShell joins that array
-# into one command-line string and can split paths containing spaces. The call
-# operator with argument-array splatting preserves each path as one native argument.
+# Windows PowerShell's Start-Process -ArgumentList joins the array into one command-line
+# string and may split paths containing spaces. Native invocation + array splatting keeps
+# the Python path and output path as distinct single arguments.
 & $blender @blenderArgs 1> $stdout 2> $stderr
 $blenderExitCode = $LASTEXITCODE
 
