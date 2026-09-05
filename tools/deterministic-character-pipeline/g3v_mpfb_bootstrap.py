@@ -94,7 +94,7 @@ def install_g3v_runtime_fixes(namespace):
     close as possible to their linear emission values. The neutral-light pass restores
     Standard transform for the visual shading measurement.
     """
-    required = ("BACKGROUND", "ID_COLORS", "d2", "render_pass", "main")
+    required = ("BACKGROUND", "ID_COLORS", "d2", "render_pass", "id_foreground_stats", "main")
     missing = [name for name in required if name not in namespace]
     if missing:
         raise RuntimeError("G3V target missing runtime-patch symbols: " + ", ".join(missing))
@@ -138,8 +138,26 @@ def install_g3v_runtime_fixes(namespace):
                     pass
 
     namespace["render_pass"] = robust_render_pass
+
+    original_stats = namespace["id_foreground_stats"]
+
+    def strict_semantic_stats(path):
+        stats = original_stats(path)
+        counts = stats.get("semantic_pixels", {})
+        missing_semantics = [name for name in ("skin", "hair", "cloth", "metal") if int(counts.get(name, 0)) <= 0]
+        if missing_semantics:
+            raise RuntimeError(
+                "G3V semantic ID pass is missing visible representative layers "
+                + ", ".join(missing_semantics)
+                + f"; stats={stats}"
+            )
+        return stats
+
+    namespace["id_foreground_stats"] = strict_semantic_stats
+
     print("G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND")
     print("G3V_ID_COLOR_TRANSFORM=RAW")
+    print("G3V_REQUIRED_SEMANTICS=skin,hair,cloth,metal")
 
 
 def main():
