@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **READY TO RUN**
+Gate status: **READY TO RERUN AFTER HARNESS FIX**
 
 ## Why this gate exists
 
@@ -72,6 +72,25 @@ G3S-A1 requires:
 - candidate remains native `128×128`;
 - visible body height remains within the locked source range;
 - final visual review remains authoritative.
+
+## Harness incident — sibling import failure
+
+The first G3S-A1 invocation stopped before any anatomy work with:
+
+`ModuleNotFoundError: No module named 'g3s_a_authored_native_v1'`
+
+Root cause: `g3s_a1_facial_anatomy_lock.py` imported the sibling helper by bare module name. The ComfyUI embeddable Python does not guarantee that the script directory is on `sys.path`, so the helper could not resolve its sibling module.
+
+This was a harness bug, not an anatomy-patch failure. No model inference occurred and no G3S-A1 candidate was generated.
+
+Fix:
+
+- `g3s_a1_facial_anatomy_lock.py` now loads `g3s_a_authored_native_v1.py` by absolute sibling file path using `importlib.util.spec_from_file_location`;
+- no dependency on cwd, `PYTHONPATH` or embeddable-Python import behavior remains for this sibling;
+- fix commit: `bf5fe174165ee9cd08ed2f50a09e3ca7563f8658`;
+- marker: `tools/structured-2d-character-pipeline/g3s_a1_import_failure.json`.
+
+This fix changes no art coordinates, gate thresholds or model state.
 
 ## Review artifacts
 
