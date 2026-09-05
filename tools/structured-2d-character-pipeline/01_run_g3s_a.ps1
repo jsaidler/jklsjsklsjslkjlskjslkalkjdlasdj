@@ -15,7 +15,7 @@ function Fail([string]$Message) {
 }
 
 Write-Host ''
-Write-Host 'Roguelite - G3S-A STATIC PRODUCTION PIXEL SOURCE' -ForegroundColor Cyan
+Write-Host 'Roguelite - G3S-A STATIC PRODUCTION PIXEL SOURCE V2' -ForegroundColor Cyan
 Write-Host 'One static Exilada source-art candidate only. No animation frames are generated.'
 Write-Host 'Uses the existing isolated Qwen-Image-Edit-2509 runtime; this runner downloads nothing.' -ForegroundColor Yellow
 Write-Host ''
@@ -28,7 +28,7 @@ $Failure = Get-Content $FailureMarker -Raw | ConvertFrom-Json
 if ($Failure.gate -ne 'G3V' -or $Failure.status -ne 'FAIL') { Fail 'G3V is not canonically recorded FAIL.' }
 
 $Master = Join-Path $RepoRoot 'assets\source\characters\exilada\reference\exilada_master.png'
-$Helper = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_a_static_source.py'
+$Helper = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_a_static_source_v2.py'
 foreach ($p in @($Master,$Helper)) {
     if (-not (Test-Path $p -PathType Leaf)) { Fail "Required file missing: $p" }
 }
@@ -54,6 +54,7 @@ $MasterHash = (Get-FileHash -LiteralPath $Master -Algorithm SHA256).Hash.ToLower
 Write-Host "[OK] Canonical Exilada master: $MasterHash" -ForegroundColor Green
 Write-Host '[OK] Existing Qwen 2509 Q4_0 + Qwen VL encoder + VAE found.' -ForegroundColor Green
 Write-Host '[LOCK] 640x360 native canvas | target character ~128 px | seed fixed | no post-inference resize.' -ForegroundColor Cyan
+Write-Host '[LOCK] Qwen V2: image1=guide=latent | image2=master | AuraFlow->CFGNorm | 20 steps / CFG 2.5.' -ForegroundColor Cyan
 
 $OutDir = Join-Path $PipelineWorkspace 'g3s_a'
 $LogDir = Join-Path $OutDir 'logs'
@@ -97,7 +98,7 @@ try {
     if (-not $ready) { Fail "Timed out waiting for ComfyUI /object_info. See $Stdout and $Stderr" }
     Write-Host '[OK] Runtime schema endpoint ready.' -ForegroundColor Green
 
-    Write-Host '[RUN] Qwen-Image-Edit-2509 one-shot static source candidate...' -ForegroundColor Cyan
+    Write-Host '[RUN] Qwen-Image-Edit-2509 one-shot static source candidate V2...' -ForegroundColor Cyan
     & $Python $Helper `
         --api $Api `
         --comfy-root $ComfyRoot `
@@ -110,7 +111,7 @@ try {
         Write-Host ''
         Write-Host '[COMFY STDERR TAIL]' -ForegroundColor DarkYellow
         if (Test-Path $Stderr) { Get-Content $Stderr -Tail 80 -ErrorAction SilentlyContinue | Out-Host }
-        Fail "G3S-A helper exited with code $HelperExit. See $Stdout and $Stderr"
+        Fail "G3S-A V2 helper exited with code $HelperExit. See $Stdout and $Stderr"
     }
 }
 finally {
@@ -129,6 +130,7 @@ foreach ($p in @($ResultPath,$Contact,$Raw,$Quant)) {
 }
 $Result = Get-Content $ResultPath -Raw | ConvertFrom-Json
 if ($Result.gate -ne 'G3S-A' -or $Result.status -ne 'REVIEW_REQUIRED') { Fail 'Unexpected G3S-A result status.' }
+if ($Result.workflow_revision -ne 'QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2') { Fail 'Unexpected G3S-A workflow revision.' }
 if ([int]$Result.canvas[0] -ne 640 -or [int]$Result.canvas[1] -ne 360) { Fail 'G3S-A output canvas contract changed unexpectedly.' }
 if ([bool]$Result.rules.post_inference_resize) { Fail 'G3S-A illegally resized the generated image.' }
 
