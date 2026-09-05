@@ -28,6 +28,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 20. `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 21. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
 22. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+23. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 After every material step: update the relevant thematic document + this file and make a focused commit.
 
@@ -60,6 +61,20 @@ The production character owns a **complete nude adult body base independent of h
 - the body remains complete under all removable layers;
 - nudity is a normal supported state, produced by omitting garment/equipment layers rather than generating a separate nude sprite;
 - the composite master cannot be used to recover hidden anatomy by subtraction.
+
+### Erotic charge — LOCKED 2026-09-05
+
+The project does **not** impose blanket desexualization of adult bodies or nudity.
+
+Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell are explicit visual references, and their sensual/erotic adult-body vocabulary is considered part of the intended mature direction.
+
+- adult nudity may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent;
+- the Exilada may remain beautiful/sexually charged while also severe, dangerous, dirty, wounded, exhausted or deprived;
+- erotic charge is allowed but not mandatory in every scene;
+- no censor garment or anti-erotic framing is structurally required;
+- framing must be intentional rather than automatically sanitized or automatically sexualized.
+
+Canonical detail is in `docs/VISUAL_DIRECTION.md` and `docs/CHARACTERS.md`.
 
 ## Hard operator constraint
 
@@ -275,6 +290,12 @@ Then STOP and share:
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
 
 Do not run G3S-C.
+
+## Next-chat handoff
+
+Canonical continuation prompt/state:
+
+`docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Workspaces
 
