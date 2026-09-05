@@ -145,6 +145,7 @@ def contact_sheet(control: Image.Image, ref: Image.Image, raw: Image.Image, game
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--alucard-root", required=True)
+    ap.add_argument("--pydeps", required=True)
     ap.add_argument("--model", required=True)
     ap.add_argument("--control", required=True)
     ap.add_argument("--output-dir", required=True)
@@ -157,12 +158,25 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     control_path = Path(args.control)
     model_path = Path(args.model)
+    pydeps_path = Path(args.pydeps)
+    alucard_root = Path(args.alucard_root)
     if not control_path.is_file():
         raise FileNotFoundError(control_path)
     if not model_path.is_file():
         raise FileNotFoundError(model_path)
+    if not pydeps_path.is_dir():
+        raise FileNotFoundError(pydeps_path)
+    if not alucard_root.is_dir():
+        raise FileNotFoundError(alucard_root)
 
-    sys.path.insert(0, str(Path(args.alucard_root)))
+    # The Windows embeddable Python used by ComfyUI runs in isolated-path mode
+    # when python._pth is present, so PYTHONPATH can be ignored. Inject the two
+    # isolated Alucard paths explicitly before importing Alucard/OpenCLIP.
+    sys.path.insert(0, str(pydeps_path))
+    sys.path.insert(0, str(alucard_root))
+    print("G3S_A_ALUCARD_IMPORT_PATH_MODE=EXPLICIT_SYS_PATH")
+    print(f"G3S_A_ALUCARD_PYDEPS={pydeps_path}")
+
     import torch
     from alucard import Alucard
 
