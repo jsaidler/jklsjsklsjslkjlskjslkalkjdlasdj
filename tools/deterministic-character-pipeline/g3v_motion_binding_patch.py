@@ -2,11 +2,10 @@ import hashlib
 from pathlib import Path
 
 import bpy
-from mathutils import Vector
+from mathutils import Matrix
 
 
 _POSE_SIGNATURES = {}
-_MOTION_AUDIT_DONE = False
 _REQUIRED_BONES = (
     "Hips", "Spine1", "Neck1", "Head",
     "LeftArm", "LeftForeArm", "LeftHand", "RightArm", "RightForeArm", "RightHand",
@@ -58,19 +57,77 @@ def _sha256(path):
     return h.hexdigest()
 
 
-def install_motion_binding(target_globals):
-    """Bind G2 motion explicitly into the MPFB cmu_mb rig at every sampled frame.
+def _depth(bone):
+    d = 0
+    current = bone
+    while current.parent is not None:
+        d += 1
+        current = current.parent
+    return d
 
-    Copying the G2 Action datablock onto the MPFB armature produced four byte-identical
-    rendered poses even when the selected source frames were valid quarter-cycle phases.
-    This patch makes the motion dependency explicit: before any bbox evaluation or render,
-    matching CMU pose-bone matrix_basis values are copied from G2_CANONICAL_RIG to
-    G3V_CMU_RIG for the current scene frame. The target Action is disabled so Blender
-    cannot overwrite the explicit pose between frame_set() and render.
 
-    The gate refuses review if either the target pose signatures or the rendered skin
-    masks remain effectively identical across the sampled sequence.
+def _reset_target_pose(target):
+    if target.animation_data is not None:
+        target.animation_data.action = None
+    for pb in target.pose.bones:
+        pb.matrix_basis.identity()
+    bpy.context.view_layer.update()
+
+
+def _apply_direction_space_fk(source, target):
+    """Apply the G3V-R validated axis-independent CMU -> MPFB retarget.
+
+    G3V-R measured source/target rest orientation differences of ~83 deg mean and
+    ~180 deg max, despite matching CMU bone names and parent hierarchy. Therefore raw
+    Action/matrix_basis/local-axis copying is invalid. This solver reproduces each posed
+    source bone direction in target armature space, parent-first, while preserving MPFB's
+    own bone lengths, hierarchy, weights and roll/twist convention.
     """
+    _reset_target_pose(target)
+
+    common = [
+        name for name in target.pose.bones.keys()
+        if source.pose.bones.get(name) is not None
+        and source.data.bones.get(name) is not None
+        and target.data.bones.get(name) is not None
+    ]
+    common.sort(key=lambda name: _depth(target.data.bones[name]))
+
+    source_world_rot = source.matrix_world.to_quaternion().to_matrix()
+    target_world_inv_rot = target.matrix_world.to_quaternion().inverted().to_matrix()
+
+    for name in common:
+        spb = source.pose.bones[name]
+        tpb = target.pose.bones[name]
+
+        source_dir = spb.tail - spb.head
+        if source_dir.length <= 1e-8:
+            continue
+        desired_world = source_world_rot @ source_dir.normalized()
+        desired_target_arm = target_world_inv_rot @ desired_world
+        if desired_target_arm.length <= 1e-8:
+            continue
+        desired_target_arm.normalize()
+
+        bpy.context.view_layer.update()
+        current_dir = tpb.tail - tpb.head
+        if current_dir.length <= 1e-8:
+            continue
+        current_dir.normalize()
+        swing = current_dir.rotation_difference(desired_target_arm)
+
+        current_matrix = tpb.matrix.copy()
+        location = current_matrix.translation.copy()
+        rotation = current_matrix.to_quaternion().normalized()
+        new_rotation = (swing @ rotation).normalized()
+        tpb.matrix = Matrix.Translation(location) @ new_rotation.to_matrix().to_4x4()
+        bpy.context.view_layer.update()
+
+    bpy.context.view_layer.update()
+
+
+def install_motion_binding(target_globals):
+    """Install the G3V-R-approved direction-space retarget into G3V body rendering."""
     required = ("bbox_world", "render_pass", "build_visible_outputs", "main")
     missing = [name for name in required if name not in target_globals]
     if missing:
@@ -87,18 +144,18 @@ def install_motion_binding(target_globals):
         target = bpy.data.objects.get("G3V_CMU_RIG")
         body = bpy.data.objects.get("G3V_BODY")
         if source is None or source.type != "ARMATURE":
-            raise RuntimeError("G3V explicit motion binding could not locate G2_CANONICAL_RIG")
+            raise RuntimeError("G3V direction-space binding could not locate G2_CANONICAL_RIG")
         if target is None or target.type != "ARMATURE":
             return False
         if body is None or body.type != "MESH":
-            raise RuntimeError("G3V explicit motion binding could not locate G3V_BODY")
+            raise RuntimeError("G3V direction-space binding could not locate G3V_BODY")
 
         if not state["initialized"]:
             missing_source = [b for b in _REQUIRED_BONES if source.pose.bones.get(b) is None]
             missing_target = [b for b in _REQUIRED_BONES if target.pose.bones.get(b) is None]
             if missing_source or missing_target:
                 raise RuntimeError(
-                    "G3V explicit motion binding bone mismatch: source=" + repr(missing_source)
+                    "G3V direction-space retarget bone mismatch: source=" + repr(missing_source)
                     + " target=" + repr(missing_target)
                 )
 
@@ -112,7 +169,8 @@ def install_motion_binding(target_globals):
             if target.animation_data is not None:
                 target.animation_data.action = None
             state["initialized"] = True
-            print("G3V_MOTION_BINDING=EXPLICIT_MATRIX_BASIS_FROM_G2")
+            print("G3V_MOTION_BINDING=DIRECTION_SPACE_FK_VALIDATED_G3V_R")
+            print("G3V_MOTION_LOCAL_AXIS_COPY=DISABLED")
             print("G3V_TARGET_ACTION=DISABLED")
             print("G3V_BODY_ARMATURE_MODIFIER=PASS")
 
@@ -120,20 +178,12 @@ def install_motion_binding(target_globals):
         if state["last_frame"] == frame:
             return True
 
-        # Source is evaluated by scene.frame_set(); copy its current relative pose into
-        # the matching CMU target bones. matrix_basis preserves each target rest skeleton
-        # while applying the captured local transform deltas.
-        for name in _REQUIRED_BONES:
-            spb = source.pose.bones[name]
-            tpb = target.pose.bones[name]
-            tpb.matrix_basis = spb.matrix_basis.copy()
-
-        bpy.context.view_layer.update()
+        _apply_direction_space_fk(source, target)
         signature = _pose_signature(target)
         _POSE_SIGNATURES[frame] = signature
         state["last_frame"] = frame
         print(
-            "G3V_MOTION_POSE_FRAME_{}=BOUND sig={}".format(
+            "G3V_MOTION_POSE_FRAME_{}=RETARGETED sig={}".format(
                 frame,
                 ",".join(f"{v:.5f}" for v in signature[:9]),
             )
@@ -149,14 +199,13 @@ def install_motion_binding(target_globals):
         return original_render_pass(scene, path, semantic_objects, mode, id_materials, neutral_material)
 
     def audited_build_visible_outputs(frame_records, output_dir):
-        global _MOTION_AUDIT_DONE
         ensure_motion_binding()
 
         frames = [int(rec["frame"]) for rec in frame_records]
         signatures = [_POSE_SIGNATURES.get(frame) for frame in frames]
         if any(sig is None for sig in signatures):
             raise RuntimeError(
-                "G3V motion audit missing explicit target pose signature for frames " + repr(frames)
+                "G3V motion audit missing retargeted target pose signature for frames " + repr(frames)
             )
         unique_pose_count = len(set(signatures))
         max_pose_delta = _max_signature_delta(signatures)
@@ -164,7 +213,7 @@ def install_motion_binding(target_globals):
         print(f"G3V_MOTION_MAX_SIGNATURE_DELTA={max_pose_delta:.6f}")
         if unique_pose_count < 3 or max_pose_delta < 0.05:
             raise RuntimeError(
-                "G3V target rig remains effectively static after explicit motion binding: "
+                "G3V target rig remains effectively static after direction-space retarget: "
                 f"unique_poses={unique_pose_count}, max_signature_delta={max_pose_delta:.6f}, frames={frames}"
             )
 
@@ -183,11 +232,10 @@ def install_motion_binding(target_globals):
         print(f"G3V_MOTION_UNIQUE_SKIN_MASKS={unique_skin_masks}")
         if unique_skin_masks < 3:
             raise RuntimeError(
-                "G3V rendered body deformation remains effectively static: "
+                "G3V rendered body deformation remains effectively static after validated retarget: "
                 f"unique_skin_masks={unique_skin_masks}, frames={frames}"
             )
 
-        _MOTION_AUDIT_DONE = True
         print("G3V_MOTION_DIVERSITY_AUDIT=PASS")
         return original_build_visible_outputs(frame_records, output_dir)
 
@@ -196,11 +244,11 @@ def install_motion_binding(target_globals):
     target_globals["build_visible_outputs"] = audited_build_visible_outputs
 
     if target_globals["bbox_world"] is not motion_bbox_world:
-        raise RuntimeError("G3V explicit motion bbox patch did not bind")
+        raise RuntimeError("G3V direction-space bbox patch did not bind")
     if target_globals["render_pass"] is not motion_render_pass:
-        raise RuntimeError("G3V explicit motion render patch did not bind")
+        raise RuntimeError("G3V direction-space render patch did not bind")
     if target_globals["build_visible_outputs"] is not audited_build_visible_outputs:
-        raise RuntimeError("G3V motion diversity audit did not bind")
+        raise RuntimeError("G3V direction-space diversity audit did not bind")
 
-    print("G3V_MOTION_BINDING_MODE=EXPLICIT_PER_FRAME")
+    print("G3V_MOTION_BINDING_MODE=VALIDATED_DIRECTION_SPACE_PER_FRAME")
     print("G3V_MOTION_REVIEW_REQUIRES=3_UNIQUE_POSES_AND_3_UNIQUE_SKIN_MASKS")
