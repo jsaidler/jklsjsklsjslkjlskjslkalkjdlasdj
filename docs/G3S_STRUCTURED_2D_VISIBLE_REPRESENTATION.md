@@ -2,85 +2,54 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A1 FACIAL / ANATOMY LOCK V2 READY**
+Gate status: **ACTIVE — G3S-B PERSISTENT PART DECOMPOSITION READY**
 
-## Why G3S exists
-
-G3V-R proved deterministic transfer of real CMU motion into the humanoid control rig. G3V then proved that hidden 3D is useful as motion/topology infrastructure but fails as owner of final visible pixel art.
-
-Locked production architecture:
+## Locked architecture
 
 `real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel parts -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
-Hidden 3D may own motion, topology, left/right identity, sockets, contacts, depth/occlusion, physics and semantic guides. It may not own final visible color pixels.
+Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character color pixels.
 
 ## Production constraints
 
 - no per-frame diffusion as animation owner;
 - no routine frame-by-frame repainting by the user;
 - no required Blender/Aseprite/Spine GUI operation by the user;
-- no generic beauty-render shrink/pixel-filter route as final production method;
+- no beauty-render shrink/pixel-filter route as final art;
 - no bilinear filtering;
-- recurring production remains scriptable/headless;
-- one-time native source authoring may use explicit deterministic pixel edits;
-- future animation must consume persistent structured assets rather than regenerate frames;
-- anatomical details are gate-critical: a feature must read semantically, not merely exist as pixels.
+- recurring work remains scriptable/headless;
+- one-time source construction may use deterministic native-grid edits;
+- animation consumes persistent parts rather than regenerating frames;
+- anatomical details are semantically important, but localized defects must be isolated into replaceable parts rather than forcing whole-character redraws.
 
 ## Model-discard cleanup rule — LOCKED
 
 Whenever a model/route is declared **FAIL/CLOSED/REJECTED** and no longer required, the same response must include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved; small result/log evidence remains unless explicitly removed.
 
-### Alucard
+### Current closed-model cleanup commands
 
 ```powershell
+# Alucard
 Remove-Item -LiteralPath "Z:\AI\AlucardSpike" -Recurse -Force -ErrorAction SilentlyContinue
-```
 
-### PixelLock
-
-```powershell
+# PixelLock
 Remove-Item -LiteralPath "Z:\AI\PixelLockSpike" -Recurse -Force -ErrorAction SilentlyContinue
-```
 
-### SD1.5 native re-author
-
-```powershell
+# SD1.5 native re-author
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.safetensors" -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\loras\pixel-art-sd15.safetensors" -Force -ErrorAction SilentlyContinue
-```
 
-### Qwen-Image-Edit-2509 direct sprite route
-
-The fixed control is retained; the shared embedded Python/ComfyUI runtime remains because authored tooling still uses that Python.
-
-```powershell
+# Qwen weights — fixed control retained; shared embedded Python runtime remains
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\unet\Qwen-Image-Edit-2509-Q4_0.gguf" -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors" -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\vae\qwen_image_vae.safetensors" -Force -ErrorAction SilentlyContinue
 ```
 
-# G3S-A — static source sprite gate
+# G3S-A source history — CLOSED AS MODEL SEARCH
 
-Goal: obtain one approved Exilada source image for the locked presentation:
+Bounded source experiments:
 
-- native asset canvas `128×128` RGBA;
-- gameplay canvas `640×360`;
-- visible character height about `128 px`;
-- lateral/slight-3/4 presentation facing screen-right;
-- lean adult female anatomy;
-- very long heavy black hair;
-- degraded asymmetric beige cloth;
-- wrist/ankle restraints and broken chain remnants;
-- bare feet;
-- no weapon;
-- intentional modern pixel clusters at native 1×;
-- recognizable Exilada identity derived from the canonical master.
-
-## Automated source search — CLOSED
-
-Bounded architecture probes were completed and closed:
-
-- Qwen direct-native — FAIL;
+- Qwen direct-native `640×360` — FAIL;
 - Qwen preferred-resolution control — PASS only as design/scaffold provenance;
 - SD1.5 + pixel LoRA native re-author — FAIL;
 - PixelLock initial-source authoring — FAIL;
@@ -89,7 +58,7 @@ Bounded architecture probes were completed and closed:
 
 Do not start another source-model search.
 
-The retained Qwen control is:
+Retained design/provenance control:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
@@ -97,119 +66,95 @@ Pinned SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-It is provenance/design scaffold only; it never owns animation frames.
+## Authored native V1 — FAIL / CLOSED
 
-# Authored native source V1 — FAIL / CLOSED
+V1 added nominal mouth/restraint/chain pixels to a native 128 scaffold. Visual review showed the mouth still did not read. Pixel existence is not semantic readability.
 
-V1 method:
-
-`fixed design scaffold -> native 128×128 base -> explicit mouth/restraint/chain patch`
-
-Visual review showed that the overall body remained coherent but the **mouth still did not read**. The old helper only checked that nominal mouth pixels were opaque, so it incorrectly treated pixel presence as feature readability.
-
-Failure marker:
+Marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
 
-Lesson: a native anatomical feature must be judged semantically at 1× and in explicit nearest-neighbor diagnostics.
+## G3S-A1 Facial / Anatomy Lock V2 — FAIL / CLOSED
 
-# G3S-A1 — Facial / Anatomy Lock — CURRENT
-
-Detailed canonical log:
+Detailed log:
 
 `docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
 
-## Purpose
+V2 produced explicit face/hands/feet diagnostics, but visual review rejected the mouth as an exaggerated dark/red block.
 
-Lock static anatomy before any decomposition or animation.
+Marker:
 
-V2 is still deterministic/headless and invokes no image model. It uses the same pinned Qwen scaffold and explicit native-grid authoring data.
+`tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
 
-## V2 facial changes
+### Locked decision after V2
 
-Patch:
+The user chose to continue the planned structured-2D architecture:
 
-`tools/structured-2d-character-pipeline/g3s_a_anatomy_patch_v2.json`
+- macro body/scaffold is accepted **provisionally for decomposition only**;
+- `head_face` is unresolved and must become a replaceable part;
+- the bad V2 mouth patch is not authoritative;
+- broken chain segments are not baked into the permanent body sprite;
+- chains become initial accessories with sockets/state;
+- G3S-B is unblocked;
+- G3S-C remains blocked until G3S-B review.
 
-Changes include:
+# G3S-B — Persistent Part Decomposition — CURRENT
 
-- nose/lower-plane separation;
-- explicit five-pixel dark mouth opening;
-- separate lower-lip row;
-- lower-lip center highlight;
-- chin separation below the mouth;
-- preservation of both wrist cuffs, both ankle cuffs and broken-chain remnants.
+Canonical log:
 
-## Stronger technical guard
+`docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 
-The alpha-only V1 guard is permanently rejected.
+Purpose: convert the provisional 128×128 scaffold into persistent native pixel assets with stable IDs, pivots and metadata.
 
-V2 checks:
+V1 part set:
 
-- mouth occupies two distinct semantic rows;
-- mouth core has local RGB contrast against surrounding face skin;
-- face diagnostic region is present;
-- both hand regions are present;
-- both foot regions are present;
-- candidate remains native `128×128`;
-- visual review remains authoritative.
+- hair back mass;
+- head/face placeholder;
+- torso/pelvis core;
+- front cloth mass;
+- screen-left/right upper arms;
+- screen-left/right forearms;
+- screen-left/right hands;
+- screen-left/right thighs;
+- screen-left/right shins;
+- screen-left/right feet;
+- front-left/front-right hair masses.
 
-## Diagnostic output
+The static image stores screen-side identity only. Anatomical left/right is resolved in G3S-C against projected hidden-rig joints.
 
-The contact sheet now exposes six views:
-
-1. Qwen design provenance;
-2. pre-lock native scaffold;
-3. V2 candidate;
-4. large nearest-neighbor face diagnostic;
-5. separate hands/feet diagnostic;
-6. 1:1 gameplay preview.
+Broken-chain accessory slots are created for both wrists and both ankles with `baked_into_body = false` and `art_status = NOT_AUTHORED`.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_a_anatomy_patch_v2.json`
-- `tools/structured-2d-character-pipeline/g3s_a1_facial_anatomy_lock.py`
-- `tools/structured-2d-character-pipeline/08_run_g3s_a1_facial_anatomy_lock.ps1`
+- `tools/structured-2d-character-pipeline/g3s_b_parts_spec_v1.json`
+- `tools/structured-2d-character-pipeline/g3s_b_decompose_v1.py`
+- `tools/structured-2d-character-pipeline/09_run_g3s_b_decomposition.ps1`
 
 Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition`
 
-## PASS criteria
+Review artifact:
 
-Review order:
+`g3s_b_contact_sheet.png`
 
-1. one head/torso, two arms/hands, two legs/feet;
-2. mouth visibly reads at native 1×;
-3. face reads as human rather than undifferentiated skin pixels;
-4. hands and feet remain identifiable and plausible;
-5. restraints remain on the correct wrists/ankles;
-6. Exilada identity remains coherent;
-7. gameplay preview remains readable at `640×360`.
+Technical requirement: recomposition from named parts plus audited residual must be pixel-exact to the provisional scaffold. Visual review remains authoritative for mask boundaries, hair/cloth isolation, pivots, hands/feet and chain sockets.
 
-If any anatomy item fails, revise the explicit native patch. Do **not** begin animation and do **not** search another image model.
+# G3S-C — Four-phase walk proof
 
-# G3S-B — persistent part decomposition
+Blocked until G3S-B visual PASS.
 
-Blocked until G3S-A1/static source approval. The approved source will be decomposed into stable side-aware parts: head/face, torso/pelvis, upper/lower limbs, hands/feet, hair masses, cloth pieces and restraints. Parts own IDs, side, pivots, depth rules, palette/material families and attachment inheritance.
-
-# G3S-C — four-phase walk proof
-
-Blocked until G3S-B. Persistent parts will be driven by validated motion frames `1568,1588,1608,1628` using deterministic pixel-aware transforms/deformation and depth ordering. No frame may be independently regenerated by diffusion.
+Persistent parts will then be bound to the validated motion frames `1568,1588,1608,1628`. No frame may be independently regenerated by diffusion.
 
 ## Exact next action
-
-Run only:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\08_run_g3s_a1_facial_anatomy_lock.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\09_run_g3s_b_decomposition.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A1: REVIEW REQUIRED`, share:
+Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock\g3s_a1_contact_sheet.png`
-
-Do not start G3S-B, G3S-C or G4 until static anatomy is visually approved.
+`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition\g3s_b_contact_sheet.png`
