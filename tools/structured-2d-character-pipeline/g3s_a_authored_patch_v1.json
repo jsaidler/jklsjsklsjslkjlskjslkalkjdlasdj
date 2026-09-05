@@ -1,0 +1,53 @@
+{
+  "revision": "G3S_A_AUTHORED_NATIVE_PATCH_V1",
+  "purpose": "one-time native-grid authoring corrections on the Qwen design scaffold; not animation generation",
+  "provenance": {
+    "control_sha256": "ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e",
+    "control_size": [1392, 752],
+    "subject_bbox": [582, 40, 814, 705],
+    "native_canvas": [128, 128],
+    "subject_size": [43, 122],
+    "subject_xy": [42, 3],
+    "base_resample": "NEAREST_SCAFFOLD_ONLY"
+  },
+  "colors": {
+    "mouth_dark": [55, 28, 18, 255],
+    "mouth_lip": [95, 49, 30, 255],
+    "metal_dark": [48, 42, 36, 255],
+    "metal_mid": [102, 92, 78, 255],
+    "metal_highlight": [145, 132, 108, 255],
+    "chain_mid": [90, 82, 72, 255],
+    "chain_dark": [35, 31, 28, 255]
+  },
+  "operations": [
+    {"op": "hline", "x0": 58, "x1": 60, "y": 20, "color": "mouth_dark", "semantic": "restore readable mouth"},
+    {"op": "pixel", "x": 61, "y": 20, "color": "mouth_lip", "semantic": "mouth corner"},
+
+    {"op": "hline", "x0": 43, "x1": 47, "y": 61, "color": "metal_dark", "semantic": "left visible wrist cuff shadow"},
+    {"op": "hline", "x0": 43, "x1": 47, "y": 62, "color": "metal_mid", "semantic": "left visible wrist cuff"},
+    {"op": "pixels", "points": [[44,62],[45,62]], "color": "metal_highlight", "semantic": "left wrist cuff highlight"},
+
+    {"op": "hline", "x0": 78, "x1": 82, "y": 61, "color": "metal_dark", "semantic": "right visible wrist cuff shadow"},
+    {"op": "hline", "x0": 78, "x1": 82, "y": 62, "color": "metal_mid", "semantic": "right visible wrist cuff"},
+    {"op": "pixels", "points": [[79,62],[80,62]], "color": "metal_highlight", "semantic": "right wrist cuff highlight"},
+
+    {"op": "hline", "x0": 74, "x1": 80, "y": 114, "color": "metal_dark", "semantic": "right ankle cuff shadow"},
+    {"op": "hline", "x0": 74, "x1": 80, "y": 115, "color": "metal_mid", "semantic": "right ankle cuff"},
+    {"op": "pixels", "points": [[75,115],[76,115]], "color": "metal_highlight", "semantic": "right ankle cuff highlight"},
+
+    {"op": "pixels", "points": [[51,106],[52,106],[53,106],[54,106],[55,106],[56,106],[57,106]], "color": "metal_mid", "only_if_opaque": true, "semantic": "reinforce existing left ankle cuff"},
+
+    {"op": "pixels", "points": [[42,63],[41,64],[41,65],[42,66],[43,66],[43,67]], "color": "chain_mid", "semantic": "left wrist broken chain"},
+    {"op": "pixels", "points": [[83,63],[84,64],[84,65],[83,66],[82,67]], "color": "chain_mid", "semantic": "right wrist broken chain"},
+    {"op": "pixels", "points": [[50,108],[49,109],[49,110],[50,111],[51,111]], "color": "chain_mid", "semantic": "left ankle broken chain"},
+    {"op": "pixels", "points": [[81,116],[82,117],[82,118],[81,119]], "color": "chain_mid", "semantic": "right ankle broken chain"},
+    {"op": "pixels", "points": [[42,64],[83,64],[50,109],[81,117]], "color": "chain_dark", "semantic": "chain link interior contrast"}
+  ],
+  "rules": {
+    "this_is_not_generic_pixel_filter": true,
+    "this_is_not_animation_generation": true,
+    "qwen_control_is_design_scaffold_only": true,
+    "final_promotion_requires_visual_review_at_1x": true,
+    "future_changes_edit_this_patch_instead_of_model_search": true
+  }
+}
