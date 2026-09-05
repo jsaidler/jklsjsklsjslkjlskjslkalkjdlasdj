@@ -28,7 +28,8 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 20. `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 21. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
 22. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-23. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+23. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+24. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 After every material step: update the relevant thematic document + this file and make a focused commit.
 
@@ -143,8 +144,8 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - **G3S-B3 complete nude body base** ← CURRENT
     - G3S-B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity
     - G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED
-    - G3S-B3B V1 3D-mask-derived authoring route — **FAIL/CLOSED ROUTE**
-    - **G3S-B3B genuine native 2D body source method** ← CURRENT / NOT YET IMPLEMENTED
+    - G3S-B3B V1 3D-mask-derived authoring route — FAIL/CLOSED ROUTE
+    - **G3S-B3B V2 authored native 2D body source** ← READY FOR USER REVIEW
   - G3S-B4 hair asset — BLOCKED UNTIL B3B PASS
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
@@ -221,9 +222,10 @@ Approval marker:
 
 ## G3S-B3 Nude Body Base — CURRENT
 
-Canonical log:
+Canonical logs:
 
-`docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+- `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
 
 Required production order:
 
@@ -234,66 +236,67 @@ Required production order:
 
 ### B3-A V2 — PASS/CLOSED
 
-B3A is a structural guide only. It validated:
+B3A is a structural guide only. It validated adult-female anatomy, complete body geometry, zero forbidden layer objects and the locked `128 px` gameplay scale.
 
-- adult female phenotype;
-- complete body geometry;
-- zero hair/clothing/restraint/chain objects;
-- visible height `128 px`;
-- locked gameplay camera/scale.
+The MPFB render/mask is **not** a production sprite source.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-The MPFB render/mask is **not** a production sprite source.
-
 ### B3-B V1 route — FAIL/CLOSED
 
-The first B3B implementation was rejected before user execution after repository review.
-
-It copied the B3A projected body mask directly into the native alpha/silhouette and then procedurally colored that mask. Although it did not copy lit RGB, this still left hidden 3D as the final visible silhouette owner and revived the previously rejected procedural mannequin/Pillow authoring route.
-
-That contradicts both:
-
-- the G3V kill switch, which demoted hidden 3D from visible-image ownership;
-- the G3S architecture, where persistent 2D pixel assets own final visible art.
+V1 copied the B3A projected mask into final alpha/silhouette and procedurally colored it. This left hidden 3D as visible silhouette owner and violated the G3V kill switch.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-The invalid V1 script and runner were removed from `main` so they cannot be run accidentally.
+### B3-B V2 — READY FOR REVIEW
 
-No model was downloaded or discarded by this correction, so no model-file cleanup command applies.
+V2 fixes visible ownership by committing the actual native 2D art source itself:
 
-### B3-B — CURRENT CORRECT REQUIREMENT
+`assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png`
 
-B3B must create a **genuinely authored native 2D `128×128` body sprite source**.
+SHA256:
 
-Allowed use of B3A:
+`0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53`
 
-- anatomy/proportion reference;
-- joint/topology reference;
-- camera/scale reference;
-- sanity-check comparison.
+The V2 source is independently authored at `128×128`. It owns visible RGB, alpha and silhouette. The validator does not load or sample B3A RGB, B3A mask or B3A projected silhouette. B3A remains a gate prerequisite/reference only.
 
-Forbidden use of B3A for final visible ownership:
+Measured source facts before visual review:
 
-- copying its lit RGB;
-- copying its binary mask as final sprite alpha;
-- treating its projected 3D silhouette as final sprite silhouette;
-- recoloring/quantizing/downsampling a 3D raster and calling it authored 2D art.
+- native canvas `128×128`;
+- visible height `128 px`;
+- visible bbox `[17, 0, 120, 127]`;
+- 8 opaque palette colors;
+- binary alpha;
+- zero hair/clothing/binding/restraint/chain ownership.
 
-The final body sprite must have independently authored 2D silhouette, pixel clusters, palette/value structure and anatomical readability. After that source is approved, hidden 3D may drive animation/deformation guides while exported/runtime visuals remain sprites.
+Tooling:
 
-## Exact next action
+- `tools/structured-2d-character-pipeline/g3s_b3b_body_base_source_v2.json`
+- `tools/structured-2d-character-pipeline/g3s_b3b_validate_authored_body_v2.py`
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_authored_body_v2.ps1`
 
-**Do not run a B3B command yet.**
+This is **not PASS yet**. The contact sheet must be reviewed at native 1×. If the art fails, revise the committed 2D source directly rather than returning to 3D-mask authoring.
 
-The next step is to design and review the corrected B3B authoring method itself against the canonical sprite-ownership invariant before any new runner is committed.
+## Exact next action — ONLY THIS
 
-Do not start B3S-B4 hair, B5 clothing/accessories or G3S-C animation before B3B passes.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_authored_body_v2.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_authored_body_v2\g3s_b3b_contact_sheet_v2.png`
+
+or the complete console error if the runner fails.
+
+Do not start G3S-B4/B5/C before B3B visual PASS.
 
 ## Workspaces
 
