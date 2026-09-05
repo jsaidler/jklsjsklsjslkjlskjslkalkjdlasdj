@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **B3-A V1 FAIL/CLOSED — V2 CORRECTED ADULT-FEMALE GUIDE READY TO RUN / B3-B BLOCKED UNTIL V2 GUIDE REVIEW**
+Gate status: **B3-A V2 PASS/CLOSED — B3-B NATIVE 128×128 BODY SOURCE ACTIVE / REVIEW REQUIRED AFTER RUN**
 
 ## Why this gate exists
 
@@ -24,7 +24,7 @@ Approval marker for B2:
 
 ## Locked stage order
 
-The structured 2D character is now built in this order:
+The structured 2D character is built in this order:
 
 1. **G3S-B3 — complete nude body base, no hair, no clothing, no restraints.**
 2. **G3S-B4 — hair authored as its own persistent asset/layer family.**
@@ -84,13 +84,9 @@ Allowed inputs are references/constraints only:
 
 The body-base art itself must be a dedicated native 2D source asset.
 
-## B3 implementation plan
+## B3-A — deterministic anatomy guide
 
-B3 is split internally into two bounded steps, but remains one production gate.
-
-### B3-A — deterministic anatomy guide — V2 READY
-
-Create a complete adult female, hairless, unclothed structural reference using the existing deterministic MPFB/hidden-rig infrastructure.
+B3-A creates a complete adult female, hairless, unclothed structural reference using the existing deterministic MPFB/hidden-rig infrastructure.
 
 This output is **guide data only**, never final visible art. It provides:
 
@@ -103,104 +99,91 @@ This output is **guide data only**, never final visible art. It provides:
 
 B3-A deliberately creates **zero** hair, clothing, cuff/shackle or chain objects.
 
-Tooling:
+### B3-A V1 — FAIL/CLOSED REVISION
 
-- `tools/structured-2d-character-pipeline/g3s_b3_mpfb_bootstrap.py`
-- `tools/structured-2d-character-pipeline/g3s_b3a_nude_anatomy_guide.py`
-- `tools/structured-2d-character-pipeline/g3s_b3a_contact_sheet.py`
-- `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`
-
-Output workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide`
-
-Expected review artifact:
-
-`g3s_b3a_contact_sheet.png`
-
-The contact sheet must be read as **anatomical/structural reference only**. A 3D-looking guide is not a failure by itself because B3-A does not own final visible pixels.
-
-### B3-A V1 review — FAIL/CLOSED 2026-09-05
-
-The submitted V1 output correctly proved several technical conditions:
-
-- complete body geometry existed;
-- visible height was exactly `128 px` at `640×360`, orthographic `26 deg`;
-- hair objects: `0`;
-- clothing objects: `0`;
-- restraint objects: `0`;
-- chain objects: `0`;
-- guide was correctly marked structural-only, not final visible art.
-
-However V1 **fails the required adult-female phenotype criterion**.
-
-Root cause: the V1 script set MPFB macro `gender = 1.0`. In the pinned MPFB target semantics used by this route, `0.0 = female` and `1.0 = male`; the macro target map likewise resolves low to `female` and high to `male`. The V1 manifest therefore proves it instantiated the wrong phenotype even though the layer/scale mechanics worked.
+The first B3A run proved the layer/scale mechanics but used `MPFB gender = 1.0`, which in the pinned MPFB semantics resolves male. Therefore it did not satisfy the required adult-female phenotype.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
 
-Submitted V1 evidence retained in the marker includes:
+This was a revision failure only. MPFB `2.0.17`, the bootstrap, rig, camera/scale pipeline and zero-layer audit remain active. No model cleanup command applies.
 
-- manifest macro gender: `1.0`;
-- lit SHA256: `8c296c8b80ea0705e26617948eb7a132eccd459f128737cfded2cc82bccea0ea`;
-- mask SHA256: `ad98ab36381a85545c7791d4de4e2f12fb53d045dcbd1db6f27e98373daa6a46`;
-- contact-sheet SHA256: `b24721e5d38547b3f329671f61e112aa980f24b35517377f643aaee6977738e1`.
+### B3-A V2 — PASS/CLOSED 2026-09-05
 
-This is a **revision failure, not a route/model rejection**. MPFB `2.0.17`, the bootstrap, rig, camera/scale pipeline and zero-layer audit remain active. Therefore there is no model cleanup command for this failure.
+The corrected contact sheet passes the structural gate.
 
-### B3-A V2 correction — READY TO RUN
+Observed/recorded V2 audit:
 
-V2 keeps the same bounded structural route but now asserts both sex phenotype and adult life stage from the **resolved installed MPFB target stack**, rather than trusting numeric macro conventions alone:
+- revision: `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`;
+- macro gender: `0.0`;
+- resolved gender: `female`;
+- macro age: `0.52`;
+- resolved life stage: `adult`;
+- female targets: `21`;
+- male targets: `0`;
+- adult targets: `21`;
+- minor targets: `0`;
+- complete body geometry: `True`;
+- hair objects: `0`;
+- clothing objects: `0`;
+- restraint objects: `0`;
+- chain objects: `0`;
+- visible height: `128 px`;
+- camera: orthographic `26 deg` pitch, `8 deg` yaw;
+- body is clearly marked structural guide only, not final pixel art.
 
-- MPFB macro `gender = 0.0`;
-- MPFB macro `age = 0.52`, intentionally on the adult `young -> old` side of the MPFB age boundary;
-- resolved macro stack must contain at least one `female` target;
-- resolved macro stack must contain zero `male` targets;
-- resolved macro stack must contain at least one adult (`young` or `old`) target;
-- resolved macro stack must contain zero minor (`baby` or `child`) targets;
-- manifest records the complete `phenotype_audit`;
-- runner refuses to continue unless revision is `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`, resolved gender is `female`, resolved life stage is `adult`, female/adult target counts are at least `1`, and male/minor target counts are `0`;
-- contact sheet surfaces the phenotype/life-stage audit explicitly.
+Visual structural review also passes: one complete adult female body, coherent head/neck/torso/limbs/hands/feet, female chest/pelvis/hip silhouette, no hair or equipment, and proportions suitable as an Exilada authoring guide at the locked G1 scale.
 
-B3-B remains blocked until this corrected V2 contact sheet is reviewed.
+Approval marker:
 
-### B3-B — native body source — BLOCKED UNTIL B3-A V2 REVIEW
+`tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-Author one native `128×128` persistent body-base source against the approved structural guide.
+B3-A is now closed. Do not iterate MPFB body appearance as final art; final visible body pixels belong to B3-B.
 
-PASS requires that this 2D asset itself — not the 3D guide — is visually credible as intentional modern pixel art and can stand alone with no hair or clothing.
+## B3-B — native `128×128` nude body source — ACTIVE
 
-No animation begins until B3-B passes.
+B3-B authors the actual persistent visible body source. It is deliberately separated from B3-A so hidden 3D remains structural infrastructure rather than final art authority.
 
-## PASS criteria
+Current V1 authoring route:
 
-### B3-A structural review
+- uses the approved B3-A **binary structural mask at the locked 640×360 gameplay raster**;
+- crops the body into a `128×128` native asset at 1:1 pixel scale; there is no post-generation resizing;
+- does **not** sample or transfer the B3-A lit RGB/shading;
+- authors final body RGB through an explicit native palette and deterministic pixel-cluster rules;
+- uses projected B3-A joints only as semantic anchors for face/chest/abdomen/pelvis/shoulder/knee clusters;
+- owns zero hair, clothing, binding, cuff, shackle or chain pixels;
+- outputs a binary-alpha source, mask, gameplay preview, manifest and contact sheet for review.
 
-1. one complete **adult female** human body with one head/torso, two arms/hands and two legs/feet;
-2. explicit MPFB phenotype audit resolves `female` and `adult`, with at least one female target, at least one adult target, zero male targets and zero minor targets;
-3. no hair object/layer;
-4. no clothing/binding object/layer;
-5. no cuffs, shackles or chain objects;
-6. scalp/head/neck and all body regions are structurally complete;
-7. proportions are suitable for the Exilada target and G1 scale;
-8. output is clearly marked guide-only.
+Tooling:
 
-### B3-B visual body review
+- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
+
+Output workspace:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source`
+
+Expected review artifact:
+
+`g3s_b3b_contact_sheet.png`
+
+### B3-B PASS criteria
 
 1. complete adult anatomy at native `128×128`;
 2. no hair pixels;
 3. no clothing/binding pixels;
-4. no restraint pixels;
+4. no restraint/chain pixels;
 5. chest, pelvis, hands and feet read coherently at native 1×;
 6. silhouette and proportions remain recognizably Exilada-like;
 7. gameplay preview remains readable at `640×360` with the locked ~`128 px` protagonist scale;
-8. the source reads as authored pixel art, not a filtered 3D render;
-9. output is deterministic and reusable as the base owner for later layers.
+8. the source reads as authored modern pixel art, not a filtered/downsampled 3D render;
+9. output is deterministic and reusable as the base owner for later layers;
+10. no routine manual frame-by-frame repair is introduced.
 
 Erotic charge is neither a PASS nor FAIL requirement by itself. The body asset must be capable of supporting intentional mature framing without structural censorship or forced neutralization.
 
-## After PASS
+## After B3-B PASS
 
 Only then proceed to:
 
@@ -218,11 +201,11 @@ Do not reopen the closed local sprite-model search. B3 uses deterministic anatom
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\11_run_g3s_b3a_nude_anatomy_guide.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_native_body_source.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
 
 or the complete console error if the runner fails.
