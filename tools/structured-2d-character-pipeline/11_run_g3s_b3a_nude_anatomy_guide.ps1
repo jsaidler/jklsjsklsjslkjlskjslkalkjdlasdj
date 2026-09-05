@@ -59,7 +59,7 @@ function Invoke-NativeSafe {
 
 Write-Host ''
 Write-Host 'Roguelite - G3S-B3A V2 COMPLETE ADULT FEMALE NUDE ANATOMY GUIDE' -ForegroundColor Cyan
-Write-Host 'Body first. Female phenotype. No hair, no clothing, no cuffs/shackles, no chains.'
+Write-Host 'Body first. Adult female phenotype. No hair, no clothing, no cuffs/shackles, no chains.'
 Write-Host 'This produces deterministic structural guide data only; it is NOT final visible pixel art.' -ForegroundColor Yellow
 Write-Host ''
 
@@ -176,7 +176,9 @@ foreach ($marker in @(
     'G3S_B3_MPFB_BOOTSTRAP=PASS',
     'G3S_B3A_REVISION=G3S_B3A_NUDE_ANATOMY_GUIDE_V2',
     'G3S_B3A_PHENOTYPE_GENDER=FEMALE',
+    'G3S_B3A_LIFE_STAGE=ADULT',
     'G3S_B3A_MALE_TARGETS=0',
+    'G3S_B3A_MINOR_TARGETS=0',
     'G3S_B3A_COMPLETE_NUDE_GEOMETRY=PASS',
     'G3S_B3A_HAIR_OBJECTS=0',
     'G3S_B3A_CLOTHING_OBJECTS=0',
@@ -192,14 +194,18 @@ $data = Get-Content $manifest -Raw | ConvertFrom-Json
 if ($data.gate -ne 'G3S-B3-A-NUDE-ANATOMY-GUIDE' -or $data.status -ne 'REVIEW_REQUIRED') { Fail 'Unexpected G3S-B3A manifest state.' }
 if ($data.revision -ne 'G3S_B3A_NUDE_ANATOMY_GUIDE_V2') { Fail "Unexpected G3S-B3A revision: $($data.revision)" }
 if ([double]$data.macro.gender -ne 0.0) { Fail "MPFB gender polarity guard failed: expected 0.0 female, got $($data.macro.gender)" }
+if ([double]$data.macro.age -lt 0.5) { Fail "MPFB adult-stage guard failed: expected age>=0.5, got $($data.macro.age)" }
 if ($data.phenotype_audit.resolved_gender -ne 'female') { Fail "Phenotype audit did not resolve female: $($data.phenotype_audit.resolved_gender)" }
+if ($data.phenotype_audit.resolved_life_stage -ne 'adult') { Fail "Phenotype audit did not resolve adult: $($data.phenotype_audit.resolved_life_stage)" }
 if ([int]$data.phenotype_audit.female_target_count -lt 1) { Fail 'Phenotype audit resolved no female macro targets.' }
 if ([int]$data.phenotype_audit.male_target_count -ne 0) { Fail "Phenotype audit resolved male targets: $($data.phenotype_audit.male_target_count)" }
+if ([int]$data.phenotype_audit.adult_target_count -lt 1) { Fail 'Phenotype audit resolved no adult macro targets.' }
+if ([int]$data.phenotype_audit.minor_target_count -ne 0) { Fail "Phenotype audit resolved minor targets: $($data.phenotype_audit.minor_target_count)" }
 if (-not [bool]$data.layer_audit.complete_body_geometry) { Fail 'Body geometry audit did not pass.' }
 if ([int]$data.layer_audit.hair_objects -ne 0 -or [int]$data.layer_audit.clothing_objects -ne 0 -or [int]$data.layer_audit.restraint_objects -ne 0 -or [int]$data.layer_audit.chains_objects -ne 0) {
     Fail 'Forbidden layer objects were present in nude body guide.'
 }
-Write-Host '[OK] MPFB phenotype audit: female target stack, zero male targets.' -ForegroundColor Green
+Write-Host '[OK] MPFB phenotype audit: adult female target stack, zero male/minor targets.' -ForegroundColor Green
 
 $contact = Join-Path $outDir 'g3s_b3a_contact_sheet.png'
 $code = Invoke-NativeSafe -Exe $embeddedPython -Arguments @($contactHelper,'--manifest',$manifest,'--output',$contact)
