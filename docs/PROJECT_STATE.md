@@ -36,7 +36,7 @@ After every material step: update the relevant thematic document + this file and
 
 Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
 
-Presentation baseline: elevated 2D belt-scroller / false 3D.
+Presentation baseline: **elevated 2D belt-scroller / false 3D**.
 
 Final visible language: **true modern pixel art at native gameplay raster**.
 
@@ -48,27 +48,25 @@ Canonical design master:
 
 Adult woman, approximately 162 cm, lean/functional/resilient anatomy, olive-brown skin, severe mature face, very long heavy black hair, degraded beige cloth in the initial equipped state, scars/wounds, captivity history, bare feet, canonical base weaponless.
 
-The master defines design/identity, not hidden-body pixels and not final gameplay pixels.
+The master defines identity/design, not hidden-body pixels and not final gameplay pixels.
 
 ### Body-first rule — LOCKED
 
 The production character owns a **complete nude adult body base independent of hair, clothing and restraints**.
 
 - body base is hairless;
-- hair is a separate persistent asset/layer family;
+- hair is a separate persistent 2D asset/layer family;
 - clothing/bindings are separate overlays;
 - cuffs/shackles/chains are accessories/equipment;
 - the body remains complete under all removable layers;
-- nudity is a normal supported state, produced by omitting garment/equipment layers rather than generating a separate nude sprite;
-- the composite master cannot be used to recover hidden anatomy by subtraction.
+- nudity is a normal supported state produced by omitting garment/equipment layers;
+- the composite master cannot recover hidden anatomy by subtraction.
 
 ### Erotic charge — LOCKED
 
 The project does **not** impose blanket desexualization of adult bodies or nudity.
 
 Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references. Adult nudity may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent. No censor garment or anti-erotic framing is structurally required.
-
-Canonical detail is in `docs/VISUAL_DIRECTION.md` and `docs/CHARACTERS.md`.
 
 ## Hard operator constraint
 
@@ -80,7 +78,7 @@ Normal operator loop:
 
 ## Model-discard cleanup rule — LOCKED
 
-Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and is no longer active, the same response must include an exact PowerShell command to remove its downloaded model-specific files.
+Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and is no longer active, the same response must include the exact PowerShell command to remove its downloaded model-specific files.
 
 Preserve small evidence outputs and shared runtimes still used elsewhere.
 
@@ -93,9 +91,25 @@ Preserve small evidence outputs and shared runtimes still used elsewhere.
 
 ## Active production architecture — LOCKED
 
-`camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> complete 2D body base -> separate hair -> separate clothing/equipment/accessories -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
+`camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets/guides -> persistent 2D pixel assets -> deterministic 2D deformation/composition -> sprite/runtime export -> QA`
 
-Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers. It does **not** own final visible character RGB pixels.
+### Visible-ownership invariant — CRITICAL
+
+G3V explicitly rejected hidden 3D as visible-image owner.
+
+Hidden 3D may own only:
+
+- motion;
+- topology/left-right identity;
+- sockets/contacts/root data;
+- physics;
+- depth/occlusion metadata;
+- semantic/anatomical guides;
+- secondary-motion driving data.
+
+Hidden 3D **must not own final visible RGB or final sprite silhouette**. Final visible character art is owned by persistent 2D pixel assets. Runtime/export remains sprite-based.
+
+This means a 3D render or mask may be inspected as a reference/guide, but it may not simply be cropped, recolored, downsampled, quantized or otherwise promoted into the final sprite geometry.
 
 ## Canonical character layer stack — LOCKED
 
@@ -125,11 +139,12 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - authored native source V1 — FAIL/CLOSED
   - G3S-A1 Facial / Anatomy Lock V2 — FAIL/CLOSED
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
-  - G3S-B2 layer-stack preflight — **PASS/CLOSED DIAGNOSTIC**
+  - G3S-B2 layer-stack preflight — PASS/CLOSED DIAGNOSTIC
   - **G3S-B3 complete nude body base** ← CURRENT
     - G3S-B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity
-    - G3S-B3A V2 corrected adult-female anatomy guide — **PASS/CLOSED**
-    - **G3S-B3B native `128×128` nude body source V1** ← ACTIVE / READY TO RUN
+    - G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED
+    - G3S-B3B V1 3D-mask-derived authoring route — **FAIL/CLOSED ROUTE**
+    - **G3S-B3B genuine native 2D body source method** ← CURRENT / NOT YET IMPLEMENTED
   - G3S-B4 hair asset — BLOCKED UNTIL B3B PASS
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
@@ -159,15 +174,17 @@ Real motion source: CMU `105_34 NormalWalk`, 120 fps. Major-limb topology, left/
 
 ### G3V-R — PASS
 
-Accepted retarget: **`DIRECTION_SPACE_FK`**. Retarget error on representative elbow/knee chain-shape metrics is effectively zero; source/target comparison visually passed.
+Accepted retarget: **`DIRECTION_SPACE_FK`**.
 
 Marker:
 
 `tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
-### G3V — FAIL
+### G3V — FAIL / CLOSED
 
-Representative MPFB body animated coherently after validated retarget, but direct visible translation still read as coarse 3D rather than deliberate modern pixel art. Hidden 3D remains control/infrastructure only.
+The continuous MPFB human animated coherently after validated retarget, but both conventional 3D and palette/semantic translation still read as low-resolution 3D rather than authored pixel art.
+
+Canonical consequence: hidden 3D is retained as motion/topology infrastructure only and is demoted from visible-image ownership.
 
 Marker:
 
@@ -175,7 +192,7 @@ Marker:
 
 ## G3S source-model search — CLOSED
 
-Qwen native, SD1.5, PixelLock and Alucard were bounded probes. None produced an acceptable native source sprite. Do not restart source-model search.
+Qwen native, SD1.5, PixelLock and Alucard were bounded probes. None produced an acceptable native production sprite. Do not restart source-model search.
 
 Retained Qwen preferred-resolution control is design/scaffold provenance only:
 
@@ -193,7 +210,7 @@ Measured:
 - body visible: `1538`;
 - hair: `826`;
 - clothing: `610`;
-- unresolved hidden body: **`1205`**;
+- unresolved hidden body: `1205`;
 - exact recomposition: PASS.
 
 Conclusion: subtraction from the master is not a body-authoring method.
@@ -210,83 +227,73 @@ Canonical log:
 
 Required production order:
 
-1. complete nude/hairless body base;
+1. complete nude/hairless **2D body sprite source**;
 2. separate hair asset;
 3. separate clothing/bindings/restraints/chains;
 4. layered motion proof.
 
-### B3-A V1 — FAIL/CLOSED REVISION
-
-V1 passed complete-geometry/layer/scale mechanics but used `MPFB gender = 1.0`, which resolves male in the pinned MPFB semantics. This was a script revision error, not a route/model rejection.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
-
-No cleanup command applies; MPFB `2.0.17` remains active structural infrastructure.
-
 ### B3-A V2 — PASS/CLOSED
 
-The corrected contact sheet and phenotype audit pass B3-A structurally:
+B3A is a structural guide only. It validated:
 
-- revision `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`;
-- resolved gender `female`;
-- resolved life stage `adult`;
-- female targets `21`, male targets `0`;
-- adult targets `21`, minor targets `0`;
+- adult female phenotype;
 - complete body geometry;
 - zero hair/clothing/restraint/chain objects;
 - visible height `128 px`;
-- locked `26 deg` pitch / `8 deg` guide yaw;
-- guide-only art authority.
+- locked gameplay camera/scale.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-B3-A is closed. Do not treat the MPFB render as final body art.
+The MPFB render/mask is **not** a production sprite source.
 
-### B3-B — ACTIVE
+### B3-B V1 route — FAIL/CLOSED
 
-B3-B owns final visible body RGB pixels and now has a bounded deterministic V1 authoring route.
+The first B3B implementation was rejected before user execution after repository review.
 
-The route:
+It copied the B3A projected body mask directly into the native alpha/silhouette and then procedurally colored that mask. Although it did not copy lit RGB, this still left hidden 3D as the final visible silhouette owner and revived the previously rejected procedural mannequin/Pillow authoring route.
 
-- consumes only the approved B3-A structural mask/joints as guides;
-- preserves 1:1 gameplay pixel scale into a native `128×128` asset;
-- does not transfer B3-A lit RGB/shading;
-- authors an explicit native skin palette and pixel clusters for silhouette/value/anatomical readability;
-- owns zero hair/clothing/binding/restraint/chain pixels;
-- outputs source, mask, gameplay preview, manifest and contact sheet;
-- requires visual review at native 1× before any downstream layer work.
+That contradicts both:
 
-Tooling:
+- the G3V kill switch, which demoted hidden 3D from visible-image ownership;
+- the G3S architecture, where persistent 2D pixel assets own final visible art.
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
+Failure marker:
 
-Output:
+`tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
+The invalid V1 script and runner were removed from `main` so they cannot be run accidentally.
 
-No hair, clothing or animation starts before B3-B visually passes.
+No model was downloaded or discarded by this correction, so no model-file cleanup command applies.
 
-## Exact next action — ONLY THIS
+### B3-B — CURRENT CORRECT REQUIREMENT
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+B3B must create a **genuinely authored native 2D `128×128` body sprite source**.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_native_body_source.ps1"
-```
+Allowed use of B3A:
 
-Then STOP and share:
+- anatomy/proportion reference;
+- joint/topology reference;
+- camera/scale reference;
+- sanity-check comparison.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
+Forbidden use of B3A for final visible ownership:
 
-or the complete console error if the runner fails.
+- copying its lit RGB;
+- copying its binary mask as final sprite alpha;
+- treating its projected 3D silhouette as final sprite silhouette;
+- recoloring/quantizing/downsampling a 3D raster and calling it authored 2D art.
 
-Do not run G3S-B4/B5/C yet.
+The final body sprite must have independently authored 2D silhouette, pixel clusters, palette/value structure and anatomical readability. After that source is approved, hidden 3D may drive animation/deformation guides while exported/runtime visuals remain sprites.
+
+## Exact next action
+
+**Do not run a B3B command yet.**
+
+The next step is to design and review the corrected B3B authoring method itself against the canonical sprite-ownership invariant before any new runner is committed.
+
+Do not start B3S-B4 hair, B5 clothing/accessories or G3S-C animation before B3B passes.
 
 ## Workspaces
 
