@@ -81,11 +81,15 @@ Write-Host "[OK] Alucard code pinned: $head" -ForegroundColor Green
 $PyDeps = Join-Path $DependencyRoot 'pydeps'
 New-Item -ItemType Directory -Force -Path $PyDeps | Out-Null
 $oldPythonPath = $env:PYTHONPATH
+# Keep PYTHONPATH as a compatibility hint, but do NOT rely on it. The ComfyUI
+# Windows embeddable Python normally has python._pth and therefore may ignore
+# PYTHONPATH entirely. Both the probe and the helper inject these paths directly
+# into sys.path.
 $env:PYTHONPATH = "$PyDeps;$AlucardRoot"
 $env:HF_HOME = Join-Path $DependencyRoot 'hf_home'
 $env:TORCH_HOME = Join-Path $DependencyRoot 'torch_home'
 
-$ImportProbe = 'import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex; import timm, ftfy, open_clip; print(torch.__version__); print(torch.cuda.is_available())'
+$ImportProbe = "import sys; sys.path.insert(0, r'$PyDeps'); sys.path.insert(0, r'$AlucardRoot'); import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex; import timm, ftfy, open_clip; print('G3S_A_ALUCARD_IMPORT_PATH_MODE=EXPLICIT_SYS_PATH'); print(torch.__version__); print(torch.cuda.is_available())"
 function Test-AlucardImports {
     $code = Invoke-PythonSafe -Arguments @('-c', $ImportProbe) -Quiet
     return ($code -eq 0)
@@ -105,7 +109,7 @@ if (-not (Test-AlucardImports)) {
     $probeCode = Invoke-PythonSafe -Arguments @('-c', $ImportProbe)
     Fail "Alucard Python import preflight still fails after isolated dependency install (exit $probeCode)."
 }
-Write-Host '[OK] Torch/OpenCLIP dependencies ready without replacing ComfyUI Torch.' -ForegroundColor Green
+Write-Host '[OK] Alucard imports resolve through explicit sys.path injection; embedded PYTHONPATH is not trusted.' -ForegroundColor Green
 
 $ModelDir = Join-Path $DependencyRoot 'model'
 $Model = Join-Path $ModelDir 'alucard_model.safetensors'
@@ -148,6 +152,7 @@ try {
     $helperCode = Invoke-PythonSafe -Arguments @(
         $Helper,
         '--alucard-root',$AlucardRoot,
+        '--pydeps',$PyDeps,
         '--model',$Model,
         '--control',$Control,
         '--output-dir',$OutDir,
