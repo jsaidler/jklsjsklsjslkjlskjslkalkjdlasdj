@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V3. DO NOT RERUN BODY RENDER.**
+Current status: **ACTIVE / BODY RERUN READY WITH VALIDATED RETARGET.**
 
 ## Locked upstream baseline
 
@@ -12,7 +12,8 @@ Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V3. DO NOT RERUN BODY RENDE
 - G1: `640×360`, orthographic `26 deg`, hero `128 px`;
 - G2: CMU `105_34 NormalWalk`, topology/motion PASS;
 - G3: native translation technical PASS, production look not approved;
-- G3R: renderer-only mannequin refinement FAIL / CLOSED.
+- G3R: renderer-only mannequin refinement FAIL / CLOSED;
+- G3V-R retarget preflight: **PASS / CLOSED**.
 
 ## Proven G3V infrastructure
 
@@ -22,68 +23,92 @@ Current status: **PAUSED AT G3V-R RETARGET PREFLIGHT V3. DO NOT RERUN BODY RENDE
 - accessory scale inflation is fixed through local-scale bake + rigid attachments;
 - binary semantic masks validate skin/hair/cloth/metal;
 - gait period is derived from G2 contacts: `80` frames at 120 fps;
-- current phases: `1568,1588,1608,1628`;
+- sampled phases: `1568,1588,1608,1628`;
 - G1 camera/scale remain usable.
 
-## Why G3V is paused
+## Retarget blocker — RESOLVED
 
-The first coherent body sheet showed one frozen pose across all four frames. Raw per-frame `matrix_basis` copying then produced visibly distinct phases, but later poses collapsed around pelvis/legs/trunk.
+Earlier G3V body runs exposed two invalid motion-transfer shortcuts:
 
-That isolated the blocker to **retargeting between incompatible rest spaces**.
+1. raw Blender `Action` copy froze the target pose;
+2. raw per-frame `matrix_basis` copy produced phase changes but collapsed pelvis/legs/trunk.
 
-Rejected shortcuts:
+G3V-R isolated the problem and measured:
 
-1. copying the source Blender `Action` onto MPFB;
-2. copying source `matrix_basis` directly into MPFB.
-
-## Active sub-gate — G3V-R
-
-Canonical log:
-
-`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
-
-Runner:
-
-`tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
-
-Locked rest-rig facts:
-
-- required parent mismatches: `0`;
+- parent mismatches: `0`;
 - mean rest-orientation delta: `83.1874 deg`;
 - max rest-orientation delta: `180.0289 deg`.
 
-V1 local-axis transfer failed.
+Therefore the two rigs share naming/hierarchy but not compatible local/rest axes.
 
-V2 then proved an important distinction:
+Accepted method:
 
-- `DIRECTION_SPACE_FK` reproduced elbow/knee articulation essentially exactly: mean `0.0000 deg`, max `0.0001 deg`, 4 unique poses;
-- MPFB's pose API remained much worse: mean `25.4032 deg`, max `44.3890 deg`;
-- V2 still failed because the old endpoint metric compared motion relative to each rig's incompatible rest pose.
+**`DIRECTION_SPACE_FK`**
 
-That endpoint metric is invalid under an ~83 deg mean rest-orientation mismatch and is now closed.
+It transfers posed bone directions through world/target-armature space while preserving MPFB hierarchy, bone lengths, weights and roll/twist convention.
 
-## G3V-R V3 — CURRENT
+Measured preflight articulation:
 
-V3 keeps the successful axis-independent `DIRECTION_SPACE_FK` solver and replaces only the invalid endpoint test with a rest-independent chain-shape metric:
+- 4 unique poses;
+- mean elbow/knee error: `0.0000 deg`;
+- max elbow/knee error: `0.0001 deg`.
 
-`CHAIN_UNIT_DIRECTION_RMS`
+V3 then replaced the invalid rest-subtracted endpoint metric with `CHAIN_UNIT_DIRECTION_RMS`; the resulting source-vs-target skeleton sheet passed visual review with no limb duplication, no collapse and correct phase/left-right correspondence.
 
-It compares normalized posed direction chains for torso, arms and legs, so target bone lengths/proportions remain owned by MPFB instead of being falsely penalized against the source rest skeleton.
+Canonical approval marker:
 
-No quality threshold was relaxed merely to obtain PASS.
+`tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
-G3V resumes only after V3:
+Canonical retarget log:
 
-1. passes numeric articulation/chain-shape validation;
-2. produces source-vs-target skeleton contact sheet;
-3. is visually confirmed to preserve gait phase, left/right alternation and topology without collapse.
+`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
 
-Only then is the old G3V motion binding replaced and the body/pixel contact sheet rerun.
+## Current body motion binding
 
-## G3V final kill switch
+`tools/deterministic-character-pipeline/g3v_motion_binding_patch.py`
 
-After retarget is valid, G3V can pass only if the representative human remains coherent through motion and its native-grid translation shows credible headroom toward intentional modern pixel art.
+now uses the accepted direction-space solver. Raw `Action`, raw `matrix_basis` and local-axis transfer are disabled as motion authority.
 
-If a technically valid human still reads merely as low-resolution 3D, hidden 3D is rejected as owner of final visible character art while remaining the motion/topology/socket/physics backbone.
+Expected body-run markers include:
 
-G4 remains blocked.
+- `G3V_MOTION_BINDING=DIRECTION_SPACE_FK_VALIDATED_G3V_R`
+- `G3V_MOTION_LOCAL_AXIS_COPY=DISABLED`
+- `G3V_MOTION_BINDING_MODE=VALIDATED_DIRECTION_SPACE_PER_FRAME`
+- `G3V_MOTION_UNIQUE_POSES=...`
+- `G3V_MOTION_UNIQUE_SKIN_MASKS=...`
+- `G3V_MOTION_DIVERSITY_AUDIT=PASS`
+
+## G3V visual kill switch — NEXT
+
+The next run is the first body/pixel sheet eligible for the actual G3V decision.
+
+Review order:
+
+1. topology integrity: one head/torso, two arms/hands, two legs/feet;
+2. real motion and grounding across the four gait phases;
+3. coherent weighted body deformation;
+4. stability of hair/cloth/restraints;
+5. pixel-specific visual headroom.
+
+If the technically coherent representative human still reads merely as conventional/low-resolution 3D made blocky, hidden 3D is rejected as owner of final visible character art while remaining the motion/topology/socket/physics backbone.
+
+If it shows credible headroom toward intentional modern pixel art, G3V can PASS and G4 identity mapping may begin.
+
+G4 remains blocked until this visual review.
+
+## Exact next action
+
+Run only:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
+```
+
+Then STOP. If it reaches `G3V: REVIEW REQUIRED`, share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
+
+If it fails, share the complete console output. Do not start G4.
