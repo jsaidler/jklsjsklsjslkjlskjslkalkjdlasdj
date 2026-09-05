@@ -95,7 +95,7 @@ Hidden 3D owns infrastructure only: motion, topology/left-right identity, socket
     - Alucard text-only native-128 control — FAIL/CLOSED
     - automated local generative-source search — CLOSED
     - authored native source V1 — **FAIL/CLOSED: mouth not visually readable**
-    - **G3S-A1 Facial / Anatomy Lock V2** ← READY TO RUN
+    - **G3S-A1 Facial / Anatomy Lock V2** ← READY TO RERUN AFTER HARNESS FIX
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -174,7 +174,21 @@ Canonical log:
 
 V2 remains deterministic/headless and does not invoke an image model. It strengthens the facial cluster with an explicit two-row mouth, lip contrast and chin separation while preserving the canonical restraint patches.
 
-It also changes review tooling: the contact sheet now exposes explicit nearest-neighbor diagnostics for face, both hands and both feet.
+It also changes review tooling: the contact sheet exposes explicit nearest-neighbor diagnostics for face, both hands and both feet.
+
+### Harness incident fixed
+
+The first G3S-A1 run stopped before anatomy processing with `ModuleNotFoundError: No module named 'g3s_a_authored_native_v1'`.
+
+Root cause: the helper used a bare sibling-module import under ComfyUI's embeddable Python, whose `sys.path` does not guarantee the script directory.
+
+Fix: `g3s_a1_facial_anatomy_lock.py` now loads `g3s_a_authored_native_v1.py` by absolute sibling file path through `importlib.util.spec_from_file_location`. This does not change pixel patch data or gate criteria.
+
+Fix commit: `bf5fe174165ee9cd08ed2f50a09e3ca7563f8658`.
+
+Incident marker:
+
+`tools/structured-2d-character-pipeline/g3s_a1_import_failure.json`
 
 Tooling:
 
