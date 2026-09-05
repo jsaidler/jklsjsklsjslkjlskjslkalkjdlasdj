@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **ACTIVE / BODY RERUN READY WITH VALIDATED RETARGET.**
+Current status: **FAIL / CLOSED — TECHNICAL BACKBONE RETAINED, DIRECT VISIBLE 3D ROUTE REJECTED.**
 
 ## Locked upstream baseline
 
@@ -13,102 +13,114 @@ Current status: **ACTIVE / BODY RERUN READY WITH VALIDATED RETARGET.**
 - G2: CMU `105_34 NormalWalk`, topology/motion PASS;
 - G3: native translation technical PASS, production look not approved;
 - G3R: renderer-only mannequin refinement FAIL / CLOSED;
-- G3V-R retarget preflight: **PASS / CLOSED**.
+- G3V-R retarget preflight: PASS / CLOSED.
 
-## Proven G3V infrastructure
+## What G3V did prove
 
-- MPFB `2.0.17` loads headlessly from pinned verified archive;
-- continuous female body + weighted `cmu_mb` rig are created;
-- long hair, degraded cloth, restraints and bare feet render;
-- accessory scale inflation is fixed through local-scale bake + rigid attachments;
-- binary semantic masks validate skin/hair/cloth/metal;
-- gait period is derived from G2 contacts: `80` frames at 120 fps;
-- sampled phases: `1568,1588,1608,1628`;
-- G1 camera/scale remain usable.
+- MPFB `2.0.17` loads headlessly from the pinned verified archive;
+- a continuous adult female body and weighted `cmu_mb` rig can be created reproducibly;
+- real CMU locomotion can be transferred with the validated `DIRECTION_SPACE_FK` method;
+- the four quarter-cycle gait phases `1568,1588,1608,1628` are distinct and structurally coherent;
+- major topology remains one head/torso, two arms/hands and two legs/feet;
+- hair, degraded cloth and wrist/ankle restraints remain present as persistent representative structures;
+- binary semantic masks for skin/hair/cloth/metal work;
+- the locked G1 camera/scale remains usable.
 
-## Retarget blocker — RESOLVED
+## Retargeting result — PASS / RETAIN
 
-Earlier G3V body runs exposed two invalid motion-transfer shortcuts:
-
-1. raw Blender `Action` copy froze the target pose;
-2. raw per-frame `matrix_basis` copy produced phase changes but collapsed pelvis/legs/trunk.
-
-G3V-R isolated the problem and measured:
+G3V-R measured incompatible local/rest axes despite matching hierarchy:
 
 - parent mismatches: `0`;
 - mean rest-orientation delta: `83.1874 deg`;
 - max rest-orientation delta: `180.0289 deg`.
 
-Therefore the two rigs share naming/hierarchy but not compatible local/rest axes.
+Rejected retarget shortcuts:
+
+- raw Blender `Action` copy;
+- raw per-frame `matrix_basis` copy;
+- local-axis `REST_COMPENSATED_FK`;
+- MPFB pose API for this source/target pair.
 
 Accepted method:
 
 **`DIRECTION_SPACE_FK`**
 
-It transfers posed bone directions through world/target-armature space while preserving MPFB hierarchy, bone lengths, weights and roll/twist convention.
-
-Measured preflight articulation:
+Measured skeleton-preflight articulation:
 
 - 4 unique poses;
 - mean elbow/knee error: `0.0000 deg`;
-- max elbow/knee error: `0.0001 deg`.
-
-V3 then replaced the invalid rest-subtracted endpoint metric with `CHAIN_UNIT_DIRECTION_RMS`; the resulting source-vs-target skeleton sheet passed visual review with no limb duplication, no collapse and correct phase/left-right correspondence.
+- max elbow/knee error: `0.0001 deg`;
+- V3 chain-shape metric passed;
+- source-vs-target skeleton sheet passed visual topology/phase review.
 
 Canonical approval marker:
 
 `tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
-Canonical retarget log:
+This retarget remains part of the hidden production backbone.
 
-`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
+## Final G3V body/pixel review — VISUAL KILL SWITCH FAIL
 
-## Current body motion binding
-
-`tools/deterministic-character-pipeline/g3v_motion_binding_patch.py`
-
-now uses the accepted direction-space solver. Raw `Action`, raw `matrix_basis` and local-axis transfer are disabled as motion authority.
-
-Expected body-run markers include:
-
-- `G3V_MOTION_BINDING=DIRECTION_SPACE_FK_VALIDATED_G3V_R`
-- `G3V_MOTION_LOCAL_AXIS_COPY=DISABLED`
-- `G3V_MOTION_BINDING_MODE=VALIDATED_DIRECTION_SPACE_PER_FRAME`
-- `G3V_MOTION_UNIQUE_POSES=...`
-- `G3V_MOTION_UNIQUE_SKIN_MASKS=...`
-- `G3V_MOTION_DIVERSITY_AUDIT=PASS`
-
-## G3V visual kill switch — NEXT
-
-The next run is the first body/pixel sheet eligible for the actual G3V decision.
-
-Review order:
-
-1. topology integrity: one head/torso, two arms/hands, two legs/feet;
-2. real motion and grounding across the four gait phases;
-3. coherent weighted body deformation;
-4. stability of hair/cloth/restraints;
-5. pixel-specific visual headroom.
-
-If the technically coherent representative human still reads merely as conventional/low-resolution 3D made blocky, hidden 3D is rejected as owner of final visible character art while remaining the motion/topology/socket/physics backbone.
-
-If it shows credible headroom toward intentional modern pixel art, G3V can PASS and G4 identity mapping may begin.
-
-G4 remains blocked until this visual review.
-
-## Exact next action
-
-Run only:
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
-```
-
-Then STOP. If it reaches `G3V: REVIEW REQUIRED`, share:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
 
-If it fails, share the complete console output. Do not start G4.
+Frames:
+
+`1568,1588,1608,1628`
+
+### Topology / motion
+
+PASS for gate scope:
+
+- all four phases are genuinely distinct;
+- no duplicated or missing major limbs are visible;
+- no pelvis/leg/trunk collapse remains;
+- left/right gait alternation is coherent;
+- weighted body motion is materially more credible than the broken pre-retarget runs.
+
+### Visible representation
+
+FAIL:
+
+- the upper row is recognizably a conventional simplified 3D human;
+- the lower native semantic/palette row remains visibly derived from that same 3D form/shading logic;
+- coarse palette bands and native-grid output do not become intentional authored modern pixel art;
+- silhouettes/value clusters still read as blocky low-resolution 3D rather than a 2D pixel-specific visual language.
+
+This is exactly the G3V kill-switch condition defined before the final rerun.
+
+## Canonical decision
+
+**G3V = FAIL / CLOSED.**
+
+Do not add another renderer-only G3V refinement stage.
+
+Hidden 3D is now explicitly **demoted from visible-image owner** and retained only for:
+
+- real motion;
+- persistent topology;
+- left/right identity;
+- sockets/attachments;
+- depth/occlusion guides;
+- physics;
+- semantic/body-part guides;
+- secondary-motion driving data.
+
+The final visible color image must be owned by a structured 2D pixel representation.
+
+Canonical failure marker:
+
+`tools/deterministic-character-pipeline/g3v_failure.json`
+
+## Next gate
+
+**G3S — Structured 2D Visible Representation**
+
+Canonical design:
+
+`docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+
+The next risk is no longer motion or retargeting. It is whether one approved native gameplay-scale Exilada pixel source can be represented as persistent 2D parts and animated deterministically from the hidden rig without per-frame generation or repainting.
+
+The old G4 assumption — a detailed Exilada 3D proxy rendered directly into final pixels — is blocked and rescoped.
