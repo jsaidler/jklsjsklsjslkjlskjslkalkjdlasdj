@@ -1,0 +1,18 @@
+{
+  "gate": "G3S-A-ALUCARD-REFERENCE",
+  "status": "INVALID",
+  "date": "2026-09-05",
+  "revision": "ALUCARD_NATIVE_128_REFERENCE_CONDITIONED_V1",
+  "reason": "The test passed an externally-derived Qwen image as Alucard reference input. Upstream documents the reference input as a previous animation frame generated/paired in the same sprite domain, not an arbitrary design image. Therefore the noisy result cannot be used as a fair model-quality verdict.",
+  "observed_output": {
+    "raw_sha256": "1b29081d6089a9b2798d6c7830354bce22fe33352f70f3fc42ebc4da262afe1b",
+    "alpha_pixels": 2479,
+    "alpha_bbox": [0, 1, 127, 127],
+    "visible_height": 127,
+    "visible_width": 128,
+    "unique_opaque_rgb": 1083,
+    "visual": "recognizable ghostlike silhouette contaminated by full-canvas multicolor speckle/noise; not production-readable"
+  },
+  "conditioning_issue": "The generated 128x128 conditioning reference also lost the mouth during reduction. This is a real harness defect but is not sufficient to explain the catastrophic noisy output.",
+  "next_control": "Use Alucard in its upstream-supported text-to-sprite mode with no reference input, fixed seed and default documented sampling."
+}
