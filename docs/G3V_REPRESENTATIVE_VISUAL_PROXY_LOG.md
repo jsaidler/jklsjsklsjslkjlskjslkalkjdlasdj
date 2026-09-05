@@ -4,17 +4,17 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN AFTER SEMANTIC-ID COLOR FIX.**
+Current status: **READY TO RERUN AFTER RUNPY FUNCTION-GLOBALS FIX.**
 
 ## Why this gate exists
 
 G3/G3R proved that renderer tuning on a primitive capsule/mannequin cannot answer the production-art question. Post-processing cannot invent human form, authored silhouette, long-hair structure, clothing structure or identity-bearing shape absent from the source geometry.
 
-G3R is therefore canonically **FAIL / CLOSED**. Marker:
+G3R is canonically **FAIL / CLOSED**. Marker:
 
 `tools/deterministic-character-pipeline/g3r_failure.json`
 
-G3V tests the real visible hypothesis before any finished Exilada model is built:
+G3V asks:
 
 **Can a coherent continuous adult female human asset with representative hair/cloth/metal structure, driven by the approved real motion backbone, survive deterministic native-grid pixel translation convincingly enough to justify Exilada identity mapping?**
 
@@ -38,180 +38,142 @@ Workspace:
 
 The user performs no Blender/MPFB GUI work.
 
-## MPFB dependency — current locked loading mode
+## MPFB dependency — locked loading mode
 
-G3V pins **MPFB 2.0.17**.
+G3V pins **MPFB 2.0.17**. The runner:
 
-The runner deliberately does **not depend on Blender extension repositories, add-on activation state or GUI preferences**.
+1. queries the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
+2. downloads only when the verified cached copy is absent;
+3. verifies the advertised SHA256;
+4. extracts the pinned archive to the project dependency workspace;
+5. locates the MPFB Python package root;
+6. starts **one** Blender background process;
+7. bootstraps the MPFB service layer directly from the verified package, bypassing extension repository/add-on preference state;
+8. redirects MPFB writable paths to the project workspace;
+9. loads and executes the G3V target in the same Blender process.
 
-Current sequence:
-
-1. query the official Blender Extensions API for exactly MPFB `2.0.17` compatible with Blender 5.1.1;
-2. download the official archive only when the verified cached copy is absent;
-3. verify the SHA256 advertised by the Blender Extensions API;
-4. extract the pinned archive to the project dependency workspace;
-5. locate the actual MPFB Python package root by requiring `__init__.py + services/ + data/`;
-6. start **one** Blender process with `--background`;
-7. `g3v_mpfb_bootstrap.py` loads MPFB directly from that verified package root and initializes only its service layer required by G3V;
-8. MPFB user-writable paths are redirected to a deterministic project-local directory;
-9. the bootstrap loads the G3V target script as a module, installs runtime diagnostic fixes, then invokes the target `main()` in the same Blender process.
-
-Expected MPFB archive SHA256 from the successful local download:
+Validated archive SHA256:
 
 `4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87`
 
-The runner refuses silently substituting a newer MPFB version.
+## Runtime incidents and decisions
 
-## Runtime incidents
+### 1 — PowerShell parser error
 
-### Incident 1 — PowerShell parser error
+Initial `$code:` interpolation was parsed as a scoped/drive-style variable reference.
 
-The initial runner contained an interpolated string with `$code:`. Windows PowerShell interpreted the colon as part of a scoped/drive-style variable reference and rejected the file before execution.
+Fix: `${code}:`.
 
-Fix: delimit the variable as `${code}:`.
+### 2 — Blender extension installed but unavailable headlessly
 
-### Incident 2 — extension installed but unavailable to project script
+MPFB installed successfully but a fresh background process did not expose the expected extension module.
 
-MPFB downloaded and validated, but no MPFB module was present in the fresh render process.
+### 3 — extension activation caused useless process churn
 
-The first attempted fix used explicit Blender extension activation. It still failed in a fresh background process.
+Decision: stop managing Blender extension repositories for G3V and load the verified MPFB package directly in Python. Normal G3V execution launches one Blender background process only.
 
-### Incident 3 — extension activation path caused useless Blender process churn
+### 4 — blank contact sheet accepted as review artifact
 
-Decision:
+The first one-process G3V completed but all eight cells contained only background. This was an invalid artifact.
 
-- stop managing a custom Blender extension repository for G3V;
-- stop opening multiple Blender processes for repo-list/repo-add/install/probe;
-- load the verified MPFB package directly in Python;
-- normal G3V execution now launches one Blender background process only.
+Fixes:
 
-### Incident 4 — generated contact sheet was blank / all background
+- explicit `G3V_RENDER` collection;
+- Eevee render path;
+- explicit semantic materials;
+- post-render foreground validation;
+- visible-height sanity check around the locked `128 px` target;
+- blank output can no longer become `REVIEW_REQUIRED`.
 
-Observed review artifact:
+### 5 — semantic validator recognized only cloth
 
-`g3v_contact_sheet.png`
+A later run proved:
 
-The label layer was present, but all eight image cells contained only the background. Therefore this run was **invalid and must not be visually judged**.
-
-The original script accepted any non-empty PNG file as a successful render. That was insufficient: a valid file could still contain zero character pixels.
-
-Fix implemented:
-
-1. explicit root-visible `G3V_RENDER` collection;
-2. Blender Eevee instead of Workbench object-color rendering;
-3. emissive semantic ID materials;
-4. neutral-light Eevee pass;
-5. post-render semantic foreground counting;
-6. `80..180 px` visible-height sanity check around the locked `128 px` target;
-7. no review artifact if semantic foreground is absent.
-
-### Incident 5 — camera/geometry valid, semantic classifier rejected skin/hair/metal
-
-The next run proved that the earlier blank-sheet issue had moved forward:
-
-- MPFB bootstrap: **PASS**;
+- MPFB bootstrap: PASS;
 - `base.obj` imported;
-- camera/geometry projection: **127 px**, essentially exact against the locked `128 px` target;
-- Eevee wrote a valid ID image;
-- the ID validator reported only `143` recognized foreground pixels, all classified as `cloth`;
+- projected representative geometry height: **127 px**;
+- Eevee semantic PNG written;
+- validator recognized only `143` pixels, all `cloth`;
 - `skin=0`, `hair=0`, `metal=0`.
 
-Observed stats for frame `1563`:
+Observed frame `1563` stats:
 
 `{'foreground_pixels': 143, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 0, 'cloth': 143, 'metal': 0}}`
 
-The important implication is that MPFB creation and camera calibration are no longer the failing components. The fragile part was the PNG semantic-color classifier: after deciding which reference color was nearest, it also imposed an absolute squared-distance threshold of `0.12`. Blender PNG color management can move emission colors enough for valid red/green/yellow ID pixels to fail that threshold even when they remain categorically closer to their intended semantic color than to the background.
+The intended fix was:
 
-Current fix:
+- nearest semantic vs. background classification;
+- no absolute `0.12` color-distance cutoff;
+- `Raw` transform for semantic IDs;
+- all four semantic classes required before review.
 
-- G3V target is loaded as a module by the bootstrap instead of auto-running immediately;
-- semantic classification is patched to **nearest semantic vs. background**, with no arbitrary absolute color-distance cutoff;
-- the semantic ID render uses `Raw` view transform;
-- neutral-light rendering restores `Standard` transform;
-- every sampled ID frame must contain **all four representative semantic layers**: `skin`, `hair`, `cloth`, `metal`;
-- if any representative layer is absent, G3V hard-fails before contact-sheet generation.
+### 6 — intended semantic fix printed as active but was not actually bound
 
-This keeps the test diagnostic: a future missing layer will mean actual render/visibility failure rather than a color-threshold artifact.
+The next run produced **the exact same 143-cloth-only stats**, despite stdout reporting:
+
+- `G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND`
+- `G3V_ID_COLOR_TRANSFORM=RAW`
+- `G3V_REQUIRED_SEMANTICS=skin,hair,cloth,metal`
+
+Root cause is now exact: `runpy.run_path()` returns a copied namespace. The bootstrap patched that returned dictionary, while the target functions continued to resolve globals through their original `function.__globals__` dictionary. Therefore the console advertised the patch but `id_foreground_stats()` and `build_visible_outputs()` still executed the old classifier.
+
+Fix committed in `g3v_mpfb_bootstrap.py`:
+
+- obtain the target callable from the returned namespace;
+- obtain `target_main.__globals__`;
+- install `classify_id`, `render_pass` and strict semantic validator into **that actual globals dictionary**;
+- assert identity of the bound replacements;
+- invoke `main()` from the same globals dictionary;
+- print `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN` only after successful binding.
+
+This rerun is now diagnostic: if semantic layers are still missing, that will be a real render/visibility issue rather than an inert runtime patch.
 
 ## Representative body / rig
 
-The script uses MPFB's public service API headlessly:
+The script uses MPFB public services headlessly:
 
-- `HumanService.create_human(...)` for a continuous basemesh;
+- `HumanService.create_human(...)` for a continuous adult female basemesh;
 - `TargetService.get_default_macro_info_dict()` for macro body parameters;
-- `HumanService.add_builtin_rig(..., "cmu_mb")` for MPFB's built-in CMU MotionBuilder-compatible weighted rig.
+- `HumanService.add_builtin_rig(..., "cmu_mb")` for the weighted CMU-compatible rig.
 
-The representative body is deliberately not the finished Exilada. Initial macro values create an adult female, relatively lean/resilient proxy. The exact macro dictionary is written to the manifest.
+The proxy is not the finished Exilada. It adds only enough persistent structure to make the visual kill switch meaningful:
 
-The `cmu_mb` rig is important because its naming/topology is designed for the same MotionBuilder-friendly CMU motion family already validated in G2. G3V copies the approved G2 action onto this compatible weighted human rig and verifies required major bone names before rendering.
-
-## Representative identity-bearing structures
-
-G3V adds only enough deterministic structure to make visual judgement meaningful:
-
-- continuous female human body;
-- long dark hair represented by three persistent overlapping geometry masses attached to head/neck/spine bones;
-- simple asymmetric degraded-beige chest/waist/drape masses;
-- separate wrist and ankle metal shackles attached to named left/right bones;
-- bare body feet from the continuous human mesh;
-- semantic IDs for skin / hair / cloth / metal.
-
-These are not production assets. They are a visual kill-switch proxy.
+- continuous female body;
+- long dark hair masses;
+- asymmetric degraded-beige cloth;
+- left/right wrist and ankle shackles;
+- bare feet;
+- semantic ownership for skin / hair / cloth / metal.
 
 ## Visual translation test
 
-Four approved real-walk frames are rendered at the locked `640×360 / 26 deg / 128 px` presentation.
+Four approved real-walk frames use the locked `640×360 / 26 deg / 128 px` presentation.
 
-For each frame Blender creates:
+For each frame:
 
-1. **semantic ID pass** — skin/hair/cloth/metal ownership using emissive Eevee materials under Raw color transform;
-2. **neutral light pass** — deterministic Eevee lighting with neutral geometry under Standard transform.
-
-The visible outputs are then constructed at the same native raster.
-
-### A — representative continuous geometry
-
-Semantic body/hair/cloth/metal structure displayed with fixed material colors. This row exists to judge whether the actual representative source structure is coherent.
-
-### B — native semantic 4-band pixel
-
-Semantic ownership comes from the ID pass; lighting value comes from the neutral-light pass. A global set of four luminance bands is computed across all four sampled frames and mapped into material-specific pixel palettes.
+1. semantic ID pass;
+2. neutral-light pass;
+3. representative continuous-geometry row;
+4. native semantic 4-band pixel row.
 
 No high-resolution beauty render is shrunk. No bilinear scaling, diffusion, generative repainting or manual frame repaint is used.
 
-## Output / review artifact
-
-Expected contact sheet:
+Expected review artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
-
-Layout:
-
-- 4 columns = four approved real walk phases;
-- top row = representative continuous geometry;
-- bottom row = native semantic 4-band pixel result.
-
-Other outputs:
-
-- `g3v_representative_proxy.blend`;
-- `g3v_manifest.json`;
-- `g3v_result.json`;
-- semantic ID/light debug passes;
-- foreground statistics per sampled frame;
-- SHA256 hashes for visible outputs and dependency provenance.
 
 ## PASS / FAIL
 
 G3V can PASS only if:
 
 1. anatomy/silhouette reads as a coherent human rather than a primitive technical mannequin;
-2. real weighted deformation remains coherent across walk phases;
+2. weighted deformation remains coherent across the sampled walk;
 3. hair/cloth/shackle side ownership remains structurally stable;
-4. the native-grid result has a credible path toward intentional modern pixel art;
-5. it does not merely read as a conventional 3D character made blocky;
-6. the entire dependency/body/rig/motion/render process runs headlessly;
-7. there is enough visual headroom to justify building the Exilada identity proxy next.
+4. all representative semantic layers are genuinely visible;
+5. the native-grid result has a credible path toward intentional modern pixel art;
+6. it does not merely read as conventional 3D made blocky;
+7. the complete dependency/body/rig/motion/render process remains headless.
 
-If the representative continuous human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character. It remains useful for motion/topology/sockets/physics, and final character art moves to a structured 2D representation.
+If a validated representative human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character but remains the motion/topology/socket/physics backbone.
 
 G4 remains blocked until a **validated non-blank G3V contact sheet containing all representative semantic layers** is visually reviewed.
