@@ -2,13 +2,35 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B PERSISTENT PART DECOMPOSITION READY**
+Gate status: **ACTIVE — G3S-B2 LAYER STACK PREFLIGHT READY**
 
 ## Locked architecture
 
-`real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel parts -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
+`real motion -> validated hidden rig -> projected joints/depth/sockets -> complete 2D body base -> separate hair -> separate clothing/equipment/accessories -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
 Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character color pixels.
+
+## Canonical layer ownership — LOCKED
+
+This must match `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`:
+
+1. complete persistent unclothed body base;
+2. hair / body-attached secondary masses;
+3. underlayers / soft clothing;
+4. outer clothing;
+5. armor;
+6. restraints/accessories;
+7. weapons/tools;
+8. surface-state overlays;
+9. transient VFX.
+
+Consequences:
+
+- clothing may visually exist in the initial state but is never baked into body ownership;
+- hair is never part of torso/head/body pixels; it is a separate persistent secondary-motion family;
+- the body must exist underneath removable clothing and underneath hair;
+- chains/restraints are separate socketed accessories/state;
+- animation cannot begin from an incomplete body underlayer.
 
 ## Production constraints
 
@@ -19,132 +41,109 @@ Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides on
 - no bilinear filtering;
 - recurring work remains scriptable/headless;
 - one-time source construction may use deterministic native-grid edits;
-- animation consumes persistent parts rather than regenerating frames;
-- anatomical details are semantically important, but localized defects must be isolated into replaceable parts rather than forcing whole-character redraws.
+- animation consumes persistent semantic owners rather than independently generated frames.
 
 ## Model-discard cleanup rule — LOCKED
 
 Whenever a model/route is declared **FAIL/CLOSED/REJECTED** and no longer required, the same response must include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved; small result/log evidence remains unless explicitly removed.
 
-### Current closed-model cleanup commands
-
-```powershell
-# Alucard
-Remove-Item -LiteralPath "Z:\AI\AlucardSpike" -Recurse -Force -ErrorAction SilentlyContinue
-
-# PixelLock
-Remove-Item -LiteralPath "Z:\AI\PixelLockSpike" -Recurse -Force -ErrorAction SilentlyContinue
-
-# SD1.5 native re-author
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.safetensors" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\loras\pixel-art-sd15.safetensors" -Force -ErrorAction SilentlyContinue
-
-# Qwen weights — fixed control retained; shared embedded Python runtime remains
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\unet\Qwen-Image-Edit-2509-Q4_0.gguf" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors" -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\vae\qwen_image_vae.safetensors" -Force -ErrorAction SilentlyContinue
-```
+Closed-model cleanup commands remain documented in project history. No model is being discarded by G3S-B/B2.
 
 # G3S-A source history — CLOSED AS MODEL SEARCH
 
-Bounded source experiments:
+Bounded source experiments were completed and closed: Qwen direct-native, SD1.5 native re-author, PixelLock and Alucard did not produce an acceptable native source sprite.
 
-- Qwen direct-native `640×360` — FAIL;
-- Qwen preferred-resolution control — PASS only as design/scaffold provenance;
-- SD1.5 + pixel LoRA native re-author — FAIL;
-- PixelLock initial-source authoring — FAIL;
-- Alucard external-reference attempt — INVALID;
-- Alucard text-only native-128 control — FAIL.
-
-Do not start another source-model search.
+Do not restart source-model search.
 
 Retained design/provenance control:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
-Pinned SHA256:
+SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-## Authored native V1 — FAIL / CLOSED
+## Face state
 
-V1 added nominal mouth/restraint/chain pixels to a native 128 scaffold. Visual review showed the mouth still did not read. Pixel existence is not semantic readability.
+Authored V1 mouth was unreadable. G3S-A1 V2 mouth became an artificial block. The face remains unresolved/replacement-ready, but this localized defect no longer blocks architecture work.
 
-Marker:
+Markers:
 
-`tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
+- `tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
+- `tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
 
-## G3S-A1 Facial / Anatomy Lock V2 — FAIL / CLOSED
-
-Detailed log:
-
-`docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
-
-V2 produced explicit face/hands/feet diagnostics, but visual review rejected the mouth as an exaggerated dark/red block.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
-
-### Locked decision after V2
-
-The user chose to continue the planned structured-2D architecture:
-
-- macro body/scaffold is accepted **provisionally for decomposition only**;
-- `head_face` is unresolved and must become a replaceable part;
-- the bad V2 mouth patch is not authoritative;
-- broken chain segments are not baked into the permanent body sprite;
-- chains become initial accessories with sockets/state;
-- G3S-B is unblocked;
-- G3S-C remains blocked until G3S-B review.
-
-# G3S-B — Persistent Part Decomposition — CURRENT
+# G3S-B V1 — FAIL / CLOSED
 
 Canonical log:
 
 `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 
-Purpose: convert the provisional 128×128 scaffold into persistent native pixel assets with stable IDs, pivots and metadata.
+V1 technically achieved exact recomposition, but visual review exposed invalid semantic ownership:
 
-V1 part set:
+- body/limb parts still contained garment/binding pixels;
+- hair masks contained non-hair pixels;
+- no complete body existed under hair/clothing.
 
-- hair back mass;
-- head/face placeholder;
-- torso/pelvis core;
-- front cloth mass;
-- screen-left/right upper arms;
-- screen-left/right forearms;
-- screen-left/right hands;
-- screen-left/right thighs;
-- screen-left/right shins;
-- screen-left/right feet;
-- front-left/front-right hair masses.
+This is a production-architecture failure even though the pixels recomposed exactly.
 
-The static image stores screen-side identity only. Anatomical left/right is resolved in G3S-C against projected hidden-rig joints.
+Failure marker:
 
-Broken-chain accessory slots are created for both wrists and both ankles with `baked_into_body = false` and `art_status = NOT_AUTHORED`.
+`tools/structured-2d-character-pipeline/g3s_b_v1_failure.json`
+
+Locked lesson: **pixel-exact reconstruction does not prove correct semantic ownership.**
+
+# G3S-B2 — Layer Stack Preflight — CURRENT
+
+Canonical log:
+
+`docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
+
+Purpose: correct ownership before any animation.
+
+B2 rebuilds the same pinned provisional source and diagnostically partitions it into:
+
+- currently visible body pixels — explicitly marked incomplete;
+- hair-only persistent layer family;
+- clothing-only overlay family.
+
+It then:
+
+- requires exact recomposition of those visible families;
+- generates a magenta diagnostic of body regions currently hidden by hair/clothing;
+- reports exactly how many native body pixels still require real underlayer authoring;
+- refuses to treat the current visible-body extraction as a complete body base.
+
+B2 deliberately does **not** fill missing body regions with generic skin colors. That would only create another fake technical solution.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_b_parts_spec_v1.json`
-- `tools/structured-2d-character-pipeline/g3s_b_decompose_v1.py`
-- `tools/structured-2d-character-pipeline/09_run_g3s_b_decomposition.ps1`
+- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_spec_v1.json`
+- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_preflight.py`
+- `tools/structured-2d-character-pipeline/10_run_g3s_b2_layer_stack_preflight.ps1`
 
 Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack`
 
 Review artifact:
 
-`g3s_b_contact_sheet.png`
+`g3s_b2_contact_sheet.png`
 
-Technical requirement: recomposition from named parts plus audited residual must be pixel-exact to the provisional scaffold. Visual review remains authoritative for mask boundaries, hair/cloth isolation, pivots, hands/feet and chain sockets.
+## PASS meaning
+
+B2 PASS means the ownership split is credible and the hidden-body problem is bounded. It does **not** mean the body base is complete.
+
+Next gate after B2 review:
+
+**G3S-B3 — Body Base Completion**
+
+B3 must provide the complete persistent unclothed body under all removable layers.
 
 # G3S-C — Four-phase walk proof
 
-Blocked until G3S-B visual PASS.
+Blocked until B3 completes the body base and layer ownership is approved.
 
-Persistent parts will then be bound to the validated motion frames `1568,1588,1608,1628`. No frame may be independently regenerated by diffusion.
+Persistent owners will then bind to validated motion frames `1568,1588,1608,1628`. No frame may be independently regenerated by diffusion.
 
 ## Exact next action
 
@@ -152,9 +151,11 @@ Persistent parts will then be bound to the validated motion frames `1568,1588,16
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\09_run_g3s_b_decomposition.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\10_run_g3s_b2_layer_stack_preflight.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition\g3s_b_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack\g3s_b2_contact_sheet.png`
+
+Do not run G3S-C.
