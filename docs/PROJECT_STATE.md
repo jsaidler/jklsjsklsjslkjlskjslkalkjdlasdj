@@ -151,29 +151,39 @@ Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
 Do not run more renderer-only variants on the primitive proxy.
 
-## G3V — REPRESENTATIVE VISUAL PROXY: READY TO RUN / ACTIVE
+## G3V — REPRESENTATIVE VISUAL PROXY: READY TO RERUN / ACTIVE
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
-Tooling now exists:
+Tooling:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
+- `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
-The runner automatically:
+### MPFB runtime decision
+
+The initial Blender-extension-management route was abandoned after repeated headless activation failures despite a successful verified install.
+
+The current runner now:
 
 1. acquires **pinned MPFB 2.0.17** from the official Blender Extensions API;
-2. verifies its advertised SHA256;
-3. installs it through Blender CLI into a dedicated `roguelite_g3v` extension repository;
-4. creates a continuous adult female MPFB basemesh using the public service API;
-5. adds MPFB's built-in **`cmu_mb`** weighted rig, designed for the MotionBuilder-friendly CMU skeleton family;
-6. reuses the approved G2 real walk action;
-7. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles;
-8. renders semantic ID + neutral-light passes at the locked `640×360 / 26 deg / 128 px` baseline;
-9. creates two visible rows across four real walk phases:
+2. verifies the advertised SHA256 (`4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87` on the validated download);
+3. extracts the pinned archive locally;
+4. locates the real MPFB Python package root;
+5. launches **one Blender background process only**;
+6. bootstraps the MPFB service layer directly from the verified package, bypassing extension repository/add-on preference state;
+7. creates a continuous adult female MPFB basemesh;
+8. adds MPFB's built-in **`cmu_mb`** weighted rig;
+9. reuses the approved G2 real walk action;
+10. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles;
+11. renders semantic ID + neutral-light passes at `640×360 / 26 deg / 128 px`;
+12. creates two visible rows across four real walk phases:
    - representative continuous geometry;
    - native semantic 4-band pixel translation;
-10. writes hashes, manifest, `.blend`, result JSON and contact sheet.
+13. writes hashes, manifest, `.blend`, result JSON and contact sheet.
+
+No normal G3V execution should now open multiple Blender maintenance/probe processes.
 
 Expected review artifact:
 
