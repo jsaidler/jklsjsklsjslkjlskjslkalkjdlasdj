@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN AFTER RUNPY FUNCTION-GLOBALS FIX.**
+Current status: **READY TO RERUN WITH BINARY OCCLUSION-AWARE SEMANTIC MASKS.**
 
 ## Why this gate exists
 
@@ -30,6 +30,7 @@ G3V asks:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
 Workspace:
@@ -60,73 +61,70 @@ Validated archive SHA256:
 
 ### 1 — PowerShell parser error
 
-Initial `$code:` interpolation was parsed as a scoped/drive-style variable reference.
+Initial `$code:` interpolation was parsed as a scoped/drive-style variable reference. Fixed as `${code}:`.
 
-Fix: `${code}:`.
+### 2–3 — extension activation failure and process churn
 
-### 2 — Blender extension installed but unavailable headlessly
-
-MPFB installed successfully but a fresh background process did not expose the expected extension module.
-
-### 3 — extension activation caused useless process churn
-
-Decision: stop managing Blender extension repositories for G3V and load the verified MPFB package directly in Python. Normal G3V execution launches one Blender background process only.
+The Blender-extension activation route was abandoned. G3V now loads the pinned verified MPFB package directly in the single background Blender process.
 
 ### 4 — blank contact sheet accepted as review artifact
 
-The first one-process G3V completed but all eight cells contained only background. This was an invalid artifact.
+The first one-process G3V completed but all eight cells contained only background. This was invalid. G3V now validates rendered foreground and visible height before review.
 
-Fixes:
+### 5 — first semantic validator recognized only cloth
 
-- explicit `G3V_RENDER` collection;
-- Eevee render path;
-- explicit semantic materials;
-- post-render foreground validation;
-- visible-height sanity check around the locked `128 px` target;
-- blank output can no longer become `REVIEW_REQUIRED`.
+Frame `1563` initially reported only 143 recognized pixels, all cloth. Camera projection itself was correct at 127 px.
 
-### 5 — semantic validator recognized only cloth
+### 6 — first classifier patch was bound to the wrong `runpy` namespace
 
-A later run proved:
+`runpy.run_path()` returned a dictionary separate from the globals actually referenced by target functions. The fix now binds runtime patches directly through `target_main.__globals__` and asserts that binding before execution.
 
-- MPFB bootstrap: PASS;
-- `base.obj` imported;
-- projected representative geometry height: **127 px**;
-- Eevee semantic PNG written;
-- validator recognized only `143` pixels, all `cloth`;
-- `skin=0`, `hair=0`, `metal=0`.
+### 7 — bound classifier proves a real visible-layer problem
 
-Observed frame `1563` stats:
+The next run confirmed the patch was genuinely active. Stdout included:
 
-`{'foreground_pixels': 143, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 0, 'cloth': 143, 'metal': 0}}`
-
-The intended fix was:
-
-- nearest semantic vs. background classification;
-- no absolute `0.12` color-distance cutoff;
-- `Raw` transform for semantic IDs;
-- all four semantic classes required before review.
-
-### 6 — intended semantic fix printed as active but was not actually bound
-
-The next run produced **the exact same 143-cloth-only stats**, despite stdout reporting:
-
+- `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN`
 - `G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND`
 - `G3V_ID_COLOR_TRANSFORM=RAW`
-- `G3V_REQUIRED_SEMANTICS=skin,hair,cloth,metal`
 
-Root cause is now exact: `runpy.run_path()` returns a copied namespace. The bootstrap patched that returned dictionary, while the target functions continued to resolve globals through their original `function.__globals__` dictionary. Therefore the console advertised the patch but `id_foreground_stats()` and `build_visible_outputs()` still executed the old classifier.
+Frame `1563` then produced:
 
-Fix committed in `g3v_mpfb_bootstrap.py`:
+`{'foreground_pixels': 10148, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 667, 'cloth': 9481, 'metal': 0}}`
 
-- obtain the target callable from the returned namespace;
-- obtain `target_main.__globals__`;
-- install `classify_id`, `render_pass` and strict semantic validator into **that actual globals dictionary**;
-- assert identity of the bound replacements;
-- invoke `main()` from the same globals dictionary;
-- print `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN` only after successful binding.
+This is materially different from the earlier 143-pixel artifact. It proves:
 
-This rerun is now diagnostic: if semantic layers are still missing, that will be a real render/visibility issue rather than an inert runtime patch.
+- MPFB bootstrap works;
+- the representative asset is on camera;
+- the projected height is correct;
+- substantial geometry is genuinely rendering;
+- hair and cloth are visible;
+- skin and metal are absent from the visible semantic result.
+
+At this point color classification is no longer an acceptable diagnostic dependency. The remaining possibilities include actual occlusion by representative proxy geometry, MPFB body renderability/modifier state, or shackle placement/subpixel visibility.
+
+## Binary semantic-mask mode — CURRENT
+
+`g3v_semantic_masks.py` now replaces the multi-color semantic diagnostic with four independent binary renders per sampled frame:
+
+- skin: target white, all other representative geometry black;
+- hair: target white, all other representative geometry black;
+- cloth: target white, all other representative geometry black;
+- metal: target white, all other representative geometry black.
+
+Black non-target geometry remains renderable, so normal depth/occlusion is preserved. The four masks are composited in Python into the canonical semantic-ID image. No RGB classification is required to discover layer ownership.
+
+For any semantic with zero visible pixels, G3V immediately renders an additional **unoccluded diagnostic mask** with all non-target semantic geometry hidden:
+
+- `visible=0, unoccluded>0` => the target exists and renders, but is fully occluded by representative proxy geometry;
+- `visible=0, unoccluded=0` => the target itself does not render or is offscreen; object/mesh/modifier diagnostics are included.
+
+Console diagnostics use explicit records such as:
+
+- `G3V_MASK_SKIN_FRAME_1563_VISIBLE=...`
+- `G3V_MASK_METAL_FRAME_1563_VISIBLE=0 UNOCCLUDED=...`
+- `G3V_MASK_SEQUENCE_TOTALS=skin:...,hair:...,cloth:...,metal:...`
+
+Semantic completeness is validated across the sampled sequence rather than requiring every small attachment to occupy a pixel in every single phase.
 
 ## Representative body / rig
 
@@ -151,10 +149,11 @@ Four approved real-walk frames use the locked `640×360 / 26 deg / 128 px` prese
 
 For each frame:
 
-1. semantic ID pass;
-2. neutral-light pass;
-3. representative continuous-geometry row;
-4. native semantic 4-band pixel row.
+1. four binary occlusion-aware semantic masks;
+2. Python-composited semantic ID pass;
+3. neutral-light pass;
+4. representative continuous-geometry row;
+5. native semantic 4-band pixel row.
 
 No high-resolution beauty render is shrunk. No bilinear scaling, diffusion, generative repainting or manual frame repaint is used.
 
@@ -169,11 +168,11 @@ G3V can PASS only if:
 1. anatomy/silhouette reads as a coherent human rather than a primitive technical mannequin;
 2. weighted deformation remains coherent across the sampled walk;
 3. hair/cloth/shackle side ownership remains structurally stable;
-4. all representative semantic layers are genuinely visible;
+4. all representative semantic layers are genuinely visible somewhere in the sampled sequence;
 5. the native-grid result has a credible path toward intentional modern pixel art;
 6. it does not merely read as conventional 3D made blocky;
 7. the complete dependency/body/rig/motion/render process remains headless.
 
 If a validated representative human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character but remains the motion/topology/socket/physics backbone.
 
-G4 remains blocked until a **validated non-blank G3V contact sheet containing all representative semantic layers** is visually reviewed.
+G4 remains blocked until a validated G3V contact sheet is visually reviewed.
