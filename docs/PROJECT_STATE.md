@@ -133,8 +133,9 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
   - G3S-B2 layer-stack preflight — **PASS/CLOSED DIAGNOSTIC**
   - **G3S-B3 complete nude body base** ← CURRENT
-    - **G3S-B3A deterministic nude anatomy guide** ← READY TO RUN
-    - G3S-B3B native `128×128` body source — BLOCKED UNTIL B3A REVIEW
+    - G3S-B3A V1 deterministic nude anatomy guide — **FAIL/CLOSED REVISION: wrong MPFB phenotype polarity**
+    - **G3S-B3A V2 corrected adult-female anatomy guide** ← READY TO RUN
+    - G3S-B3B native `128×128` body source — BLOCKED UNTIL B3A V2 REVIEW
   - G3S-B4 hair asset — BLOCKED UNTIL B3
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
@@ -253,11 +254,31 @@ Nudity is a normal runtime state: the body base is always complete and garments/
 
 B3 must not recover hidden anatomy by subtracting hair/clothing.
 
-### B3-A — ready
+### B3-A V1 — FAIL/CLOSED REVISION
 
-The first bounded step creates a deterministic complete adult female nude/hairless **anatomy guide** from the existing MPFB/hidden-rig infrastructure. It creates zero hair, clothing, cuff/shackle or chain objects.
+The submitted B3A V1 output passed the intended layer/scale mechanics: complete geometry, `128 px` visible height, zero hair/clothing/restraint/chain objects, and guide-only art authority.
 
-This guide is structural data only and explicitly does **not** become final visible pixel art.
+It nevertheless failed the required adult-female criterion because the script set MPFB `gender = 1.0`. The pinned MPFB semantics used by this route define `0.0 = female` and `1.0 = male`, so V1 instantiated the wrong phenotype.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
+
+This is a revision failure only. MPFB `2.0.17` and the B3A structural route remain active; no model is discarded and no cleanup command applies.
+
+### B3-A V2 — ready
+
+V2 corrects `gender = 0.0` and adds a resolved target-stack phenotype audit. PASS machinery now requires:
+
+- revision `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`;
+- resolved gender `female`;
+- at least one female macro target;
+- zero male macro targets;
+- complete body geometry;
+- zero hair, clothing, restraint and chain objects;
+- locked G1 scale/camera reference.
+
+The contact sheet now exposes the phenotype audit instead of relying on the numeric macro value alone.
 
 Tooling:
 
@@ -272,7 +293,7 @@ Output:
 
 ### B3-B — blocked
 
-After B3-A structural review, author the actual native `128×128` nude body-base pixel source. Only B3-B can pass visible body art.
+After B3-A V2 structural review, author the actual native `128×128` nude body-base pixel source. Only B3-B can pass visible body art.
 
 No hair, clothing or animation starts before B3-B passes.
 
@@ -288,6 +309,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 Then STOP and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+
+or the complete console error if the runner fails.
 
 Do not run G3S-C.
 
