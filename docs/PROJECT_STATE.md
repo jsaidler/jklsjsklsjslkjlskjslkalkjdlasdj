@@ -27,6 +27,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 19. `docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
 20. `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 21. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
+22. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
 After every material step: update the relevant thematic document + this file and make a focused commit.
 
@@ -44,13 +45,21 @@ Canonical design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth, scars/wounds, captivity history, bare feet, canonical base weaponless.
+Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth in the initial equipped state, scars/wounds, captivity history, bare feet, canonical base weaponless.
 
-### Layer ownership clarification — LOCKED 2026-09-05
+The master defines design/identity, not hidden-body pixels and not final gameplay pixels.
 
-The permanent `body_base` is a **complete unclothed body**. Initial cloth/bindings, hair and restraints are separate persistent layers/accessories over that body.
+### Body-first clarification — LOCKED 2026-09-05
 
-Broken chain segments are not permanent body pixels. They are initial accessory state with independent sockets/art/state.
+The production character owns a **complete nude adult body base independent of hair, clothing and restraints**.
+
+- body base is hairless;
+- hair is a separate persistent asset/layer family;
+- clothing/bindings are separate overlays;
+- cuffs/shackles/chains are accessories/equipment;
+- the body remains complete under all removable layers;
+- nudity is a normal supported state, produced by omitting garment/equipment layers rather than generating a separate nude sprite;
+- the composite master cannot be used to recover hidden anatomy by subtraction.
 
 ## Hard operator constraint
 
@@ -106,10 +115,12 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - G3S-A source-model search — CLOSED
   - authored native source V1 — FAIL/CLOSED
   - G3S-A1 Facial / Anatomy Lock V2 — FAIL/CLOSED
-  - G3S-B persistent part decomposition V1 — **FAIL/CLOSED: semantic layer ownership wrong despite exact recomposition**
-  - **G3S-B2 Layer Stack Preflight** ← READY TO RUN
-  - G3S-B3 Body Base Completion — BLOCKED UNTIL B2 REVIEW
-  - G3S-C four-phase walk proof — BLOCKED UNTIL COMPLETE BODY BASE
+  - G3S-B persistent part decomposition V1 — FAIL/CLOSED
+  - G3S-B2 layer-stack preflight — **PASS/CLOSED DIAGNOSTIC**
+  - **G3S-B3 complete nude body base** ← CURRENT NEXT GATE
+  - G3S-B4 hair asset — BLOCKED UNTIL B3
+  - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3
+  - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
 - G5 temporal stress pack
 - G6 equipment/attachments
@@ -177,16 +188,7 @@ Markers:
 
 ## G3S-B V1 — FAIL/CLOSED
 
-The V1 decomposition technically passed exact reconstruction:
-
-- `2974` source alpha pixels;
-- `2895` covered by named parts;
-- `79` residual pixels;
-- residual fraction `0.026564`;
-- exact recomposition `true`;
-- max channel diff `0`.
-
-Visual review showed the semantic ownership was wrong: body/limb parts retained garment/binding pixels, hair masks retained non-hair pixels, and the body did not exist independently underneath hair/clothing.
+The V1 decomposition technically passed exact reconstruction, but visual review showed semantic ownership was wrong: body/limb parts retained garment/binding pixels, hair masks retained non-hair pixels, and the body did not exist independently underneath hair/clothing.
 
 Marker:
 
@@ -194,48 +196,51 @@ Marker:
 
 Critical lesson: **pixel-exact reconstruction does not validate semantic ownership.**
 
-## G3S-B2 Layer Stack Preflight — CURRENT
+## G3S-B2 — PASS/CLOSED DIAGNOSTIC
+
+B2 correctly proved the body-under-occluders problem rather than trying to fake the missing body.
+
+Measured:
+
+- source alpha pixels: `2974`;
+- body visible: `1538`;
+- hair: `826`;
+- clothing: `610`;
+- unresolved hidden body: **`1205`**;
+- exact recomposition: PASS.
+
+Conclusion: subtraction from the master is not a body-authoring method.
+
+Approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b2_approval.json`
 
 Canonical log:
 
 `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
 
-Purpose: establish correct ownership before animation.
+## G3S-B3 Nude Body Base — CURRENT
 
-It rebuilds the pinned `128×128` composite and diagnostically separates:
+Canonical log:
 
-- currently visible body pixels;
-- hair-only persistent layer family;
-- clothing-only overlay family.
+`docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
-It requires exact recomposition and creates a magenta map of body regions currently hidden by hair/clothing. It deliberately does not invent hidden body pixels.
+Required production order:
 
-If B2 passes, **G3S-B3 must create the complete persistent unclothed body base** before any animation proof.
+1. complete nude/hairless body base;
+2. separate hair asset;
+3. separate clothing/bindings/restraints/chains;
+4. layered motion proof.
 
-Tooling:
+Nudity is a normal runtime state: the body base is always complete and garments/equipment are simply absent.
 
-- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_spec_v1.json`
-- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_preflight.py`
-- `tools/structured-2d-character-pipeline/10_run_g3s_b2_layer_stack_preflight.ps1`
+B3 must not recover hidden anatomy by subtracting hair/clothing. It may use canonical proportions and deterministic anatomy/topology references only as guides, then requires a dedicated native 2D body source.
 
-Output workspace:
+No animation starts until the nude body source itself passes visual review.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack`
+## Exact next action
 
-## Exact next action — ONLY THIS
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\10_run_g3s_b2_layer_stack_preflight.ps1"
-```
-
-Then STOP and share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack\g3s_b2_contact_sheet.png`
-
-Do not run G3S-C.
+Implement and validate G3S-B3. Do **not** rerun G3S-B2 and do **not** start G3S-C.
 
 ## Workspaces
 
