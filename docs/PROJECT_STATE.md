@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-04**
+Status date: **2026-09-05**
 
 Purpose: **canonical cross-chat operational handoff.** GitHub living documents are the source of truth; detailed design stays in thematic docs rather than being duplicated here.
 
@@ -21,7 +21,8 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 13. `docs/G2_MOTION_TOPOLOGY_LOG.md`
 14. `docs/G3_PIXEL_TRANSLATION_LOG.md`
 15. `docs/G3R_RENDERER_REFINEMENT_LOG.md`
-16. current tooling under `tools/deterministic-character-pipeline/`
+16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
+17. current tooling under `tools/deterministic-character-pipeline/`
 
 After every material step: update the relevant thematic document(s) + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -33,7 +34,7 @@ Immediate gameplay presentation baseline:
 
 **elevated 2D belt-scroller / false 3D**.
 
-Final visible character/environment language remains **true modern pixel art** at native gameplay raster. Hidden 3D may own motion/topology/physics but is not the final visible style.
+Final visible character/environment language remains **true modern pixel art** at native gameplay raster. Hidden 3D may own motion/topology/physics but is not automatically the final visible style.
 
 ## Exilada identity — LOCKED
 
@@ -46,13 +47,14 @@ The master defines identity/design, not final gameplay pixels.
 ## Rejected / paused routes
 
 - FLUX.2 Klein + RefControl direct-frame animation: **REJECTED / FROZEN** after V1/V2/V3; V3 produced a three-leg/three-foot frame and persistent accessory/topology drift.
-- Qwen-Image-Edit-2509 spike: **PAUSED**, preserved only as a possible constrained future component. It is not the active production architecture.
+- Qwen-Image-Edit-2509 spike: **PAUSED**, preserved only as a possible constrained future component.
 - high-resolution beauty render followed by generic shrink/pixel filter: **REJECTED as final-art route**.
 - routine manual frame-by-frame repainting: **REJECTED as production burden**.
+- repeated outline/cluster/palette refinement on a primitive capsule/mannequin proxy: **REJECTED after G3R** because the source representation lacks the authored form needed to judge final art.
 
 ## Active deterministic character architecture — LOCKED FOR VALIDATION
 
-`gameplay camera/scale -> real motion -> deterministic rig/topology -> persistent secondary systems -> native-raster semantic passes -> pixel-specific renderer -> modular equipment/state composition -> sprite/runtime export -> automated QA`
+`gameplay camera/scale -> real motion -> deterministic rig/topology -> representative visual asset -> pixel-specific visible representation -> modular equipment/state composition -> sprite/runtime export -> automated QA`
 
 Hard operator constraint:
 
@@ -81,13 +83,14 @@ Already architected in canonical thematic docs:
 - detached limb/equipment inheritance;
 - optional unclothed body states without relying on generative image synthesis.
 
-## Risk-first gate order — LOCKED
+## Risk-first gate order — CURRENT
 
 - **G0 — automation**
 - **G1 — camera/native scale**
 - **G2 — real motion/topology**
 - **G3 — first pixel translation feasibility**
-- **G3R — renderer/style refinement**
+- **G3R — renderer-only refinement on primitive proxy**
+- **G3V — representative continuous human visual proxy**
 - **G4 — Exilada identity mapping**
 - **G5 — temporal stress pack**
 - **G6 — equipment/attachments**
@@ -113,9 +116,7 @@ Validated environment:
 
 Headless Python scene creation, `.blend` save, PNG rendering, manifests and hashes were validated.
 
-Detailed log:
-
-`docs/G0_AUTOMATION_LOG.md`
+Detailed log: `docs/G0_AUTOMATION_LOG.md`.
 
 ## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
 
@@ -125,23 +126,15 @@ Locked baseline:
 - orthographic camera pitch: **`26 deg`**;
 - protagonist reference visible height: **`128 px`**.
 
-Canonical baseline file:
+Canonical baseline: `tools/deterministic-character-pipeline/g1_baseline.json`.
 
-`tools/deterministic-character-pipeline/g1_baseline.json`
-
-Detailed log:
-
-`docs/G1_CAMERA_SCALE_LOG.md`
+Detailed log: `docs/G1_CAMERA_SCALE_LOG.md`.
 
 ## G2 — REAL MOTION / TOPOLOGY: PASS / CLOSED
 
-Source:
+Source: CMU Graphics Lab Motion Capture Database, trial `105_34 NormalWalk`, pinned MotionBuilder-friendly BVH conversion.
 
-- CMU Graphics Lab Motion Capture Database;
-- trial `105_34 NormalWalk`;
-- pinned MotionBuilder-friendly BVH conversion.
-
-The 12-sample sequence was visually reviewed and accepted for G2 scope:
+Accepted for G2 scope:
 
 - stable major-limb topology;
 - real left/right gait alternation;
@@ -149,66 +142,60 @@ The 12-sample sequence was visually reviewed and accepted for G2 scope:
 - persistent deterministic character structure;
 - usable under the locked G1 camera/scale.
 
-Canonical approval marker:
+Canonical approval: `tools/deterministic-character-pipeline/g2_approval.json`.
 
-`tools/deterministic-character-pipeline/g2_approval.json`
+Important boundary: arbitrary cross-skeleton retargeting and production foot-lock cleanup are not yet proven.
 
-Important boundary: G2 did not prove arbitrary cross-skeleton retargeting or final foot-lock cleanup for all clips; those remain explicit scaling validations.
+Detailed log: `docs/G2_MOTION_TOPOLOGY_LOG.md`.
 
-Detailed log:
+## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
 
-`docs/G2_MOTION_TOPOLOGY_LOG.md`
+The primitive semantic proxy proved stable deterministic raster translation, but A/B/C still read as technical mannequin / processed low-detail 3D.
 
-## G3 — NATIVE PIXEL TRANSLATION: PASS TECHNICAL / LOOK NOT APPROVED
+Useful result: deterministic motion/topology can drive stable native-grid material regions. Not enough to approve visible production art.
+
+Detailed log: `docs/G3_PIXEL_TRANSLATION_LOG.md`.
+
+## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
 
 Reviewed artifact:
 
-`Z:\AI\RogueliteCharacterPipeline\g3\g3_contact_sheet.png`
-
-Findings:
-
-- deterministic hidden-3D motion/topology can become a stable native-grid sprite;
-- semantic skin/cloth/hair/metal regions remain controllable;
-- method B (`palette_banded`) is the strongest first technical baseline;
-- method C proves a coarser cluster experiment but is not production-ready;
-- none of A/B/C is approved as the final visible language because the proxy still reads as a technical mannequin / processed low-detail 3D.
-
-Canonical decision marker:
-
-`tools/deterministic-character-pipeline/g3_technical_approval.json`
-
-G4 remains blocked.
-
-Detailed log:
-
-`docs/G3_PIXEL_TRANSLATION_LOG.md`
-
-## G3R — RENDERER / STYLE REFINEMENT: ACTIVE / READY TO RUN
-
-Tooling:
-
-- `tools/deterministic-character-pipeline/03b_run_g3r.ps1`
-- `tools/deterministic-character-pipeline/g3r_renderer_refinement.py`
-
-Purpose: refine the visible deterministic pixel language before any Exilada production geometry is built.
-
-The same four approved real-walk frames are compared through:
-
-1. **D — outlined 4-band:** four discrete material bands + deterministic 1 px exterior outline;
-2. **E — edge-preserving cluster:** D plus 2×2 majority clustering only inside the silhouette, preserving native edge pixels;
-3. **F — selective contour cluster:** E plus directional lower/right silhouette darkening to test a less-uniform sprite contour.
-
-Automated diagnostics include foreground pixel count, character bbox, tiny-island count and per-output hashes.
-
-G3R PASS requires at least one method to be credible as the production rendering foundation at actual 1× gameplay scale. If all three still read as processed technical 3D, G4 must not start and the visible representation strategy changes while the proven motion/topology backbone may remain.
-
-Expected review artifact:
-
 `Z:\AI\RogueliteCharacterPipeline\g3r\g3r_contact_sheet.png`
 
-Detailed log:
+D/E/F changed contour/value/cluster treatment but remained the same technical mannequin.
 
-`docs/G3R_RENDERER_REFINEMENT_LOG.md`
+Root lesson:
+
+**post-processing cannot invent authored human form, silhouette design, hair/cloth structure or identity-bearing detail that is absent from the source representation.**
+
+Do not run more renderer-only variants on the capsule/mannequin proxy.
+
+Detailed log: `docs/G3R_RENDERER_REFINEMENT_LOG.md`.
+
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE NEXT GATE
+
+Purpose: test the actual visible hypothesis with a materially richer continuous human asset before any finished Exilada model is built.
+
+Preferred first candidate: **MakeHuman/MPFB 2.x** core human system, subject to local headless validation.
+
+Minimal G3V asset must include:
+
+- lean adult female continuous body mesh;
+- real deformation rig/weights;
+- large dark long-hair mass;
+- one simple asymmetric degraded cloth mass;
+- wrist/ankle restraint markers with stable side identity;
+- bare feet;
+- skin/hair/cloth/metal material IDs;
+- one still + sampled approved real walk under `640×360 / 26 deg / ~128 px`.
+
+G3V PASS requires the result to demonstrate a credible path to intentional modern pixel art **and** complete headless reproducibility.
+
+If the representative continuous human asset still reads as filtered/low-resolution 3D, reject hidden 3D as the owner of the final visible character. Retain 3D only for motion/topology/sockets/physics guides and move the final image to a structured 2D representation.
+
+G4 remains blocked until G3V passes.
+
+Detailed gate plan: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
 ## Workspace state
 
