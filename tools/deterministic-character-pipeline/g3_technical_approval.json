@@ -1,0 +1,11 @@
+{
+  "gate": "G3",
+  "status": "PASS_TECHNICAL_RENDERER_REFINEMENT_REQUIRED",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3\\g3_contact_sheet.png",
+  "decision": "Deterministic hidden-3D to native-grid sprite translation is technically viable, but the first visual methods are not approved as production art.",
+  "best_current_baseline": "palette_banded",
+  "control_method": "native_flat",
+  "research_branch": "palette_banded_2x",
+  "next_gate": "G3R",
+  "do_not_start": "G4"
+}
