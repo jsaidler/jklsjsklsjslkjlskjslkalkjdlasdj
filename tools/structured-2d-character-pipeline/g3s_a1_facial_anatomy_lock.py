@@ -2,13 +2,25 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-import g3s_a_authored_native_v1 as v1
+# Do not rely on the embeddable Python's sys.path/current working directory for
+# sibling imports. Load the pinned sibling helper directly by file path.
+_THIS_DIR = Path(__file__).resolve().parent
+_V1_HELPER = _THIS_DIR / "g3s_a_authored_native_v1.py"
+if not _V1_HELPER.is_file():
+    raise RuntimeError(f"Required sibling helper missing: {_V1_HELPER}")
+_spec = importlib.util.spec_from_file_location("g3s_a_authored_native_v1", _V1_HELPER)
+if _spec is None or _spec.loader is None:
+    raise RuntimeError(f"Could not create import spec for sibling helper: {_V1_HELPER}")
+v1 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(v1)
+print(f"G3S_A1_V1_HELPER_IMPORT=FILE_PATH:{_V1_HELPER}")
 
 SIZE = 128
 GAME_W, GAME_H = 640, 360
