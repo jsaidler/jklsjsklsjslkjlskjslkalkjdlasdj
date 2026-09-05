@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN AFTER BLANK-RENDER FIX.**
+Current status: **READY TO RERUN AFTER SEMANTIC-ID COLOR FIX.**
 
 ## Why this gate exists
 
@@ -54,7 +54,7 @@ Current sequence:
 6. start **one** Blender process with `--background`;
 7. `g3v_mpfb_bootstrap.py` loads MPFB directly from that verified package root and initializes only its service layer required by G3V;
 8. MPFB user-writable paths are redirected to a deterministic project-local directory;
-9. the bootstrap then runs the G3V representative proxy script in the same Blender process.
+9. the bootstrap loads the G3V target script as a module, installs runtime diagnostic fixes, then invokes the target `main()` in the same Blender process.
 
 Expected MPFB archive SHA256 from the successful local download:
 
@@ -95,19 +95,43 @@ The label layer was present, but all eight image cells contained only the backgr
 
 The original script accepted any non-empty PNG file as a successful render. That was insufficient: a valid file could still contain zero character pixels.
 
-Fix now implemented:
+Fix implemented:
 
-1. stop depending on Workbench object-color rendering for the semantic pass;
-2. create an explicit root-visible `G3V_RENDER` collection and move the representative body, rig, hair/cloth/shackle geometry, camera and light into it;
-3. render through **Blender Eevee**;
-4. semantic ID pass uses explicit emissive materials for `skin / hair / cloth / metal`;
-5. neutral-light pass uses an explicit diffuse material plus deterministic sun/world lighting;
-6. after every semantic render, reload the PNG and count classified foreground pixels;
-7. reject a frame if it contains fewer than 200 foreground pixels;
-8. reject a frame if its visible semantic bounding-box height is outside `80..180 px` around the locked `128 px` target;
-9. refuse to build the contact sheet if the complete sampled sequence contains zero semantic foreground.
+1. explicit root-visible `G3V_RENDER` collection;
+2. Blender Eevee instead of Workbench object-color rendering;
+3. emissive semantic ID materials;
+4. neutral-light Eevee pass;
+5. post-render semantic foreground counting;
+6. `80..180 px` visible-height sanity check around the locked `128 px` target;
+7. no review artifact if semantic foreground is absent.
 
-This means a blank/offscreen render can no longer silently become `REVIEW_REQUIRED`.
+### Incident 5 — camera/geometry valid, semantic classifier rejected skin/hair/metal
+
+The next run proved that the earlier blank-sheet issue had moved forward:
+
+- MPFB bootstrap: **PASS**;
+- `base.obj` imported;
+- camera/geometry projection: **127 px**, essentially exact against the locked `128 px` target;
+- Eevee wrote a valid ID image;
+- the ID validator reported only `143` recognized foreground pixels, all classified as `cloth`;
+- `skin=0`, `hair=0`, `metal=0`.
+
+Observed stats for frame `1563`:
+
+`{'foreground_pixels': 143, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 0, 'cloth': 143, 'metal': 0}}`
+
+The important implication is that MPFB creation and camera calibration are no longer the failing components. The fragile part was the PNG semantic-color classifier: after deciding which reference color was nearest, it also imposed an absolute squared-distance threshold of `0.12`. Blender PNG color management can move emission colors enough for valid red/green/yellow ID pixels to fail that threshold even when they remain categorically closer to their intended semantic color than to the background.
+
+Current fix:
+
+- G3V target is loaded as a module by the bootstrap instead of auto-running immediately;
+- semantic classification is patched to **nearest semantic vs. background**, with no arbitrary absolute color-distance cutoff;
+- the semantic ID render uses `Raw` view transform;
+- neutral-light rendering restores `Standard` transform;
+- every sampled ID frame must contain **all four representative semantic layers**: `skin`, `hair`, `cloth`, `metal`;
+- if any representative layer is absent, G3V hard-fails before contact-sheet generation.
+
+This keeps the test diagnostic: a future missing layer will mean actual render/visibility failure rather than a color-threshold artifact.
 
 ## Representative body / rig
 
@@ -138,10 +162,10 @@ These are not production assets. They are a visual kill-switch proxy.
 
 Four approved real-walk frames are rendered at the locked `640×360 / 26 deg / 128 px` presentation.
 
-For each frame Blender now creates:
+For each frame Blender creates:
 
-1. **semantic ID pass** — exact skin/hair/cloth/metal ownership using emissive Eevee materials;
-2. **neutral light pass** — deterministic Eevee lighting with neutral geometry.
+1. **semantic ID pass** — skin/hair/cloth/metal ownership using emissive Eevee materials under Raw color transform;
+2. **neutral light pass** — deterministic Eevee lighting with neutral geometry under Standard transform.
 
 The visible outputs are then constructed at the same native raster.
 
@@ -190,4 +214,4 @@ G3V can PASS only if:
 
 If the representative continuous human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character. It remains useful for motion/topology/sockets/physics, and final character art moves to a structured 2D representation.
 
-G4 remains blocked until a **non-blank, validated G3V contact sheet** is visually reviewed.
+G4 remains blocked until a **validated non-blank G3V contact sheet containing all representative semantic layers** is visually reviewed.
