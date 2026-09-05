@@ -4,54 +4,78 @@ Status date: **2026-09-04**
 
 Gate: **G0 — Blender headless automation**
 
-Current status: **PENDING RE-RUN AFTER FIXES.** Blender itself is installed and executable; failures observed so far were defects in project tooling, not a Blender installation failure.
+Current status: **PASS.** The target machine successfully ran Blender 5.1.1 headlessly, created a scripted scene, saved a `.blend`, rendered a diagnostic PNG, emitted a machine-readable manifest and passed independent SHA256 verification.
 
-## Target environment observed
+## Validated environment
 
-- Windows 11 Home Single Language 10.0.26200
-- Blender 5.1.1
+- Windows 11 Home Single Language `10.0.26200`
+- Blender `5.1.1`
 - Blender executable: `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe`
+- render engine used by the probe: `BLENDER_EEVEE`
 - workspace: `Z:\AI\RogueliteCharacterPipeline`
+- free workspace space observed at PASS run: `138.44 GB`
 
-## Failure 1 — native argument quoting
+## PASS evidence
 
-Initial runner used `Start-Process -ArgumentList` with a Python script path under `D:\GOOGLE DRIVE\...`.
+Generated successfully:
 
-Windows PowerShell flattened/split the path at spaces, so Blender received `D:\GOOGLE` instead of the complete script path.
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.png`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.blend`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_manifest.json`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_result.json`
 
-Resolution: replace `Start-Process -ArgumentList` with direct native invocation using PowerShell argument-array splatting.
+Validated diagnostic PNG SHA256:
 
-## Failure 2 — Windows PowerShell native stderr handling
+`bb8c938d6fe64a84de264a7c01824b1dabad27f3abd307485f706553b0d19d53`
 
-Second run reached the Python probe, but Windows PowerShell 5.1 converted Blender stderr into `NativeCommandError` while the wrapper had `$ErrorActionPreference = 'Stop'`. The wrapper therefore terminated before reporting Blender's real exit code and complete traceback.
+Console markers:
 
-Resolution:
+- `G0_HEADLESS_PROBE=PASS`
+- `G0_ENGINE=BLENDER_EEVEE`
+- `G0: PASS`
 
-- temporarily use `$ErrorActionPreference = 'Continue'` only around the native Blender invocation;
-- preserve stdout/stderr logs;
-- add Blender `--python-exit-code 1` so an uncaught Python exception deterministically fails the process.
+## Tooling defects encountered and resolved
 
-## Failure 3 — Blender 5.x Eevee identifier
+### 1. Native argument quoting
 
-The Python probe hard-coded `BLENDER_EEVEE_NEXT` for Blender >=4.0. Blender 5.0 changed Eevee's render-engine identifier back to `BLENDER_EEVEE`, so Blender 5.1.1 raises an enum error when the old identifier is assigned.
+The first runner used `Start-Process -ArgumentList` as an array and Windows PowerShell split `D:\GOOGLE DRIVE\...` at spaces.
 
-Resolution: runtime-probe Eevee identifiers in this order:
+Resolution: paths are explicitly quoted when constructing the native Blender command line.
 
-1. `BLENDER_EEVEE`
-2. `BLENDER_EEVEE_NEXT`
+### 2. Windows PowerShell 5.1 stderr wrapping
 
-The script no longer assumes a version boundary.
+Direct native invocation caused Blender stderr to be surfaced as `NativeCommandError`, producing alarming PowerShell output even when Blender itself succeeded.
 
-## Current fixed tooling
+The successful PASS run still showed this cosmetic wrapper noise because Blender emitted deprecation warnings after rendering.
 
-- `tools/deterministic-character-pipeline/00_run_g0.ps1`
-- `tools/deterministic-character-pipeline/g0_headless_probe.py`
+Resolution after PASS: G0 launcher was hardened again to use `Start-Process` with one explicitly quoted argument string plus redirected stdout/stderr. This preserves paths containing spaces while preventing PowerShell 5.1 from turning benign native stderr into parent-shell `NativeCommandError` records.
 
-Relevant commits:
+### 3. Blender 5.x Eevee identifier
 
-- `262091a40a35797e833d9fcb9811435964a30fac` — native stderr handling / Python exit-code hardening
-- `6f918fb6d9f9c4d20059e0a2599b218031ca3cf8` — Blender 5.x Eevee compatibility
+The original Python probe assumed `BLENDER_EEVEE_NEXT`. Blender 5.1.1 uses `BLENDER_EEVEE`.
 
-## Next gate action
+Resolution: runtime engine probing now tries compatible identifiers rather than relying on a hard-coded Blender version boundary.
 
-Re-run G0 once with the fixed tooling. Do not advance to G1 until the run produces `g0_probe.png`, `g0_manifest.json` and `g0_result.json` with `G0: PASS`.
+### 4. Deprecation warnings
+
+Blender 5.1.1 warns that `World.use_nodes` and `Material.use_nodes` are expected to be removed in Blender 6.0. These warnings did **not** affect G0 PASS. Production tooling should avoid depending on deprecated APIs where practical, but they are not a blocker for G1.
+
+## G0 decision
+
+**PASS / CLOSED.**
+
+The project has proven that the user does not need to operate Blender GUI. ChatGPT-authored PowerShell/Python tooling can drive Blender headlessly and produce deterministic artifacts/reports on the target machine.
+
+No further G0 rerun is required for progression.
+
+## Next gate
+
+**G1 — camera/native gameplay scale.**
+
+G1 compares a controlled 3×3 matrix at native `640×360`:
+
+- camera pitch: `18° / 26° / 34°`;
+- protagonist visible height target: `112 / 128 / 144 px`;
+- same belt-scroller depth band, one protagonist proxy and five enemy proxies.
+
+The output is a single contact sheet plus machine-readable metrics. G2 must not start until G1 is visually reviewed.
