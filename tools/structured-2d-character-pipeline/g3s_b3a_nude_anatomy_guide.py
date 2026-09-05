@@ -179,9 +179,11 @@ def project_joint(scene, camera, rig, bone_name, tail=False):
     return [round(float(co.x * scene.render.resolution_x), 3), round(float((1.0 - co.y) * scene.render.resolution_y), 3)]
 
 
-def audit_female_macro_stack(TargetService, macro):
+def audit_adult_female_macro_stack(TargetService, macro):
     if abs(float(macro.get("gender", -1.0))) > 1e-9:
         raise RuntimeError(f"G3S-B3A phenotype audit failed: MPFB female requires gender=0.0, got {macro.get('gender')}")
+    if float(macro.get("age", 0.0)) < 0.5:
+        raise RuntimeError(f"G3S-B3A phenotype audit failed: adult guide requires age>=0.5, got {macro.get('age')}")
 
     raw_stack = TargetService.calculate_target_stack_from_macro_info_dict(macro)
     stack = [[str(name), float(weight)] for name, weight in raw_stack]
@@ -190,19 +192,37 @@ def audit_female_macro_stack(TargetService, macro):
         entry for entry in stack
         if "male" in entry[0].lower() and "female" not in entry[0].lower()
     ]
+    adult_targets = [
+        entry for entry in stack
+        if "young" in entry[0].lower() or "old" in entry[0].lower()
+    ]
+    minor_targets = [
+        entry for entry in stack
+        if "baby" in entry[0].lower() or "child" in entry[0].lower()
+    ]
     if not female_targets:
         raise RuntimeError("G3S-B3A phenotype audit failed: no female macro targets resolved")
     if male_targets:
         raise RuntimeError("G3S-B3A phenotype audit failed: male macro targets resolved: " + json.dumps(male_targets))
+    if not adult_targets:
+        raise RuntimeError("G3S-B3A phenotype audit failed: no adult (young/old) macro targets resolved")
+    if minor_targets:
+        raise RuntimeError("G3S-B3A phenotype audit failed: minor (baby/child) macro targets resolved: " + json.dumps(minor_targets))
 
     return {
         "gender_value": 0.0,
         "resolved_gender": "female",
+        "age_value": float(macro["age"]),
+        "resolved_life_stage": "adult",
         "female_target_count": len(female_targets),
         "male_target_count": len(male_targets),
+        "adult_target_count": len(adult_targets),
+        "minor_target_count": len(minor_targets),
         "female_targets": female_targets,
         "male_targets": male_targets,
-        "upstream_semantics": "MPFB gender 0.0=female, 1.0=male",
+        "adult_targets": adult_targets,
+        "minor_targets": minor_targets,
+        "upstream_semantics": "MPFB gender 0.0=female, 1.0=male; age >=0.5 resolves from young toward old",
     }
 
 
@@ -236,7 +256,7 @@ def main():
     macro = TargetService.get_default_macro_info_dict()
     macro.update({
         "gender": 0.0,
-        "age": 0.48,
+        "age": 0.52,
         "muscle": 0.40,
         "weight": 0.36,
         "proportions": 0.56,
@@ -244,7 +264,7 @@ def main():
         "cupsize": 0.42,
         "firmness": 0.55,
     })
-    phenotype_audit = audit_female_macro_stack(TargetService, macro)
+    phenotype_audit = audit_adult_female_macro_stack(TargetService, macro)
 
     body = HumanService.create_human(
         mask_helpers=True,
@@ -396,8 +416,11 @@ def main():
 
     print(f"G3S_B3A_REVISION={REVISION}")
     print("G3S_B3A_PHENOTYPE_GENDER=FEMALE")
+    print("G3S_B3A_LIFE_STAGE=ADULT")
     print(f"G3S_B3A_FEMALE_TARGETS={phenotype_audit['female_target_count']}")
     print("G3S_B3A_MALE_TARGETS=0")
+    print(f"G3S_B3A_ADULT_TARGETS={phenotype_audit['adult_target_count']}")
+    print("G3S_B3A_MINOR_TARGETS=0")
     print("G3S_B3A_COMPLETE_NUDE_GEOMETRY=PASS")
     print("G3S_B3A_HAIR_OBJECTS=0")
     print("G3S_B3A_CLOTHING_OBJECTS=0")
