@@ -2,13 +2,11 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A AUTHORED NATIVE SOURCE V1 READY**
+Gate status: **ACTIVE — G3S-A1 FACIAL / ANATOMY LOCK V2 READY**
 
 ## Why G3S exists
 
-G3V-R proved deterministic transfer of real CMU motion into the MPFB humanoid. G3V then proved that hidden 3D is useful as motion/topology infrastructure but failed the visible-art kill switch: direct native-raster/palette translation still read as coarse 3D rather than intentional modern pixel art.
-
-Final character pixels therefore come from persistent structured 2D assets.
+G3V-R proved deterministic transfer of real CMU motion into the humanoid control rig. G3V then proved that hidden 3D is useful as motion/topology infrastructure but fails as owner of final visible pixel art.
 
 Locked production architecture:
 
@@ -24,35 +22,36 @@ Hidden 3D may own motion, topology, left/right identity, sockets, contacts, dept
 - no generic beauty-render shrink/pixel-filter route as final production method;
 - no bilinear filtering;
 - recurring production remains scriptable/headless;
-- one-time native source authoring may use deterministic explicit pixel edits, but future animation must consume persistent structured assets rather than regenerate frames;
-- **whenever a model is rejected/closed and no longer required, the same response must include an exact PowerShell cleanup command for its downloaded model-specific files.** Shared runtimes still in use must be preserved; small evidence outputs/logs remain unless explicitly removed.
+- one-time native source authoring may use explicit deterministic pixel edits;
+- future animation must consume persistent structured assets rather than regenerate frames;
+- anatomical details are gate-critical: a feature must read semantically, not merely exist as pixels.
 
-## Current rejected-model cleanup commands
+## Model-discard cleanup rule — LOCKED
 
-These are safe model/dependency cleanups for the G3S source experiments already closed. They intentionally preserve the small evidence outputs under `Z:\AI\RogueliteCharacterPipeline`.
+Whenever a model/route is declared **FAIL/CLOSED/REJECTED** and no longer required, the same response must include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved; small result/log evidence remains unless explicitly removed.
 
-### Alucard — isolated workspace
+### Alucard
 
 ```powershell
 Remove-Item -LiteralPath "Z:\AI\AlucardSpike" -Recurse -Force -ErrorAction SilentlyContinue
 ```
 
-### PixelLock — isolated workspace
+### PixelLock
 
 ```powershell
 Remove-Item -LiteralPath "Z:\AI\PixelLockSpike" -Recurse -Force -ErrorAction SilentlyContinue
 ```
 
-### SD1.5 native re-author — shared ComfyUI runtime, model-specific files only
+### SD1.5 native re-author
 
 ```powershell
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.safetensors" -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\loras\pixel-art-sd15.safetensors" -Force -ErrorAction SilentlyContinue
 ```
 
-### Qwen-Image-Edit-2509 — direct sprite route closed, fixed control retained
+### Qwen-Image-Edit-2509 direct sprite route
 
-The authored-native runner still reuses the ComfyUI embedded Python, so the shared portable runtime must remain. The three Qwen model weights are no longer needed once `g3s_a_control_official_raw.png` is pinned and retained:
+The fixed control is retained; the shared embedded Python/ComfyUI runtime remains because authored tooling still uses that Python.
 
 ```powershell
 Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\ComfyUI\models\unet\Qwen-Image-Edit-2509-Q4_0.gguf" -Force -ErrorAction SilentlyContinue
@@ -64,6 +63,7 @@ Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\Comf
 
 Goal: obtain one approved Exilada source image for the locked presentation:
 
+- native asset canvas `128×128` RGBA;
 - gameplay canvas `640×360`;
 - visible character height about `128 px`;
 - lateral/slight-3/4 presentation facing screen-right;
@@ -74,135 +74,124 @@ Goal: obtain one approved Exilada source image for the locked presentation:
 - bare feet;
 - no weapon;
 - intentional modern pixel clusters at native 1×;
-- recognizable Exilada identity derived from `assets/source/characters/exilada/reference/exilada_master.png`.
+- recognizable Exilada identity derived from the canonical master.
 
-# Closed automated source experiments
+## Automated source search — CLOSED
 
-## Qwen direct-native — FAIL / CLOSED
+Bounded architecture probes were completed and closed:
 
-Corrected Qwen-Image-Edit-2509 inference at native `640×360` completed normally but produced a flat raster. Restoring Qwen's preferred-resolution preprocessing produced a coherent `1392×752` Exilada-like design control. That control proves the model/runtime works, but it is **reference/scaffold material only**, never an animation owner and never automatically promoted to final sprite art.
+- Qwen direct-native — FAIL;
+- Qwen preferred-resolution control — PASS only as design/scaffold provenance;
+- SD1.5 + pixel LoRA native re-author — FAIL;
+- PixelLock initial-source authoring — FAIL;
+- Alucard external-reference attempt — INVALID;
+- Alucard text-only native-128 control — FAIL.
 
-## SD1.5 native latent re-author — FAIL / CLOSED
+Do not start another source-model search.
 
-The bounded SD1.5 + pixel-art LoRA run sampled final pixels directly at `640×360` and produced a coarse block/mannequin. Exilada identity, long hair, cloth, restraints, hands and feet did not survive. No further SD1.5 prompt/seed/CFG/LoRA tuning is allowed.
+The retained Qwen control is:
 
-Failure marker:
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
-`tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
-
-## PixelLock initial-source generation — FAIL / CLOSED
-
-The grammar-constrained `64 -> 128` test completed and was footprint-perfect, but the native output was a single-color silhouette:
-
-- `128×128`;
-- visible height `124 px`;
-- `3416` opaque pixels;
-- one opaque RGB value `[99,9,25]`;
-- SHA256 `a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b`.
-
-PixelLock is rejected as an **initial source author**. It may return later for footprint-safe recolor/restyle once a canonical sprite already exists.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_a_pixellock_failure.json`
-
-## Alucard native-128 — FAIL / CLOSED
-
-### Reference-conditioned attempt — INVALID
-
-The first Alucard inference passed a Qwen-derived external design image through `ref`. Upstream uses `ref` as a previous sprite/animation frame, so that run is retained only as invalid harness evidence. The generated conditioning reduction also lost the mouth at `128×128`, which the user correctly identified.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_a_alucard_reference_invalid.json`
-
-### Text-only upstream control — FAIL
-
-A second control exercised Alucard in documented text-to-sprite mode with **no reference input**:
-
-- native `128×128 RGBA`;
-- seed `20260905`;
-- `20` Euler steps;
-- text CFG `5.0`;
-- reference `null`;
-- code commit `02d1c60a16142015f7838a6a033da5e6ac9ce4f7`;
-- model revision `b8e7602`;
-- model SHA256 `2f502cc676c9fc34009d6c57caa4e782512a2643f436bc16408f477c352ccc2c`;
-- raw SHA256 `c3143b76444abc7c5b6f7b1fe6c0d66a51e7f83d4fff7519018fe3a97739bc5a`;
-- alpha bbox covers the full canvas `[0,0,127,127]`;
-- `12525` opaque pixels;
-- `12059` unique opaque RGB colors.
-
-Visual verdict: full-canvas mottled/noisy texture, no coherent character silhouette, anatomy or production-readable sprite.
-
-No Alucard prompt/seed/CFG/sampler fishing is permitted. The automated local generative-source search is now **closed**.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_a_alucard_failure.json`
-
-# Authored native source — CURRENT
-
-G3S-A is now explicitly an **authored canonical-source problem**, not another model search.
-
-The useful evidence from the failed searches is that the Qwen official-resolution control contains coherent Exilada design information, and its deterministic `128×128` reduction already provides a much better *scaffold* than the native generators. The reduction itself is **not automatically final art**. It becomes a tracing/base canvas on which explicit native-grid authoring corrections are applied and reviewed at 1×.
-
-This changes the workflow from:
-
-`model search -> hope for a finished sprite`
-
-to:
-
-`fixed design scaffold -> explicit native pixel patch data -> review -> revise patch data -> approve canonical source`
-
-The user does not need to learn a pixel editor. Native corrections are stored as deterministic data in the repository and applied headlessly.
-
-## V1 authored corrections
-
-`tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
-
-Current explicit corrections include:
-
-- restore a readable mouth lost by the `128×128` reduction;
-- add visible metal wrist cuffs;
-- reinforce both ankle restraints;
-- add short broken-chain remnants;
-- preserve the existing long-hair / skin / degraded-cloth design scaffold.
-
-The patch is pinned to the exact Qwen control SHA256:
+Pinned SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-If the source changes, the runner hard-fails rather than silently applying coordinates to a different image.
+It is provenance/design scaffold only; it never owns animation frames.
 
-## Tooling
+# Authored native source V1 — FAIL / CLOSED
 
-- `tools/structured-2d-character-pipeline/g3s_a_authored_native_v1.py`
-- `tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
-- `tools/structured-2d-character-pipeline/07_run_g3s_a_authored_native.ps1`
+V1 method:
+
+`fixed design scaffold -> native 128×128 base -> explicit mouth/restraint/chain patch`
+
+Visual review showed that the overall body remained coherent but the **mouth still did not read**. The old helper only checked that nominal mouth pixels were opaque, so it incorrectly treated pixel presence as feature readability.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
+
+Lesson: a native anatomical feature must be judged semantically at 1× and in explicit nearest-neighbor diagnostics.
+
+# G3S-A1 — Facial / Anatomy Lock — CURRENT
+
+Detailed canonical log:
+
+`docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
+
+## Purpose
+
+Lock static anatomy before any decomposition or animation.
+
+V2 is still deterministic/headless and invokes no image model. It uses the same pinned Qwen scaffold and explicit native-grid authoring data.
+
+## V2 facial changes
+
+Patch:
+
+`tools/structured-2d-character-pipeline/g3s_a_anatomy_patch_v2.json`
+
+Changes include:
+
+- nose/lower-plane separation;
+- explicit five-pixel dark mouth opening;
+- separate lower-lip row;
+- lower-lip center highlight;
+- chin separation below the mouth;
+- preservation of both wrist cuffs, both ankle cuffs and broken-chain remnants.
+
+## Stronger technical guard
+
+The alpha-only V1 guard is permanently rejected.
+
+V2 checks:
+
+- mouth occupies two distinct semantic rows;
+- mouth core has local RGB contrast against surrounding face skin;
+- face diagnostic region is present;
+- both hand regions are present;
+- both foot regions are present;
+- candidate remains native `128×128`;
+- visual review remains authoritative.
+
+## Diagnostic output
+
+The contact sheet now exposes six views:
+
+1. Qwen design provenance;
+2. pre-lock native scaffold;
+3. V2 candidate;
+4. large nearest-neighbor face diagnostic;
+5. separate hands/feet diagnostic;
+6. 1:1 gameplay preview.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_a_anatomy_patch_v2.json`
+- `tools/structured-2d-character-pipeline/g3s_a1_facial_anatomy_lock.py`
+- `tools/structured-2d-character-pipeline/08_run_g3s_a1_facial_anatomy_lock.ps1`
 
 Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock`
 
-Expected review artifact:
+## PASS criteria
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
+Review order:
 
-## Review order
+1. one head/torso, two arms/hands, two legs/feet;
+2. mouth visibly reads at native 1×;
+3. face reads as human rather than undifferentiated skin pixels;
+4. hands and feet remain identifiable and plausible;
+5. restraints remain on the correct wrists/ankles;
+6. Exilada identity remains coherent;
+7. gameplay preview remains readable at `640×360`.
 
-1. topology: one head/torso, two arms/hands, two legs/feet;
-2. face: mouth now readable, eyes/head silhouette coherent;
-3. identity: long heavy black hair, olive-brown skin, degraded beige cloth, wrist/ankle restraints, bare feet;
-4. pixel language at native 1×;
-5. gameplay readability at `640×360`;
-6. only after visual approval: promote source and start G3S-B decomposition.
-
-If changes are needed, edit the explicit native patch data. **Do not search another image model.**
+If any anatomy item fails, revise the explicit native patch. Do **not** begin animation and do **not** search another image model.
 
 # G3S-B — persistent part decomposition
 
-Blocked until one static native source is approved. The approved source will be decomposed into stable side-aware parts: head/face, torso/pelvis, upper/lower limbs and hands/feet, hair masses, cloth pieces, wrist/ankle restraints. Parts own IDs, side, pivots, depth rules, palette/material families and attachment inheritance.
+Blocked until G3S-A1/static source approval. The approved source will be decomposed into stable side-aware parts: head/face, torso/pelvis, upper/lower limbs, hands/feet, hair masses, cloth pieces and restraints. Parts own IDs, side, pivots, depth rules, palette/material families and attachment inheritance.
 
 # G3S-C — four-phase walk proof
 
@@ -216,11 +205,11 @@ Run only:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\07_run_g3s_a_authored_native.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\08_run_g3s_a1_facial_anatomy_lock.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A AUTHORED: REVIEW REQUIRED`, share:
+Then STOP. If it reaches `G3S-A1: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock\g3s_a1_contact_sheet.png`
 
-Do not start G3S-B or G4 until the authored native source is visually approved.
+Do not start G3S-B, G3S-C or G4 until static anatomy is visually approved.
