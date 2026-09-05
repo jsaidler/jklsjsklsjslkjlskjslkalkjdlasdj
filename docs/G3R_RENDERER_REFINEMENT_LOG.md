@@ -1,112 +1,80 @@
 # G3R Renderer / Style Refinement — Execution Log
 
-Status date: **2026-09-04**
+Status date: **2026-09-05**
 
 Gate: **G3R — deterministic pixel renderer/style refinement**
 
-Current status: **READY TO RUN.**
+Current status: **FAIL / CLOSED. Do not iterate more renderer-only variants on the primitive mannequin.**
 
-## Why G3R exists
+## Why G3R existed
 
-G3 proved that the deterministic hidden-3D backbone can become a stable native-grid sprite under the real captured walk, but the first visible methods were not approved as production art.
+G3 proved that the deterministic hidden-3D backbone can become a stable native-grid sprite under real captured motion, but the first visible methods were not production art. G3R tested whether stronger palette bands, contour rules and cluster cleanup were enough to turn the same semantic proxy into an intentional modern pixel-art character.
 
-Observed G3 result:
-
-- topology/motion continuity remained stable;
-- direct native semantic translation works;
-- palette-banded translation is a viable technical baseline;
-- the visible result still reads as a technical mannequin / processed low-detail 3D rather than a finished intentional pixel-art character;
-- therefore G4 Exilada identity geometry must not start yet.
-
-Canonical G3 technical marker:
-
-`tools/deterministic-character-pipeline/g3_technical_approval.json`
-
-## Locked upstream baseline
+Locked upstream baseline:
 
 - native raster: `640×360`;
-- orthographic camera pitch: `26 deg`;
+- orthographic pitch: `26 deg`;
 - protagonist reference height: `128 px`;
 - real source motion: approved G2 CMU `105_34 NormalWalk` sequence.
 
-## Tooling
-
-- `tools/deterministic-character-pipeline/03b_run_g3r.ps1`
-- `tools/deterministic-character-pipeline/g3r_renderer_refinement.py`
-
-Workspace output:
-
-`Z:\AI\RogueliteCharacterPipeline\g3r`
-
-## Refinement methods
-
-Four representative real-walk frames are processed through three deterministic methods at native `640×360`:
-
-### D — outlined 4-band
-
-- four discrete value bands per material family;
-- skin / cloth / hair / metal remain semantically separate;
-- deterministic one-pixel exterior outline;
-- no anti-aliasing, bilinear scaling or generative repainting.
-
-### E — edge-preserving cluster
-
-- starts from D;
-- applies 2×2 majority clustering only to fully interior pixels;
-- native silhouette/edge pixels are preserved;
-- purpose is to increase coherent value clusters without turning the whole sprite into a coarse nearest-neighbor downsample.
-
-### F — selective contour cluster
-
-- starts from E;
-- adds directional lower/right silhouette darkening while retaining material color on other edge regions;
-- tests whether a selective contour reads more intentionally drawn than a uniform outline.
-
-## Automated diagnostics
-
-For every sampled frame G3R records:
-
-- foreground pixel count;
-- character bounding box;
-- count of tiny disconnected foreground islands <=2 px;
-- output hashes;
-- exact method metadata.
-
-These diagnostics are QA support only. Visual approval remains required.
-
-## Hard constraints
-
-- no Exilada production geometry yet;
-- no diffusion or generative repainting;
-- no high-resolution beauty render followed by generic pixel filter;
-- no manual frame repaint;
-- no bilinear scaling;
-- same G2 topology/motion and same G1 camera/scale baseline for every method.
-
-## PASS / FAIL rule
-
-G3R can PASS only if at least one refined method is credible enough as the **production rendering foundation** for G4 identity mapping at 1× gameplay scale.
-
-PASS requires:
-
-1. stable readable silhouette;
-2. coherent pixel clusters rather than incidental raster noise;
-3. useful separation of skin / cloth / hair / metal;
-4. contour treatment that looks deliberate rather than generic filtered 3D;
-5. stable appearance across the four gait phases;
-6. enough visual headroom to justify mapping Exilada identity next.
-
-If all three methods still read as technical processed 3D, do **not** start G4. The next decision must change the visible representation strategy while retaining the proven deterministic motion/topology backbone where useful.
-
-## Expected review artifact
+## Reviewed artifact
 
 `Z:\AI\RogueliteCharacterPipeline\g3r\g3r_contact_sheet.png`
 
-It is a `4 columns × 3 rows` comparison:
+Compared four real walk phases through:
 
-- columns = four real walk phases;
-- row D = outlined 4-band;
-- row E = edge-preserving cluster;
-- row F = selective contour cluster.
+- **D — outlined 4-band**;
+- **E — edge-preserving cluster**;
+- **F — selective contour cluster**.
 
-Stop after review artifact generation. Do not start G4 automatically.
+## Result
+
+All three variants remain recognizably the same technical mannequin. D/E/F alter contour/value handling but do not create the missing authored information: human surface anatomy, believable silhouette design, face/head structure, real hair mass, cloth shape, restraints, material-specific form language or identity-bearing detail.
+
+The central correction is architectural:
+
+**post-processing cannot invent visual information that the source representation does not contain.**
+
+The primitive G3 proxy was useful to prove motion/topology/raster determinism. It is not a valid proxy for judging whether a real character asset can produce the intended final pixel language.
+
+Therefore:
+
+- G3/G3R do **not** approve the current visible renderer as production art;
+- G3R does **not** justify additional outline/cluster/palette tuning on the mannequin;
+- G4 Exilada production geometry remains blocked;
+- the G2 deterministic motion/topology backbone remains valid and retained.
+
+## What was learned
+
+Renderer-only refinement reached diminishing returns because the source mesh carried almost no authored form. The next test must add a representative continuous human surface and a minimal set of identity-bearing structures before judging the 3D→pixel translation again.
+
+## Next gate — G3V representative visual proxy
+
+The next visual kill switch is **G3V**, not another renderer variant.
+
+G3V must use a script-created continuous human mesh with real body topology and rigging, while still avoiding expensive Exilada production work.
+
+Current preferred candidate: **MakeHuman/MPFB core assets**, because MPFB exposes scriptable human creation/rig services and its core assets are permissively usable/CC0. The project will validate this headlessly before depending on it.
+
+Minimal G3V representation:
+
+1. lean adult female continuous body mesh;
+2. real deformation rig/weights;
+3. large long-hair mass;
+4. simple degraded cloth mass;
+5. wrist/ankle metal restraint markers;
+6. bare feet;
+7. approved G1 camera/scale;
+8. one still plus a short sample of the approved real walk;
+9. the deterministic pixel renderer applied to this materially richer source.
+
+This is deliberately **not** the finished Exilada. It is only rich enough to answer the actual question: can a coherent human asset with intentional silhouette/material structure survive the hidden-3D→pixel translation?
+
+## G3V kill switch
+
+G3V fails the visible hidden-3D route if either:
+
+- the representative human proxy still reads primarily as filtered/low-resolution 3D rather than intentional pixel art; or
+- creating/rigging/retargeting the representative asset cannot be automated headlessly within the project's operator constraint.
+
+If G3V fails, retain the deterministic 3D rig as motion/reference infrastructure only and move the visible character representation to a structured 2D solution. Do not build the Exilada production model first.
