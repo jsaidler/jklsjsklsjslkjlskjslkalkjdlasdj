@@ -23,175 +23,172 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 15. `docs/G3R_RENDERER_REFINEMENT_LOG.md`
 16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 17. `docs/G3V_RETARGET_PREFLIGHT_LOG.md`
-18. current tooling under `tools/deterministic-character-pipeline/`
+18. tooling under `tools/deterministic-character-pipeline/`
 
-After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
+After every material step: update relevant thematic docs + this file and commit focused changes.
 
 ## Game identity — LOCKED
 
 Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
 
-Immediate presentation baseline: **elevated 2D belt-scroller / false 3D**.
+Presentation baseline: elevated 2D belt-scroller / false 3D.
 
-Final visible character/environment language remains **true modern pixel art at native gameplay raster**. Hidden 3D may own motion/topology/physics but is not automatically the final visible style.
+Final visible language remains **true modern pixel art at native gameplay raster**. Hidden 3D may own motion/topology/physics but is not automatically approved as final visible character art.
 
 ## Exilada identity — LOCKED
 
-Canonical high-detail identity/design master:
+Canonical identity/design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master defines identity/design, not final gameplay pixels.
+This is a design master, not final gameplay pixels.
+
+## Hard operator constraint
+
+Normal production must remain:
+
+`PowerShell -> Blender headless / deterministic tools -> outputs/reports`
+
+No routine Blender GUI operation, manual rigging/animation burden, frame-by-frame repainting, or hired specialist is assumed.
 
 ## Rejected / paused routes
 
-- FLUX.2 Klein + RefControl direct-frame animation: **REJECTED / FROZEN** after V1/V2/V3; V3 produced a three-leg/three-foot frame and accessory/topology drift.
-- Qwen-Image-Edit-2509: **PAUSED** as a possible constrained future component only.
-- high-resolution beauty render followed by generic shrink/pixel filter: **REJECTED as final-art route**.
-- routine manual frame-by-frame repainting: **REJECTED as production burden**.
-- repeated outline/cluster/palette refinement on a primitive mannequin: **REJECTED after G3R**.
-- raw Blender `Action` copy between G2 and MPFB rigs: **REJECTED as retarget method**.
-- raw per-frame `matrix_basis` copy between G2 and MPFB rigs: **REJECTED as retarget method** because later gait phases visibly collapse under rest-space mismatch.
+- FLUX.2 Klein + RefControl direct-frame animation: REJECTED/FROZEN after topology drift and a three-leg frame;
+- Qwen-Image-Edit-2509: PAUSED as possible constrained future component only;
+- high-resolution beauty render + generic shrink/pixel filter: REJECTED as final-art route;
+- primitive mannequin renderer tuning: REJECTED after G3R;
+- raw Blender `Action` copy G2 -> MPFB: REJECTED as retarget method;
+- raw per-frame `matrix_basis` copy G2 -> MPFB: REJECTED as retarget method.
 
 ## Active deterministic architecture
 
-`gameplay camera/scale -> real motion -> deterministic rig/topology -> validated retarget -> representative visual asset -> native semantic passes -> pixel-specific visible representation -> modular equipment/state composition -> sprite/runtime export -> automated QA`
+`camera/scale -> real motion -> deterministic topology -> validated retarget -> representative visual asset -> semantic/native-grid representation -> modular equipment/state -> sprite/runtime export -> QA`
 
-Hard operator constraint:
+## Gate order
 
-- no routine Blender GUI work;
-- no manual rigging/animation/pixel-production operation by the user;
-- no hired art/animation team assumed;
-- recurring production must be driven by ChatGPT-authored CLI/headless tooling.
+- G0 automation
+- G1 camera/native scale
+- G2 real motion/topology
+- G3 first native translation
+- G3R primitive-renderer refinement
+- G3V representative continuous human visual proxy
+  - **G3V-R retarget preflight** ← ACTIVE
+- G4 Exilada identity mapping
+- G5 temporal stress pack
+- G6 equipment/attachments
+- G6A wind/secondary motion
+- G6B liquid/contact VFX
+- G6C gore topology
+- G6D clothing/armor damage
+- G7 systemic state/dynamic lighting
+- G8 production scaling
 
-Canonical operator pattern:
-
-`PowerShell -> blender.exe --background --python ... -> deterministic outputs/reports`
-
-## Gate order — CURRENT
-
-- **G0 — automation**
-- **G1 — camera/native scale**
-- **G2 — real motion/topology**
-- **G3 — first pixel translation feasibility**
-- **G3R — renderer-only refinement on primitive proxy**
-- **G3V — representative continuous human visual proxy**
-  - **G3V-R — retarget preflight** ← active sub-gate
-- **G4 — Exilada identity mapping**
-- **G5 — temporal stress pack**
-- **G6 — equipment/attachments**
-- **G6A — wind/secondary motion**
-- **G6B — liquid/contact VFX**
-- **G6C — gore topology**
-- **G6D — clothing/armor damage**
-- **G7 — systemic state/dynamic lighting**
-- **G8 — production scaling**
-
-A later expensive stage does not start merely because an earlier technical demo looked attractive.
+A later expensive stage never starts merely because an earlier technical demo looks attractive.
 
 # Current execution state
 
-## G0 — HEADLESS AUTOMATION: PASS / CLOSED
+## G0 — PASS / CLOSED
 
-Validated on Windows 11 + Blender 5.1.1.
+Windows 11 + Blender 5.1.1 headless automation validated.
 
-## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
+## G1 — PASS / CLOSED
 
-Locked baseline:
+Locked:
 
-- `640×360`;
+- raster `640×360`;
 - orthographic pitch `26 deg`;
 - protagonist reference height `128 px`.
 
-Canonical marker: `tools/deterministic-character-pipeline/g1_baseline.json`.
+Marker: `tools/deterministic-character-pipeline/g1_baseline.json`.
 
-## G2 — REAL MOTION / TOPOLOGY: PASS / CLOSED
+## G2 — PASS / CLOSED
 
-Source: CMU `105_34 NormalWalk` at 120 fps.
+Source: CMU `105_34 NormalWalk`, 120 fps.
 
-Accepted scope:
+Validated: captured locomotion basis, stable major-limb topology, left/right alternation and persistent deterministic structure.
 
-- stable major-limb topology;
-- real left/right gait alternation;
-- natural captured motion basis;
-- deterministic persistent structure;
-- usable under G1 camera/scale.
+Marker: `tools/deterministic-character-pipeline/g2_approval.json`.
 
-Canonical marker: `tools/deterministic-character-pipeline/g2_approval.json`.
+G2 did not claim arbitrary cross-skeleton retargeting.
 
-Arbitrary cross-skeleton retargeting and production foot-lock cleanup were explicitly not solved by G2.
+## G3 — TECHNICAL PASS / LOOK NOT APPROVED
 
-## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
+Native deterministic translation works, but primitive proxy output remained mannequin-like. G2 remains authoritative for motion continuity.
 
-Deterministic native-grid translation works, but primitive proxy output remained a technical mannequin / low-detail 3D. G2's 12-frame sequence remains the authoritative existing temporal evidence.
+## G3R — FAIL / CLOSED
 
-## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
-
-Renderer-only changes could not invent authored human form, silhouette or identity detail absent from the source representation.
+Renderer-only changes could not invent missing authored human form. No G3R2.
 
 Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
-## G3V — REPRESENTATIVE VISUAL PROXY: PAUSED AT RETARGET SUB-GATE
+## G3V — PAUSED AT RETARGET
 
-Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
-
-### Proven G3V infrastructure
+Proven:
 
 - pinned MPFB 2.0.17 loads directly in one Blender background process;
 - continuous female body and weighted `cmu_mb` rig are created;
-- representative long hair / degraded cloth / wrist+ankle restraints render;
-- accessory scale inheritance is controlled through rigid relative transforms and local-scale bake;
-- binary semantic masks provide skin/hair/cloth/metal ownership diagnostics;
-- contact-derived gait period is `80` frames at 120 fps;
-- quarter-cycle frames are `1568,1588,1608,1628`;
-- camera remains under the locked G1 presentation.
+- representative long hair, degraded cloth, restraints and bare feet render;
+- accessory scale inflation is fixed;
+- semantic skin/hair/cloth/metal masks work;
+- gait period is contact-derived: `80` frames;
+- phases: `1568,1588,1608,1628`;
+- G1 camera/scale are usable.
 
-### Latest visual result — movement appears, deformation is wrong
+The latest body sheet produced real phase changes but severe later-phase deformation collapse. The blocker is retargeting, not renderer/camera/source mocap.
 
-The newest G3V sheet is no longer frozen: all four phases are visibly distinct. However later phases show severe target-body collapse, especially around pelvis/legs/trunk.
+Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
-This changes the diagnosis:
+## G3V-R — RETARGET PREFLIGHT: V1 FAIL / V2 READY
 
-- G2 source motion remains valid;
-- frame selection is valid;
-- MPFB body/weights render;
-- direct target animation is invalid because source and target rest spaces are not interchangeable.
+Detailed log: `docs/G3V_RETARGET_PREFLIGHT_LOG.md`.
 
-The old `matrix_basis` transfer is therefore rejected. Do not continue patching renderer, body, hair, cloth or pixel translation around a broken retarget.
+Canonical runner:
 
-## G3V-R — RETARGET PREFLIGHT: ACTIVE / READY TO RUN
+`tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
 
-Canonical log:
+### V1 measured facts
 
-`docs/G3V_RETARGET_PREFLIGHT_LOG.md`
+- source/target rig types both identify as `cmu_mb`;
+- required parent mismatches: `0`;
+- mean rest-orientation delta: `83.1874 deg`;
+- max rest-orientation delta: `180.0289 deg`.
 
-Tooling:
+Therefore naming/hierarchy match, but local/rest axes do not.
 
-- `tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
-- `tools/deterministic-character-pipeline/g3v_retarget_bootstrap.py`
-- `tools/deterministic-character-pipeline/g3v_retarget_preflight.py`
+V1 local-axis fallback failed:
 
-Purpose:
+- 4 unique poses;
+- mean elbow/knee angle error `25.0101 deg`;
+- max error `43.6810 deg`;
+- endpoint RMS `0.27541` body heights.
 
-- compare source/target hierarchy, rest orientation and proportions;
-- derive the same four real gait phases from G2 contacts;
-- evaluate MPFB's documented pose API and an explicit rest-compensated FK method in one deterministic run;
-- score joint-angle fidelity, endpoint-motion residual and pose diversity;
-- choose the objectively better method;
-- render source-vs-target skeleton contact sheet only after numeric PASS.
+The V1 MPFB pose API attempt was invalid because `set_pose_from_dict()` was called outside Pose Mode.
 
-Numeric preflight thresholds:
+### V2 — CURRENT
 
-- >= 3 distinct target poses;
-- mean elbow/knee absolute error <= 15 deg;
-- max elbow/knee error <= 35 deg;
-- normalized endpoint-motion RMS <= 0.18 body heights.
+New solver wrapper:
 
-Expected review artifact:
+`tools/deterministic-character-pipeline/g3v_retarget_preflight_v2.py`
 
-`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
+Bootstrap automatically routes the same `03d` command through V2.
 
-### Exact next action — DO ONLY THIS
+V2 tests:
+
+1. **MPFB_POSE_API** with correct active-armature + Pose Mode context;
+2. **DIRECTION_SPACE_FK**, which matches posed bone directions through world/target-armature space instead of copying incompatible source local axes.
+
+Direction-space retarget preserves MPFB hierarchy, bone lengths, weights and roll/twist convention; root translation remains a separate channel.
+
+Numeric thresholds remain unchanged:
+
+- >= 3 unique target poses;
+- mean elbow/knee error <= 15 deg;
+- max error <= 35 deg;
+- endpoint RMS <= 0.18 body heights.
+
+No threshold relaxation is allowed just to make the gate pass.
+
+### Exact next action — ONLY THIS
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
@@ -200,14 +197,27 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03d_run_g3v_retarget_preflight.ps1"
 ```
 
-Then STOP. If it reaches `G3V RETARGET PREFLIGHT: REVIEW REQUIRED`, share `g3v_retarget_contact_sheet.png`. If it fails, share the full console output.
+Then STOP.
 
-Do **not** rerun `03c_run_g3v.ps1` and do not start G4 until G3V-R passes.
+Expected V2 markers include:
 
-## Workspace state
+- `G3V_RETARGET_BOOTSTRAP_SOLVER=V2`
+- `G3V_RETARGET_V2=BOUND`
+- `G3V_RETARGET_MPFB_API_CONTEXT=POSE_MODE`
+- `G3V_RETARGET_AXIS_INDEPENDENT_METHOD=DIRECTION_SPACE_FK`
 
+If numeric PASS is reached, share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
+
+If it fails, share the complete console output.
+
+Do **not** rerun `03c_run_g3v.ps1` and do not start G4.
+
+## Workspace
+
+- repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
+- active deterministic pipeline: `Z:\AI\RogueliteCharacterPipeline`
+- retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
 - paused Qwen spike: `Z:\AI\QwenImageEditSpike`
-- active deterministic character pipeline: `Z:\AI\RogueliteCharacterPipeline`
-- retarget preflight workspace: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
-- repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
