@@ -178,26 +178,27 @@ The current runner:
 9. reuses the approved G2 real walk action;
 10. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles.
 
-### Latest G3V result — INVALID BLANK CONTACT SHEET
+### Latest G3V result — SEMANTIC ID CLASSIFIER FAILURE, NOT VISUAL FAILURE
 
-The first one-process G3V execution reached completion and produced a contact sheet, but all eight review cells contained only background. The labels were visible; the character was not.
+The current run reached the actual MPFB/Eevee render path successfully:
 
-This artifact is **invalid and must not be judged aesthetically**.
+- MPFB service bootstrap: **PASS**;
+- MPFB `base.obj` imported;
+- representative geometry projected to **127 px** against the locked `128 px` target;
+- Eevee wrote the semantic ID frame;
+- validator recognized only `143` pixels, all as `cloth`;
+- `skin=0`, `hair=0`, `metal=0`.
 
-Root process failure: the renderer accepted non-empty PNG files without verifying that any semantic character pixels were present.
+This run did **not** reach aesthetic review. It exposed a diagnostic bug: the PNG classifier used an additional absolute squared-distance cutoff (`0.12`) after nearest-color selection. Blender PNG color management can shift emission colors enough for valid semantic pixels to fail that cutoff.
 
-The current fix now:
+Current fix:
 
-- creates an explicit root-visible `G3V_RENDER` collection;
-- moves body/rig/hair/cloth/shackles/camera/light into it;
-- replaces Workbench object-color semantic rendering with **Eevee explicit emissive ID materials**;
-- uses an explicit neutral Eevee light pass;
-- validates every semantic PNG after render;
-- requires at least 200 foreground semantic pixels per sampled frame;
-- requires visible character height between `80..180 px` around the locked `128 px` target;
-- refuses to create a review artifact if the sequence contains zero semantic foreground.
-
-Therefore another completely blank G3V contact sheet should now become a hard FAIL at render time instead of `REVIEW_REQUIRED`.
+- target script is loaded as a module by the bootstrap before execution;
+- semantic classifier is replaced at runtime with **nearest semantic vs. background** and no arbitrary absolute threshold;
+- semantic ID pass uses `Raw` view transform;
+- neutral-light pass uses `Standard` transform;
+- every sampled frame must contain visible `skin`, `hair`, `cloth` **and** `metal` pixels or G3V hard-fails;
+- no contact sheet is accepted unless all representative semantic layers are present.
 
 Expected valid review artifact:
 
