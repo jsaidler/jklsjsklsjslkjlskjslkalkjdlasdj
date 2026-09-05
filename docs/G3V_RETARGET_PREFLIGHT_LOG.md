@@ -2,80 +2,104 @@
 
 Status date: **2026-09-05**
 
-Sub-gate: **G3V-R — rest-pose-aware retarget validation before representative body rendering**
+Sub-gate: **G3V-R — retarget validation before representative body rendering**
 
-Current status: **READY TO RUN.**
+Current status: **V1 FAIL / V2 READY TO RUN.**
 
-## Why this sub-gate exists
+## Why this exists
 
-The second coherent G3V contact sheet finally showed four distinct motion phases, but the MPFB body deformed incorrectly in later phases: pelvis/legs/trunk visibly collapsed even though the G2 source motion itself is already validated.
+The G3V body render now proves that the source motion reaches the MPFB character, but direct transform transfer deforms the target incorrectly in later gait phases. Retargeting is isolated as its own skeleton-only gate before any further body/pixel-art work.
 
-This isolates the failure to motion transfer between:
+Source: `G2_CANONICAL_RIG`.
+Target: MPFB `cmu_mb` weighted rig.
 
-- source: `G2_CANONICAL_RIG`;
-- target: MPFB `cmu_mb` rig.
+## V1 measured facts
 
-The failed shortcut was copying source `matrix_basis` values directly into the target rig. Matching bone names do **not** imply matching rest orientation, bone roll, local basis or proportions.
+The first deterministic preflight reported:
 
-G3V body rendering is therefore paused until retargeting is proven independently.
+- source rig type: `cmu_mb`;
+- target rig type: `cmu_mb`;
+- parent mismatches: `0`;
+- mean source/target rest-orientation delta: **83.1874 deg**;
+- max rest-orientation delta: **180.0289 deg**;
+- measured gait period: `80` frames at 120 fps;
+- quarter-cycle frames: `1568,1588,1608,1628`.
 
-## Correct validation strategy
+This is the important structural result: the rigs share naming/hierarchy but **not compatible rest-axis conventions**.
 
-Do not debug retargeting through the final body render.
+### MPFB pose API attempt
 
-The preflight now:
+V1 did not actually test MPFB's pose path. `RigService.set_pose_from_dict()` failed because it was invoked outside Pose Mode:
 
-1. opens the approved G2 motion artifact;
-2. creates the same MPFB female body and weighted `cmu_mb` target rig headlessly;
-3. compares required source/target bone hierarchy, rest orientation and length ratios;
-4. derives the same four real gait phases from G2 foot-contact metadata;
-5. evaluates two non-random retarget implementations in one deterministic run:
-   - `MPFB_POSE_API`: MPFB's documented `RigService.get_pose_as_dict()` -> `RigService.set_pose_from_dict()` path;
-   - `REST_COMPENSATED_FK`: explicit rest-pose-aware FK transfer that converts source local motion through source/target rest bases rather than copying `matrix_basis` blindly;
-6. scores both methods from joint-angle fidelity, endpoint-motion residual and distinct-pose count;
-7. chooses the objectively better method;
-8. refuses review if numeric thresholds fail;
-9. renders a skeleton-only 2-row contact sheet: approved G2 source above, retargeted MPFB skeleton below.
+`bpy.ops.pose.select_all.poll() failed, context is incorrect`
 
-This is an automated benchmark, not iterative visual guessing.
+MPFB's own pose-loading UI enters Pose Mode before calling `set_pose_from_dict()`. V2 now reproduces that contract explicitly in background mode.
 
-## Tooling
+### REST_COMPENSATED_FK result
 
-- `tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
-- `tools/deterministic-character-pipeline/g3v_retarget_bootstrap.py`
-- `tools/deterministic-character-pipeline/g3v_retarget_preflight.py`
+V1 fallback result:
 
-Workspace:
+- unique poses: `4`;
+- mean elbow/knee angle error: **25.0101 deg**;
+- max angle error: **43.6810 deg**;
+- normalized endpoint-motion RMS: **0.27541 body heights**.
 
-`Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
+It failed all quality limits that matter. **Do not relax thresholds.** This local-axis method is closed.
 
-Expected review artifact:
+## V2 implementation — CURRENT
 
-`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
+New file:
 
-## Locked inputs
+`tools/deterministic-character-pipeline/g3v_retarget_preflight_v2.py`
 
-- G1: `640×360`, orthographic `26 deg`, reference height `128 px`;
-- G2: `CMU 105_34 NormalWalk`, 120 fps, PASS/CLOSED;
-- measured gait period: derived from G2 contact metadata, not hard-coded indices;
-- MPFB: `2.0.17`, pinned verified archive SHA256 `4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87`.
+The existing operator command remains:
 
-## Numeric PASS thresholds
+`tools/deterministic-character-pipeline/03d_run_g3v_retarget_preflight.ps1`
 
-The chosen retarget method must satisfy all of:
+`g3v_retarget_bootstrap.py` automatically routes the preflight through V2.
 
-- at least `3` distinct target pose signatures across four phases;
-- mean elbow/knee joint-angle absolute error `<= 15 deg`;
-- maximum elbow/knee joint-angle error `<= 35 deg`;
-- mean normalized endpoint-motion RMS `<= 0.18` body heights.
+V2 evaluates two principled routes:
 
-These thresholds are preflight guards, not production-animation quality targets. Visual skeleton comparison is still required before returning to G3V.
+### 1. MPFB_POSE_API — context corrected
 
-## Review rule
+- activate source armature;
+- enter Pose Mode before pose capture;
+- activate target armature;
+- enter Pose Mode before `RigService.set_pose_from_dict()`;
+- score the result against the same numerical benchmark.
 
-If the source and target skeleton rows preserve the same gait phase, left/right alternation, knee/elbow articulation and overall topology without collapse, record G3V-R PASS and replace the old direct-`matrix_basis` motion binding with the chosen retarget method.
+### 2. DIRECTION_SPACE_FK — axis independent
 
-If the preflight fails numerically or visually, do **not** touch renderer, hair, cloth, pixel translation or Exilada identity. The problem remains retargeting only.
+This method exists specifically because rest orientation differs by ~83 deg on average.
+
+It does **not** transfer source Euler values, quaternions, `Action`, `matrix_basis`, or source local axes.
+
+Instead, parent-first for every matching bone:
+
+1. read the currently posed source bone direction;
+2. convert that direction through world space into the target armature space;
+3. swing the target bone until its bone direction matches the source direction;
+4. preserve the MPFB target's own hierarchy, bone length, skin weights and roll/twist convention.
+
+Root translation is excluded from articulation scoring and remains a separate deterministic gameplay channel.
+
+Expected markers:
+
+- `G3V_RETARGET_BOOTSTRAP_SOLVER=V2`
+- `G3V_RETARGET_V2=BOUND`
+- `G3V_RETARGET_MPFB_API_CONTEXT=POSE_MODE`
+- `G3V_RETARGET_AXIS_INDEPENDENT_METHOD=DIRECTION_SPACE_FK`
+- scores for the methods that execute;
+- `G3V_RETARGET_NUMERIC_AUDIT=PASS` only if the chosen method genuinely passes.
+
+## Numeric PASS thresholds — unchanged
+
+- at least `3` distinct target poses;
+- mean elbow/knee angle error `<= 15 deg`;
+- max elbow/knee angle error `<= 35 deg`;
+- normalized endpoint-motion RMS `<= 0.18` body heights.
+
+Only after numeric PASS is the 2-row source-vs-target skeleton sheet generated for visual review.
 
 ## Exact next action
 
@@ -86,4 +110,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03d_run_g3v_retarget_preflight.ps1"
 ```
 
-Then STOP. Share `g3v_retarget_contact_sheet.png` if the runner reaches `REVIEW REQUIRED`; otherwise share the full console output. Do not rerun `03c_run_g3v.ps1` and do not start G4 until this preflight passes.
+Then STOP. If it reaches `G3V RETARGET PREFLIGHT: REVIEW REQUIRED`, share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3v_retarget\g3v_retarget_contact_sheet.png`
+
+If it fails, share the full console output. Do not rerun the G3V body render and do not start G4.
