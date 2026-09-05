@@ -60,7 +60,7 @@ Normal production must remain scriptable/headless. The user must not need routin
 - MPFB pose API for this source/target pair — REJECTED;
 - **Qwen-Image-Edit-2509 direct native `640×360` source generation — REJECTED after G3S-A V2 flat-collapse.**
 
-Qwen remains forbidden as independent animation-frame generator. One final official-resolution control is allowed only to determine whether the model/runtime itself works under its intended preprocessing; that control can never become final art.
+Qwen remains forbidden as independent animation-frame generator. Its official-resolution control has now completed and proved that the model/runtime functions when allowed to operate at its preferred high-resolution raster. That high-resolution output is reference/provenance only and is never eligible as final sprite art.
 
 ## Active architecture — LOCKED
 
@@ -81,7 +81,8 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
   - G3S-A static source — ACTIVE
     - Qwen V1 harness — INVALID/CLOSED
     - Qwen V2 native `640×360` — FAIL/CLOSED
-    - **Qwen official-resolution control** ← READY TO RUN
+    - Qwen official-resolution control — PASS AS MODEL-FUNCTION CONTROL / CLOSED
+    - **SD1.5 native pixel re-author** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -132,60 +133,75 @@ Canonical design: `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`.
 
 Goal: final pixels come from persistent 2D assets while hidden motion/topology supplies deterministic control.
 
-## G3S-A Qwen runtime
+## Qwen source experiment — CLOSED
 
-Provisioned workspace:
+Provisioned runtime remains under:
 
 `Z:\AI\QwenImageEditSpike`
 
-Model set:
-
-- `Qwen-Image-Edit-2509-Q4_0.gguf`;
-- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
-- `qwen_image_vae.safetensors`.
-
-ComfyUI successfully ran V2 on RTX 3060 12 GB / ~48 GB RAM in LOW_VRAM. The 20-step inference itself completed in about `468.19 s`; this was not a CUDA/runtime crash.
-
-## Qwen V1 — INVALID
+### Qwen V1 — INVALID
 
 Harness graph was wrong relative to official ComfyUI Qwen 2509 workflow. Not a model-quality verdict.
 
-## Qwen V2 native 640×360 — FAIL
+### Qwen V2 native `640×360` — FAIL
 
-Workflow revision: `QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`.
-
-Corrected graph used same guide for primary conditioning/latent, canonical master as second ref, same refs/VAE on positive and negative, `AuraFlow -> CFGNorm`, and `20 steps / CFG 2.5`.
-
-Only deliberate deviation from the official blueprint: omitted `FluxKontextImageScale` to preserve a true native `640×360` sampled/output raster.
-
-The output was a real flat collapse, not a guard false positive:
+Corrected graph completed normally but produced a genuinely flat native output:
 
 - raw SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
 - mean luma `70.3017`;
 - p99 `71`;
-- target mean `70.2322`;
-- target p95 `71`;
 - target stddev `0.4336`.
 
-Therefore direct native Qwen output is rejected. No seed/prompt/threshold rescue attempts.
+No seed/prompt/threshold rescue attempts are allowed.
 
-## Qwen official-resolution control — CURRENT
+### Qwen official-resolution control — PASS AS CONTROL / CLOSED
 
-Tooling:
+Restoring the official `FluxKontextImageScale` produced a coherent output rather than collapse.
 
-- `tools/structured-2d-character-pipeline/g3s_a_qwen_official_control.py`
-- `tools/structured-2d-character-pipeline/02_run_g3s_a_official_control.ps1`
+Uploaded artifact facts:
 
-It restores the official `FluxKontextImageScale` before primary VAE encoding/sampling and otherwise keeps the corrected V2 graph.
+- raster `1392×752`;
+- coherent full-body adult woman;
+- long dark hair, degraded beige cloth and bare feet readable;
+- visually conventional high-resolution illustration/pseudo-pixel styling rather than native gameplay pixel art.
 
-The output is **diagnostic only**. It is never eligible as final sprite art, and post-run downscaling/promotion is forbidden.
+Conclusion: **Qwen/model/runtime are functional, but Qwen is unsuitable as the direct native sprite generator.** The working high-resolution Qwen image is retained only as a one-time identity/composition reference. It must not be simply shrunk/quantized into final art.
 
-Decision rule:
+# G3S-A SD1.5 native pixel re-author — CURRENT
 
-- coherent control => Qwen/runtime functional but unsuitable for our direct-native final-art requirement; move to another structured 2D source route;
-- collapsed control => reject this Qwen route entirely and move to another structured 2D source route.
+New tooling:
 
-There is no Qwen V4 prompt/seed fishing after this control.
+- `tools/structured-2d-character-pipeline/g3s_a_sd15_native_reauthor.py`
+- `tools/structured-2d-character-pipeline/03_bootstrap_and_run_g3s_a_sd15_native.ps1`
+
+Purpose: use the coherent Qwen control **only as conditioning**, then have Stable Diffusion 1.5 re-author the final image through diffusion directly at native `640×360` with a dedicated pixel-art LoRA.
+
+This is not the rejected high-res-shrink route: the high-res source is reduced only to create an img2img conditioning/latent guide; the final generated pixels are newly sampled at `640×360` and are never resized after inference.
+
+Input:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+
+Output:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15`
+
+Pinned first test:
+
+- Stable Diffusion 1.5 `v1-5-pruned-emaonly.safetensors`, SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`;
+- SD1.5 pixel-art LoRA, SHA256 `ad5034703699e910d5f9525ea5db64abcbd8d7396ff8f771c09403f3adb048ad`;
+- guide figure automatically normalized to `128 px` height on `640×360`;
+- seed `20260905`;
+- `30` steps;
+- CFG `6.0`;
+- DPM++ 2M / Karras;
+- denoise `0.72`;
+- no final resize;
+- one candidate only.
+
+First run downloads about `4.27 GB` plus a ~`3.23 MB` LoRA. Existing isolated ComfyUI is reused.
+
+Kill rule: if the candidate still reads as smooth/pseudo-pixel diffusion art rather than deliberate native pixel clusters, reject this route without seed fishing or parameter sweeps.
 
 ## Exact next action — ONLY THIS
 
@@ -193,14 +209,14 @@ There is no Qwen V4 prompt/seed fishing after this control.
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\02_run_g3s_a_official_control.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\03_bootstrap_and_run_g3s_a_sd15_native.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A CONTROL: REVIEW CONTROL`, share:
+Then STOP. If it reaches `G3S-A SD15: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
 
-If it fails, share the console output. Do not run G3S-B or G4.
+If it fails, share the complete console output. Do not run G3S-B or G4.
 
 ## Workspace
 
