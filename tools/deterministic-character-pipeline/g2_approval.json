@@ -1,0 +1,18 @@
+{
+  "gate": "G2",
+  "status": "PASS",
+  "approved_on": "2026-09-04",
+  "motion_source": "CMU 105_34 NormalWalk",
+  "baseline": {
+    "native_raster": [640, 360],
+    "camera_pitch_deg": 26,
+    "protagonist_reference_height_px": 128
+  },
+  "visual_review": {
+    "topology": "PASS",
+    "left_right_alternation": "PASS",
+    "natural_captured_motion_basis": "PASS",
+    "sequence_continuity": "PASS"
+  },
+  "scope_note": "G2 proves deterministic real-motion/topology infrastructure only. It does not approve final pixel translation, Exilada identity, hair/cloth, equipment, gore or combat animation quality."
+}
