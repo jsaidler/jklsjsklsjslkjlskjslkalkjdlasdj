@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RUN.**
+Current status: **READY TO RUN after runner parser fix.**
 
 ## Why this gate exists
 
@@ -36,6 +36,12 @@ Workspace:
 `Z:\AI\RogueliteCharacterPipeline\g3v`
 
 The user performs no Blender/MPFB GUI work.
+
+## Runner incident — 2026-09-05
+
+The first G3V invocation failed before execution because PowerShell parsed an interpolated error string containing `$code:` as an invalid scoped-variable reference. This was a runner syntax bug, not a Blender/MPFB failure.
+
+Fix committed: delimit the interpolated variable as `${code}:` in `Invoke-BlenderArgs`. The rest of the runner was reviewed for the same un-delimited variable-followed-by-colon pattern; only the intended `$env:` / `$script:` scoped-variable forms remain.
 
 ## MPFB dependency
 
