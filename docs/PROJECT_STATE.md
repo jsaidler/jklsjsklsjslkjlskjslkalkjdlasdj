@@ -117,7 +117,9 @@ The body must exist under removable/damageable clothing and under hair. Hair and
   - G3S-A1 Facial / Anatomy Lock V2 — FAIL/CLOSED
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
   - G3S-B2 layer-stack preflight — **PASS/CLOSED DIAGNOSTIC**
-  - **G3S-B3 complete nude body base** ← CURRENT NEXT GATE
+  - **G3S-B3 complete nude body base** ← CURRENT
+    - **G3S-B3A deterministic nude anatomy guide** ← READY TO RUN
+    - G3S-B3B native `128×128` body source — BLOCKED UNTIL B3A REVIEW
   - G3S-B4 hair asset — BLOCKED UNTIL B3
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
@@ -234,13 +236,45 @@ Required production order:
 
 Nudity is a normal runtime state: the body base is always complete and garments/equipment are simply absent.
 
-B3 must not recover hidden anatomy by subtracting hair/clothing. It may use canonical proportions and deterministic anatomy/topology references only as guides, then requires a dedicated native 2D body source.
+B3 must not recover hidden anatomy by subtracting hair/clothing.
 
-No animation starts until the nude body source itself passes visual review.
+### B3-A — ready
 
-## Exact next action
+The first bounded step creates a deterministic complete adult female nude/hairless **anatomy guide** from the existing MPFB/hidden-rig infrastructure. It creates zero hair, clothing, cuff/shackle or chain objects.
 
-Implement and validate G3S-B3. Do **not** rerun G3S-B2 and do **not** start G3S-C.
+This guide is structural data only and explicitly does **not** become final visible pixel art.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_b3_mpfb_bootstrap.py`
+- `tools/structured-2d-character-pipeline/g3s_b3a_nude_anatomy_guide.py`
+- `tools/structured-2d-character-pipeline/g3s_b3a_contact_sheet.py`
+- `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`
+
+Output:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+
+### B3-B — blocked
+
+After B3-A structural review, author the actual native `128×128` nude body-base pixel source. Only B3-B can pass visible body art.
+
+No hair, clothing or animation starts before B3-B passes.
+
+## Exact next action — ONLY THIS
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\11_run_g3s_b3a_nude_anatomy_guide.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+
+Do not run G3S-C.
 
 ## Workspaces
 
