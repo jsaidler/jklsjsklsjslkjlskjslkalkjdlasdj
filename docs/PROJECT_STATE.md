@@ -67,19 +67,7 @@ Canonical operator pattern:
 
 ## Systemic visual architecture already locked
 
-Canonical thematic docs already require:
-
-- complete persistent body under clothing;
-- modular clothing/armor/accessories/weapons;
-- structural + surface damage to clothing/armor;
-- stable named sockets;
-- hair/cloth secondary motion and wind interaction;
-- wetness/blood/dirt/material state;
-- dynamic lighting via discrete palette/material metadata;
-- liquids and event-driven VFX;
-- deterministic anatomical gore/sever zones;
-- detached limb/equipment inheritance;
-- optional unclothed body states without relying on generative image synthesis.
+Canonical thematic docs already require complete persistent body under clothing, modular equipment/layers, structural and surface damage, stable sockets, wind/secondary motion, material state, dynamic palette lighting, liquids/VFX, deterministic sever zones and detached-limb/equipment inheritance.
 
 ## Gate order — CURRENT
 
@@ -105,43 +93,31 @@ A later expensive stage does not start merely because an earlier technical demo 
 
 ## G0 — HEADLESS AUTOMATION: PASS / CLOSED
 
-Validated on Windows 11 + Blender 5.1.1. Headless Python scene creation, `.blend` save, PNG rendering, manifests and hashes work.
+Validated on Windows 11 + Blender 5.1.1.
 
 ## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
 
 Locked baseline:
 
 - native gameplay raster: **`640×360`**;
-- orthographic pitch: **`26 deg`**;
+- orthographic camera pitch: **`26 deg`**;
 - protagonist reference visible height: **`128 px`**.
-
-Canonical baseline: `tools/deterministic-character-pipeline/g1_baseline.json`.
 
 ## G2 — REAL MOTION / TOPOLOGY: PASS / CLOSED
 
-Source: CMU Graphics Lab Motion Capture Database, trial `105_34 NormalWalk`, pinned MotionBuilder-friendly BVH conversion.
+CMU `105_34 NormalWalk`; full 12-sample sequence reviewed. Stable major-limb topology, real left/right gait alternation, natural captured motion basis and deterministic persistent structure are approved for G2 scope.
 
-Accepted for G2 scope: stable major-limb topology, real left/right gait alternation, natural captured motion basis and deterministic persistent structure under the locked G1 camera.
-
-Canonical approval: `tools/deterministic-character-pipeline/g2_approval.json`.
-
-Arbitrary cross-skeleton retargeting and production foot-lock cleanup are not generally solved yet.
+Arbitrary cross-skeleton retargeting and production foot-lock cleanup remain future validations.
 
 ## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
 
-The primitive semantic proxy proved deterministic native-grid translation, but remained a technical mannequin / processed low-detail 3D.
-
-**2026-09-05 correction:** G3's four selected frames inherited fixed G2 sample indices `(0,3,6,9)` and can alias the gait cycle. G3 therefore does not independently prove four-phase temporal continuity. G2's full 12-sample review remains the authoritative motion/topology evidence. G3's visual-style conclusion remains valid.
-
-Detailed correction: `docs/G3_PIXEL_TRANSLATION_LOG.md`.
+Deterministic native-grid translation works, but the primitive proxy remained a technical mannequin. Correction recorded on 2026-09-05: G3's four selected frames could alias the gait cycle, so G2's full 12-sample review remains the authoritative temporal evidence.
 
 ## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
 
-Renderer-only contour/value/cluster changes could not invent authored human form, silhouette, hair/cloth structure or identity detail absent from the source representation.
+Renderer-only contour/value/cluster changes could not invent authored human form or identity-bearing structure absent from the source representation.
 
-Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
-
-## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / GEOMETRY-PHASE RERUN REQUIRED
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / RIGID-ATTACHMENT RERUN REQUIRED
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
@@ -149,72 +125,52 @@ Tooling:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_bone_attachment_patch.py`
 - `tools/deterministic-character-pipeline/g3v_geometry_phase_patch.py`
 - `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
-### Current G3V facts
-
-The representative-human path itself executes reliably:
+### Proven execution facts
 
 - pinned MPFB 2.0.17 loads directly in one background Blender process;
-- MPFB `base.obj` imports;
-- continuous female body and CMU-compatible rig are created;
-- G2 real walk is reused;
-- representative hair/cloth/shackle geometry is created;
-- Eevee writes all diagnostic frames;
-- runtime patches are confirmed bound to `target_main.__globals__`.
+- MPFB body and CMU-compatible rig are created;
+- G2 walk is reused;
+- representative hair/cloth/shackles are generated;
+- contact-derived gait period is now used instead of the aliased fixed subset;
+- current derived period: **80 frames**;
+- current phases: **1568, 1588, 1608, 1628**;
+- body geometry height: **1.713562**;
+- skeleton head-to-foot height: **1.647693**;
+- camera calibration is owned by skeleton head-to-foot projection.
 
-### Latest binary-mask diagnosis — definitive
+### Latest diagnosis — bone-parent scale inflation
 
-Four-frame run on the old fixed subset reported, on **every frame**:
+At frame 1568, despite a sane ~1.65 m skeleton and 128 px skeleton calibration, the representative composite produced a **285 px** visible bbox and:
 
-- skin: `visible=0`, `unoccluded=507`;
-- hair: `visible=709`;
-- cloth: `visible=9679`;
-- metal: `visible=0`, `unoccluded=75`.
+- skin: `visible=0`, `unoccluded=2314`;
+- hair: `visible=3426`;
+- cloth: `visible=47692`;
+- metal: `visible=0`, `unoccluded=501`.
 
-Sequence totals:
+This is incompatible with the authored physical cloth dimensions. The blocker is therefore no longer camera, MPFB, materials or semantic classification: Blender BONE-parent evaluation was inflating the attached proxy transforms.
 
-`skin:0, hair:2836, cloth:38716, metal:0`
+### Current fix now committed
 
-Interpretation is now exact:
+`g3v_bone_attachment_patch.py` replaces BONE parenting for representative hair/cloth/cuffs with explicit rigid bone-relative matrices. Each attachment follows owning-bone translation+rotation but deliberately does **not** inherit parent/bone scale.
 
-- body/skin exists and renders when isolated;
-- shackles/metal exist and render when isolated;
-- both are fully occluded in the representative composite;
-- cloth occupies almost the entire visible proxy;
-- blocker is **geometry/proportion/placement**, not classifier, material or Eevee.
+Bootstrap install order is now:
 
-The identical counts on frames `1563,1612,1661,1710` also exposed that the old `(0,3,6,9)` selection was repeatedly sampling the same gait phase.
-
-### Current fixes now committed
-
-`g3v_geometry_phase_patch.py` applies before semantic rendering:
-
-1. **Representative scale from skeleton height**
-   - uses CMU-compatible head-to-foot height instead of the MPFB basemesh/helper bbox to size hair/cloth;
-   - emits body-geometry vs skeleton-height diagnostics.
-
-2. **Camera calibration from skeleton head-to-foot projection**
-   - accessory geometry can no longer define the 128 px scale by itself.
-
-3. **Oriented surface-visible shackles**
-   - wrist/ankle torus axes follow actual forearm/shin direction;
-   - cuff radius is modestly enlarged so metal is not embedded entirely inside the body mesh at gameplay scale.
-
-4. **Contact-derived four-phase sampling**
-   - derives a real gait period from G2 left/right foot-contact metadata;
-   - chooses quarter-cycle offsets;
-   - refuses guessed fixed-index fallback.
+1. rigid attachment owner;
+2. geometry/phase corrections;
+3. binary semantic diagnostics;
+4. G3V main.
 
 Expected new console markers:
 
+- `G3V_ATTACHMENT_MODE=RIGID_RELATIVE_MATRIX`
+- `G3V_ATTACHMENT_SCALE_INHERITANCE=DISABLED`
 - `G3V_GEOMETRY_SCALE=SKELETON_DERIVED`
-- `G3V_SHACKLES=ORIENTED_OVERSURFACE_CUFFS`
 - `G3V_PHASE_SELECTION=CONTACT_DERIVED_QUARTER_CYCLE`
-- `G3V_DERIVED_GAIT_PERIOD_FRAMES=...`
-- `G3V_PHASE_FRAMES=...`
 - `G3V_CAMERA_CALIBRATION=SKELETON_HEAD_FOOT`
 - `G3V_MASK_SEQUENCE_TOTALS=...`
 
