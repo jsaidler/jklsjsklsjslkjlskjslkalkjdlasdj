@@ -308,6 +308,47 @@ Semantic/material/body masks are planned from the start so causal state can chan
 - clothing/armor surface damage;
 - discrete-palette lighting/weather changes.
 
+## G0 implementation — READY TO RUN
+
+Tooling:
+
+- `tools/deterministic-character-pipeline/00_run_g0.ps1`
+- `tools/deterministic-character-pipeline/g0_headless_probe.py`
+
+Canonical deterministic pipeline workspace is now:
+
+`Z:\AI\RogueliteCharacterPipeline`
+
+`00_run_g0.ps1` is a one-command gate. It:
+
+1. validates Windows/repository/workspace drive;
+2. locates Blender if already installed;
+3. if Blender is absent, installs the official `BlenderFoundation.Blender` package through `winget` unless `-SkipInstall` is explicitly used;
+4. launches Blender with `--background --factory-startup --python`;
+5. creates a known diagnostic 3D scene entirely through Python;
+6. creates an orthographic camera and a named semantic socket marker;
+7. saves `g0_probe.blend`;
+8. renders `g0_probe.png`;
+9. writes `g0_manifest.json` including Blender version, engine, semantic objects and PNG SHA256;
+10. independently verifies outputs/hash in PowerShell and writes `g0_result.json`.
+
+This render is **automation evidence only**, not a visual-direction or pixel-art test.
+
+### Exact next action — DO ONLY THIS
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\00_run_g0.ps1"
+```
+
+Then **STOP** and share:
+
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.png`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_result.json`
+
+Do not start G1 until G0 is reviewed and recorded.
+
 ## Exact next implementation sequence — LOCKED
 
 Do **not** run the paused Qwen spike and do **not** build a detailed Exilada rig yet.
@@ -328,8 +369,10 @@ Paused Qwen spike:
 
 `Z:\AI\QwenImageEditSpike`
 
+Active deterministic character pipeline:
+
+`Z:\AI\RogueliteCharacterPipeline`
+
 Repository:
 
 `D:\GOOGLE DRIVE\DEV\Roguelite`
-
-A separate deterministic character-pipeline workspace will be created by the G0 tooling; its exact path will be locked in that implementation step.
