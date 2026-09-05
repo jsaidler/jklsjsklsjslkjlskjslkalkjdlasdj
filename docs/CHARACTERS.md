@@ -2,7 +2,7 @@
 
 Status: **Exilada core identity and initial condition locked; canonical high-detail design reference approved; final gameplay pixel-art production master still under development; masculine counterpart exploratory**
 
-This document stores canonical character decisions. It distinguishes fixed identity, initial state, gameplay-variable equipment, canonical reference material and exploratory variants so temporary generation details do not become canon accidentally.
+This document stores canonical character decisions. It distinguishes fixed identity, initial state, gameplay-variable equipment, canonical reference material and exploratory variants so temporary production details do not become canon accidentally.
 
 ## Process rule — living documentation
 
@@ -64,14 +64,21 @@ The clothing should read as **residue of captivity and abandonment**, not as an 
 
 Nudity is acceptable within the mature visual language. The design must treat the body matter-of-factly rather than emphasizing erotic display.
 
-### Captivity markers
+### Captivity markers — updated 2026-09-05
 
-The approved initial reference includes visible broken restraints:
+The **history of captivity is canonical**.
 
-- broken wrist shackle with short chain;
-- ankle shackle / broken restraint.
+The high-detail master includes broken restraint hardware, but production layering is now explicitly separated from permanent body pixels.
 
-The history of captivity is canonical. Whether all restraint hardware remains physically attached throughout long-term progression is still open.
+Locked production rule:
+
+- **broken chain segments are not baked into the permanent base-body sprite**;
+- chain segments may be part of the **initial accessory loadout/state**;
+- chain art owns independent sockets/state and may be removed, damaged, detached or replaced without repainting the base character;
+- initial chain sockets are planned at both wrists and both ankles;
+- exact persistence of cuffs/shackle hardware beyond the initial state remains a separate equipment/state decision.
+
+This is not a narrative retcon. Captivity evidence remains part of the starting condition; only the technical ownership of those pixels changes.
 
 ### Weapon rule
 
@@ -89,6 +96,7 @@ Expected variable systems include:
 - armor;
 - added clothing layers;
 - acquired equipment;
+- restraint/chain accessory state;
 - ornaments/trophies acquired through world interaction;
 - blood;
 - dirt;
@@ -115,52 +123,59 @@ It establishes:
 - olive/brown skin;
 - long black hair as dominant silhouette mass;
 - minimal degraded clothing;
-- broken restraints;
+- captivity/restraint visual history;
 - bare feet;
 - weaponless base identity;
-- full-body reference framing suitable for automated pose conditioning.
+- full-body reference framing suitable for automated conditioning and structured production work.
 
-### 2026-09-04 clarification
+### Production clarification
 
-The current master is **too detailed to be treated as proof of strict production pixel art**. That is not considered a defect in the character design or, by itself, a failure of a model that faithfully reproduces it.
-
-The asset is therefore canonical for **design identity**, while the final gameplay-scale pixel-art representation is still a separate production task.
+The master is too detailed to be treated as proof of strict production pixel art. It remains canonical for **design identity**, while final gameplay-scale pixel art is a separate production task.
 
 Consequences:
 
-- animation/pose experiments must first preserve this design faithfully;
-- a model should not be rejected merely for matching the source's high-detail treatment;
-- final modern-pixel-art translation must be solved downstream through an automatic/scalable production method;
-- no manual redraw by the user is assumed or required;
-- the canonical source must not be redesigned just to accommodate one animation model.
+- the master must not be redesigned merely to accommodate a tool;
+- final visible pixels must be deliberate modern pixel art at native gameplay scale;
+- no manual frame-by-frame redraw burden is assumed for the user;
+- generated or rendered intermediate references do not become canon automatically.
 
 ## Gameplay-scale identity anchors
 
-Regardless of the eventual production-raster method, these anchors must survive:
+These anchors must survive:
 
 1. large dark hair mass;
 2. compact adult body proportions;
 3. asymmetry of minimal initial clothing;
 4. severe posture;
 5. readable body/limb separation;
-6. captivity markers in the initial state;
+6. captivity evidence in the initial state, preferably through modular accessory/state layers;
 7. strong light/dark grouping between skin, hair and cloth.
 
-Facial microdetail is secondary at gameplay scale. Identity cannot depend only on tiny portrait-level features.
+Facial microdetail is secondary to silhouette at gameplay scale, but gross facial errors are not acceptable. The current structured-2D pipeline therefore isolates `head_face` as a replaceable persistent part rather than forcing whole-character redraws.
 
-## Current animation-production use
+## Current production architecture
 
-The canonical reference is currently used by the active local FLUX.2 Klein + RefControl Pose spike.
+Current visible-character architecture:
 
-The test uses:
+`real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel parts -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
-- `exilada_master.png` as image 2 / identity reference;
-- deterministic OpenPose-style COCO-18 skeletons as image 1 / target pose;
-- four fundamental walk key poses;
-- one fixed seed and configuration;
-- no manual frame correction or seed fishing.
+Hidden 3D owns control data only, not final visible color pixels.
 
-Full technical status is maintained in `docs/ANIMATION_PIPELINE.md`.
+The current G3S-B decomposition intentionally separates:
+
+- head/face;
+- torso/pelvis;
+- upper/lower limbs;
+- hands/feet;
+- hair masses;
+- front cloth mass;
+- initial chain accessory sockets.
+
+Detailed status is maintained in:
+
+- `docs/PROJECT_STATE.md`
+- `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+- `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
 
 ## Masculine counterpart — exploratory human-family variant
 
@@ -174,7 +189,7 @@ Current exploratory traits:
 - mature severe face;
 - dirty/scarred body;
 - minimal degraded clothing;
-- broken restraints;
+- captivity markers;
 - barefoot;
 - weaponless reference pose.
 
@@ -190,18 +205,21 @@ Do not infer narrative role, identity, origin, name or player-selectability unti
 
 - design for actual high-oblique gameplay readability;
 - preserve strong silhouettes;
-- distinguish permanent identity from equipment;
+- distinguish permanent identity from equipment/accessories;
 - let history and simulation affect visual state;
 - use mature anatomy and grounded material logic;
 - preserve the canonical design while production-raster translation is developed;
-- test every production character at gameplay scale and in motion.
+- test every production character at gameplay scale and in motion;
+- keep detachable chains/restraints as modular state when practical.
 
 ### Do not
 
 - make a particular weapon part of the Exilada by default;
+- bake broken chain segments permanently into the base-body sprite;
 - turn minimal clothing into a generic fantasy-barbarian costume;
 - sexualize deprivation or captivity;
-- depend on portrait-scale facial detail for gameplay identity;
+- depend only on portrait-scale facial detail for gameplay identity;
+- accept gross facial/anatomical artifacts merely because the macro silhouette works;
 - add decorative scars, ornaments or props without systemic/narrative reason;
 - treat the current high-detail master as if it already proves final pixel-art execution;
 - accept a final production solution that merely hides generic illustration behind a superficial pixel filter;
@@ -216,10 +234,10 @@ Not yet canonically fixed for the Exilada:
 - detailed family history;
 - exact circumstances and agents of enslavement;
 - reason/mechanism of abandonment;
-- permanent versus temporary persistence of physical shackles;
+- exact persistence/removal rules for cuffs/shackle hardware after the initial state;
 - detailed personality and voice;
 - faction relationships;
 - religion/culture beyond origin in the Ilhas do Sul;
 - exact long-term clothing progression;
-- final automatic gameplay-scale pixel-art production method;
+- final approved gameplay head/face pixel asset;
 - whether the masculine counterpart is playable, an alternate protagonist, an NPC family template or only a production test.
