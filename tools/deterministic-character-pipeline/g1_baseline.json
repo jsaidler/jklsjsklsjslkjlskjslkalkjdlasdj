@@ -1,0 +1,15 @@
+{
+  "gate": "G1",
+  "status": "PASS",
+  "approved_date": "2026-09-04",
+  "native_raster": [640, 360],
+  "camera_pitch_deg": 26,
+  "protagonist_reference_height_px": 128,
+  "camera_type": "ORTHO",
+  "notes": [
+    "Chosen from corrected 3x3 camera/scale matrix after dependency-graph calibration fix.",
+    "18 deg was judged too flat for belt-scroller depth; 34 deg leaned too far toward top-down.",
+    "112 px was judged too small for Exilada identity/equipment/gore readability; 144 px remains an upper reference, not the baseline.",
+    "26 deg / 128 px is the current production-validation baseline and may only change through a later explicit gate decision."
+  ]
+}
