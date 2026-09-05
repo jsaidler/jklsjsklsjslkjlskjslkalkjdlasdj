@@ -107,8 +107,6 @@ A later expensive stage does not start merely because an earlier technical demo 
 
 Validated on Windows 11 + Blender 5.1.1. Headless Python scene creation, `.blend` save, PNG rendering, manifests and hashes work.
 
-Detailed log: `docs/G0_AUTOMATION_LOG.md`.
-
 ## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
 
 Locked baseline:
@@ -123,13 +121,7 @@ Canonical baseline: `tools/deterministic-character-pipeline/g1_baseline.json`.
 
 Source: CMU Graphics Lab Motion Capture Database, trial `105_34 NormalWalk`, pinned MotionBuilder-friendly BVH conversion.
 
-Accepted for G2 scope:
-
-- stable major-limb topology;
-- real left/right gait alternation;
-- natural captured motion basis;
-- persistent deterministic structure;
-- usable under G1 camera/scale.
+Accepted for G2 scope: stable major-limb topology, real left/right gait alternation, natural captured motion basis and deterministic persistent structure under the locked G1 camera.
 
 Canonical approval: `tools/deterministic-character-pipeline/g2_approval.json`.
 
@@ -137,21 +129,15 @@ Arbitrary cross-skeleton retargeting and production foot-lock cleanup are not ge
 
 ## G3 — NATIVE PIXEL TRANSLATION: TECHNICAL PASS / LOOK NOT APPROVED
 
-The primitive semantic proxy proved stable deterministic native-grid translation, but A/B/C still read as a technical mannequin / processed low-detail 3D.
-
-Useful result: motion/topology can drive stable semantic pixel regions. Not enough to approve production art.
+The primitive semantic proxy proved stable deterministic native-grid translation, but remained a technical mannequin / processed low-detail 3D.
 
 ## G3R — RENDERER / STYLE REFINEMENT: FAIL / CLOSED
 
-D/E/F changed contour/value/cluster rules but remained the same technical mannequin.
-
-Canonical lesson: **post-processing cannot invent authored human form, silhouette, hair/cloth structure or identity detail absent from the source representation.**
+Renderer-only contour/value/cluster changes could not invent authored human form, silhouette, hair/cloth structure or identity detail absent from the source representation.
 
 Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
-Do not run more renderer-only variants on the primitive proxy.
-
-## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / RERUN REQUIRED
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / BINARY-MASK RERUN REQUIRED
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
@@ -159,31 +145,52 @@ Tooling:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
-### Current G3V state
+### Current G3V facts
 
-The pipeline now reliably reaches the actual representative-human path:
+The representative-human path itself is now proven to execute:
 
 - pinned MPFB 2.0.17 loads directly in one background Blender process;
 - MPFB `base.obj` imports;
 - continuous female body and CMU-compatible rig are created;
 - G2 real walk is reused;
 - representative hair/cloth/shackle geometry is created;
-- camera calibration projects the representative character to **127 px**, matching the locked `128 px` target;
-- Eevee writes the semantic frame.
+- camera projects the representative geometry to **127 px**, matching the locked 128 px target;
+- Eevee writes the frame;
+- runtime patches are confirmed bound to `target_main.__globals__`.
 
-The latest repeated `143 cloth-only pixels` result was traced to a bootstrap bug, not a visual result. `runpy.run_path()` returned a copied namespace; runtime fixes were installed into that copy while target functions continued to resolve globals through `function.__globals__`. Consequently stdout claimed `NEAREST_VS_BACKGROUND`/`Raw`, but the old classifier still ran.
+Latest valid diagnostic frame `1563`:
 
-Current fix:
+`foreground=10148, height=127 px, skin=0, hair=667, cloth=9481, metal=0`.
 
-- bootstrap obtains `target_main.__globals__`;
-- classifier, ID render wrapper and strict semantic validator are bound directly into that real globals dictionary;
-- binding identity is asserted before execution;
-- stdout must include `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN`;
-- every sampled semantic frame must include `skin`, `hair`, `cloth` and `metal` before review.
+Therefore the earlier blank-render/classifier problems are no longer the current blocker. Hair and cloth genuinely reach the visible render; skin and metal do not.
 
-This makes the next rerun meaningful: a future missing semantic layer will represent a real render/visibility defect, not an inert monkey patch.
+### Current semantic diagnostic — binary masks
+
+The multi-color semantic diagnostic has been replaced by **four binary occlusion-aware masks per sampled frame**:
+
+- skin white / all other representative geometry black;
+- hair white / all other representative geometry black;
+- cloth white / all other representative geometry black;
+- metal white / all other representative geometry black.
+
+Black non-target geometry remains present, preserving depth and occlusion. Python composites the four masks into the semantic-ID frame.
+
+If any semantic has zero visible pixels, the same Blender process renders it again unoccluded:
+
+- `visible=0, unoccluded>0` => proxy geometry is fully occluding it;
+- `visible=0, unoccluded=0` => that object/layer itself is not rendering or is offscreen; object mesh/modifier diagnostics are emitted.
+
+Completeness is validated across the four sampled walk phases rather than demanding that a small attachment occupy pixels in every frame.
+
+Expected console diagnostics include:
+
+- `G3V_SEMANTIC_MODE=BINARY_OCCLUSION_MASKS`
+- `G3V_MASK_SKIN_FRAME_1563_VISIBLE=...`
+- `G3V_MASK_METAL_FRAME_1563_VISIBLE=...`
+- `G3V_MASK_SEQUENCE_TOTALS=skin:...,hair:...,cloth:...,metal:...`
 
 Expected valid review artifact:
 
@@ -191,7 +198,7 @@ Expected valid review artifact:
 
 ### G3V kill switch
 
-If a **validated non-blank** continuous representative human still reads only as conventional 3D made blocky, hidden 3D is rejected as owner of the final visible character. It remains the motion/topology/socket/physics backbone and final character art moves to structured 2D.
+If a validated representative human still reads only as conventional 3D made blocky, hidden 3D is rejected as owner of the final visible character. It remains the motion/topology/socket/physics backbone and final character art moves to structured 2D.
 
 G4 remains blocked until G3V review.
 
@@ -204,7 +211,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\03c_run_g3v.ps1"
 ```
 
-Then STOP and share `g3v_contact_sheet.png`. If the runner fails, share the full console output.
+Then STOP. If G3V reaches `REVIEW REQUIRED`, share `g3v_contact_sheet.png`. If it fails, the console should now distinguish occlusion from object/renderability failure.
 
 ## Workspace state
 
