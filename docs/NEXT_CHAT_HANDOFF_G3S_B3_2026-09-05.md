@@ -11,16 +11,18 @@ Before acting, read:
 1. `docs/PROJECT_STATE.md`
 2. `docs/VISUAL_DIRECTION.md`
 3. `docs/CHARACTERS.md`
-4. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
-5. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-6. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
-7. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+4. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+5. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
+6. `docs/PIXEL_ART_PRODUCTION.md`
+7. `docs/ANIMATION_PIPELINE.md`
+8. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
+9. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+10. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
+11. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
-GitHub living documents are canonical. Update the relevant thematic document + `docs/PROJECT_STATE.md` after every material step.
+GitHub living documents are canonical. Do not reconstruct project state from chat memory when the documents disagree. Update the relevant thematic document + `docs/PROJECT_STATE.md` after every material step.
 
 ## Current production state
-
-The direct visible-art model search is closed. Qwen-native, SD1.5, PixelLock and Alucard did not produce an acceptable native source sprite. Do not reopen model hunting.
 
 Validated backbone remains:
 
@@ -28,26 +30,52 @@ Validated backbone remains:
 - G1 camera/native scale — PASS: `640×360`, orthographic, `26 deg`, protagonist ~`128 px`;
 - G2 real motion/topology — PASS using CMU `105_34 NormalWalk`;
 - G3V-R retarget — PASS using `DIRECTION_SPACE_FK`;
-- hidden 3D is infrastructure only, not final visible character RGB.
+- G3V visible 3D/pixel translation — FAIL/CLOSED;
+- hidden 3D is infrastructure only, not final visible character art.
 
 G3S state:
 
-- G3S-A/A1 source/face attempts — closed/fail;
-- G3S-B V1 decomposition — FAIL because exact recomposition did not imply correct semantic ownership;
+- source-model search — CLOSED;
+- G3S-B V1 decomposition — FAIL/CLOSED;
 - G3S-B2 layer-stack preflight — PASS/CLOSED diagnostic;
-- B2 measured `1205` hidden/unknown body pixels and proved the composite master cannot be converted into a complete body by subtraction;
 - G3S-B3 complete nude body base — CURRENT;
 - G3S-B3A V1 — FAIL/CLOSED REVISION because of wrong MPFB gender polarity;
-- **G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED**;
-- **G3S-B3B native `128×128` nude body source V1 — ACTIVE / READY TO RUN**.
+- G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED;
+- G3S-B3B V1 mask-derived authoring route — **FAIL/CLOSED ROUTE**;
+- **G3S-B3B corrected genuine native-2D body-source method — CURRENT / NOT YET IMPLEMENTED**.
+
+## Locked visible-ownership invariant
+
+The G3V kill switch is authoritative.
+
+Hidden 3D may own:
+
+- real motion;
+- topology/left-right identity;
+- sockets/contacts;
+- depth/occlusion metadata;
+- physics;
+- anatomy/proportion guides;
+- secondary-motion driving data.
+
+Hidden 3D may **not** own final visible RGB or final sprite silhouette.
+
+Final visible art is owned by persistent 2D pixel assets. Runtime/export remains sprite-based.
+
+Therefore:
+
+- a 3D render may be inspected as a guide;
+- a 3D binary mask may be inspected as a guide;
+- neither may be cropped/recolored/quantized and promoted mechanically into the final sprite alpha/silhouette;
+- the native 2D source itself must own silhouette, clusters, palette/value structure, edge treatment and final alpha.
 
 ## Locked build order
 
-1. complete adult nude/hairless body base;
+1. complete adult nude/hairless native 2D body base;
 2. separate persistent hair asset/layer family;
 3. separate clothing/bindings overlays;
 4. separate cuffs/shackles/chains/accessories/equipment;
-5. layered motion proof.
+5. layered sprite animation proof driven by hidden rig guides.
 
 Do not extract hidden anatomy from the composite master. It is identity/proportion reference only.
 
@@ -57,7 +85,7 @@ Nudity is a normal supported state. The complete body base always exists and gar
 
 Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit references. Sensuality, erotic charge, idealized adult bodies and nudity are legitimate parts of the mature visual vocabulary. Do not impose automatic desexualization or automatic sexualization; framing is intentional to scene/state.
 
-## B3A result
+## B3A result — PASS/CLOSED
 
 B3A V2 passes structurally:
 
@@ -76,49 +104,45 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-B3A is closed. Do not use its lit RGB as final body art.
+B3A remains useful only as anatomy/proportion/joint/scale guidance.
 
-## Current exact gate: G3S-B3B
+## B3B V1 route — FAIL/CLOSED
 
-B3B owns final visible body RGB pixels.
+The rejected implementation used the B3A projected mask directly as the final native body alpha/silhouette and then procedurally colored it.
 
-The V1 implementation:
+That violates the visible-ownership invariant even though it did not copy the lit-guide RGB.
 
-- consumes the approved B3A binary mask and projected joints as structural guides only;
-- preserves 1:1 gameplay scale into a native `128×128` asset;
-- does not sample/transfer B3A lit RGB/shading;
-- authors RGB from an explicit native palette and deterministic pixel-cluster rules;
-- creates zero hair/clothing/binding/restraint/chain pixels;
-- writes a binary-alpha body source, mask, gameplay preview, manifest and contact sheet;
-- requires native 1× visual review before B3B can pass.
+Failure marker:
 
-Tooling:
+`tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
+The invalid files were removed from `main`:
 
-## Exact next operator action
+- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`;
+- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`.
 
-Verify the runner exists in GitHub, then give only:
+No model was downloaded/discarded by this correction; no model cleanup command applies.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+## Current exact gate: G3S-B3B METHOD DESIGN
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_native_body_source.ps1"
-```
+Do **not** give the user a runner yet.
 
-Then STOP and request only:
+First design a method that produces one genuine native `128×128` 2D nude body sprite source where:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
+- B3A is reference only;
+- final alpha/silhouette are independently authored in 2D;
+- final RGB/pixel clusters are independently authored in 2D;
+- no procedural mannequin renderer is treated as final art;
+- no new sprite-model search is opened;
+- no user manual pixel editing is required;
+- the result can later be decomposed/animated as persistent 2D parts driven by hidden rig guides.
 
-or the complete console error if the runner fails.
-
-Do not start B3S-B4 hair, B5 clothing/accessories or G3S-C animation before B3B passes.
+Only after this method is reviewed against the canonical documents should new tooling be committed.
 
 ## Operator/process rules
 
-- normal loop: `git pull -> one documented PowerShell command -> inspect/share output`;
+- before every material action, read the current project documents first;
+- normal loop after a runner is actually approved: `git pull -> one documented PowerShell command -> inspect/share output`;
 - no routine Blender/Aseprite/rigging work for the user;
 - no manual frame-by-frame repainting burden;
 - no unrequested image generation;
@@ -127,3 +151,9 @@ Do not start B3S-B4 hair, B5 clothing/accessories or G3S-C animation before B3B 
 - if a model/route is declared FAIL/CLOSED/REJECTED and no longer active, include exact PowerShell cleanup commands for its model-specific files in the same response;
 - preserve small evidence outputs and shared runtimes still in use;
 - after every material step update relevant living docs + `docs/PROJECT_STATE.md` and commit.
+
+## Prompt to paste into the next chat
+
+> Continue o projeto Roguelite exatamente do estado canônico no GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`. Antes de qualquer ação, leia `docs/PROJECT_STATE.md`, `docs/VISUAL_DIRECTION.md`, `docs/CHARACTERS.md`, `docs/CHARACTER_PRODUCTION_PIPELINE.md`, `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`, `docs/PIXEL_ART_PRODUCTION.md`, `docs/ANIMATION_PIPELINE.md`, `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`, `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`, `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`, `docs/G3S_B3_NUDE_BODY_BASE_LOG.md` e este handoff. Não reconstrua decisões pela memória.
+>
+> Estado atual: G3V rejeitou 3D como dono da imagem visível. O 3D oculto pode fornecer motion/topology/sockets/depth/anatomy guides, mas os sprites 2D persistentes devem possuir silhouette, alpha e RGB finais. B3A V2 passou apenas como guia anatômico estrutural. O primeiro B3B V1 foi rejeitado porque copiou a máscara projetada do 3D como silhouette/alpha final e depois a coloriu proceduralmente. O marker é `g3s_b3b_v1_route_failure.json`; o script e runner foram removidos. O gate atual é desenhar o método correto para um body source 128x128 genuinamente 2D, sem reabrir busca por modelos e sem exigir edição manual do usuário. Não entregue runner antes de verificar essa arquitetura contra os documentos.
