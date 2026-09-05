@@ -46,10 +46,12 @@ def info_panel(manifest: dict, size=(640, 360)) -> Image.Image:
     phenotype = manifest["phenotype_audit"]
     cam = manifest["camera"]
     lines = [
-        "G3S-B3A establishes female anatomy ownership only.",
+        "G3S-B3A establishes adult-female anatomy ownership only.",
         f"revision = {manifest['revision']}",
         f"gender_value = {phenotype['gender_value']} | resolved_gender = {phenotype['resolved_gender']}",
+        f"age_value = {phenotype['age_value']} | life_stage = {phenotype['resolved_life_stage']}",
         f"female_targets = {phenotype['female_target_count']} | male_targets = {phenotype['male_target_count']}",
+        f"adult_targets = {phenotype['adult_target_count']} | minor_targets = {phenotype['minor_target_count']}",
         "",
         f"complete_body_geometry = {audit['complete_body_geometry']}",
         f"hair_objects = {audit['hair_objects']}",
@@ -60,11 +62,9 @@ def info_panel(manifest: dict, size=(640, 360)) -> Image.Image:
         f"pitch = {cam['pitch_deg']} deg | yaw = {cam['yaw_deg']} deg",
         "",
         "Nudity is not a separate runtime variant.",
-        "Runtime nude state = complete body base with garment/equipment layers absent.",
-        "",
         "NEXT AFTER REVIEW: author native 128x128 body source (B3-B).",
     ]
-    y = 44
+    y = 42
     for line in lines:
         d.text((24, y), line, fill=FG if not line.startswith("NEXT") else (255, 215, 90), font=font)
         y += 17
@@ -86,7 +86,9 @@ def main():
         raise RuntimeError("Contact-sheet helper requires corrected G3S-B3A V2 manifest")
     phenotype = manifest.get("phenotype_audit") or {}
     if phenotype.get("resolved_gender") != "female" or int(phenotype.get("male_target_count", -1)) != 0:
-        raise RuntimeError("Contact-sheet helper phenotype audit is not clean female")
+        raise RuntimeError("Contact-sheet helper gender audit is not clean female")
+    if phenotype.get("resolved_life_stage") != "adult" or int(phenotype.get("minor_target_count", -1)) != 0:
+        raise RuntimeError("Contact-sheet helper life-stage audit is not clean adult")
 
     lit = Image.open(manifest["outputs"]["lit"]).convert("RGBA")
     mask = Image.open(manifest["outputs"]["mask"]).convert("RGBA")
@@ -95,8 +97,8 @@ def main():
 
     cells = [
         fit_panel(lit, "A complete adult female nude/hairless anatomy guide - NOT final art", nearest=False),
-        fit_panel(mask, "B complete female body silhouette - no hair/clothing/restraints", nearest=True),
-        fit_panel(zoom, "C female anatomy zoom - structural reference only", nearest=True),
+        fit_panel(mask, "B complete adult female body silhouette - no hair/clothing/restraints", nearest=True),
+        fit_panel(zoom, "C adult female anatomy zoom - structural reference only", nearest=True),
         info_panel(manifest),
     ]
     sheet = Image.new("RGB", (1280, 720), BG)
