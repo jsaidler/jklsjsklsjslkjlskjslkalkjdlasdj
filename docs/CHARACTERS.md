@@ -24,7 +24,7 @@ Locked traits:
 - hard, mature face;
 - very long, heavy, voluminous, messy black hair;
 - hair mass is a primary silhouette anchor;
-- posture should communicate alertness, contained violence and survival rather than glamour;
+- posture should communicate alertness, contained violence and survival rather than glamour alone;
 - character identity must remain recognizable without relying on a particular weapon or complete outfit.
 
 The body should look materially lived-in: fatigue, dirt, wounds and scars may be visible when causally justified by state/history.
@@ -45,8 +45,24 @@ This supports:
 - improvised bindings;
 - visible evidence of captivity;
 - partial or complete nudity when appropriate to material/narrative state;
-- vulnerability without erotic framing;
+- vulnerability, danger, sensuality and physical presence being allowed to coexist;
 - the visual contrast of an exposed, precarious body that remains dangerous.
+
+### Erotic charge — LOCKED 2026-09-05
+
+The Exilada does **not** need to be visually desexualized in order to be treated seriously.
+
+The project's reference lineage — **Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell** — carries an explicit adult erotic/sensual charge. That vocabulary is considered relevant rather than something to be automatically removed.
+
+For the Exilada:
+
+- erotic charge is allowed and may be intentional;
+- adult nudity or minimal clothing may read as sensual, erotic, heroic, vulnerable, brutal or matter-of-fact depending on scene/state;
+- physical attractiveness and sexual presence do not invalidate severity, danger, agency or suffering;
+- the body may remain aesthetically charged even when dirty, wounded, exhausted or deprived;
+- no blanket rule requires neutral, clinical or anti-erotic framing;
+- framing should be intentional to the scene rather than automatically sanitized or automatically sexualized;
+- captivity/violence can be shown directly, but erotic charge should be understood as part of the adult character/world language rather than accidentally equating coercion itself with the only source of eroticism.
 
 ### Body-base and nudity rule — LOCKED 2026-09-05
 
@@ -60,7 +76,7 @@ Locked consequences:
 - removing all clothing/equipment reveals the same persistent body rather than reconstructing hidden pixels;
 - nudity is a normal supported world/gameplay state;
 - chest and pelvic anatomy must be coherent at native gameplay scale;
-- the representation is matter-of-fact and non-erotic;
+- the body may be framed neutrally, erotically, heroically, vulnerably or brutally according to scene intent; there is no forced anti-erotic treatment;
 - there is no structurally mandatory censor garment;
 - hair is a separate asset/layer and the body base itself is hairless;
 - permanent scars/body marks belong to the body or body-state overlays, not to clothing;
@@ -85,7 +101,7 @@ These are **equipped overlay assets**, not part of the permanent body sprite.
 
 The clothing should read as **residue of captivity and abandonment**, not as an intentional class outfit.
 
-Nudity is acceptable within the mature visual language. The design must treat the body matter-of-factly rather than emphasizing erotic display.
+Nudity is acceptable within the mature visual language and may carry erotic charge. It does not require a censor layer or forced visual neutralization.
 
 ### Captivity markers — updated 2026-09-05
 
@@ -237,7 +253,8 @@ Do not infer narrative role, identity, origin, name or player-selectability unti
 - preserve the canonical design while production-raster translation is developed;
 - test every production character at gameplay scale and in motion;
 - keep detachable chains/restraints as modular state;
-- keep the complete body valid when all garments are absent.
+- keep the complete body valid when all garments are absent;
+- allow deliberate erotic/sensual body language where it belongs in the scene and character.
 
 ### Do not
 
@@ -245,7 +262,7 @@ Do not infer narrative role, identity, origin, name or player-selectability unti
 - bake hair, garments, cuffs or chain segments permanently into the base-body sprite;
 - reconstruct a nude body by subtracting clothes/hair from a composite master;
 - turn minimal clothing into a generic fantasy-barbarian costume;
-- sexualize deprivation, captivity or nudity;
+- sanitize adult nudity or sensuality merely because it is erotic;
 - depend only on portrait-scale facial detail for gameplay identity;
 - accept gross facial/anatomical artifacts merely because the macro silhouette works;
 - add decorative scars, ornaments or props without systemic/narrative reason;
