@@ -74,10 +74,15 @@ def main():
     if not target_script.exists():
         raise RuntimeError(f"Retarget preflight target script not found: {target_script}")
 
-    # Route the canonical preflight through the V2 solver when present. This keeps the
-    # operator command stable while replacing the failed local-axis retarget assumption.
+    # Keep the operator command stable while routing through the newest validated solver
+    # wrapper. V3 retains V2's actual retarget solvers and replaces only the invalid
+    # rest-subtracted endpoint metric with a rest-independent chain-shape metric.
+    v3 = target_script.with_name("g3v_retarget_preflight_v3.py")
     v2 = target_script.with_name("g3v_retarget_preflight_v2.py")
-    if v2.exists():
+    if v3.exists():
+        target_script = v3
+        print("G3V_RETARGET_BOOTSTRAP_SOLVER=V3")
+    elif v2.exists():
         target_script = v2
         print("G3V_RETARGET_BOOTSTRAP_SOLVER=V2")
 
