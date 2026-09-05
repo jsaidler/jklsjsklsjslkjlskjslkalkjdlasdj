@@ -1,0 +1,22 @@
+{
+  "gate": "G3S-A-SD15",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "revision": "SD15_NATIVE_PIXEL_REAUTHOR_V1",
+  "evidence": {
+    "raw_sha256": "294a412ffc0aa859c7fdf4128b13755e1e89fec4f3ea1d96c63e735a10ed92b0",
+    "canvas": [640, 360],
+    "conditioning_source_size": [1392, 752],
+    "conditioning_guide_subject_size": [48, 128],
+    "raw_mean_luma": 13.952,
+    "raw_std_luma": 12.1223
+  },
+  "visual_verdict": {
+    "topology": "major silhouette remains roughly humanoid but hands/feet and secondary structures are not production-readable",
+    "identity": "Exilada identity is lost; long hair, asymmetric degraded cloth, restraints and severe facial/head identity do not survive",
+    "pixel_language": "output reads as a coarse latent-diffusion mannequin/block figure rather than intentional modern pixel art",
+    "production_usable": false
+  },
+  "root_lesson": "Standard latent diffusion sampled directly on the 640x360 gameplay canvas does not provide enough representation bandwidth for a roughly 128-screen-pixel identity-rich human sprite. Do not seed-fish, prompt-tune or iterate SD1.5/LoRA variants for this gate.",
+  "next": "Move G3S-A to a native pixel-grid representation whose decoder owns individual sprite cells rather than an 8x-compressed image latent."
+}
