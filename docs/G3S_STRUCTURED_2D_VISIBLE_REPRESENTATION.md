@@ -2,15 +2,15 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A ALUCARD NATIVE-128 RESEARCH PROOF READY**
+Gate status: **ACTIVE — G3S-A AUTHORED NATIVE SOURCE V1 READY**
 
 ## Why G3S exists
 
 G3V-R proved deterministic transfer of real CMU motion into the MPFB humanoid. G3V then proved that hidden 3D is useful as motion/topology infrastructure but failed the visible-art kill switch: direct native-raster/palette translation still read as coarse 3D rather than intentional modern pixel art.
 
-Therefore final character pixels must come from persistent structured 2D assets.
+Final character pixels therefore come from persistent structured 2D assets.
 
-Locked target architecture:
+Locked production architecture:
 
 `real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel parts -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
@@ -19,15 +19,16 @@ Hidden 3D may own motion, topology, left/right identity, sockets, contacts, dept
 ## Production constraints
 
 - no per-frame diffusion as animation owner;
-- no routine frame-by-frame repainting;
-- no generic high-resolution beauty render followed by shrink/quantization as final art;
-- no bilinear filtering;
+- no routine frame-by-frame repainting by the user;
 - no required Blender/Aseprite/Spine GUI operation by the user;
-- recurring production remains scriptable/headless.
+- no generic beauty-render shrink/pixel-filter route as final production method;
+- no bilinear filtering;
+- recurring production remains scriptable/headless;
+- one-time native source authoring may use deterministic explicit pixel edits, but future animation must consume persistent structured assets rather than regenerate frames.
 
 # G3S-A — static source sprite gate
 
-Goal: obtain one approved Exilada source image at the locked gameplay presentation:
+Goal: obtain one approved Exilada source image for the locked presentation:
 
 - gameplay canvas `640×360`;
 - visible character height about `128 px`;
@@ -35,147 +36,143 @@ Goal: obtain one approved Exilada source image at the locked gameplay presentati
 - lean adult female anatomy;
 - very long heavy black hair;
 - degraded asymmetric beige cloth;
-- wrist/ankle restraints;
+- wrist/ankle restraints and broken chain remnants;
 - bare feet;
 - no weapon;
 - intentional modern pixel clusters at native 1×;
-- recognizably derived from `assets/source/characters/exilada/reference/exilada_master.png`.
+- recognizable Exilada identity derived from `assets/source/characters/exilada/reference/exilada_master.png`.
 
-# Closed source experiments
+# Closed automated source experiments
 
 ## Qwen direct-native — FAIL / CLOSED
 
-Corrected Qwen-Image-Edit-2509 inference at native `640×360` completed normally but produced a genuinely flat raster. The official-resolution control at `1392×752` produced a coherent Exilada-like woman and therefore proved the model/runtime works, but that high-resolution illustration/pseudo-pixel result is **reference only** and may never be promoted by simple shrink/quantization.
-
-Qwen remains forbidden as independent animation-frame generator.
+Corrected Qwen-Image-Edit-2509 inference at native `640×360` completed normally but produced a flat raster. Restoring Qwen's preferred-resolution preprocessing produced a coherent `1392×752` Exilada-like design control. That control proves the model/runtime works, but it is **reference/scaffold material only**, never an animation owner and never automatically promoted to final sprite art.
 
 ## SD1.5 native latent re-author — FAIL / CLOSED
+
+The bounded SD1.5 + pixel-art LoRA run sampled final pixels directly at `640×360` and produced a coarse block/mannequin. Exilada identity, long hair, cloth, restraints, hands and feet did not survive. No further SD1.5 prompt/seed/CFG/LoRA tuning is allowed.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
 
-The bounded SD1.5 + pixel-art LoRA run sampled final pixels directly at `640×360` with no post-inference resize. It produced a coarse vertical block/mannequin and lost Exilada identity, long hair, degraded cloth, restraints, hands and feet. Do not seed-fish or tune this route further.
+## PixelLock initial-source generation — FAIL / CLOSED
 
-## PixelLock native-grid source — FAIL / CLOSED
+The grammar-constrained `64 -> 128` test completed and was footprint-perfect, but the native output was a single-color silhouette:
+
+- `128×128`;
+- visible height `124 px`;
+- `3416` opaque pixels;
+- one opaque RGB value `[99,9,25]`;
+- SHA256 `a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b`.
+
+PixelLock is rejected as an **initial source author**. It may return later for footprint-safe recolor/restyle once a canonical sprite already exists.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_pixellock_failure.json`
 
-Recorded run:
+## Alucard native-128 — FAIL / CLOSED
 
-- upstream code commit `bb682f9919fcd302eaa5226b7e6965dfdf151beb`;
-- model revision `d35e3bcc3c8651603393042df4dbf2a1d37173ea`;
-- `64×64` conditioning scaffold -> grammar-constrained `128×128` output;
-- completion tokens `16695`;
-- latency `626.5 s`;
-- parser PASS;
-- `footprint_perfect == true`;
-- raw SHA256 `a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b`;
-- visible height `124 px`;
-- opaque pixels `3416`;
-- **unique opaque RGB colors: `1`**;
-- only opaque RGB value: `[99, 9, 25]`.
+### Reference-conditioned attempt — INVALID
 
-Visual verdict: a monochrome silhouette, not an authored character.
+The first Alucard inference passed a Qwen-derived external design image through `ref`. Upstream uses `ref` as a previous sprite/animation frame, so that run is retained only as invalid harness evidence. The generated conditioning reduction also lost the mouth at `128×128`, which the user correctly identified.
 
-Architectural lesson: PixelLock's hard GBNF footprint lock is useful only **after** a good canonical sprite footprint exists. In the tested 2× mode every transparent/opaque location is inherited from the scaffold by construction; it cannot repair or invent the source silhouette. It is therefore rejected as G3S-A source generator, but may return later as a footprint-safe recolor/restyle tool after canonical assets exist.
+Marker:
 
-No PixelLock prompt, palette, temperature, seed or upscale tuning is permitted for G3S-A.
+`tools/structured-2d-character-pipeline/g3s_a_alucard_reference_invalid.json`
 
-# Alucard native-128 sprite proof — CURRENT
+### Text-only upstream control — FAIL
 
-This next test changes the model class and native representation instead of tuning another failed route.
+A second control exercised Alucard in documented text-to-sprite mode with **no reference input**:
 
-Alucard is a small purpose-built text-to-sprite flow-matching model whose **native input/output is `128×128 RGBA`**. It has an optional `128×128 RGBA` reference input and generates a new sprite rather than locking the reference footprint. This directly addresses the structural failure of PixelLock while remaining on the target sprite raster.
+- native `128×128 RGBA`;
+- seed `20260905`;
+- `20` Euler steps;
+- text CFG `5.0`;
+- reference `null`;
+- code commit `02d1c60a16142015f7838a6a033da5e6ac9ce4f7`;
+- model revision `b8e7602`;
+- model SHA256 `2f502cc676c9fc34009d6c57caa4e782512a2643f436bc16408f477c352ccc2c`;
+- raw SHA256 `c3143b76444abc7c5b6f7b1fe6c0d66a51e7f83d4fff7519018fe3a97739bc5a`;
+- alpha bbox covers the full canvas `[0,0,127,127]`;
+- `12525` opaque pixels;
+- `12059` unique opaque RGB colors.
 
-Pinned code:
+Visual verdict: full-canvas mottled/noisy texture, no coherent character silhouette, anatomy or production-readable sprite.
 
-- upstream: `evilsocket/alucard`;
-- code commit: `02d1c60a16142015f7838a6a033da5e6ac9ce4f7`;
-- architecture: ~32M-param U-Net / rectified flow;
-- output: native `128×128 RGBA`;
-- default bounded sampling used here: 20 Euler ODE steps, text CFG `5.0`, reference CFG `2.0`;
-- fixed seed: `20260905`.
+No Alucard prompt/seed/CFG/sampler fishing is permitted. The automated local generative-source search is now **closed**.
 
-Model reference:
+Failure marker:
 
-- Hugging Face `evilsocket/alucard`;
-- weight file `alucard_model.safetensors`, about `128 MB`;
-- pinned weight revision used by the runner: `b8e7602`;
-- the runner records the downloaded weight SHA256 on first provisioning and requires it on reuse.
+`tools/structured-2d-character-pipeline/g3s_a_alucard_failure.json`
 
-Conditioning contract:
+# Authored native source — CURRENT
 
-1. The coherent high-resolution Qwen control remains **design/pose conditioning only**.
-2. It is background-isolated and normalized to a transparent `128×128 RGBA` reference.
-3. That reference is not final art and is allowed to use nearest-neighbor normalization because only the Alucard output can become candidate art.
-4. Alucard samples a brand-new `128×128 RGBA` sprite directly at the target asset raster.
-5. There is **no post-generation resize**.
-6. The native sprite is composited 1:1 into the `640×360` gameplay preview.
-7. Only one fixed-seed candidate is generated.
+G3S-A is now explicitly an **authored canonical-source problem**, not another model search.
 
-Tooling:
+The useful evidence from the failed searches is that the Qwen official-resolution control contains coherent Exilada design information, and its deterministic `128×128` reduction already provides a much better *scaffold* than the native generators. The reduction itself is **not automatically final art**. It becomes a tracing/base canvas on which explicit native-grid authoring corrections are applied and reviewed at 1×.
 
-- `tools/structured-2d-character-pipeline/g3s_a_alucard_native.py`
-- `tools/structured-2d-character-pipeline/05_bootstrap_and_run_g3s_a_alucard.ps1`
+This changes the workflow from:
 
-Dependency workspace:
+`model search -> hope for a finished sprite`
 
-`Z:\AI\AlucardSpike`
+to:
+
+`fixed design scaffold -> explicit native pixel patch data -> review -> revise patch data -> approve canonical source`
+
+The user does not need to learn a pixel editor. Native corrections are stored as deterministic data in the repository and applied headlessly.
+
+## V1 authored corrections
+
+`tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
+
+Current explicit corrections include:
+
+- restore a readable mouth lost by the `128×128` reduction;
+- add visible metal wrist cuffs;
+- reinforce both ankle restraints;
+- add short broken-chain remnants;
+- preserve the existing long-hair / skin / degraded-cloth design scaffold.
+
+The patch is pinned to the exact Qwen control SHA256:
+
+`ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
+
+If the source changes, the runner hard-fails rather than silently applying coordinates to a different image.
+
+## Tooling
+
+- `tools/structured-2d-character-pipeline/g3s_a_authored_native_v1.py`
+- `tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
+- `tools/structured-2d-character-pipeline/07_run_g3s_a_authored_native.ps1`
 
 Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored`
 
-## Harness correction — 2026-09-05
+Expected review artifact:
 
-The first invocation stopped during the dependency import probe **before model download or Alucard inference**. This was a runner bug, not an Alucard/model failure: Windows PowerShell 5.1 converted the expected Python stderr from a failed first-pass import probe into a terminating `NativeCommandError` because `$ErrorActionPreference='Stop'`, so the script never reached its intended dependency-install branch.
-
-Fixed in commit `5d65039e406a4d3c01ce0dad37e51578cffa4a4e`: all Python probe/pip/helper calls now go through `Invoke-PythonSafe`, which temporarily disables stderr-to-terminating-error behavior and uses the native process exit code as the authority. If the post-install import still fails, the exact Python traceback is printed deliberately.
-
-This correction does **not** alter Alucard sampling parameters or gate criteria.
-
-## License boundary — HARD
-
-Alucard uses FAIR License 1.0.0, not a permissive MIT/Apache production license. The published license permits non-commercial personal/research use; commercial use requires visible attribution, and Business Use requires a separate signed commercial agreement with the author.
-
-Therefore this gate is **research/architecture proof only**. A visually successful result does **not** automatically approve Alucard for shipping. Before any Alucard-generated production asset is adopted, the project's intended distribution/entity status must be checked against that license and, if Business Use applies, a written commercial agreement is required.
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
 
 ## Review order
 
-1. topology: exactly one head/torso, two arms/hands, two legs/feet;
-2. Exilada identity: dominant long black hair, olive-brown skin, degraded beige cloth, wrist/ankle restraints, bare feet;
-3. native pixel language: deliberate 1× clusters rather than smooth/pseudo-pixel rendering;
-4. gameplay readability when composited 1:1 on `640×360`;
-5. only after visual PASS: resolve licensing before adoption.
+1. topology: one head/torso, two arms/hands, two legs/feet;
+2. face: mouth now readable, eyes/head silhouette coherent;
+3. identity: long heavy black hair, olive-brown skin, degraded beige cloth, wrist/ankle restraints, bare feet;
+4. pixel language at native 1×;
+5. gameplay readability at `640×360`;
+6. only after visual approval: promote source and start G3S-B decomposition.
 
-## Kill rule
-
-One candidate only. If this purpose-built native `128×128` model cannot produce a credible identity-bearing Exilada sprite from the fixed reference/prompt, close the automated local generative-source route rather than tuning seeds/CFG/prompts indefinitely. At that point G3S-A must be re-scoped as an authored canonical-source problem rather than another model search.
+If changes are needed, edit the explicit native patch data. **Do not search another image model.**
 
 # G3S-B — persistent part decomposition
 
-Blocked until one static native source is approved. The future source is decomposed into stable side-aware 2D parts: head/face, torso/pelvis, upper/lower limbs and hands/feet, hair masses, cloth pieces and wrist/ankle restraints. Parts own IDs, side, pivots, depth rules, palette/material families and attachment inheritance.
+Blocked until one static native source is approved. The approved source will be decomposed into stable side-aware parts: head/face, torso/pelvis, upper/lower limbs and hands/feet, hair masses, cloth pieces, wrist/ankle restraints. Parts own IDs, side, pivots, depth rules, palette/material families and attachment inheritance.
 
 # G3S-C — four-phase walk proof
 
 Blocked until G3S-B. Persistent parts will be driven by validated motion frames `1568,1588,1608,1628` using deterministic pixel-aware transforms/deformation and depth ordering. No frame may be independently regenerated by diffusion.
-
-## G3S PASS criteria
-
-- static source reads as intentional modern pixel art at 1×;
-- major topology and left/right ownership remain stable;
-- motion/grounding matches G2/G3V-R;
-- hair/cloth/restraints remain persistent;
-- joints avoid puppet gaps/rubbery collapse;
-- authored clusters survive movement;
-- recurring production remains headless/reproducible.
-
-## G4 rescope
-
-After G3S passes, G4 becomes the Exilada production 2D identity system: canonical sprite parts, palette/material families, hair/cloth/restraint variants, sockets/occlusion metadata and damage-ready layers.
 
 ## Exact next action
 
@@ -185,11 +182,11 @@ Run only:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\05_bootstrap_and_run_g3s_a_alucard.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\07_run_g3s_a_authored_native.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A ALUCARD: REVIEW REQUIRED`, share:
+Then STOP. If it reaches `G3S-A AUTHORED: REVIEW REQUIRED`, share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard\g3s_a_alucard_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
 
-If it fails, share the complete console output. Do not start G3S-B or G4.
+Do not start G3S-B or G4 until the authored native source is visually approved.
