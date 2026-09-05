@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN WITH BINARY OCCLUSION-AWARE SEMANTIC MASKS.**
+Current status: **READY TO RERUN AFTER CONFIRMED OCCLUSION + PHASE-SAMPLING FIXES.**
 
 ## Why this gate exists
 
@@ -30,6 +30,7 @@ G3V asks:
 
 - `tools/deterministic-character-pipeline/03c_run_g3v.ps1`
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
+- `tools/deterministic-character-pipeline/g3v_geometry_phase_patch.py`
 - `tools/deterministic-character-pipeline/g3v_semantic_masks.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
@@ -77,52 +78,78 @@ Frame `1563` initially reported only 143 recognized pixels, all cloth. Camera pr
 
 ### 6 — first classifier patch was bound to the wrong `runpy` namespace
 
-`runpy.run_path()` returned a dictionary separate from the globals actually referenced by target functions. The fix now binds runtime patches directly through `target_main.__globals__` and asserts that binding before execution.
+`runpy.run_path()` returned a dictionary separate from the globals actually referenced by target functions. The fix binds runtime patches directly through `target_main.__globals__` and asserts that binding before execution.
 
 ### 7 — bound classifier proves a real visible-layer problem
 
-The next run confirmed the patch was genuinely active. Stdout included:
-
-- `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN`
-- `G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND`
-- `G3V_ID_COLOR_TRANSFORM=RAW`
-
-Frame `1563` then produced:
+A correctly bound run produced frame `1563`:
 
 `{'foreground_pixels': 10148, 'bbox': [274, 115, 365, 241], 'bbox_height_px': 127, 'semantic_pixels': {'skin': 0, 'hair': 667, 'cloth': 9481, 'metal': 0}}`
 
-This is materially different from the earlier 143-pixel artifact. It proves:
+This proved that substantial representative geometry really rendered and that skin/metal absence was not a stale classifier artifact.
 
-- MPFB bootstrap works;
-- the representative asset is on camera;
-- the projected height is correct;
-- substantial geometry is genuinely rendering;
-- hair and cloth are visible;
-- skin and metal are absent from the visible semantic result.
+### 8 — binary masks isolate the exact blocker
 
-At this point color classification is no longer an acceptable diagnostic dependency. The remaining possibilities include actual occlusion by representative proxy geometry, MPFB body renderability/modifier state, or shackle placement/subpixel visibility.
+The binary occlusion-aware rerun completed all four sampled frames and reported identical per-frame values:
 
-## Binary semantic-mask mode — CURRENT
+- skin: `visible=0`, `unoccluded=507`;
+- hair: `visible=709`;
+- cloth: `visible=9679`;
+- metal: `visible=0`, `unoccluded=75`.
 
-`g3v_semantic_masks.py` now replaces the multi-color semantic diagnostic with four independent binary renders per sampled frame:
+Sequence totals:
+
+`skin:0, hair:2836, cloth:38716, metal:0`
+
+Therefore:
+
+- the MPFB body exists, is on camera and renders when isolated;
+- the shackles exist, are on camera and render when isolated;
+- **skin and metal are genuinely fully occluded by other representative geometry in the current proxy**;
+- cloth occupies almost the entire visible proxy, which is structurally wrong for the intended minimal-cloth character;
+- this is now a geometry/proportion/placement problem, not a material, classifier or render-engine problem.
+
+### 9 — the four G3V review frames were not four gait phases
+
+The same run exposed another correctness problem: frames `1563, 1612, 1661, 1710` are exactly 49 frames apart and produced byte-level-equivalent semantic counts. G3V inherited G3's fixed selection of G2 sample indices `(0,3,6,9)`. G2 itself sampled 12 evenly spaced frames across a 1.5 s / 120 fps real-motion window, so taking every third sample can alias the gait period and repeatedly hit the same phase.
+
+This does **not** invalidate G2, whose full 12-sample sequence was reviewed and remains the approved real-motion/topology gate. It does mean G3/G3R/G3V must not claim temporal phase diversity from the old four-frame subset.
+
+G3V now derives one real gait period from the G2 left/right foot-contact metadata and chooses four quarter-cycle frames from that measured period. It refuses to fall back to guessed fixed indices if contact-derived phase selection cannot be established.
+
+## Geometry / scale correction — CURRENT
+
+`g3v_geometry_phase_patch.py` now binds three corrections before rendering:
+
+1. **Skeleton-derived representative scale**
+   - representative hair/cloth dimensions are based on the measured CMU-compatible head-to-foot skeleton height rather than the MPFB basemesh/helper bbox;
+   - stdout reports `G3V_BODY_GEOMETRY_HEIGHT` and `G3V_SKELETON_HEIGHT` for comparison.
+
+2. **Skeleton-calibrated camera**
+   - the locked `128 px` reference height is calibrated from head-to-feet skeleton projection;
+   - oversized accessories can no longer shrink the actual body merely by dominating the combined bbox;
+   - stdout reports `G3V_CAMERA_CALIBRATION=SKELETON_HEAD_FOOT`.
+
+3. **Surface-visible oriented shackles**
+   - wrist/ankle torus axes are aligned to the actual forearm/shin direction;
+   - cuff radius is enlarged modestly beyond the previous embedded joint radius so the metal layer has a legitimate chance to be visible at 128 px;
+   - stdout reports `G3V_SHACKLES=ORIENTED_OVERSURFACE_CUFFS`.
+
+## Binary semantic-mask mode
+
+`g3v_semantic_masks.py` renders four independent binary masks per sampled frame:
 
 - skin: target white, all other representative geometry black;
 - hair: target white, all other representative geometry black;
 - cloth: target white, all other representative geometry black;
 - metal: target white, all other representative geometry black.
 
-Black non-target geometry remains renderable, so normal depth/occlusion is preserved. The four masks are composited in Python into the canonical semantic-ID image. No RGB classification is required to discover layer ownership.
+Black non-target geometry remains renderable, so normal depth/occlusion is preserved. The four masks are composited in Python into the canonical semantic-ID image.
 
-For any semantic with zero visible pixels, G3V immediately renders an additional **unoccluded diagnostic mask** with all non-target semantic geometry hidden:
+For any semantic with zero visible pixels, G3V immediately renders an additional unoccluded diagnostic mask:
 
-- `visible=0, unoccluded>0` => the target exists and renders, but is fully occluded by representative proxy geometry;
-- `visible=0, unoccluded=0` => the target itself does not render or is offscreen; object/mesh/modifier diagnostics are included.
-
-Console diagnostics use explicit records such as:
-
-- `G3V_MASK_SKIN_FRAME_1563_VISIBLE=...`
-- `G3V_MASK_METAL_FRAME_1563_VISIBLE=0 UNOCCLUDED=...`
-- `G3V_MASK_SEQUENCE_TOTALS=skin:...,hair:...,cloth:...,metal:...`
+- `visible=0, unoccluded>0` => target exists/renders but is fully occluded;
+- `visible=0, unoccluded=0` => target itself does not render or is offscreen.
 
 Semantic completeness is validated across the sampled sequence rather than requiring every small attachment to occupy a pixel in every single phase.
 
@@ -145,7 +172,7 @@ The proxy is not the finished Exilada. It adds only enough persistent structure 
 
 ## Visual translation test
 
-Four approved real-walk frames use the locked `640×360 / 26 deg / 128 px` presentation.
+Four **contact-derived quarter-cycle walk phases** use the locked `640×360 / 26 deg / 128 px` presentation.
 
 For each frame:
 
@@ -166,7 +193,7 @@ Expected review artifact:
 G3V can PASS only if:
 
 1. anatomy/silhouette reads as a coherent human rather than a primitive technical mannequin;
-2. weighted deformation remains coherent across the sampled walk;
+2. weighted deformation remains coherent across genuinely distinct sampled walk phases;
 3. hair/cloth/shackle side ownership remains structurally stable;
 4. all representative semantic layers are genuinely visible somewhere in the sampled sequence;
 5. the native-grid result has a credible path toward intentional modern pixel art;
