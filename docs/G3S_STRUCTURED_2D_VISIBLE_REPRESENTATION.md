@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A QWEN OFFICIAL-RESOLUTION CONTROL READY**
+Gate status: **ACTIVE — G3S-A NATIVE SD1.5 PIXEL REAUTHOR READY**
 
 ## Why G3S exists
 
@@ -41,44 +41,25 @@ Goal: obtain one approved Exilada source image at the locked gameplay presentati
 - intentional modern pixel clusters at native 1×;
 - recognizably derived from `assets/source/characters/exilada/reference/exilada_master.png`.
 
-Qwen-Image-Edit-2509 is allowed only as a bounded **one-time static-source experiment**. It remains forbidden as independent animation-frame generator.
+# Qwen source experiment — CLOSED
 
-Runtime:
+Qwen-Image-Edit-2509 was tested only as a bounded static-source experiment. It remains forbidden as independent animation-frame generator.
 
-`Z:\AI\QwenImageEditSpike`
-
-Pinned model set:
-
-- `Qwen-Image-Edit-2509-Q4_0.gguf`;
-- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
-- `qwen_image_vae.safetensors`.
-
-## G3S-A V1 — INVALID / HARNESS FAIL
+## V1 — INVALID / HARNESS FAIL
 
 The first completed Qwen run produced an almost-black result. Inspection found the API graph differed materially from the official ComfyUI Qwen 2509 blueprint: primary conditioning image and sampled latent did not match, `CFGNorm` was missing, negative conditioning was wired differently and sampling settings mixed separate official presets.
 
 V1 is therefore not a model-quality verdict.
 
-## G3S-A V2 — NATIVE 640×360 FAIL
+## V2 — DIRECT NATIVE 640×360 FAIL
 
 Workflow revision:
 
 `QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`
 
-V2 corrected the critical graph relationships:
+V2 corrected the graph and completed inference normally, but the saved native `640×360` output genuinely collapsed to a near-uniform image.
 
-- Picture 1 = `640×360` guide;
-- Picture 1 also owns the sampled VAE latent;
-- Picture 2 = canonical Exilada master;
-- both positive and negative conditioning receive the same refs + VAE;
-- `UnetLoaderGGUF -> ModelSamplingAuraFlow(3.0) -> CFGNorm(1.0)`;
-- `20` steps / CFG `2.5` / Euler / simple / denoise `1.0`.
-
-The only deliberate deviation from the official blueprint was omission of `FluxKontextImageScale`, because G3S-A specifically needed to test true native `640×360` output without later shrinking.
-
-The inference itself completed successfully in ComfyUI on the RTX 3060. Runtime/model loading was normal. The saved raw output was nevertheless a genuinely collapsed, near-uniform image rather than a rejected threshold false positive.
-
-Measured raw evidence:
+Measured evidence:
 
 - size: `640×360`;
 - SHA256: `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
@@ -88,42 +69,91 @@ Measured raw evidence:
 - target p95 luma: `71`;
 - target stddev: `0.4336`.
 
-Therefore the **direct native Qwen 640×360 route is rejected**. Do not change seed, threshold or prompt to rescue it.
+Therefore the direct native Qwen route is rejected. No seed/prompt/threshold rescue is permitted.
 
-## G3S-A official-resolution control — CURRENT
+## Official-resolution control — PASS AS MODEL-FUNCTION CONTROL / NOT ART ELIGIBLE
 
-The official ComfyUI Qwen 2509 blueprint passes the primary image through `FluxKontextImageScale`, mapping it to one of the preferred roughly-one-megapixel rasters before VAE encoding/sampling.
+The final control restored `FluxKontextImageScale`, matching the official preferred-resolution behavior. It produced a coherent full-body Exilada-like woman rather than collapse.
 
-A final diagnostic control now restores that node while keeping the rest of the corrected V2 relationships.
+Uploaded control facts:
+
+- output size: **`1392×752`**;
+- coherent adult female anatomy with two arms/two legs;
+- long dark hair, degraded beige cloth and bare feet are readable;
+- the image is conventional high-resolution illustration/pseudo-pixel styling, not native gameplay pixel art;
+- it is **not eligible as final sprite art and must never be promoted by simple shrink/quantization**.
+
+Conclusion:
+
+**Qwen itself works, but Qwen is rejected as the direct native G3S-A sprite generator.** The native route collapsed; the working route requires a high-resolution raster outside the locked production representation.
+
+Qwen may remain only as a provenance/reference source for a later native re-authoring stage. No additional Qwen generation will be attempted for this gate.
+
+# G3S-A native re-author — CURRENT
+
+The next bounded test separates the two problems:
+
+1. Qwen has already supplied a coherent high-resolution identity/composition reference;
+2. a second model must actually author the final pixels **directly at `640×360`**, rather than shrink the Qwen pixels.
+
+Chosen spike: **Stable Diffusion 1.5 + a dedicated SD1.5 pixel-art LoRA, img2img at native raster**.
+
+Why this is materially different from the rejected high-res-shrink route:
+
+- the Qwen control image is resized only to create a conditioning/latent guide;
+- the guide is not final art;
+- SD1.5 resamples/re-authors the image through diffusion at exactly `640×360`;
+- the final generated image is never post-resized;
+- a 32-color same-raster version exists only for inspection.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_a_qwen_official_control.py`
-- `tools/structured-2d-character-pipeline/02_run_g3s_a_official_control.ps1`
+- `tools/structured-2d-character-pipeline/g3s_a_sd15_native_reauthor.py`
+- `tools/structured-2d-character-pipeline/03_bootstrap_and_run_g3s_a_sd15_native.ps1`
 
-Revision:
+Input control source:
 
-`QWEN2509_OFFICIAL_RESOLUTION_CONTROL_V1`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
-Purpose is narrow: determine whether Qwen works coherently under its official preferred-resolution preprocessing.
+Output workspace:
 
-Hard rule: **the control output is never eligible as final sprite art and must not be downscaled/promoted.** It exists only to decide the fate of Qwen as a source method.
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15`
 
-Decision after control:
+Pinned new model payload:
 
-- if the official-resolution output is coherent: Qwen/model/runtime are functional, but Qwen is rejected for direct native sprite production because the native route collapsed and high-res shrink is already prohibited;
-- if the official-resolution output also collapses: reject this Qwen route completely for G3S-A.
+- Stable Diffusion 1.5 `v1-5-pruned-emaonly.safetensors` — about `4.27 GB`, SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`;
+- SedatAl SD1.5 pixel-art LoRA — about `3.23 MB`, SHA256 `ad5034703699e910d5f9525ea5db64abcbd8d7396ff8f771c09403f3adb048ad`.
 
-No additional Qwen prompt/seed fishing follows either outcome.
+The existing isolated ComfyUI runtime is reused. No new runtime is installed.
 
-Control output workspace:
+Locked first test:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control`
+- source figure automatically isolated from the Qwen control;
+- conditioning-only guide placed at approximately `128 px` visible height on `640×360`;
+- SD1.5 img2img generation directly at `640×360`;
+- pixel-art LoRA strength `1.0`;
+- fixed seed `20260905`;
+- `30` steps;
+- CFG `6.0`;
+- DPM++ 2M / Karras;
+- denoise `0.72`;
+- no final resize.
 
-Expected artifacts:
+Expected review artifact:
 
-- `g3s_a_control_official_raw.png`;
-- `g3s_a_control_result.json`.
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
+
+Review order:
+
+1. topology integrity: one head/torso, two arms/hands, two legs/feet;
+2. Exilada identity/design continuity;
+3. approximately 128 px gameplay scale;
+4. intentional native 1× pixel cluster language rather than a tiny smooth illustration;
+5. long hair / degraded cloth / restraints / bare-foot readability.
+
+Kill rule:
+
+If this single native re-author candidate still reads as smooth/pseudo-pixel diffusion art rather than intentional pixel clusters, reject this SD1.5 source route too. Do not start seed fishing or parameter sweeps.
 
 # G3S-B — persistent part decomposition
 
@@ -155,11 +185,13 @@ Run only:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\02_run_g3s_a_official_control.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\03_bootstrap_and_run_g3s_a_sd15_native.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A CONTROL: REVIEW CONTROL`, share:
+The first run downloads about `4.27 GB` plus a small LoRA, then executes one native candidate.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+Then STOP. If it reaches `G3S-A SD15: REVIEW REQUIRED`, share:
 
-and optionally `g3s_a_control_result.json`. If it fails, share the console output. Do not run G3S-B or G4.
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
+
+If it fails, share the complete console output. Do not start G3S-B or G4.
