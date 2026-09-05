@@ -1,0 +1,23 @@
+{
+  "gate": "G3S-A-PIXELLOCK",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "revision": "PIXELLOCK_64_TO_128_FOOTPRINT_LOCKED_V1",
+  "reason": "The native 128x128 output preserved the scaffold footprint perfectly but collapsed all 3416 opaque pixels to a single RGB value, so it produced a monochrome silhouette rather than authored Exilada pixel art.",
+  "evidence": {
+    "raw_sha256": "a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b",
+    "raw_size": [128, 128],
+    "raw_alpha_bbox": [42, 2, 86, 126],
+    "raw_visible_height": 124,
+    "opaque_pixels": 3416,
+    "unique_opaque_rgb": 1,
+    "only_opaque_rgb": [99, 9, 25],
+    "engine_finish_reason": "stop",
+    "engine_parsed": true,
+    "footprint_perfect": true,
+    "completion_tokens": 16695,
+    "latency_s": 626.5
+  },
+  "architectural_lesson": "PixelLock's GBNF footprint lock is valuable only after a good sprite footprint already exists. In the tested 2x mode it cannot invent or repair the source silhouette; using it as the initial Exilada source generator is structurally the wrong role.",
+  "decision": "Do not tune PixelLock prompts, temperature, palette, seed, or upscale parameters for G3S-A. Preserve it only as a possible later footprint-safe recolor/restyle utility after canonical pixel assets exist."
+}
