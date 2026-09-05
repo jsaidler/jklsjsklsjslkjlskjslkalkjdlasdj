@@ -151,7 +151,7 @@ Marker: `tools/deterministic-character-pipeline/g3r_failure.json`.
 
 Do not run more renderer-only variants on the primitive proxy.
 
-## G3V — REPRESENTATIVE VISUAL PROXY: READY TO RERUN / ACTIVE
+## G3V — REPRESENTATIVE VISUAL PROXY: ACTIVE / RERUN REQUIRED
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
@@ -165,33 +165,47 @@ Tooling:
 
 The initial Blender-extension-management route was abandoned after repeated headless activation failures despite a successful verified install.
 
-The current runner now:
+The current runner:
 
-1. acquires **pinned MPFB 2.0.17** from the official Blender Extensions API;
+1. acquires pinned MPFB 2.0.17 from the official Blender Extensions API;
 2. verifies the advertised SHA256 (`4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87` on the validated download);
 3. extracts the pinned archive locally;
 4. locates the real MPFB Python package root;
 5. launches **one Blender background process only**;
 6. bootstraps the MPFB service layer directly from the verified package, bypassing extension repository/add-on preference state;
 7. creates a continuous adult female MPFB basemesh;
-8. adds MPFB's built-in **`cmu_mb`** weighted rig;
+8. adds MPFB's built-in `cmu_mb` weighted rig;
 9. reuses the approved G2 real walk action;
-10. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles;
-11. renders semantic ID + neutral-light passes at `640×360 / 26 deg / 128 px`;
-12. creates two visible rows across four real walk phases:
-   - representative continuous geometry;
-   - native semantic 4-band pixel translation;
-13. writes hashes, manifest, `.blend`, result JSON and contact sheet.
+10. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles.
 
-No normal G3V execution should now open multiple Blender maintenance/probe processes.
+### Latest G3V result — INVALID BLANK CONTACT SHEET
 
-Expected review artifact:
+The first one-process G3V execution reached completion and produced a contact sheet, but all eight review cells contained only background. The labels were visible; the character was not.
+
+This artifact is **invalid and must not be judged aesthetically**.
+
+Root process failure: the renderer accepted non-empty PNG files without verifying that any semantic character pixels were present.
+
+The current fix now:
+
+- creates an explicit root-visible `G3V_RENDER` collection;
+- moves body/rig/hair/cloth/shackles/camera/light into it;
+- replaces Workbench object-color semantic rendering with **Eevee explicit emissive ID materials**;
+- uses an explicit neutral Eevee light pass;
+- validates every semantic PNG after render;
+- requires at least 200 foreground semantic pixels per sampled frame;
+- requires visible character height between `80..180 px` around the locked `128 px` target;
+- refuses to create a review artifact if the sequence contains zero semantic foreground.
+
+Therefore another completely blank G3V contact sheet should now become a hard FAIL at render time instead of `REVIEW_REQUIRED`.
+
+Expected valid review artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_contact_sheet.png`
 
 ### G3V kill switch
 
-If the continuous representative human still reads only as conventional 3D made blocky, hidden 3D is rejected as owner of the final visible character. It remains the motion/topology/socket/physics backbone and final character art moves to structured 2D.
+If a **validated non-blank** continuous representative human still reads only as conventional 3D made blocky, hidden 3D is rejected as owner of the final visible character. It remains the motion/topology/socket/physics backbone and final character art moves to structured 2D.
 
 G4 remains blocked until G3V review.
 
