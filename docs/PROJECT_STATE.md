@@ -58,26 +58,15 @@ Normal production must remain scriptable/headless. The user must not need routin
 - raw per-frame `matrix_basis` copy G2 -> MPFB: REJECTED as retarget method;
 - local-axis `REST_COMPENSATED_FK`: REJECTED after G3V-R V1;
 - MPFB pose API for this G2/MPFB pair: REJECTED after measured articulation error;
-- **hidden 3D as owner of final visible character color pixels: REJECTED after G3V visual kill switch.**
+- hidden 3D as owner of final visible character color pixels: REJECTED after G3V visual kill switch.
 
-Qwen-Image-Edit-2509 remains forbidden as an independent per-frame animation owner. It is active only as a bounded **one-time static source-art candidate** in G3S-A.
+Qwen-Image-Edit-2509 remains forbidden as independent per-frame animation owner. It is active only as a bounded one-time static source-art candidate in G3S-A.
 
 ## Active architecture — LOCKED
 
 `camera/scale -> real motion -> deterministic hidden topology -> validated DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
-Hidden 3D owns control/infrastructure only:
-
-- real motion;
-- topology/left-right identity;
-- sockets;
-- contacts/root data;
-- physics;
-- depth/occlusion;
-- semantic/body-part guides;
-- secondary-motion drivers.
-
-It no longer owns final visible color pixels.
+Hidden 3D owns control/infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers.
 
 ## Gate order — CURRENT
 
@@ -89,7 +78,7 @@ It no longer owns final visible color pixels.
 - G3V representative continuous human visual proxy — FAIL/CLOSED
   - G3V-R retarget preflight — PASS/CLOSED
 - **G3S structured 2D visible representation** ← ACTIVE
-  - **G3S-A static Exilada source sprite** ← BOOTSTRAP + RUN READY
+  - **G3S-A static Exilada source sprite V2** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -110,17 +99,11 @@ Windows 11 + Blender 5.1.1 headless automation validated.
 
 ## G1 — PASS / CLOSED
 
-Locked:
-
-- raster `640×360`;
-- orthographic pitch `26 deg`;
-- protagonist visible reference height `128 px`.
+Locked: `640×360`, orthographic pitch `26 deg`, protagonist visible height `128 px`.
 
 ## G2 — PASS / CLOSED
 
-Source: CMU `105_34 NormalWalk`, 120 fps.
-
-Validated: real locomotion basis, stable major-limb topology, left/right alternation and deterministic structure.
+Source: CMU `105_34 NormalWalk`, 120 fps. Real locomotion, stable major-limb topology, left/right alternation and deterministic structure validated.
 
 ## G3 / G3R
 
@@ -141,104 +124,91 @@ Measured facts:
 - rest-independent chain-shape metric passed;
 - source/target skeleton sheet visually passed topology and gait-phase correspondence.
 
-Marker:
-
-`tools/deterministic-character-pipeline/g3v_retarget_approval.json`
-
-This retarget remains hidden production infrastructure.
+Marker: `tools/deterministic-character-pipeline/g3v_retarget_approval.json`.
 
 ## G3V — FAIL / CLOSED
 
-Failure marker:
+Failure marker: `tools/deterministic-character-pipeline/g3v_failure.json`.
 
-`tools/deterministic-character-pipeline/g3v_failure.json`
-
-Final reviewed body/pixel sheet at frames `1568,1588,1608,1628` was technically coherent: distinct phases, stable major topology, no retarget collapse, reproducible representative hair/cloth/restraints.
-
-Visual result: **FAIL.** It still read as simplified conventional 3D translated into coarse native-raster/palette output rather than intentional modern pixel art. The kill switch fired. No G3V2 renderer refinement will be attempted.
+Final reviewed body/pixel sheet at frames `1568,1588,1608,1628` was technically coherent but visually still read as simplified conventional 3D translated into coarse native-raster/palette output. Hidden 3D therefore remains infrastructure only.
 
 # G3S — STRUCTURED 2D VISIBLE REPRESENTATION
 
-Canonical design:
+Canonical design: `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`.
 
-`docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+Goal: final visible pixels come from persistent authored 2D pixel assets while validated hidden motion/topology provides control data.
 
-Goal: use validated hidden motion/topology only as control data while final visible pixels come from persistent authored 2D pixel assets.
+## G3S-A dependency state
 
-## G3S-A — CURRENT
-
-Static-source tooling:
-
-- `tools/structured-2d-character-pipeline/00_bootstrap_and_run_g3s_a.ps1`
-- `tools/structured-2d-character-pipeline/01_run_g3s_a.ps1`
-- `tools/structured-2d-character-pipeline/g3s_a_static_source.py`
-
-Qwen workspace:
+The isolated Qwen runtime is now provisioned under:
 
 `Z:\AI\QwenImageEditSpike`
 
-### First run result — PROVISIONING FAIL ONLY
+with pinned Qwen 2509 Q4_0 GGUF, Qwen VL encoder and Qwen image VAE.
 
-The first G3S-A invocation did not perform inference. It found that the preserved Qwen workspace had never been provisioned and therefore lacked:
+One-command operator path:
 
-- isolated ComfyUI embedded Python and `main.py`;
-- `Qwen-Image-Edit-2509-Q4_0.gguf`;
-- `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
-- `qwen_image_vae.safetensors`.
+`tools/structured-2d-character-pipeline/00_bootstrap_and_run_g3s_a.ps1`
 
-This is not a visual/model verdict.
+## G3S-A V1 — INVALID INFERENCE / HARNESS FAIL
 
-### One-command bootstrap — READY
+The first completed G3S-A inference produced an almost-black raw frame/contact sheet. This is **not** a Qwen visual/model verdict.
 
-`00_bootstrap_and_run_g3s_a.ps1` now owns the complete operator path. If prerequisites are missing it:
+Inspection found the V1 API graph was wrong relative to the official ComfyUI Qwen 2509 workflow:
 
-1. runs the preserved hardware/disk preflight;
-2. provisions the isolated ComfyUI portable runtime;
-3. installs pinned `ComfyUI-GGUF`;
-4. downloads exactly the three Qwen model files and SHA256-validates them;
-5. executes the normal G3S-A one-shot static inference.
+- `image1` conditioning was the Exilada master while the sampled latent came from the guide;
+- `CFGNorm` was missing;
+- negative conditioning lacked the same refs/VAE structure;
+- `20 steps / CFG 4.0` mixed two different official setting families.
 
-Approximate first-time model payload: **21.5 GB**, plus ComfyUI portable. The preserved preflight requires at least **40 GB free** on the workspace drive before setup.
+Therefore V1 is classified **INVALID INFERENCE / HARNESS FAIL**, not G3S-A visual FAIL.
 
-Existing valid files are reused. The model download script will not silently overwrite a wrong-hash existing file.
+## G3S-A V2 — READY
 
-### G3S-A inference contract
+New helper:
 
-- canonical `exilada_master.png` is the identity/design input;
-- generated abstract pose/scale guide is the second reference;
-- direct native `640×360` canvas;
-- target figure ≈`128 px` high;
+`tools/structured-2d-character-pipeline/g3s_a_static_source_v2.py`
+
+Runner `01_run_g3s_a.ps1` now points to V2.
+
+Workflow revision:
+
+`QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`
+
+V2 locks:
+
+- Picture 1 = generated 640×360 pose/scale guide;
+- Picture 1 is also the VAE-encoded `latent_image`;
+- Picture 2 = exact canonical Exilada master;
+- positive and negative Qwen edit conditioning both receive both refs + VAE;
+- model path `UnetLoaderGGUF -> ModelSamplingAuraFlow(3.0) -> CFGNorm(1.0)`;
+- `20` steps / CFG `2.5` / Euler / simple / denoise `1.0`;
 - fixed seed `20260905`;
-- one static candidate only;
-- no post-inference resize;
-- 32-color same-raster output exists only for inspection;
-- topology/identity/pixel-art quality remain a visual review gate.
+- no post-inference resize.
 
-Expected artifact:
+The official blueprint's `FluxKontextImageScale` is intentionally omitted because G3S-A specifically tests true 640×360 output instead of a ~1MP primary raster followed by shrink.
+
+V2 includes an automatic near-black/flat-output guard. Invalid output now fails before `REVIEW_REQUIRED` instead of wasting a visual review.
+
+Expected valid-review artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`
 
-Review order:
+Review order remains:
 
-1. topology: exactly one head/torso, two arms/hands, two legs/feet;
+1. topology: one head/torso, two arms/hands, two legs/feet;
 2. Exilada identity/design continuity;
-3. ~128 px gameplay scale and correct lateral/slight-3/4 presentation;
+3. ~128 px gameplay scale and lateral/slight-3/4 presentation;
 4. intentional modern pixel cluster language at native 1×;
 5. long hair / degraded cloth / restraints / bare feet readability.
 
 ## G3S-B / C — BLOCKED
 
-Only after one G3S-A static source is visually approved:
-
-- decompose it into persistent side-aware parts;
-- drive those parts from the validated hidden rig;
-- test four gait phases `1568,1588,1608,1628` without per-frame generation.
-
-No per-frame diffusion and no routine frame-by-frame repainting.
+Only after one G3S-A static source is visually approved: decompose into persistent side-aware parts, then drive those parts from the validated hidden rig across frames `1568,1588,1608,1628` without per-frame generation.
 
 ## G4 — RESCOPED / BLOCKED
 
-After G3S passes, G4 becomes the **Exilada production 2D identity system**: canonical sprite parts, palette/material families, hair/cloth/restraint structure, sockets/occlusion metadata and damage-ready layers.
+After G3S passes, G4 becomes the Exilada production 2D identity system: canonical sprite parts, palette/material families, hair/cloth/restraint structure, sockets/occlusion metadata and damage-ready layers.
 
 # Exact next action — ONLY THIS
 
@@ -249,15 +219,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\00_bootstrap_and_run_g3s_a.ps1"
 ```
 
-The first execution may download about `21.5 GB` of Qwen model weights plus ComfyUI portable after preflight passes.
+Runtime/models should be reused; this should proceed directly to V2 inference.
 
-Then STOP.
-
-If it reaches `G3S-A: REVIEW REQUIRED`, share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`
-
-If it fails, share the complete console output. Do not start G3S-B or G4.
+Then STOP. If it reaches `G3S-A: REVIEW REQUIRED`, share `Z:\AI\RogueliteCharacterPipeline\g3s_a\g3s_a_contact_sheet.png`. If it fails, share the complete console output. Do not start G3S-B or G4.
 
 ## Workspace
 
