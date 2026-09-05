@@ -24,8 +24,9 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 16. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 17. `docs/G3V_RETARGET_PREFLIGHT_LOG.md`
 18. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+19. `docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
 
-After every material step: update relevant thematic docs + this file and commit focused changes.
+After every material step: update the relevant thematic document + this file and make a focused commit.
 
 ## Game identity — LOCKED
 
@@ -37,17 +38,17 @@ Final visible language: **true modern pixel art at native gameplay raster**.
 
 ## Exilada identity — LOCKED
 
-Canonical identity/design master:
+Canonical design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master defines identity/design, not final gameplay pixels.
-
 Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth, scars/wounds, broken restraints at wrists/ankles, bare feet, canonical base weaponless.
+
+The master defines identity/design, not final gameplay pixels.
 
 ## Hard operator constraint
 
-Normal production must remain scriptable/headless. The user must not need routine Blender/Aseprite/rigging operation, frame-by-frame repainting or a hired specialist.
+Normal production remains scriptable/headless. The user must not need routine Blender/Aseprite/rigging work, frame-by-frame repainting or a hired specialist.
 
 Normal operator loop:
 
@@ -55,12 +56,11 @@ Normal operator loop:
 
 ## Model-discard cleanup rule — LOCKED
 
-Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and that model is no longer required as an active dependency, the same response must include an exact PowerShell command that removes its downloaded model-specific files.
+Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and is no longer an active dependency, the same response must include an exact PowerShell command to remove its downloaded model-specific files.
 
-- Preserve small result images, JSON markers and logs as evidence unless explicitly asked to remove them.
-- If the model shares a runtime that is still used elsewhere, delete only that model's weights/model-specific dependency files; do not delete the shared runtime.
-- If the model has an isolated dependency workspace and nothing else depends on it, the cleanup command may remove that workspace recursively.
-- This cleanup command is mandatory at the moment the model is discarded; do not wait for the user to ask.
+- preserve small result images/JSON/logs as evidence unless asked otherwise;
+- preserve shared runtimes still used elsewhere;
+- isolated dead dependency workspaces may be removed recursively.
 
 ## Locked gameplay camera baseline
 
@@ -69,13 +69,11 @@ Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and that mo
 - pitch `26 deg`;
 - protagonist reference visible height `128 px`.
 
-## Active architecture — LOCKED
+## Active production architecture — LOCKED
 
 `camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
-Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers.
-
-It does **not** own final visible character color pixels.
+Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers. It does **not** own final visible character color pixels.
 
 ## Gate order — CURRENT
 
@@ -95,8 +93,9 @@ It does **not** own final visible character color pixels.
     - PixelLock native-grid source — FAIL/CLOSED
     - Alucard external-reference test — INVALID/CLOSED
     - Alucard text-only native-128 control — FAIL/CLOSED
-    - **automated local generative-source search — CLOSED**
-    - **authored native source V1** ← READY TO RUN
+    - automated local generative-source search — CLOSED
+    - authored native source V1 — **FAIL/CLOSED: mouth not visually readable**
+    - **G3S-A1 Facial / Anatomy Lock V2** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -109,58 +108,43 @@ It does **not** own final visible character color pixels.
 - G7 systemic state/dynamic lighting
 - G8 production scaling
 
-# Validated history
+## Validated backbone
 
-## G0 — PASS
+### G0 — PASS
 
 Windows 11 + Blender 5.1.1 headless automation validated.
 
-## G1 — PASS
+### G1 — PASS
 
 Locked `640×360`, orthographic `26 deg`, protagonist `128 px`.
 
-## G2 — PASS
+### G2 — PASS
 
 Real motion source: CMU `105_34 NormalWalk`, 120 fps. Major-limb topology, left/right alternation and deterministic structure validated.
 
-## G3 / G3R
-
-G3 proved deterministic native-grid processing technically possible but not production-looking. G3R proved renderer-only refinement cannot invent authored 2D form from a primitive mannequin.
-
-## G3V-R — PASS
+### G3V-R — PASS
 
 Accepted retarget: **`DIRECTION_SPACE_FK`**.
 
-Measured facts:
-
-- `0` parent mismatches;
-- mean source/target rest-orientation difference `83.1874 deg`, max `180.0289 deg`;
-- 4 unique target poses;
-- mean elbow/knee error `0.0000 deg`, max `0.0001 deg`;
-- rest-independent chain-shape metric passed;
-- visual source/target skeleton comparison passed.
+Measured facts: `0` parent mismatches; mean rest-orientation difference `83.1874 deg`, max `180.0289 deg`; 4 unique target poses; mean elbow/knee error `0.0000 deg`, max `0.0001 deg`; rest-independent chain-shape metric passed; source/target skeleton sheet visually passed.
 
 Marker:
 
 `tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
-## G3V — FAIL
+### G3V — FAIL
 
-Representative MPFB body animated coherently after validated retarget, but the direct visible translation still read as coarse 3D rather than deliberate modern pixel art.
-
-Decision: hidden 3D remains control/infrastructure only.
+Representative MPFB body animated coherently after validated retarget, but native visible translation still read as coarse 3D rather than deliberate modern pixel art. Hidden 3D remains control/infrastructure only.
 
 Marker:
 
 `tools/deterministic-character-pipeline/g3v_failure.json`
 
-# G3S-A source-search history
+## G3S-A source-search history — CLOSED
 
-## Qwen direct-native — FAIL
+Qwen native, SD1.5, PixelLock and Alucard were bounded architecture probes. None produced an acceptable native source sprite. The automated local generative-source search is closed; do not start another model search.
 
-Native `640×360` corrected Qwen output collapsed flat. The same model/runtime at its preferred preprocessing produced a coherent `1392×752` Exilada-like design control.
-
-The control remains at:
+A coherent Qwen preferred-resolution control is retained only as design/scaffold provenance:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
@@ -168,86 +152,41 @@ Pinned SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-It is design/scaffold material only, never animation owner.
+## Authored native source V1 — FAIL/CLOSED
 
-## SD1.5 native re-author — FAIL
+Method:
 
-Native `640×360` SD1.5 + pixel LoRA produced a block/mannequin and lost Exilada identity. No tuning permitted.
+`fixed Qwen design scaffold -> deterministic 128×128 base -> explicit native pixel patch`
 
-Marker:
+V1 added/restored nominal mouth pixels, wrist cuffs, ankle restraints and chain remnants. Visual review found that the mouth still did **not** read as a mouth. The old automated guard merely checked alpha presence and therefore produced a false technical pass.
 
-`tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
+Failure marker:
 
-## PixelLock — FAIL
+`tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
 
-Footprint-perfect `128×128` result but only one opaque RGB value `[99,9,25]`; a monochrome silhouette, not a source sprite.
+Critical lesson: **anatomical details are gate-critical and semantic readability is authoritative; pixel existence alone is insufficient.**
 
-Marker:
+## G3S-A1 Facial / Anatomy Lock — CURRENT
 
-`tools/structured-2d-character-pipeline/g3s_a_pixellock_failure.json`
+Canonical log:
 
-PixelLock may return later only after a canonical sprite exists.
+`docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
 
-## Alucard — CLOSED
+V2 remains deterministic/headless and does not invoke an image model. It strengthens the facial cluster with an explicit two-row mouth, lip contrast and chin separation while preserving the canonical restraint patches.
 
-### External-reference run — INVALID
-
-A Qwen-derived design image was incorrectly used as Alucard `ref`; upstream uses `ref` as a previous sprite/animation frame. That run is not a model-quality verdict. Its 128 conditioning reduction also lost the mouth, correctly identified during review.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_a_alucard_reference_invalid.json`
-
-### Text-only upstream control — FAIL
-
-Documented text-to-sprite mode, no reference input:
-
-- native `128×128 RGBA`;
-- seed `20260905`;
-- 20 Euler steps;
-- CFG text `5.0`;
-- model revision `b8e7602`;
-- raw SHA256 `c3143b76444abc7c5b6f7b1fe6c0d66a51e7f83d4fff7519018fe3a97739bc5a`;
-- alpha bbox full canvas `[0,0,127,127]`;
-- `12525` opaque pixels;
-- `12059` unique opaque colors.
-
-Visual result: full-canvas mottled/noisy texture with no coherent sprite.
-
-Decision: Alucard FAIL/CLOSED. No seed/CFG/prompt/sampler fishing.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_a_alucard_failure.json`
-
-# G3S-A authored native source — CURRENT
-
-The automated local generative-source search is **closed**. G3S-A is now a finite native-authoring problem.
-
-Current method:
-
-`fixed Qwen design scaffold -> deterministic 128x128 base -> explicit native pixel patch data -> 1x review -> revise patch data if needed -> approve canonical source`
-
-This is not a return to per-frame manual art. It is a one-time canonical source construction. Once approved, G3S-B decomposes it into persistent parts and G3S-C animates those parts deterministically from the validated hidden motion.
-
-V1 patch explicitly restores/introduces:
-
-- readable mouth;
-- both wrist cuffs;
-- both ankle restraints;
-- short broken-chain remnants.
+It also changes review tooling: the contact sheet now exposes explicit nearest-neighbor diagnostics for face, both hands and both feet.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_a_authored_native_v1.py`
-- `tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
-- `tools/structured-2d-character-pipeline/07_run_g3s_a_authored_native.ps1`
+- `tools/structured-2d-character-pipeline/g3s_a_anatomy_patch_v2.json`
+- `tools/structured-2d-character-pipeline/g3s_a1_facial_anatomy_lock.py`
+- `tools/structured-2d-character-pipeline/08_run_g3s_a1_facial_anatomy_lock.ps1`
 
-Output:
+Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock`
 
-If review requests changes, edit the explicit patch data. **Do not search another source model.**
+Do **not** begin G3S-B, G3S-C or G4 until static anatomy is visually approved.
 
 ## Exact next action — ONLY THIS
 
@@ -255,17 +194,17 @@ If review requests changes, edit the explicit patch data. **Do not search anothe
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\07_run_g3s_a_authored_native.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\08_run_g3s_a1_facial_anatomy_lock.ps1"
 ```
 
-Then STOP. Share the authored contact sheet. Do not run G3S-B or G4.
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a1_anatomy_lock\g3s_a1_contact_sheet.png`
 
 ## Workspaces
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
-- Qwen runtime/reference: `Z:\AI\QwenImageEditSpike`
-- PixelLock evidence/dependencies: `Z:\AI\PixelLockSpike`
-- Alucard evidence/dependencies: `Z:\AI\AlucardSpike`
+- shared embedded Python runtime retained under: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
