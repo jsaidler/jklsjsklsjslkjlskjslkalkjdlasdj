@@ -58,8 +58,8 @@ function Invoke-NativeSafe {
 }
 
 Write-Host ''
-Write-Host 'Roguelite - G3S-B3A COMPLETE NUDE ANATOMY GUIDE' -ForegroundColor Cyan
-Write-Host 'Body first. No hair, no clothing, no cuffs/shackles, no chains.'
+Write-Host 'Roguelite - G3S-B3A V2 COMPLETE ADULT FEMALE NUDE ANATOMY GUIDE' -ForegroundColor Cyan
+Write-Host 'Body first. Female phenotype. No hair, no clothing, no cuffs/shackles, no chains.'
 Write-Host 'This produces deterministic structural guide data only; it is NOT final visible pixel art.' -ForegroundColor Yellow
 Write-Host ''
 
@@ -160,7 +160,7 @@ $stderr = Join-Path $logDir 'blender_stderr.log'
 $pitch = [int]$baseline.camera_pitch_deg
 $heroPx = [int]$baseline.protagonist_reference_height_px
 $yaw = 8
-Write-Host "[RUN] one Blender background process | complete nude/hairless anatomy guide | 640x360 / ${pitch}deg / ${heroPx}px..." -ForegroundColor Cyan
+Write-Host "[RUN] one Blender background process | corrected adult female nude/hairless anatomy guide | 640x360 / ${pitch}deg / ${heroPx}px..." -ForegroundColor Cyan
 
 $argumentString = '--background --python-exit-code 1 --python "{0}" -- --mpfb-root "{1}" --mpfb-user-root "{2}" --target-script "{3}" --output-dir "{4}" --pitch {5} --hero-px {6} --yaw {7}' -f $bootstrapScript,$mpfbRoot,$mpfbUserRoot,$targetScript,$outDir,$pitch,$heroPx,$yaw
 $proc = Start-Process -FilePath $blenderExe -ArgumentList $argumentString -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
@@ -174,6 +174,9 @@ if ($proc.ExitCode -ne 0) { Fail "Blender exited with code $($proc.ExitCode). Se
 $stdoutText = Get-Content $stdout -Raw -ErrorAction SilentlyContinue
 foreach ($marker in @(
     'G3S_B3_MPFB_BOOTSTRAP=PASS',
+    'G3S_B3A_REVISION=G3S_B3A_NUDE_ANATOMY_GUIDE_V2',
+    'G3S_B3A_PHENOTYPE_GENDER=FEMALE',
+    'G3S_B3A_MALE_TARGETS=0',
     'G3S_B3A_COMPLETE_NUDE_GEOMETRY=PASS',
     'G3S_B3A_HAIR_OBJECTS=0',
     'G3S_B3A_CLOTHING_OBJECTS=0',
@@ -187,10 +190,16 @@ $manifest = Join-Path $outDir 'g3s_b3a_manifest.json'
 if (-not (Test-Path $manifest -PathType Leaf)) { Fail "Manifest missing: $manifest" }
 $data = Get-Content $manifest -Raw | ConvertFrom-Json
 if ($data.gate -ne 'G3S-B3-A-NUDE-ANATOMY-GUIDE' -or $data.status -ne 'REVIEW_REQUIRED') { Fail 'Unexpected G3S-B3A manifest state.' }
+if ($data.revision -ne 'G3S_B3A_NUDE_ANATOMY_GUIDE_V2') { Fail "Unexpected G3S-B3A revision: $($data.revision)" }
+if ([double]$data.macro.gender -ne 0.0) { Fail "MPFB gender polarity guard failed: expected 0.0 female, got $($data.macro.gender)" }
+if ($data.phenotype_audit.resolved_gender -ne 'female') { Fail "Phenotype audit did not resolve female: $($data.phenotype_audit.resolved_gender)" }
+if ([int]$data.phenotype_audit.female_target_count -lt 1) { Fail 'Phenotype audit resolved no female macro targets.' }
+if ([int]$data.phenotype_audit.male_target_count -ne 0) { Fail "Phenotype audit resolved male targets: $($data.phenotype_audit.male_target_count)" }
 if (-not [bool]$data.layer_audit.complete_body_geometry) { Fail 'Body geometry audit did not pass.' }
-if ([int]$data.layer_audit.hair_objects -ne 0 -or [int]$data.layer_audit.clothing_objects -ne 0 -or [int]$data.layer_audit.restraint_objects -ne 0) {
+if ([int]$data.layer_audit.hair_objects -ne 0 -or [int]$data.layer_audit.clothing_objects -ne 0 -or [int]$data.layer_audit.restraint_objects -ne 0 -or [int]$data.layer_audit.chains_objects -ne 0) {
     Fail 'Forbidden layer objects were present in nude body guide.'
 }
+Write-Host '[OK] MPFB phenotype audit: female target stack, zero male targets.' -ForegroundColor Green
 
 $contact = Join-Path $outDir 'g3s_b3a_contact_sheet.png'
 $code = Invoke-NativeSafe -Exe $embeddedPython -Arguments @($contactHelper,'--manifest',$manifest,'--output',$contact)
@@ -198,11 +207,11 @@ if ($code -ne 0) { Fail "Contact-sheet helper exited with code $code" }
 if (-not (Test-Path $contact -PathType Leaf)) { Fail "Contact sheet missing: $contact" }
 
 Write-Host ''
-Write-Host 'G3S-B3A: REVIEW REQUIRED' -ForegroundColor Yellow
+Write-Host 'G3S-B3A V2: REVIEW REQUIRED' -ForegroundColor Yellow
 Write-Host "CONTACT SHEET: $contact"
 Write-Host "MANIFEST:      $manifest"
 Write-Host "LIT GUIDE:     $(Join-Path $outDir 'g3s_b3a_nude_anatomy_lit.png')"
 Write-Host "MASK:          $(Join-Path $outDir 'g3s_b3a_nude_anatomy_mask.png')"
 Write-Host ''
-Write-Host 'STOP. This only validates the complete nude/hairless anatomy guide. Do not author hair/clothing and do not start animation yet.' -ForegroundColor Yellow
+Write-Host 'STOP. This only validates the corrected complete adult female nude/hairless anatomy guide. Do not author hair/clothing and do not start animation yet.' -ForegroundColor Yellow
 Write-Host 'After review, B3-B authors the actual native 128x128 body-base pixel asset.' -ForegroundColor Yellow
