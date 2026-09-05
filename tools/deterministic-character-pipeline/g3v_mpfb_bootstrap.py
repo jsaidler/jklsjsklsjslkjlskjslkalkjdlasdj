@@ -90,12 +90,16 @@ def main():
 
     target_globals = target_main.__globals__
 
-    # Install diagnostics into the exact namespace used by target functions. The binary
-    # semantic pass is deliberately kept in a separate helper so the G3V character logic
-    # is not polluted by renderer-debug workarounds.
+    # Runtime patches must bind into function.__globals__, not the copy returned by
+    # runpy.run_path(). Keep geometry/phase corrections and semantic diagnostics separate
+    # from the representative-character source so each failure mode remains inspectable.
     helper_dir = Path(__file__).resolve().parent
     if str(helper_dir) not in sys.path:
         sys.path.insert(0, str(helper_dir))
+
+    geometry_phase = importlib.import_module("g3v_geometry_phase_patch")
+    geometry_phase.install_geometry_phase_fixes(target_globals)
+
     semantic_masks = importlib.import_module("g3v_semantic_masks")
     semantic_masks.install_binary_semantic_masks(target_globals)
 
