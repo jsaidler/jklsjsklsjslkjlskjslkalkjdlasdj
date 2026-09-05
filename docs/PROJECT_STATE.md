@@ -33,7 +33,7 @@ Systemic sword-and-sorcery action RPG with roguelite expedition structure, persi
 
 Presentation baseline: elevated 2D belt-scroller / false 3D.
 
-Final visible language remains **true modern pixel art at native gameplay raster**.
+Final visible language: **true modern pixel art at native gameplay raster**.
 
 ## Exilada identity — LOCKED
 
@@ -43,34 +43,30 @@ Canonical identity/design master:
 
 The master defines identity/design, not final gameplay pixels.
 
+Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth, scars/wounds, broken restraints at wrists/ankles, bare feet, canonical base weaponless.
+
 ## Hard operator constraint
 
 Normal production must remain scriptable/headless. The user must not need routine Blender/Aseprite/rigging operation, frame-by-frame repainting or a hired specialist.
 
-## Rejected / closed routes
+Normal operator loop:
 
-- FLUX.2 Klein + RefControl direct-frame animation — REJECTED/FROZEN after topology drift and a three-leg frame;
-- direct per-frame diffusion as animation owner — REJECTED;
-- high-resolution beauty render + generic shrink/pixel filter — REJECTED as final-art route;
-- primitive mannequin renderer tuning — REJECTED after G3R;
-- hidden 3D as owner of final visible character color pixels — REJECTED after G3V kill switch;
-- raw Blender `Action` copy G2 -> MPFB — REJECTED;
-- raw per-frame `matrix_basis` copy — REJECTED;
-- local-axis `REST_COMPENSATED_FK` — REJECTED;
-- MPFB pose API for this source/target pair — REJECTED;
-- Qwen-Image-Edit-2509 direct native `640×360` generation — REJECTED after flat collapse;
-- SD1.5 + pixel-art LoRA direct native `640×360` re-author — REJECTED after block/mannequin identity collapse;
-- **PixelLock as initial G3S-A source generator — REJECTED after a footprint-perfect but single-color 128×128 silhouette.**
+`git pull -> one documented PowerShell command -> inspect/share output`
 
-Qwen official-resolution generation is retained only as a one-time design/pose reference. It cannot be resized/quantized into final art and remains forbidden as independent animation-frame owner.
+## Locked gameplay camera baseline
 
-PixelLock may return only later as a footprint-safe recolor/restyle tool after a good canonical sprite already exists.
+- `640×360`;
+- orthographic;
+- pitch `26 deg`;
+- protagonist reference visible height `128 px`.
 
 ## Active architecture — LOCKED
 
 `camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
-Hidden 3D owns control/infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers.
+Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers.
+
+It does **not** own final visible character color pixels.
 
 ## Gate order — CURRENT
 
@@ -88,7 +84,10 @@ Hidden 3D owns control/infrastructure only: motion, topology/left-right identity
     - Qwen official-resolution control — PASS AS MODEL-FUNCTION CONTROL / CLOSED
     - SD1.5 native re-author — FAIL/CLOSED
     - PixelLock native-grid source — FAIL/CLOSED
-    - **Alucard purpose-built native `128×128 RGBA` proof** ← READY TO RUN / RESEARCH ONLY
+    - Alucard external-reference test — INVALID/CLOSED
+    - Alucard text-only native-128 control — FAIL/CLOSED
+    - **automated local generative-source search — CLOSED**
+    - **authored native source V1** ← READY TO RUN
   - G3S-B persistent part decomposition — BLOCKED
   - G3S-C four-phase walk proof — BLOCKED
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
@@ -109,106 +108,137 @@ Windows 11 + Blender 5.1.1 headless automation validated.
 
 ## G1 — PASS
 
-Locked `640×360`, orthographic pitch `26 deg`, protagonist visible reference height `128 px`.
+Locked `640×360`, orthographic `26 deg`, protagonist `128 px`.
 
 ## G2 — PASS
 
-CMU `105_34 NormalWalk`, 120 fps. Real locomotion basis, major-limb topology, left/right alternation and deterministic structure validated.
+Real motion source: CMU `105_34 NormalWalk`, 120 fps. Major-limb topology, left/right alternation and deterministic structure validated.
 
 ## G3 / G3R
 
-G3 proved deterministic native-grid processing technically possible but not production-looking. G3R proved renderer-only refinement cannot invent authored 2D form from a primitive source.
+G3 proved deterministic native-grid processing technically possible but not production-looking. G3R proved renderer-only refinement cannot invent authored 2D form from a primitive mannequin.
 
 ## G3V-R — PASS
 
 Accepted retarget: **`DIRECTION_SPACE_FK`**.
 
-Measured facts: `0` parent mismatches; mean rest-orientation difference `83.1874 deg`, max `180.0289 deg`; 4 unique target poses; mean elbow/knee error `0.0000 deg`, max `0.0001 deg`; rest-independent chain-shape metric passed; source/target skeleton sheet visually passed.
+Measured facts:
 
-Marker: `tools/deterministic-character-pipeline/g3v_retarget_approval.json`.
+- `0` parent mismatches;
+- mean source/target rest-orientation difference `83.1874 deg`, max `180.0289 deg`;
+- 4 unique target poses;
+- mean elbow/knee error `0.0000 deg`, max `0.0001 deg`;
+- rest-independent chain-shape metric passed;
+- visual source/target skeleton comparison passed.
+
+Marker:
+
+`tools/deterministic-character-pipeline/g3v_retarget_approval.json`
 
 ## G3V — FAIL
 
-Representative MPFB body animated coherently after validated retarget, but native semantic/palette output still read as coarse 3D rather than deliberate modern pixel art. Hidden 3D therefore remains infrastructure only.
+Representative MPFB body animated coherently after validated retarget, but the direct visible translation still read as coarse 3D rather than deliberate modern pixel art.
 
-Failure marker: `tools/deterministic-character-pipeline/g3v_failure.json`.
+Decision: hidden 3D remains control/infrastructure only.
 
-# G3S — current
+Marker:
 
-Canonical design:
+`tools/deterministic-character-pipeline/g3v_failure.json`
 
-`docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+# G3S-A source-search history
 
-Goal: final pixels come from persistent 2D assets while hidden motion/topology supplies deterministic control.
+## Qwen direct-native — FAIL
 
-## Qwen direct-native — FAIL / CLOSED
+Native `640×360` corrected Qwen output collapsed flat. The same model/runtime at its preferred preprocessing produced a coherent `1392×752` Exilada-like design control.
 
-The corrected native Qwen run completed but produced a flat raster. The official-resolution control at `1392×752` is coherent and proves Qwen works, but remains reference-only because high-res shrink/quantization is forbidden.
+The control remains at:
 
-## SD1.5 native re-author — FAIL / CLOSED
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
 
-Failure marker:
+Pinned SHA256:
+
+`ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
+
+It is design/scaffold material only, never animation owner.
+
+## SD1.5 native re-author — FAIL
+
+Native `640×360` SD1.5 + pixel LoRA produced a block/mannequin and lost Exilada identity. No tuning permitted.
+
+Marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
 
-The one native `640×360` SD1.5 + pixel-LoRA run produced a block/mannequin and lost identity-bearing detail. No further SD1.5 tuning is allowed.
+## PixelLock — FAIL
 
-## PixelLock native-grid — FAIL / CLOSED
+Footprint-perfect `128×128` result but only one opaque RGB value `[99,9,25]`; a monochrome silhouette, not a source sprite.
 
-Failure marker:
+Marker:
 
 `tools/structured-2d-character-pipeline/g3s_a_pixellock_failure.json`
 
-The model completed normally and `footprint_perfect == true`, but the native output had:
+PixelLock may return later only after a canonical sprite exists.
 
-- `128×128` raster;
-- visible height `124 px`;
-- `3416` opaque pixels;
-- **exactly one opaque RGB value `[99,9,25]`**;
-- raw SHA256 `a77348f93b795eff1371d3960a9c23693b1667f20aa5c621ef795916e861858b`.
+## Alucard — CLOSED
 
-This is a monochrome silhouette, not a viable Exilada source. The failure is architectural: PixelLock's hard footprint grammar preserves an existing silhouette; it does not solve initial sprite authorship. Do not tune it for G3S-A.
+### External-reference run — INVALID
 
-# G3S-A Alucard native-128 proof — CURRENT
+A Qwen-derived design image was incorrectly used as Alucard `ref`; upstream uses `ref` as a previous sprite/animation frame. That run is not a model-quality verdict. Its 128 conditioning reduction also lost the mouth, correctly identified during review.
 
-Next runner:
+Marker:
 
-- `tools/structured-2d-character-pipeline/g3s_a_alucard_native.py`
-- `tools/structured-2d-character-pipeline/05_bootstrap_and_run_g3s_a_alucard.ps1`
+`tools/structured-2d-character-pipeline/g3s_a_alucard_reference_invalid.json`
 
-Pinned upstream code commit:
+### Text-only upstream control — FAIL
 
-`02d1c60a16142015f7838a6a033da5e6ac9ce4f7`
+Documented text-to-sprite mode, no reference input:
 
-Alucard is a purpose-built ~32M parameter sprite model whose native input/output is `128×128 RGBA`. Unlike PixelLock it is allowed to change the footprint and generate a new sprite. The coherent Qwen control is converted only into a transparent `128×128` conditioning reference; final Alucard output is independently sampled at `128×128` with no post-generation resize.
-
-Fixed test:
-
-- one candidate only;
+- native `128×128 RGBA`;
 - seed `20260905`;
-- 20 Euler ODE steps;
-- text CFG `5.0`;
-- reference CFG `2.0`;
-- output exactly `128×128 RGBA`;
-- gameplay preview composites it 1:1 into `640×360`.
+- 20 Euler steps;
+- CFG text `5.0`;
+- model revision `b8e7602`;
+- raw SHA256 `c3143b76444abc7c5b6f7b1fe6c0d66a51e7f83d4fff7519018fe3a97739bc5a`;
+- alpha bbox full canvas `[0,0,127,127]`;
+- `12525` opaque pixels;
+- `12059` unique opaque colors.
 
-Dependency workspace:
+Visual result: full-canvas mottled/noisy texture with no coherent sprite.
 
-`Z:\AI\AlucardSpike`
+Decision: Alucard FAIL/CLOSED. No seed/CFG/prompt/sampler fishing.
+
+Marker:
+
+`tools/structured-2d-character-pipeline/g3s_a_alucard_failure.json`
+
+# G3S-A authored native source — CURRENT
+
+The automated local generative-source search is **closed**. G3S-A is now a finite native-authoring problem.
+
+Current method:
+
+`fixed Qwen design scaffold -> deterministic 128x128 base -> explicit native pixel patch data -> 1x review -> revise patch data if needed -> approve canonical source`
+
+This is not a return to per-frame manual art. It is a one-time canonical source construction. Once approved, G3S-B decomposes it into persistent parts and G3S-C animates those parts deterministically from the validated hidden motion.
+
+V1 patch explicitly restores/introduces:
+
+- readable mouth;
+- both wrist cuffs;
+- both ankle restraints;
+- short broken-chain remnants.
+
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_a_authored_native_v1.py`
+- `tools/structured-2d-character-pipeline/g3s_a_authored_patch_v1.json`
+- `tools/structured-2d-character-pipeline/07_run_g3s_a_authored_native.ps1`
 
 Output:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_authored\g3s_a_authored_contact_sheet.png`
 
-### Harness correction
-
-The first invocation stopped before model download or inference during the expected first-pass dependency probe. This was a runner bug: Windows PowerShell 5.1 promoted Python stderr to a terminating `NativeCommandError` under `$ErrorActionPreference='Stop'`, so the intended install branch never ran. Commit `5d65039e406a4d3c01ce0dad37e51578cffa4a4e` routes every Python probe/pip/helper call through `Invoke-PythonSafe` and treats the native exit code as authoritative. If imports still fail after installation, the exact traceback is printed deliberately. Sampling parameters are unchanged.
-
-## Alucard license boundary
-
-This is **research-only** until licensing is resolved. Alucard uses FAIR License 1.0.0: published terms permit non-commercial personal/research use; commercial use requires visible attribution; Business Use requires a separate signed commercial agreement with the author. A visual PASS therefore does not automatically authorize production adoption.
-
-Kill rule: if this one purpose-built native-128 candidate still cannot produce credible Exilada pixel art, close the automated local generative-source search rather than tuning endlessly. G3S-A would then need to be re-scoped as an authored canonical-source problem.
+If review requests changes, edit the explicit patch data. **Do not search another source model.**
 
 ## Exact next action — ONLY THIS
 
@@ -216,21 +246,17 @@ Kill rule: if this one purpose-built native-128 candidate still cannot produce c
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\05_bootstrap_and_run_g3s_a_alucard.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\07_run_g3s_a_authored_native.ps1"
 ```
 
-Then STOP. If it reaches `G3S-A ALUCARD: REVIEW REQUIRED`, share:
+Then STOP. Share the authored contact sheet. Do not run G3S-B or G4.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard\g3s_a_alucard_contact_sheet.png`
-
-If it fails, share the complete console output. Do not run G3S-B or G4.
-
-## Workspace
+## Workspaces
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
-- hidden deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
+- deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
 - Qwen runtime/reference: `Z:\AI\QwenImageEditSpike`
 - PixelLock evidence/dependencies: `Z:\AI\PixelLockSpike`
-- Alucard research dependency workspace: `Z:\AI\AlucardSpike`
+- Alucard evidence/dependencies: `Z:\AI\AlucardSpike`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
