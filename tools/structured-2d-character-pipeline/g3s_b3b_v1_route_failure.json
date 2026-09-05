@@ -1,0 +1,25 @@
+{
+  "gate": "G3S-B3-B-NATIVE-NUDE-BODY-SOURCE",
+  "revision": "G3S_B3B_NATIVE_NUDE_BODY_SOURCE_V1",
+  "status": "FAIL_CLOSED_ROUTE",
+  "date": "2026-09-05",
+  "reason": "The V1 implementation copied the B3A projected 3D body mask directly into the final 2D alpha/silhouette and then procedurally colored that mask. This makes hidden 3D the visible silhouette owner and revives procedural mannequin-style authoring, contradicting the G3V kill switch and the locked G3S structured-2D ownership architecture.",
+  "canonical_conflicts": [
+    "G3V explicitly demoted hidden 3D from visible-image ownership; it may provide motion/topology/sockets/depth/semantic guides only.",
+    "G3S requires persistent 2D pixel assets to own final visible character pixels.",
+    "B3A is guide-only and must not be mechanically promoted into B3B visible geometry.",
+    "Pixel-art production rejects primitive Python/Pillow mannequin authoring as final character art."
+  ],
+  "retained": [
+    "G3S-B3A V2 structural guide PASS/CLOSED",
+    "MPFB 2.0.17 as hidden structural infrastructure",
+    "DIRECTION_SPACE_FK motion/topology backbone",
+    "640x360 / 26deg / 128px gameplay-scale baseline"
+  ],
+  "discarded": [
+    "tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py",
+    "tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1"
+  ],
+  "next_gate": "Redesign G3S-B3B as a genuinely authored native 2D body sprite source. B3A may be consulted as anatomy/proportion reference, but its mask, lit RGB, silhouette, or raster may not be copied into the final body asset. After one approved native 2D body source exists, hidden 3D may drive deformation/animation guides while runtime/export remains sprite-based.",
+  "model_cleanup": "No model was downloaded or discarded by this route correction; no model-file cleanup command applies."
+}
