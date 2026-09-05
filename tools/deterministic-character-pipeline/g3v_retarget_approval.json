@@ -1,0 +1,34 @@
+{
+  "gate": "G3V-R",
+  "status": "PASS",
+  "date": "2026-09-05",
+  "source_rig": "G2_CANONICAL_RIG",
+  "target_rig": "MPFB cmu_mb",
+  "method": "DIRECTION_SPACE_FK",
+  "source_frames": [1568, 1588, 1608, 1628],
+  "rest_audit": {
+    "parent_mismatches": 0,
+    "mean_rest_orientation_delta_deg": 83.1874,
+    "max_rest_orientation_delta_deg": 180.0289
+  },
+  "solver_evidence": {
+    "v2_unique_poses": 4,
+    "v2_mean_elbow_knee_error_deg": 0.0,
+    "v2_max_elbow_knee_error_deg": 0.0001,
+    "v3_numeric_audit": "PASS_REQUIRED_TO_GENERATE_REVIEW_SHEET"
+  },
+  "visual_review": {
+    "status": "PASS",
+    "topology": "coherent across all four sampled phases",
+    "phase_correspondence": "source and target preserve the same gait phases and left/right alternation",
+    "collapse": "none observed in skeleton preflight",
+    "note": "Differences remaining are target proportions/placement, not retarget phase or topology failure."
+  },
+  "rejected_methods": [
+    "raw Action copy",
+    "raw matrix_basis copy",
+    "local-axis REST_COMPENSATED_FK",
+    "MPFB_POSE_API for this source/target pair"
+  ],
+  "next_gate": "G3V representative body rerun using validated DIRECTION_SPACE_FK"
+}
