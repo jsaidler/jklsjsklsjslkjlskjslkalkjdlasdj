@@ -18,7 +18,8 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 10. `docs/ANIMATION_PIPELINE.md`
 11. `docs/G0_AUTOMATION_LOG.md`
 12. `docs/G1_CAMERA_SCALE_LOG.md`
-13. current tooling under `tools/deterministic-character-pipeline/`
+13. `docs/G2_MOTION_TOPOLOGY_LOG.md`
+14. current tooling under `tools/deterministic-character-pipeline/`
 
 After every material step: update the relevant thematic document(s) + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -26,9 +27,7 @@ After every material step: update the relevant thematic document(s) + this file,
 
 Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
 
-Immediate gameplay presentation baseline:
-
-**elevated 2D belt-scroller / false 3D**.
+Immediate gameplay presentation baseline: **elevated 2D belt-scroller / false 3D**.
 
 Final visible character/environment language remains **true modern pixel art** at native gameplay raster. Hidden 3D may own motion/topology/physics but is not the final visible style.
 
@@ -117,7 +116,7 @@ Architectural requirements already include:
 - **G7 — systemic state/dynamic lighting.**
 - **G8 — production scaling.**
 
-A later expensive stage does not start merely because an earlier demo looked attractive.
+Cross-skeleton animation-library normalization is an explicit required validation before production scaling; it is not silently inferred from the first G2 same-skeleton bake.
 
 # Current execution state
 
@@ -131,74 +130,52 @@ Validated target environment:
 - workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - diagnostic engine: `BLENDER_EEVEE`.
 
-Successful outputs:
-
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.png`
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.blend`
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_manifest.json`
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_result.json`
-
-Validated PNG SHA256:
+Validated G0 PNG SHA256:
 
 `bb8c938d6fe64a84de264a7c01824b1dabad27f3abd307485f706553b0d19d53`
 
-Detailed incident history:
+Detailed history: `docs/G0_AUTOMATION_LOG.md`.
 
-`docs/G0_AUTOMATION_LOG.md`
+## G1 — CAMERA / NATIVE SCALE: PASS / CLOSED
 
-**No G0 rerun is required for progression.**
+The corrected 3×3 camera/scale matrix was reviewed after fixing stale dependency-graph calibration.
 
-## G1 — CAMERA / NATIVE SCALE: RE-RUN REQUIRED
+Locked validation baseline:
 
-Tooling:
+- native raster: **640×360**;
+- camera: **orthographic**;
+- pitch: **26 deg**;
+- protagonist reference visible height: **128 px**.
 
-- `tools/deterministic-character-pipeline/01_run_g1.ps1`
-- `tools/deterministic-character-pipeline/g1_camera_scale_blockout.py`
+Machine-readable baseline:
 
-Purpose: establish gameplay framing before mocap, final art or Exilada production geometry.
+`tools/deterministic-character-pipeline/g1_baseline.json`
 
-The first G1 run technically completed and produced all nine `640×360` renders, but visual QA found a critical calibration defect: the `18 deg / 112 px` candidate was massively zoomed/cropped and plainly did not correspond to a 112 px protagonist even though the manifest accepted it.
+Rationale/details: `docs/G1_CAMERA_SCALE_LOG.md`.
 
-Therefore the first matrix is **invalid for closing G1**. Do not advance to G2 from it.
+## G2 — REAL MOTION / TOPOLOGY: READY TO RUN
 
-Root cause: pre-render projection measurement could query stale Blender dependency-graph/camera state on the first candidate of a fresh headless session.
+Tooling now exists in the repository:
 
-Hardening now implemented:
+- `tools/deterministic-character-pipeline/02_run_g2.ps1`
+- `tools/deterministic-character-pipeline/g2_motion_topology.py`
 
-- explicit dependency-graph/view-layer updates before projection queries and after camera / orthographic-scale changes;
-- four calibration iterations;
-- pre-render height tolerance `<= 0.5 px`;
-- post-render re-measurement after Blender has evaluated the actual camera state;
-- hard failure if post-render protagonist height differs from target by more than `1.0 px`;
-- both pre/post measurements recorded in the manifest;
-- contact-sheet labels use ASCII `deg` to avoid PowerShell 5.1 `Â°` mojibake.
+First pinned real-motion source:
 
-Detailed log:
+- CMU trial `105_34` — `NormalWalk`;
+- BVH mirror commit `09a07f54f3bbb58797325f009282d0b2048a2871`;
+- 2209 frames at 120 fps;
+- runner downloads source automatically and records SHA256/provenance.
 
-`docs/G1_CAMERA_SCALE_LOG.md`
+G2 automatically selects a straight ~1.5 s locomotion interval, verifies major named bones, bakes the motion to a persistent diagnostic clone, exposes stable left/right hand/foot sockets, estimates foot contacts and renders 12 sequence samples at the locked G1 presentation.
 
-Provisional qualitative reading from the eight sane cells, **not yet locked**:
+Review artifact:
 
-- `26–34 deg` is more promising than `18 deg` for readable belt-scroller depth;
-- `128–144 px` better supports the desired large full-body character than `112 px`;
-- `26 deg / 128 px` is the current provisional front-runner;
-- `26 deg / 144 px` and `34 deg / 128 px` remain credible alternatives.
+`Z:\AI\RogueliteCharacterPipeline\g2\g2_contact_sheet.png`
 
-### Exact next action — DO ONLY THIS
+G2 remains `REVIEW_REQUIRED` until that sequence is inspected. **Do not start G3 automatically.**
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\01_run_g1.ps1"
-```
-
-Then **STOP**. Do not start G2.
-
-Share only the newly generated:
-
-`Z:\AI\RogueliteCharacterPipeline\g1\g1_contact_sheet.png`
-
-G1 closes only after the corrected matrix is visually reviewed and one baseline camera pitch + protagonist screen height is recorded.
+Detailed scope: `docs/G2_MOTION_TOPOLOGY_LOG.md`.
 
 ## Workspace state
 
