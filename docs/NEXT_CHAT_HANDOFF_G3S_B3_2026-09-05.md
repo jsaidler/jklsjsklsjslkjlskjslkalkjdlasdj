@@ -36,7 +36,10 @@ G3S state:
 - G3S-B V1 decomposition — FAIL because exact recomposition did not imply correct semantic ownership;
 - G3S-B2 layer-stack preflight — PASS/CLOSED diagnostic;
 - B2 measured `1205` hidden/unknown body pixels under hair/clothing and proved the composite master cannot be converted into a complete body by subtraction;
-- **G3S-B3 complete nude body base is CURRENT**.
+- **G3S-B3 complete nude body base is CURRENT**;
+- **G3S-B3A V1 — FAIL/CLOSED REVISION** because it used the wrong MPFB gender polarity;
+- **G3S-B3A V2 corrected female anatomy guide — READY TO RUN**;
+- G3S-B3B remains blocked until V2 review.
 
 ## Locked build order
 
@@ -58,13 +61,35 @@ The visual direction does **not** impose anti-erotic framing. Heavy Metal, Conan
 
 The Exilada may be beautiful, sexualized, nude or minimally clothed while remaining severe, dangerous, wounded, dirty, vulnerable or brutal. Do not sanitize adult nudity by default. Framing should be intentional to scene/character rather than automatically neutral or automatically erotic.
 
-## Current exact gate: G3S-B3A
+## B3A V1 result — FAIL/CLOSED REVISION
 
-B3A is a deterministic **anatomy guide only** using the already-present MPFB/hidden-rig infrastructure.
+The first B3A contact sheet and manifest proved that the structural route itself worked:
+
+- complete body geometry;
+- no hair objects;
+- no clothing/bindings;
+- no cuffs/shackles/chains;
+- `128 px` visible body height at the locked G1 camera/scale;
+- explicit guide-only art authority.
+
+But the V1 manifest recorded `macro.gender = 1.0`. The pinned MPFB semantics used by the route define `0.0 = female` and `1.0 = male`, with the macro target map resolving low to `female` and high to `male`. Therefore V1 instantiated the wrong phenotype and cannot pass the adult-female B3A criterion.
+
+Canonical failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
+
+This is **not** a rejection of MPFB or of the B3A route. MPFB `2.0.17` remains active, so no model cleanup command applies.
+
+## Current exact gate: G3S-B3A V2
+
+B3A V2 is still a deterministic **anatomy guide only** using the already-present MPFB/hidden-rig infrastructure.
 
 It must create:
 
 - one complete adult female body;
+- MPFB macro `gender = 0.0`;
+- at least one resolved female macro target;
+- zero resolved male macro targets;
 - hairless scalp/body;
 - no hair objects;
 - no clothing/bindings;
@@ -73,9 +98,11 @@ It must create:
 - Exilada-compatible proportions;
 - locked G1 camera/scale reference.
 
+V2 tooling now records a `phenotype_audit` in the manifest and exposes resolved gender/female/male target counts in the contact sheet. The runner refuses to complete if the phenotype invariant is not clean.
+
 It must **not** be accepted as final visible art merely because it renders successfully. A 3D-looking guide is acceptable at B3A because final pixels belong to B3B.
 
-Tooling already exists:
+Tooling:
 
 - `tools/structured-2d-character-pipeline/g3s_b3_mpfb_bootstrap.py`
 - `tools/structured-2d-character-pipeline/g3s_b3a_nude_anatomy_guide.py`
@@ -99,9 +126,9 @@ Then STOP and request only:
 
 or the complete console error if the runner fails.
 
-## Next gate after B3A review
+## Next gate after B3A V2 review
 
-If B3A structurally passes, implement **G3S-B3B native `128×128` nude body-base source**. B3B owns final visible body pixels; the MPFB guide does not.
+If B3A V2 structurally passes, implement **G3S-B3B native `128×128` nude body-base source**. B3B owns final visible body pixels; the MPFB guide does not.
 
 Do not start hair, clothing or animation before B3B passes.
 
@@ -121,6 +148,6 @@ Do not start hair, clothing or animation before B3B passes.
 
 > Continue o projeto Roguelite exatamente do estado canônico no GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`. Antes de responder, leia `docs/PROJECT_STATE.md`, `docs/VISUAL_DIRECTION.md`, `docs/CHARACTERS.md`, `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`, `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`, `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`, `docs/G3S_B3_NUDE_BODY_BASE_LOG.md` e `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`. Não reconstrua decisões pela memória se os documentos disserem algo diferente.
 >
-> Estado atual: G3S-B2 passou como diagnóstico e provou que o master composto não serve para recuperar corpo oculto por subtração. A ordem agora está travada: **corpo adulto nu completo e sem cabelo -> cabelo separado -> roupas/bindings separados -> grilhões/correntes/acessórios separados -> animação em camadas**. Nudez é estado normal do jogo. A carga erótica também é permitida e faz parte da linhagem visual Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell; não imponha dessexualização automática. O corpo pode ser sensual/erótico, heroico, brutal, vulnerável ou neutro conforme a cena.
+> Estado atual: G3S-B2 passou como diagnóstico e provou que o master composto não serve para recuperar corpo oculto por subtração. A ordem segue travada: **corpo adulto nu completo e sem cabelo -> cabelo separado -> roupas/bindings separados -> grilhões/correntes/acessórios separados -> animação em camadas**. Nudez é estado normal do jogo. A carga erótica também é permitida e faz parte da linhagem visual Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell; não imponha dessexualização automática.
 >
-> O gate atual é **G3S-B3A deterministic nude anatomy guide**. O runner já deve existir em `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`. Verifique no repositório antes de me mandar executar. Se estiver correto, me dê apenas um bloco PowerShell com `git pull --ff-only` e esse runner. Depois pare e peça somente o contact sheet ou o erro completo. Não gere imagem sem eu pedir. Não reabra busca por modelos. Atualize a documentação canônica a cada etapa e, sempre que descartar um modelo, inclua o comando exato para apagar seus arquivos.
+> G3S-B3A V1 falhou como revisão porque usou `MPFB gender=1.0`, que na semântica efetiva do MPFB é masculino (`0.0=female`, `1.0=male`). O route/MPFB não foi descartado. O gate atual é **G3S-B3A V2 corrected adult-female anatomy guide**: `gender=0.0`, target-stack audit com female targets > 0 e male targets = 0. O runner é `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`. Verifique no repositório antes de mandar executar. Depois peça somente o novo contact sheet ou o erro completo. B3B continua bloqueado até o V2 passar. Não gere imagem sem pedido, não reabra busca por modelos e atualize os documentos vivos a cada etapa.
