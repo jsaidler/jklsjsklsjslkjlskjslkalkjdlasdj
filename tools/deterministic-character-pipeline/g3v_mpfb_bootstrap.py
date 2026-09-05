@@ -80,6 +80,68 @@ def bootstrap_mpfb(mpfb_root: Path, user_root: Path):
     print(f"G3V_MPFB_USER_ROOT={user_root}")
 
 
+def install_g3v_runtime_fixes(namespace):
+    """Patch fragile diagnostic behavior without changing the production hypothesis.
+
+    PNG color management can move emission RGB values significantly. The original
+    classifier required an arbitrary absolute distance threshold after already deciding
+    that a pixel was closer to a semantic color than to the background. That caused
+    valid rendered skin/hair/metal pixels to be discarded while some cloth pixels
+    survived. For an ID pass the correct decision is categorical: choose the closest
+    semantic only when it beats the background.
+
+    The ID render also uses Raw view transform so the encoded diagnostic colors stay as
+    close as possible to their linear emission values. The neutral-light pass restores
+    Standard transform for the visual shading measurement.
+    """
+    required = ("BACKGROUND", "ID_COLORS", "d2", "render_pass", "main")
+    missing = [name for name in required if name not in namespace]
+    if missing:
+        raise RuntimeError("G3V target missing runtime-patch symbols: " + ", ".join(missing))
+
+    background = namespace["BACKGROUND"]
+    id_colors = namespace["ID_COLORS"]
+    d2 = namespace["d2"]
+
+    def robust_classify_id(color):
+        background_distance = d2(color, background)
+        best_semantic = None
+        best_distance = background_distance
+        for semantic, reference in id_colors.items():
+            distance = d2(color, reference)
+            if distance < best_distance:
+                best_semantic = semantic
+                best_distance = distance
+        return best_semantic
+
+    namespace["classify_id"] = robust_classify_id
+
+    original_render_pass = namespace["render_pass"]
+
+    def robust_render_pass(scene, path, semantic_objects, mode, id_materials, neutral_material):
+        previous_transform = None
+        try:
+            previous_transform = scene.view_settings.view_transform
+        except Exception:
+            pass
+        try:
+            try:
+                scene.view_settings.view_transform = "Raw" if mode == "id" else "Standard"
+            except Exception:
+                pass
+            return original_render_pass(scene, path, semantic_objects, mode, id_materials, neutral_material)
+        finally:
+            if previous_transform is not None:
+                try:
+                    scene.view_settings.view_transform = previous_transform
+                except Exception:
+                    pass
+
+    namespace["render_pass"] = robust_render_pass
+    print("G3V_SEMANTIC_CLASSIFIER=NEAREST_VS_BACKGROUND")
+    print("G3V_ID_COLOR_TRANSFORM=RAW")
+
+
 def main():
     mpfb_root = Path(get_arg("--mpfb-root", "")).resolve()
     user_root = Path(get_arg("--mpfb-user-root", "")).resolve()
@@ -90,9 +152,12 @@ def main():
 
     bootstrap_mpfb(mpfb_root, user_root)
 
-    # Keep original command-line arguments in place. The G3V target script searches
-    # only for the argument names it owns, so bootstrap-only arguments are harmless.
-    runpy.run_path(str(target_script), run_name="__main__")
+    # Load the target without triggering its __main__ block, install diagnostic fixes,
+    # then call main explicitly. Functions created by runpy retain this namespace as
+    # their globals, so the patched classifier/render_pass are used throughout G3V.
+    namespace = runpy.run_path(str(target_script), run_name="g3v_target")
+    install_g3v_runtime_fixes(namespace)
+    namespace["main"]()
 
 
 if __name__ == "__main__":
