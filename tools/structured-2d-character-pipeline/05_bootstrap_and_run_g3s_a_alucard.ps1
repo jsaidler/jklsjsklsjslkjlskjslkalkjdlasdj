@@ -37,11 +37,6 @@ if ($failure.gate -ne 'G3S-A-PIXELLOCK' -or $failure.status -ne 'FAIL') { Fail '
 $Python = 'Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe'
 if (-not (Test-Path $Python -PathType Leaf)) { Fail "Existing embedded Python not found: $Python" }
 
-# Windows PowerShell 5.1 can convert native-process stderr into PowerShell ErrorRecord
-# objects. With ErrorActionPreference=Stop that can abort the script BEFORE we can
-# inspect $LASTEXITCODE. Dependency probes are expected to fail on the first run,
-# so every Python invocation goes through this wrapper and exit code remains the
-# single authority for success/failure.
 function Invoke-PythonSafe {
     param(
         [Parameter(Mandatory=$true)][string[]]$Arguments,
@@ -81,35 +76,41 @@ Write-Host "[OK] Alucard code pinned: $head" -ForegroundColor Green
 $PyDeps = Join-Path $DependencyRoot 'pydeps'
 New-Item -ItemType Directory -Force -Path $PyDeps | Out-Null
 $oldPythonPath = $env:PYTHONPATH
-# Keep PYTHONPATH as a compatibility hint, but do NOT rely on it. The ComfyUI
-# Windows embeddable Python normally has python._pth and therefore may ignore
-# PYTHONPATH entirely. Both the probe and the helper inject these paths directly
-# into sys.path.
 $env:PYTHONPATH = "$PyDeps;$AlucardRoot"
 $env:HF_HOME = Join-Path $DependencyRoot 'hf_home'
 $env:TORCH_HOME = Join-Path $DependencyRoot 'torch_home'
 
-$ImportProbe = "import sys; sys.path.insert(0, r'$PyDeps'); sys.path.insert(0, r'$AlucardRoot'); import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex; import timm, ftfy, open_clip; print('G3S_A_ALUCARD_IMPORT_PATH_MODE=EXPLICIT_SYS_PATH'); print(torch.__version__); print(torch.cuda.is_available())"
+# The ComfyUI embeddable Python can ignore PYTHONPATH because of python._pth.
+# Therefore both probe and helper use explicit sys.path injection. We also keep
+# the Alucard-side dependency set isolated and NEVER let pip replace Torch.
+$ImportProbe = "import sys; sys.path.insert(0, r'$PyDeps'); sys.path.insert(0, r'$AlucardRoot'); import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex, yaml, tqdm, wcwidth; import timm, ftfy, open_clip; print('G3S_A_ALUCARD_IMPORT_PATH_MODE=EXPLICIT_SYS_PATH'); print('G3S_A_ALUCARD_DEP_CLOSURE=PASS'); print(torch.__version__); print(torch.cuda.is_available())"
 function Test-AlucardImports {
     $code = Invoke-PythonSafe -Arguments @('-c', $ImportProbe) -Quiet
     return ($code -eq 0)
 }
 
 if (-not (Test-AlucardImports)) {
-    Write-Host '[INSTALL] Isolated Alucard Python extras (no Torch replacement)...' -ForegroundColor Cyan
+    Write-Host '[INSTALL] Isolated Alucard non-Torch dependency closure...' -ForegroundColor Cyan
+    Write-Host '[INFO] Explicit closure: open_clip_torch, timm, ftfy, wcwidth, PyYAML, tqdm. Torch/torchvision are reused from ComfyUI.' -ForegroundColor DarkGray
     $pipCode = Invoke-PythonSafe -Arguments @(
         '-m','pip','install','--disable-pip-version-check','--no-warn-script-location',
-        '--target',$PyDeps,'--no-deps',
-        'open_clip_torch==3.2.0','timm==1.0.19','ftfy==6.3.1'
+        '--target',$PyDeps,'--upgrade','--no-deps',
+        'open_clip_torch==3.2.0',
+        'timm==1.0.19',
+        'ftfy==6.3.1',
+        'wcwidth==0.2.13',
+        'PyYAML==6.0.2',
+        'tqdm==4.67.1'
     )
-    if ($pipCode -ne 0) { Fail "Could not install isolated Alucard Python extras (pip exit $pipCode)." }
+    if ($pipCode -ne 0) { Fail "Could not install isolated Alucard dependency closure (pip exit $pipCode)." }
 }
 if (-not (Test-AlucardImports)) {
-    Write-Host '[ERROR] Alucard import probe still fails; exact Python traceback follows:' -ForegroundColor Red
+    Write-Host '[ERROR] Alucard import probe still fails after the complete non-Torch dependency closure; exact traceback follows:' -ForegroundColor Red
     $probeCode = Invoke-PythonSafe -Arguments @('-c', $ImportProbe)
-    Fail "Alucard Python import preflight still fails after isolated dependency install (exit $probeCode)."
+    Fail "Alucard Python import preflight failed after deterministic dependency closure (exit $probeCode)."
 }
-Write-Host '[OK] Alucard imports resolve through explicit sys.path injection; embedded PYTHONPATH is not trusted.' -ForegroundColor Green
+Write-Host '[OK] Alucard dependency closure verified: open_clip/timm/ftfy/wcwidth/PyYAML/tqdm.' -ForegroundColor Green
+Write-Host '[OK] Embedded Python paths are injected explicitly; ComfyUI Torch remains untouched.' -ForegroundColor Green
 
 $ModelDir = Join-Path $DependencyRoot 'model'
 $Model = Join-Path $ModelDir 'alucard_model.safetensors'
@@ -148,7 +149,7 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 try {
     Write-Host '[RUN] one reference-conditioned native 128x128 RGBA Alucard candidate...' -ForegroundColor Cyan
-    Write-Host '[INFO] First run may also fetch the OpenAI CLIP ViT-B/32 text encoder into the isolated TORCH_HOME.' -ForegroundColor DarkGray
+    Write-Host '[INFO] First successful run may fetch the OpenAI CLIP ViT-B/32 weights into isolated TORCH_HOME.' -ForegroundColor DarkGray
     $helperCode = Invoke-PythonSafe -Arguments @(
         $Helper,
         '--alucard-root',$AlucardRoot,
