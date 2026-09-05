@@ -1,0 +1,58 @@
+{
+  "gate": "G3S-B3-B-NATIVE-2D-BODY-SOURCE",
+  "status": "REVIEW_REQUIRED",
+  "revision": "G3S_B3B_NATIVE_2D_BODY_SOURCE_V2",
+  "source_authority": "COMMITTED_NATIVE_2D_PIXEL_ASSET",
+  "asset": "assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png",
+  "source_sha256": "0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53",
+  "canvas": [128, 128],
+  "visible_bbox": [17, 0, 120, 127],
+  "visible_height": 128,
+  "visible_width": 104,
+  "opaque_palette_colors": 8,
+  "ownership": {
+    "final_visible_rgb": "native_2d_asset",
+    "final_alpha": "native_2d_asset",
+    "final_silhouette": "native_2d_asset",
+    "b3a_rgb_sampled": false,
+    "b3a_mask_sampled": false,
+    "b3a_silhouette_copied": false,
+    "b3a_role": "reference_and_sanity_check_only"
+  },
+  "layer_audit": {
+    "body_complete": true,
+    "hair_pixels": 0,
+    "clothing_pixels": 0,
+    "binding_pixels": 0,
+    "restraint_pixels": 0,
+    "chain_pixels": 0
+  },
+  "landmarks_px": {
+    "head_center": [64, 9],
+    "neck": [64, 20],
+    "left_shoulder": [47, 28],
+    "right_shoulder": [82, 29],
+    "left_elbow": [34, 50],
+    "right_elbow": [100, 53],
+    "left_wrist": [21, 72],
+    "right_wrist": [116, 70],
+    "sternum": [64, 39],
+    "navel": [64, 58],
+    "pelvis_center": [64, 86],
+    "left_knee": [53, 105],
+    "right_knee": [75, 106],
+    "left_ankle": [51, 121],
+    "right_ankle": [83, 122]
+  },
+  "rules": {
+    "native_2d_asset_is_art_authority": true,
+    "hidden_3d_visible_ownership": false,
+    "no_post_generation_resize": true,
+    "binary_alpha_required": true,
+    "native_1x_review_required": true,
+    "no_hair_before_b3b_pass": true,
+    "no_clothing_before_b3b_pass": true,
+    "no_animation_before_b3b_pass": true
+  },
+  "note": "Assistant-authored native 2D body-base sprite candidate. It is independent from B3A rendered RGB, mask and projected silhouette."
+}
