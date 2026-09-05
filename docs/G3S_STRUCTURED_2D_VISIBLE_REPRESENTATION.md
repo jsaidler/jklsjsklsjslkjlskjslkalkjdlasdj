@@ -2,13 +2,26 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B3B NATIVE 128×128 NUDE BODY SOURCE NEXT**
+Gate status: **ACTIVE — G3S-B3B GENUINE NATIVE 2D BODY SOURCE METHOD NEXT**
 
 ## Locked architecture
 
-`real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel assets -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
+`real motion -> validated hidden rig -> projected joints/depth/sockets/guides -> persistent 2D pixel assets -> deterministic 2D transform/deformation -> depth-aware composition -> native sprite -> QA`
 
-Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB pixels.
+Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB or final sprite silhouette.
+
+## Visible-ownership invariant — LOCKED
+
+G3V is authoritative: the direct visible-3D route failed and was closed.
+
+Therefore:
+
+- 3D may guide anatomy, motion, topology, sockets, contacts, depth and occlusion;
+- 3D may not be mechanically promoted into final visible sprite geometry;
+- a 3D render or mask is not a sprite template;
+- cropping/recoloring/quantizing a projected 3D mask or render is still a 3D-owned visible route;
+- final character pixels are owned by persistent structured 2D assets;
+- runtime/export uses sprites.
 
 ## Production constraints
 
@@ -18,9 +31,9 @@ Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides on
 - no beauty-render shrink/pixel-filter route as final art;
 - no bilinear filtering;
 - recurring work remains scriptable/headless;
-- animation consumes persistent parts rather than independently generated frames;
-- body, hair, clothing and accessories must have separate ownership;
-- a complete body must exist under every removable layer.
+- animation consumes persistent 2D parts rather than independently generated frames;
+- body, hair, clothing and accessories have separate ownership;
+- a complete body exists under every removable layer.
 
 ## Model-discard cleanup rule — LOCKED
 
@@ -47,7 +60,7 @@ Remove-Item -LiteralPath "Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\Comf
 
 ## Closed source-model search
 
-Qwen native, SD1.5, PixelLock and Alucard were bounded source experiments. None produced an acceptable native production sprite. Do not reopen the local source-model search.
+Qwen native, SD1.5, PixelLock and Alucard were bounded source experiments. None produced an acceptable native production sprite. Do not reopen local model hunting.
 
 The coherent Qwen preferred-resolution control remains design/scaffold provenance only:
 
@@ -57,7 +70,7 @@ SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-## G3S-A / G3S-A1 history
+## G3S-A / A1 history
 
 - authored native V1 — FAIL/CLOSED: mouth not visually readable;
 - Facial/Anatomy Lock V2 — FAIL/CLOSED: mouth became an artificial block;
@@ -81,7 +94,7 @@ Measured facts:
 - visible body pixels: `1538`;
 - hair pixels: `826`;
 - clothing pixels: `610`;
-- hidden/unknown body pixels: **`1205`**.
+- hidden/unknown body pixels: `1205`.
 
 Conclusion: **the complete body cannot be recovered by subtracting hair/clothing from the master.**
 
@@ -96,10 +109,11 @@ Approval marker:
    - hairless;
    - no clothing/bindings;
    - no cuffs/shackles/chains;
-   - complete scalp/head/neck/torso/limbs under all future layers.
+   - complete scalp/head/neck/torso/limbs under all future layers;
+   - owned as a native 2D sprite asset.
 
 2. **G3S-B4 — hair**
-   - independent persistent asset/layer family;
+   - independent persistent 2D asset/layer family;
    - later separable into back/front/submasses for wind and secondary motion;
    - never part of body pixels.
 
@@ -114,7 +128,9 @@ Approval marker:
 4. **G3S-C — four-phase walk proof**
    - only after B3/B4/B5 assets are layered correctly;
    - validated motion frames `1568,1588,1608,1628`;
-   - no independently regenerated animation frame.
+   - hidden rig drives 2D deformation/ordering guides;
+   - no independently regenerated animation frame;
+   - exported/runtime result is sprite-based.
 
 # Nudity — LOCKED SYSTEMIC STATE
 
@@ -129,7 +145,7 @@ Consequences:
 - no censor garment is structurally required;
 - no hidden body reconstruction is allowed when clothing is removed/damaged;
 - chest and pelvic anatomy must be coherent at native gameplay scale;
-- presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent; no blanket anti-erotic framing is imposed;
+- presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent;
 - body wounds/scars/blood/wetness remain attached to body regions;
 - sever/dismemberment operates on the same complete body while clothing/equipment inherits or detaches by state rules.
 
@@ -143,13 +159,11 @@ The master/Qwen composite is reference only. B3 creates a dedicated body asset r
 
 ## G3S-B3A V1 — FAIL/CLOSED REVISION
 
-The first guide run produced valid layer/scale mechanics but used `MPFB gender = 1.0`, which resolves male in the pinned MPFB semantics. This was a revision error, not a route/model rejection.
+The first guide run used the wrong MPFB gender polarity. This was a revision failure only.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
-
-MPFB `2.0.17` remains active; no cleanup command applies.
 
 ## G3S-B3A V2 — PASS/CLOSED
 
@@ -169,32 +183,42 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-B3A is closed. Its lit RGB is never promoted to final art.
+B3A is closed. Its RGB, mask and projected silhouette are reference/guide data only.
 
-## G3S-B3B — ACTIVE
+## G3S-B3B V1 — FAIL/CLOSED ROUTE
 
-B3B owns the actual native visible body source.
+The first B3B implementation copied the B3A binary projected mask directly into final native alpha/silhouette and procedurally colored that shape.
 
-V1 implementation rules:
+This was rejected because it still made hidden 3D the final visible silhouette owner and revived procedural mannequin-style authoring.
 
-- native canvas `128×128`;
-- body stays at approximately the locked `128 px` gameplay height;
-- B3A binary mask and projected joints are structural guides only;
-- no B3A lit RGB/shading is sampled or transferred;
-- visible RGB is authored by explicit native palette and pixel-cluster rules;
-- binary alpha;
-- no hair, clothing, binding, restraint or chain pixels;
-- deterministic source, mask, gameplay preview, manifest and contact sheet;
-- visual review at 1× is mandatory before promotion.
+Failure marker:
 
-Tooling:
+`tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_native_body_source.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_native_body_source.ps1`
+The invalid V1 script and runner were removed from `main` before user execution.
 
-Expected review artifact:
+No model was downloaded/discarded by this route correction, so no model cleanup command applies.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_native_body_source\g3s_b3b_contact_sheet.png`
+## G3S-B3B — CURRENT
+
+B3B must produce a genuinely authored native `128×128` 2D body sprite source.
+
+B3A may guide:
+
+- anatomy;
+- proportions;
+- joints/topology;
+- scale/camera;
+- sanity checks.
+
+B3A may not own:
+
+- final alpha;
+- final silhouette;
+- final RGB;
+- final pixel clusters/edge treatment.
+
+The approved 2D body source must itself own those decisions. Only after that source passes may hidden rig data be used to animate/deform persistent 2D parts.
 
 # G3S-B4 — Hair
 
@@ -207,3 +231,9 @@ Blocked until B3B body approval.
 # G3S-C — Four-phase walk proof
 
 Blocked until B3/B4/B5 are structurally correct.
+
+## Exact next action
+
+**No B3B runner is approved. Do not run one yet.**
+
+First define the corrected native-2D B3B authoring method and verify that it preserves sprite ownership instead of mechanically promoting 3D guide pixels into final art.
