@@ -104,7 +104,14 @@ def descendant_meshes(root):
     return [o for o in root.children_recursive if o.type == "MESH"]
 
 
+def force_scene_update():
+    # Camera transforms, parenting and orthographic scale can otherwise be stale on the
+    # first headless projection query of a fresh Blender session.
+    bpy.context.view_layer.update()
+
+
 def projected_bbox_px(scene, camera, objects):
+    force_scene_update()
     xs, ys = [], []
     for obj in objects:
         for corner in obj.bound_box:
@@ -123,16 +130,24 @@ def configure_camera(camera, pitch_deg, target=(0, 0, 0.95)):
     distance = 12.0
     camera.location = (0.0, target[1] - distance * math.cos(p), target[2] + distance * math.sin(p))
     look_at(camera, target)
+    force_scene_update()
 
 
 def calibrate_ortho_for_height(scene, camera, objects, target_px):
     camera.data.ortho_scale = 5.0
-    for _ in range(3):
+    force_scene_update()
+    for _ in range(4):
         bbox = projected_bbox_px(scene, camera, objects)
         if bbox["height"] <= 0:
             raise RuntimeError("Projected protagonist height is zero")
         camera.data.ortho_scale *= bbox["height"] / float(target_px)
-    return projected_bbox_px(scene, camera, objects)
+        force_scene_update()
+    bbox = projected_bbox_px(scene, camera, objects)
+    if abs(bbox["height"] - float(target_px)) > 0.5:
+        raise RuntimeError(
+            f"Pre-render calibration mismatch: target={target_px} measured={bbox['height']:.3f}"
+        )
+    return bbox
 
 
 def choose_workbench_engine(scene):
@@ -194,7 +209,7 @@ def main():
     enemy_color = (0.23, 0.33, 0.40)
     hero_origin = (0.0, -0.25, 0.0)
     hero = add_proxy("PROTAGONIST_PROXY", hero_origin, hero_color, protagonist=True)
-    enemy_positions = [(-4.3,1.3,0),( -2.8,-1.55,0),(2.1,1.55,0),(3.5,-0.75,0),(5.0,0.65,0)]
+    enemy_positions = [(-4.3,1.3,0),(-2.8,-1.55,0),(2.1,1.55,0),(3.5,-0.75,0),(5.0,0.65,0)]
     for i, pos in enumerate(enemy_positions, start=1):
         add_proxy(f"ENEMY_{i:02d}", pos, enemy_color, protagonist=False)
     add_reach_overlay(hero_origin)
@@ -208,6 +223,7 @@ def main():
     camera.name = "G1_CAMERA"
     camera.data.type = "ORTHO"
     scene.camera = camera
+    force_scene_update()
 
     hero_meshes = descendant_meshes(hero)
     pitches = [18, 26, 34]
@@ -217,18 +233,29 @@ def main():
     for pitch in pitches:
         configure_camera(camera, pitch)
         for target_px in target_heights:
-            bbox = calibrate_ortho_for_height(scene, camera, hero_meshes, target_px)
+            bbox_pre = calibrate_ortho_for_height(scene, camera, hero_meshes, target_px)
             filename = f"g1_pitch{pitch:02d}_h{target_px}.png"
             path = output_dir / filename
             scene.render.filepath = str(path)
             bpy.ops.render.render(write_still=True)
             if not path.exists() or path.stat().st_size == 0:
                 raise RuntimeError(f"Missing render: {path}")
+
+            # Rendering forces Blender to evaluate the actual camera state. Re-measure after
+            # the render so stale first-frame calibration can never pass the gate again.
+            bbox_post = projected_bbox_px(scene, camera, hero_meshes)
+            if abs(bbox_post["height"] - float(target_px)) > 1.0:
+                raise RuntimeError(
+                    f"Post-render framing mismatch for {filename}: "
+                    f"target={target_px} measured={bbox_post['height']:.3f}"
+                )
+
             candidates.append({
                 "pitch_deg": pitch,
                 "target_height_px": target_px,
-                "measured_height_px": round(bbox["height"], 2),
-                "measured_width_px": round(bbox["width"], 2),
+                "measured_height_px": round(bbox_post["height"], 2),
+                "measured_width_px": round(bbox_post["width"], 2),
+                "pre_render_height_px": round(bbox_pre["height"], 2),
                 "ortho_scale": camera.data.ortho_scale,
                 "camera_location": [round(v,6) for v in camera.location],
                 "file": str(path),
@@ -250,6 +277,7 @@ def main():
         "walkable_depth_world": 5.0,
         "enemy_count": 5,
         "candidate_count": len(candidates),
+        "calibration_validation": "dependency_graph_sync_plus_post_render_recheck",
         "candidates": candidates,
         "blend": str(blend_path),
     }
