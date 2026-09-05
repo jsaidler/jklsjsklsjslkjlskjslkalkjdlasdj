@@ -119,8 +119,7 @@ Write-Host '[RUN] Starting Blender in background/factory mode...' -ForegroundCol
 $blenderArgs = @(
     '--background',
     '--factory-startup',
-    '--python-exit-code',
-    '1',
+    '--python-exit-code', '1',
     '--python',
     $probeScript,
     '--',
@@ -128,11 +127,19 @@ $blenderArgs = @(
     $g0Dir
 )
 
-# Windows PowerShell's Start-Process -ArgumentList joins the array into one command-line
-# string and may split paths containing spaces. Native invocation + array splatting keeps
-# the Python path and output path as distinct single arguments.
-& $blender @blenderArgs 1> $stdout 2> $stderr
-$blenderExitCode = $LASTEXITCODE
+# Windows PowerShell 5.1 converts native-process stderr into ErrorRecord objects.
+# With the script-wide ErrorActionPreference='Stop', that can terminate this wrapper
+# before we can inspect Blender's real exit code/traceback. Temporarily use Continue
+# only for the native Blender invocation, while still capturing stderr to its log.
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & $blender @blenderArgs 1> $stdout 2> $stderr
+    $blenderExitCode = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
 
 Get-Content $stdout -ErrorAction SilentlyContinue | Out-Host
 if (Test-Path $stderr) {
