@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-A NATIVE SD1.5 PIXEL REAUTHOR READY**
+Gate status: **ACTIVE — G3S-A PIXELLOCK NATIVE-GRID TEST READY**
 
 ## Why G3S exists
 
@@ -29,9 +29,9 @@ Hidden 3D may own motion, topology, left/right identity, sockets, contacts, dept
 
 Goal: obtain one approved Exilada source image at the locked gameplay presentation:
 
-- canvas `640×360`;
+- gameplay canvas `640×360`;
 - visible character height about `128 px`;
-- lateral/slight-3/4 view facing screen-right;
+- lateral/slight-3/4 presentation facing screen-right;
 - lean adult female anatomy;
 - very long heavy black hair;
 - degraded asymmetric beige cloth;
@@ -45,115 +45,123 @@ Goal: obtain one approved Exilada source image at the locked gameplay presentati
 
 Qwen-Image-Edit-2509 was tested only as a bounded static-source experiment. It remains forbidden as independent animation-frame generator.
 
-## V1 — INVALID / HARNESS FAIL
+## Qwen V1 — INVALID / HARNESS FAIL
 
-The first completed Qwen run produced an almost-black result. Inspection found the API graph differed materially from the official ComfyUI Qwen 2509 blueprint: primary conditioning image and sampled latent did not match, `CFGNorm` was missing, negative conditioning was wired differently and sampling settings mixed separate official presets.
+The first run used a materially incorrect graph relative to the official ComfyUI Qwen 2509 workflow and produced an almost-black result. It is not a model-quality verdict.
 
-V1 is therefore not a model-quality verdict.
+## Qwen V2 — DIRECT NATIVE 640×360 FAIL / CLOSED
 
-## V2 — DIRECT NATIVE 640×360 FAIL
-
-Workflow revision:
-
-`QWEN2509_OFFICIAL_ALIGNED_NATIVE_V2`
-
-V2 corrected the graph and completed inference normally, but the saved native `640×360` output genuinely collapsed to a near-uniform image.
+The corrected graph completed normally but produced a genuinely flat native output.
 
 Measured evidence:
 
-- size: `640×360`;
-- SHA256: `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
-- mean luma: `70.3017`;
-- p99 luma: `71`;
-- target mean luma: `70.2322`;
-- target p95 luma: `71`;
-- target stddev: `0.4336`.
+- size `640×360`;
+- SHA256 `a5ecaf9db68fbb8370280c4b6c61a727aa5cd191134d6f508a34207f4c8d157e`;
+- mean luma `70.3017`;
+- p99 luma `71`;
+- target stddev `0.4336`.
 
-Therefore the direct native Qwen route is rejected. No seed/prompt/threshold rescue is permitted.
+No seed/prompt/threshold rescue is permitted.
 
-## Official-resolution control — PASS AS MODEL-FUNCTION CONTROL / NOT ART ELIGIBLE
+## Qwen official-resolution control — PASS AS MODEL-FUNCTION CONTROL / CLOSED
 
-The final control restored `FluxKontextImageScale`, matching the official preferred-resolution behavior. It produced a coherent full-body Exilada-like woman rather than collapse.
+Restoring `FluxKontextImageScale` produced a coherent `1392×752` full-body Exilada-like woman rather than collapse. Long dark hair, beige degraded cloth, adult anatomy and bare feet were readable.
 
-Uploaded control facts:
+The control is conventional high-resolution illustration/pseudo-pixel styling. It is **not final-art eligible and must never be promoted by simple shrink/quantization**.
 
-- output size: **`1392×752`**;
-- coherent adult female anatomy with two arms/two legs;
-- long dark hair, degraded beige cloth and bare feet are readable;
-- the image is conventional high-resolution illustration/pseudo-pixel styling, not native gameplay pixel art;
-- it is **not eligible as final sprite art and must never be promoted by simple shrink/quantization**.
+Conclusion: Qwen/model/runtime work, but Qwen is rejected as the direct native sprite generator. The coherent control is retained only as a one-time design/pose conditioning reference.
 
-Conclusion:
+# SD1.5 native latent re-author — FAIL / CLOSED
 
-**Qwen itself works, but Qwen is rejected as the direct native G3S-A sprite generator.** The native route collapsed; the working route requires a high-resolution raster outside the locked production representation.
-
-Qwen may remain only as a provenance/reference source for a later native re-authoring stage. No additional Qwen generation will be attempted for this gate.
-
-# G3S-A native re-author — CURRENT
-
-The next bounded test separates the two problems:
-
-1. Qwen has already supplied a coherent high-resolution identity/composition reference;
-2. a second model must actually author the final pixels **directly at `640×360`**, rather than shrink the Qwen pixels.
-
-Chosen spike: **Stable Diffusion 1.5 + a dedicated SD1.5 pixel-art LoRA, img2img at native raster**.
-
-Why this is materially different from the rejected high-res-shrink route:
-
-- the Qwen control image is resized only to create a conditioning/latent guide;
-- the guide is not final art;
-- SD1.5 resamples/re-authors the image through diffusion at exactly `640×360`;
-- the final generated image is never post-resized;
-- a 32-color same-raster version exists only for inspection.
-
-Tooling:
+Tooling retained for evidence:
 
 - `tools/structured-2d-character-pipeline/g3s_a_sd15_native_reauthor.py`
 - `tools/structured-2d-character-pipeline/03_bootstrap_and_run_g3s_a_sd15_native.ps1`
+- failure marker: `tools/structured-2d-character-pipeline/g3s_a_sd15_failure.json`
 
-Input control source:
+The bounded test used the coherent Qwen control only as conditioning and sampled SD1.5 + a pixel-art LoRA directly at `640×360`, with no post-inference resize.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+Recorded run:
 
-Output workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15`
-
-Pinned new model payload:
-
-- Stable Diffusion 1.5 `v1-5-pruned-emaonly.safetensors` — about `4.27 GB`, SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`;
-- SedatAl SD1.5 pixel-art LoRA — about `3.23 MB`, SHA256 `ad5034703699e910d5f9525ea5db64abcbd8d7396ff8f771c09403f3adb048ad`.
-
-The existing isolated ComfyUI runtime is reused. No new runtime is installed.
-
-Locked first test:
-
-- source figure automatically isolated from the Qwen control;
-- conditioning-only guide placed at approximately `128 px` visible height on `640×360`;
-- SD1.5 img2img generation directly at `640×360`;
-- pixel-art LoRA strength `1.0`;
-- fixed seed `20260905`;
+- revision `SD15_NATIVE_PIXEL_REAUTHOR_V1`;
+- seed `20260905`;
 - `30` steps;
 - CFG `6.0`;
 - DPM++ 2M / Karras;
 - denoise `0.72`;
-- no final resize.
+- conditioning figure `48×128` on the gameplay canvas;
+- raw SHA256 `294a412ffc0aa859c7fdf4128b13755e1e89fec4f3ea1d96c63e735a10ed92b0`.
+
+Visual verdict: **FAIL**. The result was a coarse vertical block/mannequin. Exilada identity was lost; long hair, degraded cloth, restraints, hands and feet were not production-readable. It did not read as intentional modern pixel art.
+
+Root lesson: putting a roughly 128-screen-pixel identity-rich human inside a standard latent-diffusion canvas leaves too little spatial representation for the detail/topology requirements. Do not seed-fish, prompt-tune or iterate SD1.5/LoRA variants for G3S-A.
+
+# PixelLock native-grid source test — CURRENT
+
+The next test changes representation instead of changing another latent-diffusion parameter.
+
+PixelLock is a text LLM fine-tuned for palette-indexed pixel art. Its production engine serializes a sprite as a `PALETTE` plus `GRID`, and llama.cpp GBNF grammar locks transparent/opaque footprint cells. The model therefore authors discrete sprite cells rather than decoding an 8×-compressed image latent.
+
+Pinned upstream:
+
+- PixelLock code commit: `bb682f9919fcd302eaa5226b7e6965dfdf151beb`;
+- PixelLock code license: MIT;
+- model: `solarkyle/pixellock-gemma-12b-pixelart-gguf`, Q4_K_M, about `7.38 GB`, Gemma license;
+- model revision: `d35e3bcc3c8651603393042df4dbf2a1d37173ea`;
+- llama.cpp Windows CUDA build: `b10516`;
+- llama.cpp CUDA 12.4 main ZIP SHA256 `96d64faeb5b8e655341f32b26ad3e51fbea8bff0bc8120ad3dbffdc0b05b8ad3`;
+- CUDA runtime ZIP SHA256 `8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6`.
+
+## Representation contract
+
+1. The coherent Qwen control is used only to derive pose/footprint conditioning.
+2. The subject is isolated into a transparent **64×64 logical scaffold**, target visible height about `62` logical pixels.
+3. PixelLock runs its grammar-constrained **2× mode** and authors a **128×128 output grid**.
+4. The 2× result is model-generated cell data, not a bitmap resize performed after generation.
+5. The output alpha footprint must match the exact grammar-constrained 2× scaffold footprint.
+6. The generated 128×128 asset is composited at 1 asset pixel = 1 screen pixel on the `640×360` gameplay preview.
+7. No frame animation is generated in this gate.
+
+Why `64 -> 128` is permitted: PixelLock is trained for small native grids and its 2× mode samples colors for the output cells under a footprint grammar. This is structurally different from taking a high-resolution illustration and resizing/filtering it after generation.
+
+## Tooling
+
+- `tools/structured-2d-character-pipeline/g3s_a_pixellock_native.py`
+- `tools/structured-2d-character-pipeline/04_bootstrap_and_run_g3s_a_pixellock.ps1`
+
+Dependency workspace:
+
+`Z:\AI\PixelLockSpike`
+
+Output workspace:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock`
+
+First run provisions about `7.4 GB` for the PixelLock model plus the pinned llama.cpp CUDA runtime. The runner is one-command/headless and automatically retries lower GPU offload if the full model cannot start within RTX 3060 12 GB VRAM.
+
+## Hard automated checks
+
+- pinned PixelLock code commit;
+- pinned llama.cpp archive SHA256 values;
+- pinned HF model revision plus locally recorded model SHA256;
+- 64×64 scaffold generated from the Qwen control;
+- generated output exactly `128×128`;
+- `footprint_perfect == true` from PixelLock production validation;
+- generated visible height between `116` and `128` px;
+- no post-generation resize.
 
 Expected review artifact:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock\g3s_a_pixellock_contact_sheet.png`
 
 Review order:
 
-1. topology integrity: one head/torso, two arms/hands, two legs/feet;
-2. Exilada identity/design continuity;
-3. approximately 128 px gameplay scale;
-4. intentional native 1× pixel cluster language rather than a tiny smooth illustration;
-5. long hair / degraded cloth / restraints / bare-foot readability.
+1. topology: one head/torso, two arms/hands, two legs/feet; hands and feet must read;
+2. Exilada identity: dominant long black hair, olive-brown skin, degraded beige cloth, wrist/ankle restraints, bare feet;
+3. intentional modern pixel-cluster language rather than a block mannequin;
+4. gameplay readability in the 640×360 preview.
 
-Kill rule:
-
-If this single native re-author candidate still reads as smooth/pseudo-pixel diffusion art rather than intentional pixel clusters, reject this SD1.5 source route too. Do not start seed fishing or parameter sweeps.
+Kill rule: this is one bounded representation test. If PixelLock can only recolor the coarse scaffold and cannot produce a convincing identity-bearing Exilada sprite, close it without prompt/temperature fishing and reassess the static-source representation.
 
 # G3S-B — persistent part decomposition
 
@@ -185,13 +193,11 @@ Run only:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\03_bootstrap_and_run_g3s_a_sd15_native.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\04_bootstrap_and_run_g3s_a_pixellock.ps1"
 ```
 
-The first run downloads about `4.27 GB` plus a small LoRA, then executes one native candidate.
+Then STOP. If it reaches `G3S-A PIXELLOCK: REVIEW REQUIRED`, share:
 
-Then STOP. If it reaches `G3S-A SD15: REVIEW REQUIRED`, share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_sd15\g3s_a_sd15_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_a_pixellock\g3s_a_pixellock_contact_sheet.png`
 
 If it fails, share the complete console output. Do not start G3S-B or G4.
