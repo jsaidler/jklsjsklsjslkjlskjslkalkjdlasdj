@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **PLANNED / IMPLEMENTATION NEXT**
+Gate status: **B3-A READY TO RUN / B3-B BLOCKED UNTIL GUIDE REVIEW**
 
 ## Why this gate exists
 
@@ -83,9 +83,9 @@ The body-base art itself must be a dedicated native 2D source asset.
 
 ## B3 implementation plan
 
-B3 is split internally into two bounded steps, but remains one production gate:
+B3 is split internally into two bounded steps, but remains one production gate.
 
-### B3-A — deterministic anatomy guide
+### B3-A — deterministic anatomy guide — READY
 
 Create a complete adult female, hairless, unclothed structural reference using the existing deterministic MPFB/hidden-rig infrastructure.
 
@@ -95,13 +95,31 @@ This output is **guide data only**, never final visible art. It provides:
 - head/scalp/neck/body continuity;
 - limb proportions;
 - chest/pelvis/hip anatomy;
-- body-region IDs;
-- pivots/joints/sockets;
-- depth and occlusion reference.
+- projected joint positions;
+- deterministic camera/scale reference.
 
-### B3-B — native body source
+B3-A deliberately creates **zero** hair, clothing, cuff/shackle or chain objects.
 
-Author one native `128×128` persistent body-base source against that guide.
+Tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_b3_mpfb_bootstrap.py`
+- `tools/structured-2d-character-pipeline/g3s_b3a_nude_anatomy_guide.py`
+- `tools/structured-2d-character-pipeline/g3s_b3a_contact_sheet.py`
+- `tools/structured-2d-character-pipeline/11_run_g3s_b3a_nude_anatomy_guide.ps1`
+
+Output workspace:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide`
+
+Expected review artifact:
+
+`g3s_b3a_contact_sheet.png`
+
+The contact sheet must be read as **anatomical/structural reference only**. A 3D-looking guide is not a failure by itself because B3-A does not own final visible pixels.
+
+### B3-B — native body source — BLOCKED UNTIL B3-A REVIEW
+
+Author one native `128×128` persistent body-base source against the approved structural guide.
 
 PASS requires that this 2D asset itself — not the 3D guide — is visually credible as intentional modern pixel art and can stand alone with no hair or clothing.
 
@@ -109,18 +127,27 @@ No animation begins until B3-B passes.
 
 ## PASS criteria
 
-Review order:
+### B3-A structural review
 
 1. one complete adult human body with one head/torso, two arms/hands and two legs/feet;
+2. no hair object/layer;
+3. no clothing/binding object/layer;
+4. no cuffs, shackles or chain objects;
+5. scalp/head/neck and all body regions are structurally complete;
+6. proportions are suitable for the Exilada target and G1 scale;
+7. output is clearly marked guide-only.
+
+### B3-B visual body review
+
+1. complete adult anatomy at native `128×128`;
 2. no hair pixels;
 3. no clothing/binding pixels;
-4. no cuffs, shackles or chain pixels;
-5. scalp/head/neck and all body regions are complete rather than holes left by removed layers;
-6. chest, pelvis, hands and feet read as coherent adult anatomy at native 1×;
-7. silhouette and proportions remain recognizably Exilada-like;
-8. body remains readable at `640×360` with the locked ~`128 px` protagonist scale;
-9. the native 2D source reads as authored pixel art, not a filtered 3D render;
-10. output is deterministic and reusable as the base owner for later layers.
+4. no restraint pixels;
+5. chest, pelvis, hands and feet read coherently at native 1×;
+6. silhouette and proportions remain recognizably Exilada-like;
+7. gameplay preview remains readable at `640×360` with the locked ~`128 px` protagonist scale;
+8. the source reads as authored pixel art, not a filtered 3D render;
+9. output is deterministic and reusable as the base owner for later layers.
 
 ## After PASS
 
@@ -133,3 +160,16 @@ Only then proceed to:
 ## No-model-search rule
 
 Do not reopen the closed local sprite-model search. B3 uses deterministic anatomy infrastructure and dedicated native source authoring; it is not another diffusion-model experiment.
+
+## Exact next action — ONLY THIS
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\11_run_g3s_b3a_nude_anatomy_guide.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
