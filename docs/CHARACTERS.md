@@ -44,9 +44,30 @@ This supports:
 - torn and degraded cloth;
 - improvised bindings;
 - visible evidence of captivity;
-- partial or near nudity when appropriate to the material reality of the situation;
+- partial or complete nudity when appropriate to material/narrative state;
 - vulnerability without erotic framing;
 - the visual contrast of an exposed, precarious body that remains dangerous.
+
+### Body-base and nudity rule — LOCKED 2026-09-05
+
+The production character owns a **complete adult body base independent of hair, clothing and equipment**.
+
+This is not an alternate costume or a special generated nude version. It is the canonical underlying character body from which every equipped state is composed.
+
+Locked consequences:
+
+- the body exists completely under every garment, binding, hair mass, cuff and chain;
+- removing all clothing/equipment reveals the same persistent body rather than reconstructing hidden pixels;
+- nudity is a normal supported world/gameplay state;
+- chest and pelvic anatomy must be coherent at native gameplay scale;
+- the representation is matter-of-fact and non-erotic;
+- there is no structurally mandatory censor garment;
+- hair is a separate asset/layer and the body base itself is hairless;
+- permanent scars/body marks belong to the body or body-state overlays, not to clothing;
+- wounds, blood, wetness, dirt and gore remain attached to the correct body regions;
+- severed body parts inherit/detach compatible clothing/equipment by state rules rather than carrying baked garment pixels.
+
+Current production order is therefore body first, then hair, then clothing/restraints/accessories.
 
 ### Initial clothing
 
@@ -60,6 +81,8 @@ The approved visual direction uses:
 - worn, dirty and frayed materials;
 - no decorative fantasy-costume logic.
 
+These are **equipped overlay assets**, not part of the permanent body sprite.
+
 The clothing should read as **residue of captivity and abandonment**, not as an intentional class outfit.
 
 Nudity is acceptable within the mature visual language. The design must treat the body matter-of-factly rather than emphasizing erotic display.
@@ -68,17 +91,18 @@ Nudity is acceptable within the mature visual language. The design must treat th
 
 The **history of captivity is canonical**.
 
-The high-detail master includes broken restraint hardware, but production layering is now explicitly separated from permanent body pixels.
+The high-detail master includes broken restraint hardware, but production layering is explicitly separated from permanent body pixels.
 
 Locked production rule:
 
-- **broken chain segments are not baked into the permanent base-body sprite**;
-- chain segments may be part of the **initial accessory loadout/state**;
-- chain art owns independent sockets/state and may be removed, damaged, detached or replaced without repainting the base character;
-- initial chain sockets are planned at both wrists and both ankles;
-- exact persistence of cuffs/shackle hardware beyond the initial state remains a separate equipment/state decision.
+- broken chain segments are not baked into the permanent base-body sprite;
+- cuffs/shackles are also equipment/accessory assets rather than body pixels;
+- chain segments may be part of the initial accessory loadout/state;
+- chain/restraint art owns independent sockets/state and may be removed, damaged, detached or replaced without repainting the body;
+- initial sockets are planned at wrists and ankles;
+- exact persistence of cuffs/shackle hardware beyond the initial state remains a gameplay/state decision.
 
-This is not a narrative retcon. Captivity evidence remains part of the starting condition; only the technical ownership of those pixels changes.
+This is not a narrative retcon. Captivity evidence remains part of the starting condition; only technical ownership changes.
 
 ### Weapon rule
 
@@ -98,6 +122,7 @@ Expected variable systems include:
 - acquired equipment;
 - restraint/chain accessory state;
 - ornaments/trophies acquired through world interaction;
+- complete or partial nudity according to equipment/state;
 - blood;
 - dirt;
 - wounds;
@@ -132,9 +157,12 @@ It establishes:
 
 The master is too detailed to be treated as proof of strict production pixel art. It remains canonical for **design identity**, while final gameplay-scale pixel art is a separate production task.
 
+The master also **does not contain enough information to recover the complete nude body by subtraction**. Hidden anatomy under hair/clothing must be authored as its own body asset.
+
 Consequences:
 
 - the master must not be redesigned merely to accommodate a tool;
+- the master may constrain body proportions/identity but does not own hidden-body pixels;
 - final visible pixels must be deliberate modern pixel art at native gameplay scale;
 - no manual frame-by-frame redraw burden is assumed for the user;
 - generated or rendered intermediate references do not become canon automatically.
@@ -143,39 +171,37 @@ Consequences:
 
 These anchors must survive:
 
-1. large dark hair mass;
+1. large dark hair mass when hair is present;
 2. compact adult body proportions;
-3. asymmetry of minimal initial clothing;
+3. asymmetry of minimal initial clothing when equipped;
 4. severe posture;
 5. readable body/limb separation;
-6. captivity evidence in the initial state, preferably through modular accessory/state layers;
+6. captivity evidence in the initial state through modular accessory/state layers;
 7. strong light/dark grouping between skin, hair and cloth.
 
-Facial microdetail is secondary to silhouette at gameplay scale, but gross facial errors are not acceptable. The current structured-2D pipeline therefore isolates `head_face` as a replaceable persistent part rather than forcing whole-character redraws.
+Facial microdetail is secondary to silhouette at gameplay scale, but gross facial errors are not acceptable. Head/face may be a replaceable persistent detail asset while scalp/head/neck anatomy remains part of the complete body base.
 
 ## Current production architecture
 
 Current visible-character architecture:
 
-`real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel parts -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
+`real motion -> validated hidden rig -> projected joints/depth/sockets -> persistent 2D pixel assets -> deterministic transform/deformation -> depth-aware composition -> native sprite -> QA`
 
 Hidden 3D owns control data only, not final visible color pixels.
 
-The current G3S-B decomposition intentionally separates:
+Locked staged character construction:
 
-- head/face;
-- torso/pelvis;
-- upper/lower limbs;
-- hands/feet;
-- hair masses;
-- front cloth mass;
-- initial chain accessory sockets.
+1. complete nude/hairless body base;
+2. separate hair asset/layer family;
+3. separate clothing/bindings/restraints/chains/equipment assets;
+4. layered animation proof.
 
 Detailed status is maintained in:
 
 - `docs/PROJECT_STATE.md`
 - `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-- `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
+- `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
+- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
 ## Masculine counterpart — exploratory human-family variant
 
@@ -205,19 +231,21 @@ Do not infer narrative role, identity, origin, name or player-selectability unti
 
 - design for actual high-oblique gameplay readability;
 - preserve strong silhouettes;
-- distinguish permanent identity from equipment/accessories;
+- distinguish permanent body identity from hair/equipment/accessories;
 - let history and simulation affect visual state;
 - use mature anatomy and grounded material logic;
 - preserve the canonical design while production-raster translation is developed;
 - test every production character at gameplay scale and in motion;
-- keep detachable chains/restraints as modular state when practical.
+- keep detachable chains/restraints as modular state;
+- keep the complete body valid when all garments are absent.
 
 ### Do not
 
 - make a particular weapon part of the Exilada by default;
-- bake broken chain segments permanently into the base-body sprite;
+- bake hair, garments, cuffs or chain segments permanently into the base-body sprite;
+- reconstruct a nude body by subtracting clothes/hair from a composite master;
 - turn minimal clothing into a generic fantasy-barbarian costume;
-- sexualize deprivation or captivity;
+- sexualize deprivation, captivity or nudity;
 - depend only on portrait-scale facial detail for gameplay identity;
 - accept gross facial/anatomical artifacts merely because the macro silhouette works;
 - add decorative scars, ornaments or props without systemic/narrative reason;
@@ -239,5 +267,7 @@ Not yet canonically fixed for the Exilada:
 - faction relationships;
 - religion/culture beyond origin in the Ilhas do Sul;
 - exact long-term clothing progression;
-- final approved gameplay head/face pixel asset;
+- final approved nude body-base pixel asset;
+- final approved hair asset;
+- final approved gameplay head/face detail asset;
 - whether the masculine counterpart is playable, an alternate protagonist, an NPC family template or only a production test.
