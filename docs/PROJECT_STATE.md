@@ -2,7 +2,7 @@
 
 Status date: **2026-09-04**
 
-Purpose: **canonical cross-chat operational handoff.** GitHub living documents are the source of truth.
+Purpose: **canonical cross-chat operational handoff.** GitHub living documents are the source of truth; detailed design stays in thematic docs rather than being duplicated here.
 
 ## Read first
 
@@ -16,363 +16,183 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 8. `docs/PHYSICAL_INTERACTION_VFX_GORE.md`
 9. `docs/PIXEL_ART_PRODUCTION.md`
 10. `docs/ANIMATION_PIPELINE.md`
-11. current tooling under `tools/`
+11. `docs/G0_AUTOMATION_LOG.md`
+12. current tooling under `tools/deterministic-character-pipeline/`
 
-After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
+After every material step: update the relevant thematic document(s) + this file, record PASS/FAIL/next gate, and commit focused changes.
 
-## Game identity
+## Game identity — LOCKED
 
-The game is a **systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a living world**.
+Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
 
-Immediate gameplay baseline: **elevated 2D belt-scroller / false 3D**.
+Immediate gameplay presentation baseline:
 
-Character-art/animation feasibility remains the current priority because it is the largest production risk; code capability is not the current unknown.
+**elevated 2D belt-scroller / false 3D**.
 
-## Exilada visual state
+Final visible character/environment language remains **true modern pixel art** at native gameplay raster. Hidden 3D may own motion/topology/physics but is not the final visible style.
 
-Canonical identity master:
+## Exilada visual identity — LOCKED
+
+Canonical high-detail identity/design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-It is a high-detail identity/design reference, not the final gameplay sprite. Final visible art remains true modern pixel art; simple high-resolution generation followed by resize/quantization is not accepted as the final-sprite route.
+The master is not the final gameplay sprite. It defines identity, proportions, face, dominant long black hair mass, degraded beige clothing language, scars/restraints and overall physical character.
 
-## Direct per-frame diffusion route — CLOSED AS PRIMARY ARCHITECTURE
+## Direct per-frame diffusion — CLOSED AS PRIMARY ARCHITECTURE
 
-RefControl was tested through V1/V2/V3.
+FLUX.2 Klein + RefControl V1/V2/V3 is frozen/rejected as production direct-frame animation because it failed topology/temporal/accessory consistency, culminating in a three-leg/three-foot frame in V3.
 
-- V1: strong identity retention but foot/arm/body/chain inconsistencies.
-- V2: anatomy improved but opposite gait phases collapsed into near duplicates.
-- V3: distinct controls restored phase alternation but `pose_01_passing_L_v3` generated **three visible legs / three feet** and accessories still drifted.
+Qwen-Image-Edit-2509 tooling remains preserved but **PAUSED**. A perfect isolated generated pose would not prove natural motion, stable anatomy, equipment continuity or production scalability.
 
-Final decision:
+## Active character-production architecture — LOCKED FOR VALIDATION
 
-**RefControl is rejected as the production direct-frame generator. No V4.**
-
-The problem is broader than extra limbs: independently synthesized frames do not guarantee stable proportions, natural locomotion, stable clothing/hair/accessories, anatomical side identity or scalable consistency across many actions.
-
-Qwen-Image-Edit-2509 tooling remains preserved under `tools/qwen-image-edit-2509-spike/`, but that spike is **PAUSED** as the active next step. A perfect isolated pose would not prove the full animation-system requirements.
-
-## Important correction — tested walk-pose provenance
-
-The old `contact_L / passing_L / contact_R / passing_R` controls were manually parameterized project test poses, not motion capture or a validated locomotion solver.
-
-They were valid only as pose-control experiments. They are **not** the canonical gait source.
-
-Future motion comes from real captured motion, recorded performance or deterministic locomotion solving.
-
-## Active production architecture — RISK-FIRST DETERMINISTIC PIPELINE
-
-Canonical end-to-end roadmap:
+Canonical roadmap:
 
 `docs/CHARACTER_PRODUCTION_PIPELINE.md`
 
-Production decomposition:
+Pipeline:
 
-`gameplay scale/camera -> real motion -> deterministic rig -> persistent secondary systems -> native-raster semantic passes -> pixel-specific renderer -> modular equipment/state composition -> sprite/runtime export -> automated QA`
+`gameplay camera/scale -> real motion -> deterministic rig/topology -> persistent secondary systems -> native-raster semantic passes -> pixel-specific renderer -> modular equipment/state composition -> sprite/runtime export -> automated QA`
 
-A hidden 3D rig is currently the preferred topology/motion backbone because it scales to motion capture, equipment sockets and many characters/actions. This **does not** mean the visible game becomes conventional 3D.
+Hard user-operation constraint:
 
-## Animation-source strategy — CANONICAL LIBRARY PLAN
+- no routine Blender GUI work;
+- no manual rigging/animation/pixel-production operation by the user;
+- no hired art/animation team assumed;
+- recurring production must be driven by ChatGPT-authored command-line/headless tooling.
 
-Canonical source/ingestion catalog:
-
-`docs/ANIMATION_SOURCE_LIBRARY.md`
-
-Blender is the deterministic processing/retargeting backbone, not the sole source of motions.
-
-Primary permissive sources already identified:
-
-- **Quaternius Universal Animation Library** — 120+ CC0 humanoid animations including locomotion, crawl, swim, death and combat;
-- **Quaternius Universal Animation Library 2** — 130+ additional CC0 actions including armed/melee combos and parkour;
-- **CMU Graphics Lab Motion Capture Database** — thousands of recorded trials, including walking, limping, get-up/recovery, swordplay and many natural motions, commercially usable in products under its stated terms;
-- **Quaternius animal/monster/dinosaur packs** — CC0 animated sources for quadruped/creature rig-family validation.
-
-Adobe Mixamo remains supplemental rather than a required automated dependency because acquisition normally requires account/web interaction.
-
-The library is normalized by canonical **rig families** rather than forcing all species through one skeleton.
-
-## Character layer / clothing / armor damage architecture — LOCKED
-
-Canonical document:
-
-`docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
-
-Character body, clothing, armor, restraints, equipment, surface state and structural damage are persistent modular systems. They are **not** baked independently into every animation frame.
-
-Canonical logical layers:
-
-1. complete body base;
-2. hair/body-attached secondary masses;
-3. underlayers/soft clothing;
-4. outer clothing;
-5. armor;
-6. restraints/accessories;
-7. weapons/tools;
-8. persistent surface-state overlays;
-9. transient VFX.
-
-Every persistent item owns stable semantic identity, equipment slot/layer, material class, body-region/socket ownership, anatomical side, coverage/occlusion rules, damage zones, detach/drop rules, sever inheritance and serialized state.
-
-### Damage model
-
-Damage has two independent axes:
-
-- **surface damage:** scratches, wear, blood, dirt, wetness, soot/scorch and similar state that does not alter topology;
-- **structural damage:** tears, holes, broken straps, missing cloth sections, dented/broken/missing armor components, detached panels and other silhouette/coverage changes.
-
-Structural damage uses a finite deterministic set of geometry/state transitions rather than per-frame generative reconstruction.
-
-The complete body always exists under clothing. Damaged/removed layers reveal the correct underlayer or body region, preserving scars, wounds and body state across every animation.
-
-Material-specific rules are defined for cloth, leather/hide, metal armor and wood/bone/rigid organic equipment.
-
-### G6D — clothing/armor damage gate
-
-Before broad equipment production, one representative soft garment and one representative rigid armor piece must prove:
-
-- intact state;
-- surface damage;
-- structural damage changing silhouette/coverage;
-- detach/broken-fastener event;
-- correct body/underlayer exposure;
-- persistence through locomotion and one high-energy action;
-- blood/wetness interaction;
-- one wind interaction on damaged soft cloth;
-- deterministic headless rebuild/export from saved state;
-- no body×item×damage×animation combinatorial sprite explosion.
-
-## Physical interaction / VFX / gore / body-state architecture — LOCKED PLAN
-
-Canonical document:
-
-`docs/PHYSICAL_INTERACTION_VFX_GORE.md`
-
-These are **not** deferred polish items. Wind, liquids, gore, dynamic lighting and optional unclothed body states affect how the rig, materials, semantic passes and runtime composition are designed.
-
-### Wind
-
-- Blender force fields / deterministic secondary systems may drive hair, cloth, foliage, dust, smoke-reference motion and similar assets;
-- character hair/cloth remain persistent modular structures, not per-frame redraws;
-- wind must not create full-body animation×wind combinatorial explosion if separate depth-aware hair/cloth layers can solve it;
-- if continuous bitmap deformation damages pixel clusters, use discrete wind-state families instead.
-
-### Liquids
-
-Separate **surface state** from **free fluid motion**.
-
-- wetness/blood/mud on characters use persistent semantic/material/body masks;
-- blood spray, splashes, drips and ordinary water interaction are event-driven pixel VFX at runtime;
-- Blender fluid simulation is useful for reference, hero effects and atlas generation, but ordinary gameplay liquid interaction must not require an offline bake per event;
-- environment water may use runtime 2D wave/height-field logic, contact splashes and depth-aware pixel particles where needed.
-
-### Gore
-
-Gore is a production requirement.
-
-The deterministic body must include named anatomical damage/sever zones from the start.
-
-A sever event uses:
-
-- known body-part hide/removal;
-- persistent wound-cap/gore socket;
-- detached limb/head object from the same body identity;
-- blood emitter at the correct socket;
-- collision/velocity/depth behavior;
-- deterministic equipment/clothing inheritance rules.
-
-Do not begin with arbitrary mesh slicing. Controlled anatomical cut zones are the scalable first architecture.
-
-### Dynamic lighting
-
-Hidden per-frame normal/material/depth information may drive runtime lighting, but visible pixel sprites must use **discrete material palette bands/LUTs**, not smooth photoreal gradients.
-
-### Nude/unclothed body support
-
-The body exists **independently under clothing** because clothing is modular and may be removed/damaged/changed.
-
-This does not require generative nude imagery.
-
-A current deterministic base-body candidate is **MakeHuman/MPFB or their CC0 core assets**. Any third-party downloaded asset must be license-checked separately.
-
-## Hard user-operation constraint — LOCKED
-
-The user will not learn or manually operate Blender/rigging/animation/pixel-production software and will not hire an external art/animation team.
-
-Therefore recurring production work must be executable by ChatGPT-authored tooling through command line/headless operation.
-
-Acceptable pattern:
+Canonical pattern:
 
 `PowerShell -> blender.exe --background --python ... -> deterministic outputs/reports`
 
-Any proposed pipeline that requires routine specialist GUI work or frame-by-frame repair by the user is invalid.
+## Animation source strategy — LOCKED
 
-## Key planning correction — visual translation is tested EARLY
+Canonical catalog:
 
-We will **not** spend days building a complete rig and animation library before discovering whether hidden 3D can produce the required pixel-art language.
+`docs/ANIMATION_SOURCE_LIBRARY.md`
 
-The first four gates deliberately cross-check downstream risk early:
+Primary permissive sources already identified include:
 
-### G0 — headless automation
+- Quaternius Universal Animation Library / Library 2 — CC0 humanoid motion families;
+- CMU Graphics Lab Motion Capture Database — real captured locomotion/recovery/combat-style trials under its stated reuse terms;
+- Quaternius animal/monster/dinosaur packs — CC0 sources for quadruped/creature rig-family validation.
 
-Prove Blender/toolchain can create/render/export a known result with no GUI/manual operation.
+Blender is the deterministic import/retarget/bake backbone, not the sole animation source.
 
-### G1 — camera/native scale
+## Physical interaction / body / equipment architecture — LOCKED
 
-Before final art, use primitive gameplay composition to determine:
+Canonical docs:
 
-- native scene raster (provisional `640×360` only until tested);
-- camera pitch/elevation;
-- pixels-per-world-unit;
-- protagonist visible height;
-- safe action bounds;
-- likely facing-family requirements.
+- `docs/PHYSICAL_INTERACTION_VFX_GORE.md`
+- `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
 
-Candidate heights such as 112/128/144 px remain comparison points only.
+Architectural requirements already include:
 
-### G2 — real motion/topology
+- persistent full body under clothing;
+- modular removable/damageable clothing and armor;
+- stable named equipment/restraint sockets;
+- hair/cloth secondary motion and wind interaction;
+- wetness/blood/dirt/material state via semantic masks;
+- event-driven water/blood VFX;
+- deterministic named gore/sever zones and detached-part behavior;
+- discrete palette-band dynamic lighting using normal/material/depth metadata;
+- support for unclothed body states without depending on generative image synthesis;
+- damage persistence without body×item×damage×animation combinatorial sprite authoring.
 
-Use a generic humanoid + real locomotion BVH, retargeted/baked headlessly.
+## Risk-first gate order — LOCKED
 
-PASS requires the full cycle to preserve normal topology, natural gait, acceptable foot contact, left/right identity and stable wrist/ankle/weapon sockets.
+- **G0 — automation:** headless Blender/toolchain proof.
+- **G1 — camera/native scale:** belt-scroller framing and actual character pixel density.
+- **G2 — motion/topology:** real captured walk on persistent generic rig with contacts/sockets.
+- **G3 — pixel translation:** prove hidden 3D can become intentional native-grid pixel art before building Exilada geometry.
+- **G4 — identity mapping:** low-detail Exilada production proxy / Production Pixel Master.
+- **G5 — temporal stress:** locomotion + extreme action + impact/recovery.
+- **G6 — equipment/attachments.**
+- **G6A — wind/secondary motion.**
+- **G6B — liquid/contact VFX.**
+- **G6C — gore topology.**
+- **G6D — clothing/armor damage.**
+- **G7 — systemic state/dynamic lighting.**
+- **G8 — production scaling.**
 
-### G3 — native pixel-translation feasibility
+A later expensive stage does not start merely because an earlier demo looked attractive.
 
-**Before building the Exilada model**, prove that a simple stylized rig proxy can be translated into intentional modern pixel art at the exact G1 raster.
+# Current execution state
 
-The primary candidate is not a conventional beauty render + pixel filter. Blender supplies deterministic native-density semantic passes such as silhouette, part/material IDs, normals, depth and stable detail masks; a purpose-built pixel renderer constructs indexed palette/value clusters directly on the final pixel grid.
+## G0 — HEADLESS AUTOMATION: PASS / CLOSED
 
-If G3 reads as filtered/low-resolution 3D rather than intentional pixel art, that visible rendering route is rejected immediately. The rig may still survive as motion/reference infrastructure, but we do not invest in a detailed Exilada 3D model.
+Validated target environment:
 
-## Gates after G3
+- Windows 11 Home Single Language `10.0.26200`;
+- Blender `5.1.1`;
+- Blender executable: `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe`;
+- workspace: `Z:\AI\RogueliteCharacterPipeline`;
+- diagnostic engine: `BLENDER_EEVEE`.
 
-Only after G0–G3 all PASS:
+Successful outputs:
 
-- **G4 identity mapping:** low-detail Exilada production proxy + first approved native Production Pixel Master;
-- **G5 temporal stress pack:** walk + high-energy/extreme action + compressed/impact/recovery motion before any animation library;
-- **G6 equipment/attachments:** hair, shackles, chains and one representative weapon remain persistent and modular across motions;
-- **G6A wind/secondary motion:** calm + wind-state response without manual repair or pixel corruption;
-- **G6B liquid/contact VFX:** one water/wetness interaction + one blood impact;
-- **G6C gore topology:** one deterministic sever-zone test before Exilada gore content is multiplied;
-- **G6D clothing/armor damage:** one soft garment + one rigid armor piece through structural/surface damage, detachment and exposure;
-- **G7 systemic visual state/dynamic lighting:** blood/dirt/wetness plus one dynamic light and wind-driven state;
-- **G8 production scaling:** several clips/items process automatically end-to-end with deterministic export and QA.
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.png`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.blend`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_manifest.json`
+- `Z:\AI\RogueliteCharacterPipeline\g0\g0_result.json`
 
-The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md`, `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md` and `docs/PHYSICAL_INTERACTION_VFX_GORE.md`.
+Validated PNG SHA256:
 
-## Planned visual translation — current primary candidate
+`bb8c938d6fe64a84de264a7c01824b1dabad27f3abd307485f706553b0d19d53`
 
-The hidden rig will output machine-readable passes at the **final target pixel density**, not a final high-resolution illustration:
+The successful run emitted benign Blender 5.1 deprecation warnings to stderr, which Windows PowerShell 5.1 displayed as `NativeCommandError` records even though Blender completed and G0 passed. The launcher has since been hardened to use `Start-Process` with one explicitly quoted argument string and redirected logs, eliminating that parent-shell noise without reintroducing the old path-with-spaces bug.
 
-- silhouette/coverage;
-- body-part ID;
-- material ID;
-- normals;
-- depth;
-- persistent UV/detail masks;
-- attachment metadata.
+Detailed incident history:
 
-A deterministic pixel-specific renderer then applies:
+`docs/G0_AUTOMATION_LOG.md`
 
-- material-specific discrete palette ramps;
-- large connected value clusters;
-- controlled silhouette/edge rules;
-- no smooth gradients as the primary language;
-- no bilinear filtering;
-- no automatic dithering/noise;
-- stable UV-anchored details for scars/tears;
-- temporal QA/cleanup limited to deterministic pixel noise, never anatomy/motion rewriting.
+**No G0 rerun is required for progression.**
 
-## Persistent accessories/equipment plan
-
-These are not redrawn independently per frame.
-
-- hair: persistent rigged large-mass geometry with deterministic secondary motion;
-- cloth: persistent rig/secondary structures before considering free simulation;
-- shackles: separate rigid objects on named wrist/ankle sockets;
-- chains: persistent endpoint-connected structures;
-- weapons/gear: named sockets on the canonical rig;
-- clothing/armor: modular persistent objects with localized surface + structural damage state.
-
-Equipment scalability is planned as modular rendering with depth/occlusion metadata, so we do not pre-render every body×weapon×armor×damage combination.
-
-## Systemic visual-state plan
-
-Semantic/material/body masks are planned from the start so causal state can change without redrawing animation:
-
-- blood/injury;
-- dirt/mud;
-- wetness;
-- frost/burn;
-- material wear;
-- selected persistent scars;
-- clothing/armor surface damage;
-- discrete-palette lighting/weather changes.
-
-## G0 implementation — READY TO RUN
+## G1 — CAMERA / NATIVE SCALE: ACTIVE NEXT GATE
 
 Tooling:
 
-- `tools/deterministic-character-pipeline/00_run_g0.ps1`
-- `tools/deterministic-character-pipeline/g0_headless_probe.py`
+- `tools/deterministic-character-pipeline/01_run_g1.ps1`
+- `tools/deterministic-character-pipeline/g1_camera_scale_blockout.py`
 
-Canonical deterministic pipeline workspace is now:
+Purpose: establish gameplay framing before mocap, final art or Exilada production geometry.
 
-`Z:\AI\RogueliteCharacterPipeline`
+G1 renders the same primitive belt-scroller composition in a controlled 3×3 matrix at provisional native raster `640×360`:
 
-`00_run_g0.ps1` is a one-command gate. It:
+- rows: camera pitch `18° / 26° / 34°`;
+- columns: protagonist visible height target `112 / 128 / 144 px`;
+- one protagonist proxy;
+- five enemy proxies at different depth positions;
+- walkable depth band;
+- attack/depth reach markers;
+- fixed orthographic camera family.
 
-1. validates Windows/repository/workspace drive;
-2. locates Blender if already installed;
-3. if Blender is absent, installs the official `BlenderFoundation.Blender` package through `winget` unless `-SkipInstall` is explicitly used;
-4. launches Blender with `--background --factory-startup --python`;
-5. creates a known diagnostic 3D scene entirely through Python;
-6. creates an orthographic camera and a named semantic socket marker;
-7. saves `g0_probe.blend`;
-8. renders `g0_probe.png`;
-9. writes `g0_manifest.json` including Blender version, engine, semantic objects and PNG SHA256;
-10. independently verifies outputs/hash in PowerShell and writes `g0_result.json`.
+The Python script calibrates orthographic scale against measured projected protagonist height rather than assuming a guessed world-to-pixel conversion.
 
-This render is **automation evidence only**, not a visual-direction or pixel-art test.
+Outputs include nine native renders, `g1_manifest.json`, `g1_blockout.blend`, `g1_result.json` and one labeled `g1_contact_sheet.png` for review.
+
+G1 does **not** use Exilada art, mocap or the final pixel renderer.
 
 ### Exact next action — DO ONLY THIS
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\00_run_g0.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\deterministic-character-pipeline\01_run_g1.ps1"
 ```
 
-Then **STOP** and share:
+Then **STOP**. Do not start G2.
 
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_probe.png`
-- `Z:\AI\RogueliteCharacterPipeline\g0\g0_result.json`
+Share:
 
-Do not start G1 until G0 is reviewed and recorded.
+`Z:\AI\RogueliteCharacterPipeline\g1\g1_contact_sheet.png`
 
-## Exact next implementation sequence — LOCKED
-
-Do **not** run the paused Qwen spike and do **not** build a detailed Exilada rig yet.
-
-Next implementation sequence:
-
-`G0 headless probe -> G1 gameplay camera/scale blockout -> G2 real-mocap generic walk -> G3 generic native-pixel renderer proof`
-
-Only if all four pass do we construct the Exilada production proxy.
+The contact sheet is the primary G1 review artifact; console output is needed only if the runner fails.
 
 ## Workspace state
 
-Frozen RefControl evidence:
-
-`Z:\AI\Flux2RefControlSpike`
-
-Paused Qwen spike:
-
-`Z:\AI\QwenImageEditSpike`
-
-Active deterministic character pipeline:
-
-`Z:\AI\RogueliteCharacterPipeline`
-
-Repository:
-
-`D:\GOOGLE DRIVE\DEV\Roguelite`
+- frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
+- paused Qwen spike: `Z:\AI\QwenImageEditSpike`
+- active deterministic pipeline: `Z:\AI\RogueliteCharacterPipeline`
+- repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
