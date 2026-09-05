@@ -4,7 +4,7 @@ Status date: **2026-09-05**
 
 Gate: **G3V — representative continuous human asset + deterministic pixel translation**
 
-Current status: **READY TO RERUN WITH ONE-PROCESS DIRECT MPFB BOOTSTRAP.**
+Current status: **READY TO RERUN AFTER BLANK-RENDER FIX.**
 
 ## Why this gate exists
 
@@ -42,7 +42,7 @@ The user performs no Blender/MPFB GUI work.
 
 G3V pins **MPFB 2.0.17**.
 
-The runner now deliberately **does not depend on Blender extension repositories, add-on activation state or GUI preferences**.
+The runner deliberately does **not depend on Blender extension repositories, add-on activation state or GUI preferences**.
 
 Current sequence:
 
@@ -55,8 +55,6 @@ Current sequence:
 7. `g3v_mpfb_bootstrap.py` loads MPFB directly from that verified package root and initializes only its service layer required by G3V;
 8. MPFB user-writable paths are redirected to a deterministic project-local directory;
 9. the bootstrap then runs the G3V representative proxy script in the same Blender process.
-
-This intentionally bypasses extension installation/enablement mechanics while still using the exact official pinned package contents.
 
 Expected MPFB archive SHA256 from the successful local download:
 
@@ -74,28 +72,42 @@ Fix: delimit the variable as `${code}:`.
 
 ### Incident 2 — extension installed but unavailable to project script
 
-Observed locally:
+MPFB downloaded and validated, but no MPFB module was present in the fresh render process.
 
-- MPFB `2.0.17` downloaded successfully;
-- archive SHA256 validated;
-- extension install commands completed;
-- the subsequent G3V process reached the project Python script;
-- no MPFB module was present in `sys.modules` and the script failed with `searched roots: []`.
+The first attempted fix used explicit Blender extension activation. It still failed in a fresh background process.
 
-The first attempted fix used `--addons bl_ext.roguelite_g3v.mpfb` plus a fresh-process import probe.
-
-### Incident 3 — extension activation probe still failed and created useless Blender process churn
-
-The explicit activation probe still could not load `bl_ext.roguelite_g3v.mpfb` in a newly started background process. At that point the extension-management path was judged to be solving the wrong problem: G3V needs MPFB's deterministic service code and data, not persistent Blender GUI add-on state.
+### Incident 3 — extension activation path caused useless Blender process churn
 
 Decision:
 
-- **stop managing a custom Blender extension repository for G3V**;
-- **stop opening multiple Blender processes for repo-list/repo-add/install/probe**;
+- stop managing a custom Blender extension repository for G3V;
+- stop opening multiple Blender processes for repo-list/repo-add/install/probe;
 - load the verified MPFB package directly in Python;
 - normal G3V execution now launches one Blender background process only.
 
-This is the canonical dependency-loading route unless the direct service bootstrap itself proves technically incompatible.
+### Incident 4 — generated contact sheet was blank / all background
+
+Observed review artifact:
+
+`g3v_contact_sheet.png`
+
+The label layer was present, but all eight image cells contained only the background. Therefore this run was **invalid and must not be visually judged**.
+
+The original script accepted any non-empty PNG file as a successful render. That was insufficient: a valid file could still contain zero character pixels.
+
+Fix now implemented:
+
+1. stop depending on Workbench object-color rendering for the semantic pass;
+2. create an explicit root-visible `G3V_RENDER` collection and move the representative body, rig, hair/cloth/shackle geometry, camera and light into it;
+3. render through **Blender Eevee**;
+4. semantic ID pass uses explicit emissive materials for `skin / hair / cloth / metal`;
+5. neutral-light pass uses an explicit diffuse material plus deterministic sun/world lighting;
+6. after every semantic render, reload the PNG and count classified foreground pixels;
+7. reject a frame if it contains fewer than 200 foreground pixels;
+8. reject a frame if its visible semantic bounding-box height is outside `80..180 px` around the locked `128 px` target;
+9. refuse to build the contact sheet if the complete sampled sequence contains zero semantic foreground.
+
+This means a blank/offscreen render can no longer silently become `REVIEW_REQUIRED`.
 
 ## Representative body / rig
 
@@ -126,12 +138,12 @@ These are not production assets. They are a visual kill-switch proxy.
 
 Four approved real-walk frames are rendered at the locked `640×360 / 26 deg / 128 px` presentation.
 
-For each frame Blender creates two machine-readable passes:
+For each frame Blender now creates:
 
-1. **semantic ID pass** — exact skin/hair/cloth/metal ownership;
-2. **neutral light pass** — deterministic Workbench lighting with no semantic color information.
+1. **semantic ID pass** — exact skin/hair/cloth/metal ownership using emissive Eevee materials;
+2. **neutral light pass** — deterministic Eevee lighting with neutral geometry.
 
-The visible outputs are then constructed at the same native raster:
+The visible outputs are then constructed at the same native raster.
 
 ### A — representative continuous geometry
 
@@ -139,7 +151,7 @@ Semantic body/hair/cloth/metal structure displayed with fixed material colors. T
 
 ### B — native semantic 4-band pixel
 
-Semantic ownership comes from the ID pass; lighting value comes from the neutral light pass. A global set of four luminance bands is computed across all four sampled frames and mapped into material-specific pixel palettes.
+Semantic ownership comes from the ID pass; lighting value comes from the neutral-light pass. A global set of four luminance bands is computed across all four sampled frames and mapped into material-specific pixel palettes.
 
 No high-resolution beauty render is shrunk. No bilinear scaling, diffusion, generative repainting or manual frame repaint is used.
 
@@ -161,6 +173,7 @@ Other outputs:
 - `g3v_manifest.json`;
 - `g3v_result.json`;
 - semantic ID/light debug passes;
+- foreground statistics per sampled frame;
 - SHA256 hashes for visible outputs and dependency provenance.
 
 ## PASS / FAIL
@@ -177,4 +190,4 @@ G3V can PASS only if:
 
 If the representative continuous human still reads only as filtered/low-resolution 3D, hidden 3D is rejected as owner of the final visible character. It remains useful for motion/topology/sockets/physics, and final character art moves to a structured 2D representation.
 
-G4 remains blocked until G3V is visually reviewed.
+G4 remains blocked until a **non-blank, validated G3V contact sheet** is visually reviewed.
