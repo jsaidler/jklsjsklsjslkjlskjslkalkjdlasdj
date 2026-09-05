@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B3 NUDE BODY BASE NEXT**
+Gate status: **ACTIVE — G3S-B3A V2 CORRECTED FEMALE ANATOMY GUIDE NEXT**
 
 ## Locked architecture
 
@@ -139,7 +139,7 @@ Consequences:
 - no censor garment is structurally required;
 - no hidden body reconstruction is allowed when clothing is removed/damaged;
 - chest and pelvic anatomy must be coherent at native gameplay scale;
-- presentation remains matter-of-fact and non-erotic;
+- presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent; no blanket anti-erotic framing is imposed;
 - body wounds/scars/blood/wetness remain attached to body regions;
 - sever/dismemberment operates on the same complete body while clothing/equipment inherits or detaches by state rules.
 
@@ -157,6 +157,31 @@ B3 internal bounded sequence:
 - **B3-B native `128×128` body source**, visually reviewed as standalone intentional pixel art.
 
 No hair, clothing or restraint asset is authored before B3-B passes.
+
+## G3S-B3A V1 — FAIL/CLOSED REVISION
+
+The first B3A run technically produced a complete `128 px` hairless/unclothed body guide with zero hair, clothing, restraint and chain objects. However the V1 script set MPFB `gender = 1.0`.
+
+The pinned MPFB semantics define `0.0 = female` and `1.0 = male`; the target map likewise resolves low to `female` and high to `male`. Therefore the submitted V1 did **not** satisfy the required adult-female phenotype even though the layer/scale mechanics were valid.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
+
+This does not reject MPFB or the B3A route. MPFB `2.0.17` remains the active structural dependency, so no cleanup command applies.
+
+## G3S-B3A V2 — READY TO RUN
+
+The corrected guide now enforces phenotype rather than trusting a numeric macro convention:
+
+- macro `gender = 0.0`;
+- resolved target stack must contain female target(s);
+- resolved target stack must contain zero male targets;
+- manifest contains a `phenotype_audit`;
+- contact sheet exposes resolved gender and target counts;
+- runner blocks B3A if the V2 phenotype invariants fail.
+
+B3-B remains blocked until the V2 contact sheet passes structural review.
 
 # G3S-B4 — Hair
 
