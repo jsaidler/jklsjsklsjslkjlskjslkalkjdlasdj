@@ -1,17 +1,21 @@
 # Pixel Art Production — Living Document
 
-Status: **true modern pixel art remains the final gameplay target. Direct high-resolution diffusion -> resize/quantize remains rejected. The active production plan now validates a deterministic hidden-rig -> native semantic passes -> pixel-specific renderer route before building the Exilada production model or animation library.**
+Status: **true modern pixel art remains the final gameplay target. The direct hidden-3D -> visible pixel-renderer route failed at G3V and is closed. Hidden 3D remains motion/topology/guide infrastructure only. The active production architecture is persistent structured 2D pixel assets animated/deformed from hidden rig guides, with runtime/export remaining sprite-based.**
 
 Canonical end-to-end roadmap:
 
 `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+
+Current visible-representation gate:
+
+`docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
 
 ## Core distinction
 
 The project uses two visual reference layers:
 
 1. **Identity master** — who the Exilada is.
-2. **Production Pixel Master** — how she exists on the actual gameplay pixel grid.
+2. **Production Pixel Master / persistent 2D production assets** — how she exists on the actual gameplay pixel grid.
 
 Identity master:
 
@@ -26,126 +30,162 @@ Final gameplay art uses **true modern pixel art**:
 - deliberate native-grid construction;
 - readable silhouettes and connected pixel clusters;
 - controlled palette/value grouping;
-- material separation through authored/render-rule shapes;
+- material separation through authored 2D shapes/layers;
 - stable animation at actual gameplay scale;
 - mature, severe, physical sword-and-sorcery presentation;
 - no dependence on illustrative microtexture.
 
-References such as Conan, Frank Frazetta, Heavy Metal and Julie Bell inform physicality, mass and adult fantasy shape language; they are translated into gameplay raster design rather than copied as paintings.
+References such as Conan, Frank Frazetta, Heavy Metal, Red Sonja and Julie Bell inform physicality, mass and adult fantasy shape language; they are translated into gameplay raster design rather than copied as paintings.
+
+## Visible-ownership invariant — LOCKED AFTER G3V
+
+G3V proved that even technically correct continuous 3D anatomy + semantic/palette translation still read as low-resolution 3D.
+
+Therefore hidden 3D is **demoted from visible-image ownership**.
+
+Hidden 3D may provide:
+
+- motion;
+- persistent topology;
+- left/right identity;
+- projected joints;
+- sockets/attachments;
+- depth/occlusion guides;
+- physics;
+- semantic/anatomical guides;
+- secondary-motion driving data.
+
+Hidden 3D may **not** provide the final visible sprite by mechanically promoting its render or projection.
+
+Final visible RGB, alpha, silhouette, pixel clusters, palette/value grouping and edge treatment are owned by persistent 2D pixel assets.
+
+Runtime/export remains sprite-based.
 
 ## Rejected final-art routes
 
 ### High-resolution image generation -> resize/quantize
 
-**FAIL as final Production Pixel Master route.**
+**FAIL/CLOSED as final Production Pixel Master route.**
 
 High-resolution generation may remain useful for concept/identity/reference work, but it cannot establish final pixel clusters, palette, gameplay readability or temporal raster stability.
 
 ### Conventional 3D beauty render -> generic pixel filter
 
-**FAIL as final-art definition.**
+**FAIL/CLOSED.**
 
 A hidden 3D rig may own topology/motion, but a smooth conventional render merely downsampled/pixelated is not sufficient.
 
-### Primitive Python/Pillow artistic authoring
+### 3D semantic/mask projection -> recolored final sprite
 
-**FAIL visually as character drawing.**
+**FAIL/CLOSED after G3V and B3B V1 correction.**
 
-Python remains valid for deterministic semantic raster processing, palette logic, masks, QA, packing and export. Under the new plan Python does not invent anatomy or draw a mannequin; it processes stable rig-derived semantic data.
+Even if lit RGB is not copied, using a projected 3D mask directly as final sprite alpha/silhouette still leaves 3D as visible-image owner.
 
-## Gameplay projection and scale dependency
+A 3D mask may be used only as a guide/reference/sanity check, not as the final 2D shape template.
+
+### Primitive Python/Pillow artistic mannequin authoring
+
+**FAIL visually as final character drawing.**
+
+Python remains valid for deterministic raster processing, palette checks, masks, QA, packing, metadata and explicit operations on already-authored 2D assets. It must not invent the final human silhouette/anatomy procedurally and call that production art.
+
+## Gameplay projection and scale
 
 Locked baseline:
 
-**elevated 2D belt-scroller / false 3D**
+- elevated 2D belt-scroller / false 3D;
+- native scene raster `640×360`;
+- orthographic camera;
+- pitch `26 deg`;
+- protagonist reference height approximately `128 px`.
 
-Before the final pixel renderer or Production Pixel Master is designed, G1 of `CHARACTER_PRODUCTION_PIPELINE.md` must determine the real native pixel density from a representative gameplay composition.
+Pixel art is judged at native 1× and in gameplay context.
 
-Provisional scene raster:
+## Active production architecture — G3S
 
-**640 × 360** — test value only, not locked.
+`real motion -> validated hidden rig -> projected joints/depth/sockets/guides -> persistent native 2D pixel assets -> deterministic 2D deformation/composition -> sprite/runtime export -> QA`
 
-Candidate protagonist heights such as 112 / 128 / 144 px remain comparison samples only.
+The crucial distinction is that the hidden rig provides control data while the persistent 2D assets provide visible art.
 
-The final renderer must be tuned to the chosen gameplay scale; pixel art cannot be designed correctly in isolation from screen occupancy and combat composition.
+### Persistent 2D ownership
 
-## Planned native-raster translation architecture
+The character is assembled from persistent 2D assets/layers:
 
-Primary candidate:
+1. complete nude/hairless body base;
+2. hair;
+3. underlayers/soft clothing;
+4. outer clothing;
+5. armor;
+6. restraints/accessories;
+7. weapons/tools;
+8. body/material state overlays;
+9. transient VFX.
 
-`hidden deterministic rig -> exact-density semantic passes -> pixel-specific renderer -> indexed native sprite`
+The body exists completely under every removable layer.
 
-### Rig-derived semantic inputs
+### 2D animation role of hidden rig
 
-At the exact pixel density established by gameplay-scale testing, the hidden 3D production structure will provide:
+The rig may drive:
 
-- silhouette/coverage;
-- body-part ID;
-- material ID;
-- view-space normals;
-- depth;
-- stable UV/detail masks;
-- attachment/socket metadata;
-- optional unlit diagnostic reference.
+- part transforms;
+- deformation guides;
+- left/right identity;
+- depth ordering;
+- socket positions;
+- contacts/root motion;
+- secondary-motion targets.
 
-These are machine-readable construction inputs, not a final smooth 3D artwork.
+But the final rendered frame is composed from the persistent 2D sprites/assets, not from a visible 3D render.
 
-### Pixel-specific renderer rules
+## Production Pixel Master — current definition
 
-The visible sprite is constructed directly on the target grid using:
+No final Production Pixel Master is yet approved.
 
-- discrete indexed palette ramps per material;
-- large connected value clusters before small accents;
-- controlled silhouette/edge treatment rather than a universal black sticker outline;
-- material-specific shape/value language for hair, skin, cloth and metal;
-- stable UV-anchored persistent details such as scars/tears where they remain legible;
-- no smooth-gradient dependence;
-- no automatic dithering as default;
-- no random speckling/texture noise;
-- no bilinear filtering;
-- no antialiasing baked into production sprites;
-- no arbitrary rotation of finished bitmaps.
+The first approved native gameplay-scale Exilada body/character representation must be a genuine 2D pixel asset whose visible silhouette and pixel language are independently authored in 2D.
 
-Initial Exilada guidance remains approximately **24–32 visible base colors**, excluding transparency and optional runtime state data. This is guidance, not a quota.
-
-## Why this is not simply filtered 3D
-
-The visual route passes only if its result reads as deliberate pixel art at native 1×.
-
-The distinction is structural:
-
-- 3D supplies topology, projection, occlusion and semantic/material information;
-- the final visible colors/edges/value bands are chosen by pixel-specific discrete rules at the final raster;
-- there is no accepted intermediate conventional high-resolution beauty frame that is merely reduced afterward.
-
-If the result still reads as low-resolution/filtered 3D, **G3 fails and the visible renderer is abandoned before a detailed Exilada model is built**.
-
-## Production Pixel Master — revised definition
-
-No Production Pixel Master is currently approved.
-
-After G1 scale and G3 renderer feasibility pass, a low-detail Exilada production proxy is mapped into the same system.
-
-The first static native-grid Exilada image that passes user review for:
+It is judged at 1× on:
 
 - silhouette;
-- long black hair mass;
-- adult lean anatomy;
-- severe presence;
-- skin/hair/cloth/metal separation;
-- controlled clusters/palette;
+- adult anatomy;
+- hair mass when present;
+- palette/value grouping;
+- cluster quality;
 - recognizability against `exilada_master.png`;
-- absence of filtered-3D appearance;
+- absence of low-resolution/filtered 3D appearance;
+- suitability for persistent part decomposition and deterministic 2D animation.
 
-becomes the **Production Pixel Master**.
+## Current body-source gate — G3S-B3
 
-It is therefore generated by the accepted deterministic production representation, not painted as an unrelated one-off asset and not obtained by shrinking the identity master.
+The current build order is:
+
+1. complete adult nude/hairless body sprite source;
+2. separate hair asset;
+3. separate clothing/bindings/restraints/accessories;
+4. layered motion proof.
+
+### B3A
+
+B3A V2 passed as an adult-female MPFB anatomy guide only.
+
+Its render, mask and projected silhouette are not final art.
+
+### B3B V1 correction
+
+A first B3B implementation was rejected because it copied the projected B3A mask directly into the final `128×128` alpha/silhouette and procedurally colored it.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
+
+The rejected script/runner were removed before user execution.
+
+The corrected B3B method has not yet been implemented.
 
 ## Temporal pixel-art gate
 
 A convincing still is insufficient.
 
-Before an animation library is produced, the same renderer must survive a stress pack containing:
+After body/hair/clothing ownership is correct, the same persistent 2D representation must survive a motion proof and later a stress pack containing:
 
 - locomotion;
 - an extreme/high-energy action;
@@ -155,21 +195,20 @@ QA examines:
 
 - silhouette readability;
 - limb separation;
+- stable part ownership;
 - one-frame orphan-pixel noise;
 - material-cluster stability;
 - sprite-bound overflow;
 - contact/action readability;
-- whether frame sampling feels intentionally animated rather than smoothly rendered 3D.
-
-Mocap can be resampled/baked to a lower sprite cadence, but frame selection must respect contacts and motion error rather than using only a blind `every Nth frame` rule.
+- whether motion feels intentionally sprite-animated rather than like low-resolution rendered 3D.
 
 ## Character identity priorities at gameplay scale
 
-1. dominant long black hair mass;
+1. dominant long black hair mass when hair is present;
 2. adult lean/compact anatomy;
 3. severe physical presence;
 4. clear skin/hair value separation;
-5. asymmetrical degraded beige cloth;
+5. asymmetrical degraded beige cloth when equipped;
 6. readable limbs and grounded bare feet;
 7. restraint-history markers where legible;
 8. facial microdetail last.
@@ -180,31 +219,16 @@ Weapons remain variable equipment, not identity anchors.
 
 Details that must remain on the same body side are encoded structurally rather than redrawn per frame:
 
-- scars/tears: stable UV/material masks or geometry where useful;
-- shackles: separate socketed objects;
-- chains: persistent endpoint-connected structures;
-- hair: rigged large geometry masses with deterministic secondary motion;
-- cloth: persistent mesh/secondary structures;
-- weapons/equipment: named rig sockets.
-
-This prevents the frame-to-frame migrations observed in diffusion experiments.
-
-## Modular equipment pixel strategy
-
-The preferred scalable route is not to pre-render every possible equipment combination.
-
-Plan:
-
-- render base character and equipment through the same rig/camera/pixel renderer;
-- export depth/occlusion or front/back ordering information from the deterministic scene;
-- compose equipment modularly with correct per-frame occlusion;
-- validate one representative weapon/restraint combination before an equipment catalog is created.
-
-If depth-aware modular composition is impractical in the game runtime, G6 must discover that early and choose a controlled front/back-layer or offline-composite family solution before content multiplication.
+- scars/marks: body-owned 2D masks/details where useful;
+- shackles: separate socketed 2D equipment assets;
+- chains: persistent endpoint-connected accessory structures rendered/composed as 2D assets;
+- hair: persistent large 2D masses with deterministic secondary-motion guides;
+- cloth: persistent 2D pieces/layers;
+- weapons/equipment: named rig sockets driving 2D asset placement.
 
 ## Systemic visual state
 
-The pixel pipeline must expose stable material/body masks so causal world state does not require reauthoring frames.
+The pixel pipeline must expose stable body/material masks so causal world state does not require reauthoring frames.
 
 Planned examples:
 
@@ -216,8 +240,6 @@ Planned examples:
 - selected persistent scars;
 - weather/lighting palette variation.
 
-If normal data is retained for runtime lighting, lighting must resolve through discrete palette/value rules rather than smooth non-pixel gradients.
-
 ## Runtime integrity
 
 Final production sprites must use:
@@ -226,7 +248,7 @@ Final production sprites must use:
 - stable/integer positioning where required for raster stability;
 - no bilinear filtering;
 - no antialiased transform bake;
-- no arbitrary rotation of finished bitmaps;
+- no arbitrary rotation of finished bitmaps unless a specifically validated pixel-safe deformation path is used;
 - stable world scale across frames.
 
 ## Automated QA / export role
@@ -238,7 +260,7 @@ Python and other CLI tooling may automatically validate:
 - alpha integrity;
 - singleton pixel noise thresholds;
 - silhouette-area discontinuities;
-- material/part discontinuities;
+- part discontinuities;
 - attachment continuity;
 - bounds overflow;
 - loop closure;
@@ -256,10 +278,10 @@ The pipeline must automatically generate native-1× previews/contact sheets/debu
 
 **LOCKED:** conventional beauty-render -> generic pixel filter is rejected.
 
-**LOCKED:** hidden deterministic 3D may own topology/motion internally.
+**LOCKED:** direct 3D projection/mask -> recolored final sprite is rejected.
 
-**ACTIVE VISUAL CANDIDATE:** exact-density semantic passes -> purpose-built native pixel renderer.
+**LOCKED:** hidden deterministic 3D may own motion/topology/guides internally but not final visible silhouette/RGB.
 
-**ANTI-WASTE RULE:** G3 must prove this visual translation on a cheap generic proxy **before** a detailed Exilada model or animation library is built.
+**ACTIVE:** persistent structured 2D sprites/assets own final visible character art.
 
-**NEXT IMPLEMENTATION SEQUENCE:** G0 headless automation -> G1 camera/scale -> G2 real motion/topology -> G3 native-pixel renderer proof.
+**NEXT:** define the corrected G3S-B3B method for one genuine native `128×128` nude/hairless 2D body source before writing or running another authoring script.
