@@ -26,6 +26,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 18. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
 19. `docs/G3S_A1_FACIAL_ANATOMY_LOCK_LOG.md`
 20. `docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
+21. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
 
 After every material step: update the relevant thematic document + this file and make a focused commit.
 
@@ -45,11 +46,11 @@ Canonical design master:
 
 Adult woman, lean/resilient anatomy, olive-brown skin, severe face, very long heavy black hair, degraded beige cloth, scars/wounds, captivity history, bare feet, canonical base weaponless.
 
-The master defines design/identity, not final gameplay pixels.
+### Layer ownership clarification — LOCKED 2026-09-05
 
-### Captivity-layer clarification — LOCKED 2026-09-05
+The permanent `body_base` is a **complete unclothed body**. Initial cloth/bindings, hair and restraints are separate persistent layers/accessories over that body.
 
-The history of captivity remains canonical, but **broken chain segments are not permanent body pixels**. They are modeled as initial accessory state with independent sockets/art/state so they can be removed, damaged or replaced without editing the base body sprite.
+Broken chain segments are not permanent body pixels. They are initial accessory state with independent sockets/art/state.
 
 ## Hard operator constraint
 
@@ -74,9 +75,23 @@ Preserve small evidence outputs and shared runtimes still used elsewhere.
 
 ## Active production architecture — LOCKED
 
-`camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> persistent structured 2D pixel assets -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
+`camera/scale -> real motion -> deterministic hidden topology -> DIRECTION_SPACE_FK -> projected joints/depth/sockets -> complete 2D body base -> separate hair -> separate clothing/equipment/accessories -> deterministic 2D composition/deformation -> sprite/runtime export -> QA`
 
 Hidden 3D owns infrastructure only: motion, topology/left-right identity, sockets, contacts/root data, physics, depth/occlusion, semantic guides and secondary-motion drivers. It does **not** own final visible character color pixels.
+
+## Canonical character layer stack — LOCKED
+
+1. complete unclothed body base;
+2. hair / body-attached secondary masses;
+3. underlayers / soft clothing;
+4. outer clothing;
+5. armor;
+6. restraints/accessories;
+7. weapons/tools;
+8. persistent surface overlays;
+9. transient VFX.
+
+The body must exist under removable/damageable clothing and under hair. Hair and garments are never baked into body ownership.
 
 ## Gate order — CURRENT
 
@@ -90,9 +105,11 @@ Hidden 3D owns infrastructure only: motion, topology/left-right identity, socket
 - **G3S structured 2D visible representation** ← ACTIVE
   - G3S-A source-model search — CLOSED
   - authored native source V1 — FAIL/CLOSED
-  - G3S-A1 Facial / Anatomy Lock V2 — **FAIL/CLOSED**
-  - **G3S-B persistent part decomposition** ← READY TO RUN
-  - G3S-C four-phase walk proof — BLOCKED UNTIL G3S-B REVIEW
+  - G3S-A1 Facial / Anatomy Lock V2 — FAIL/CLOSED
+  - G3S-B persistent part decomposition V1 — **FAIL/CLOSED: semantic layer ownership wrong despite exact recomposition**
+  - **G3S-B2 Layer Stack Preflight** ← READY TO RUN
+  - G3S-B3 Body Base Completion — BLOCKED UNTIL B2 REVIEW
+  - G3S-C four-phase walk proof — BLOCKED UNTIL COMPLETE BODY BASE
 - G4 Exilada production 2D identity system — BLOCKED UNTIL G3S PASS
 - G5 temporal stress pack
 - G6 equipment/attachments
@@ -137,7 +154,7 @@ Marker:
 
 ## G3S source-model search — CLOSED
 
-Qwen native, SD1.5, PixelLock and Alucard were bounded probes. None produced an acceptable native source sprite. Do not start another source-model search.
+Qwen native, SD1.5, PixelLock and Alucard were bounded probes. None produced an acceptable native source sprite. Do not restart source-model search.
 
 Retained Qwen preferred-resolution control is design/scaffold provenance only:
 
@@ -147,54 +164,63 @@ SHA256:
 
 `ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
-## Authored native V1 — FAIL/CLOSED
+## G3S-A / A1 — face state
 
-Nominal mouth/restraint/chain pixels were added, but the mouth still did not read visually.
+The provisional 128×128 scaffold has acceptable macro body readability but its face is unresolved.
+
+V1 mouth patch was unreadable. V2 stronger mouth patch became an artificial block. The face remains a replaceable future component rather than blocking all architecture work.
+
+Markers:
+
+- `tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
+- `tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
+
+## G3S-B V1 — FAIL/CLOSED
+
+The V1 decomposition technically passed exact reconstruction:
+
+- `2974` source alpha pixels;
+- `2895` covered by named parts;
+- `79` residual pixels;
+- residual fraction `0.026564`;
+- exact recomposition `true`;
+- max channel diff `0`.
+
+Visual review showed the semantic ownership was wrong: body/limb parts retained garment/binding pixels, hair masks retained non-hair pixels, and the body did not exist independently underneath hair/clothing.
 
 Marker:
 
-`tools/structured-2d-character-pipeline/g3s_a_authored_v1_failure.json`
+`tools/structured-2d-character-pipeline/g3s_b_v1_failure.json`
 
-## G3S-A1 V2 — FAIL/CLOSED
+Critical lesson: **pixel-exact reconstruction does not validate semantic ownership.**
 
-V2 produced explicit face/hands/feet diagnostics. The mouth became an artificial dark/red block and was rejected visually.
-
-Marker:
-
-`tools/structured-2d-character-pipeline/g3s_a1_v2_failure.json`
-
-User decision: **continue the planned structured-2D pipeline** rather than repeat whole-character facial patching.
-
-Consequences:
-
-- macro body/source accepted provisionally for decomposition;
-- `head_face` remains unresolved and replaceable;
-- broken chain segments move to accessory state;
-- G3S-B unblocked.
-
-## G3S-B Persistent Part Decomposition — CURRENT
+## G3S-B2 Layer Stack Preflight — CURRENT
 
 Canonical log:
 
-`docs/G3S_B_PERSISTENT_PART_DECOMPOSITION_LOG.md`
+`docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
+
+Purpose: establish correct ownership before animation.
+
+It rebuilds the pinned `128×128` composite and diagnostically separates:
+
+- currently visible body pixels;
+- hair-only persistent layer family;
+- clothing-only overlay family.
+
+It requires exact recomposition and creates a magenta map of body regions currently hidden by hair/clothing. It deliberately does not invent hidden body pixels.
+
+If B2 passes, **G3S-B3 must create the complete persistent unclothed body base** before any animation proof.
 
 Tooling:
 
-- `tools/structured-2d-character-pipeline/g3s_b_parts_spec_v1.json`
-- `tools/structured-2d-character-pipeline/g3s_b_decompose_v1.py`
-- `tools/structured-2d-character-pipeline/09_run_g3s_b_decomposition.ps1`
-
-G3S-B rebuilds the pinned provisional `128×128` scaffold without the failed facial/chain patches and extracts persistent parts with stable IDs, pivots, depth metadata and SHA256s.
-
-Part families include head/face, torso/pelvis, upper/lower arms, hands, thighs, shins, feet, hair masses and front cloth.
-
-Static V1 uses screen-side limb identity; anatomical side is resolved in G3S-C against projected hidden-rig joints.
-
-Broken-chain slots exist at both wrists and ankles with `baked_into_body = false` and `art_status = NOT_AUTHORED`.
+- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_spec_v1.json`
+- `tools/structured-2d-character-pipeline/g3s_b2_layer_stack_preflight.py`
+- `tools/structured-2d-character-pipeline/10_run_g3s_b2_layer_stack_preflight.ps1`
 
 Output workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack`
 
 ## Exact next action — ONLY THIS
 
@@ -202,14 +228,14 @@ Output workspace:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\09_run_g3s_b_decomposition.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\10_run_g3s_b2_layer_stack_preflight.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b_decomposition\g3s_b_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack\g3s_b2_contact_sheet.png`
 
-Do not start G3S-C or G4 until G3S-B is visually reviewed.
+Do not run G3S-C.
 
 ## Workspaces
 
