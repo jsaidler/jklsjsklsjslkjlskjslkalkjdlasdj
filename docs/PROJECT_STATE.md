@@ -11,11 +11,12 @@ Purpose: **canonical cross-chat operational handoff.** GitHub living documents a
 3. `docs/VISUAL_DIRECTION.md`
 4. `docs/CHARACTERS.md`
 5. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-6. `docs/ANIMATION_SOURCE_LIBRARY.md`
-7. `docs/PHYSICAL_INTERACTION_VFX_GORE.md`
-8. `docs/PIXEL_ART_PRODUCTION.md`
-9. `docs/ANIMATION_PIPELINE.md`
-10. current tooling under `tools/`
+6. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
+7. `docs/ANIMATION_SOURCE_LIBRARY.md`
+8. `docs/PHYSICAL_INTERACTION_VFX_GORE.md`
+9. `docs/PIXEL_ART_PRODUCTION.md`
+10. `docs/ANIMATION_PIPELINE.md`
+11. current tooling under `tools/`
 
 After every material step: update thematic docs + this file, record PASS/FAIL/next gate, and commit focused changes.
 
@@ -90,7 +91,57 @@ Adobe Mixamo remains supplemental rather than a required automated dependency be
 
 The library is normalized by canonical **rig families** rather than forcing all species through one skeleton.
 
-## Physical interaction / VFX / gore / body-state architecture — NEW LOCKED PLAN
+## Character layer / clothing / armor damage architecture — LOCKED
+
+Canonical document:
+
+`docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
+
+Character body, clothing, armor, restraints, equipment, surface state and structural damage are persistent modular systems. They are **not** baked independently into every animation frame.
+
+Canonical logical layers:
+
+1. complete body base;
+2. hair/body-attached secondary masses;
+3. underlayers/soft clothing;
+4. outer clothing;
+5. armor;
+6. restraints/accessories;
+7. weapons/tools;
+8. persistent surface-state overlays;
+9. transient VFX.
+
+Every persistent item owns stable semantic identity, equipment slot/layer, material class, body-region/socket ownership, anatomical side, coverage/occlusion rules, damage zones, detach/drop rules, sever inheritance and serialized state.
+
+### Damage model
+
+Damage has two independent axes:
+
+- **surface damage:** scratches, wear, blood, dirt, wetness, soot/scorch and similar state that does not alter topology;
+- **structural damage:** tears, holes, broken straps, missing cloth sections, dented/broken/missing armor components, detached panels and other silhouette/coverage changes.
+
+Structural damage uses a finite deterministic set of geometry/state transitions rather than per-frame generative reconstruction.
+
+The complete body always exists under clothing. Damaged/removed layers reveal the correct underlayer or body region, preserving scars, wounds and body state across every animation.
+
+Material-specific rules are defined for cloth, leather/hide, metal armor and wood/bone/rigid organic equipment.
+
+### G6D — clothing/armor damage gate
+
+Before broad equipment production, one representative soft garment and one representative rigid armor piece must prove:
+
+- intact state;
+- surface damage;
+- structural damage changing silhouette/coverage;
+- detach/broken-fastener event;
+- correct body/underlayer exposure;
+- persistence through locomotion and one high-energy action;
+- blood/wetness interaction;
+- one wind interaction on damaged soft cloth;
+- deterministic headless rebuild/export from saved state;
+- no body×item×damage×animation combinatorial sprite explosion.
+
+## Physical interaction / VFX / gore / body-state architecture — LOCKED PLAN
 
 Canonical document:
 
@@ -101,7 +152,7 @@ These are **not** deferred polish items. Wind, liquids, gore, dynamic lighting a
 ### Wind
 
 - Blender force fields / deterministic secondary systems may drive hair, cloth, foliage, dust, smoke-reference motion and similar assets;
-- character hair/cloth should remain persistent modular structures, not per-frame redraws;
+- character hair/cloth remain persistent modular structures, not per-frame redraws;
 - wind must not create full-body animation×wind combinatorial explosion if separate depth-aware hair/cloth layers can solve it;
 - if continuous bitmap deformation damages pixel clusters, use discrete wind-state families instead.
 
@@ -127,7 +178,7 @@ A sever event uses:
 - detached limb/head object from the same body identity;
 - blood emitter at the correct socket;
 - collision/velocity/depth behavior;
-- deterministic equipment transfer rules.
+- deterministic equipment/clothing inheritance rules.
 
 Do not begin with arbitrary mesh slicing. Controlled anatomical cut zones are the scalable first architecture.
 
@@ -135,19 +186,13 @@ Do not begin with arbitrary mesh slicing. Controlled anatomical cut zones are th
 
 Hidden per-frame normal/material/depth information may drive runtime lighting, but visible pixel sprites must use **discrete material palette bands/LUTs**, not smooth photoreal gradients.
 
-This preserves pixel-art structure while allowing point lights, rim effects, weather/day-night changes and similar systemic lighting.
-
 ### Nude/unclothed body support
 
-The body must exist **independently under clothing** because clothing is modular and may be removed/damaged/changed.
+The body exists **independently under clothing** because clothing is modular and may be removed/damaged/changed.
 
 This does not require generative nude imagery.
 
-A current deterministic base-body candidate is **MakeHuman/MPFB or their CC0 core assets**. The base mesh/targets/skins can be used commercially, then parametrically adapted to Exilada proportions and rendered by the same local Blender/pixel pipeline.
-
-Any third-party MakeHuman/MPFB asset must be license-checked separately.
-
-The technical pipeline therefore does not make clothing mandatory and is not blocked by any image-generation-service limitation on nude imagery.
+A current deterministic base-body candidate is **MakeHuman/MPFB or their CC0 core assets**. Any third-party downloaded asset must be license-checked separately.
 
 ## Hard user-operation constraint — LOCKED
 
@@ -208,10 +253,11 @@ Only after G0–G3 all PASS:
 - **G6A wind/secondary motion:** calm + wind-state response without manual repair or pixel corruption;
 - **G6B liquid/contact VFX:** one water/wetness interaction + one blood impact;
 - **G6C gore topology:** one deterministic sever-zone test before Exilada gore content is multiplied;
+- **G6D clothing/armor damage:** one soft garment + one rigid armor piece through structural/surface damage, detachment and exposure;
 - **G7 systemic visual state/dynamic lighting:** blood/dirt/wetness plus one dynamic light and wind-driven state;
 - **G8 production scaling:** several clips/items process automatically end-to-end with deterministic export and QA.
 
-The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md` and `docs/PHYSICAL_INTERACTION_VFX_GORE.md`.
+The exact definitions, kill switches and outputs live in `docs/CHARACTER_PRODUCTION_PIPELINE.md`, `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md` and `docs/PHYSICAL_INTERACTION_VFX_GORE.md`.
 
 ## Planned visual translation — current primary candidate
 
@@ -236,8 +282,6 @@ A deterministic pixel-specific renderer then applies:
 - stable UV-anchored details for scars/tears;
 - temporal QA/cleanup limited to deterministic pixel noise, never anatomy/motion rewriting.
 
-This is the current route to test because it lets 3D own topology/motion while the raster system owns the visible pixel language.
-
 ## Persistent accessories/equipment plan
 
 These are not redrawn independently per frame.
@@ -246,9 +290,10 @@ These are not redrawn independently per frame.
 - cloth: persistent rig/secondary structures before considering free simulation;
 - shackles: separate rigid objects on named wrist/ankle sockets;
 - chains: persistent endpoint-connected structures;
-- weapons/gear: named sockets on the canonical rig.
+- weapons/gear: named sockets on the canonical rig;
+- clothing/armor: modular persistent objects with localized surface + structural damage state.
 
-Equipment scalability is planned as modular rendering with depth/occlusion metadata, so we do not pre-render every body×weapon×armor combination. G6 must prove this before equipment content expands.
+Equipment scalability is planned as modular rendering with depth/occlusion metadata, so we do not pre-render every body×weapon×armor×damage combination.
 
 ## Systemic visual-state plan
 
@@ -260,13 +305,8 @@ Semantic/material/body masks are planned from the start so causal state can chan
 - frost/burn;
 - material wear;
 - selected persistent scars;
+- clothing/armor surface damage;
 - discrete-palette lighting/weather changes.
-
-## Production precedent / feasibility evidence
-
-Motion Twin publicly documented a `Dead Cells` character workflow using simple 3D models/animation plus a custom small-size pixel-art rendering tool to avoid redrawing every frame and to reuse animation across models. This is evidence that a hidden 3D motion backbone plus purpose-built 2D pixel output is a credible production class, not evidence that our final look is already solved.
-
-Blender supports background/headless Python execution, so this class of production work can be automated rather than requiring GUI operation.
 
 ## Exact next implementation sequence — LOCKED
 
