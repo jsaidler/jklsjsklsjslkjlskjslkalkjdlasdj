@@ -139,7 +139,7 @@ The latest body sheet produced real phase changes but severe later-phase deforma
 
 Detailed log: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
-## G3V-R — RETARGET PREFLIGHT: V3 ACTIVE
+## G3V-R — RETARGET PREFLIGHT: V3 ACTIVE / BOOTSTRAP IMPORT FIXED
 
 Detailed log: `docs/G3V_RETARGET_PREFLIGHT_LOG.md`.
 
@@ -185,33 +185,26 @@ Conclusion: direction-space transfer is decisively better for articulation. V2 f
 
 ### V3 — CURRENT
 
-New solver wrapper:
-
-`tools/deterministic-character-pipeline/g3v_retarget_preflight_v3.py`
-
-Bootstrap automatically routes the existing `03d` command through V3.
-
-V3 retains V2's actual solvers and replaces only the invalid endpoint test with rest-independent:
+V3 retains V2's solvers and replaces only the invalid endpoint test with rest-independent:
 
 `CHAIN_UNIT_DIRECTION_RMS`
 
-It compares normalized posed chain direction for torso, arms and legs. MPFB proportions/lengths are therefore preserved rather than falsely penalized against the source rest skeleton.
+The first V3 run did not execute the solver because Blender's `runpy.run_path()` did not expose the sibling script directory on `sys.path`, causing:
 
-Guard values were not relaxed simply to obtain PASS:
+`ModuleNotFoundError: No module named 'g3v_retarget_preflight_v2'`
+
+This was a bootstrap/package-path bug, not a retarget regression.
+
+`g3v_retarget_bootstrap.py` now inserts `target_script.parent` into `sys.path` before executing V3. Expected marker:
+
+`G3V_RETARGET_HELPER_PATH=BOUND`
+
+Guard values remain unchanged:
 
 - >= 3 unique poses;
 - mean elbow/knee error <= 15 deg;
 - max error <= 35 deg;
 - chain-shape RMS <= 0.18.
-
-Expected V3 markers:
-
-- `G3V_RETARGET_BOOTSTRAP_SOLVER=V3`
-- `G3V_RETARGET_V2=BOUND`
-- `G3V_RETARGET_V3=BOUND`
-- `G3V_RETARGET_ENDPOINT_METRIC=CHAIN_UNIT_DIRECTION_RMS`
-- `G3V_RETARGET_ENDPOINT_METRIC_REST_INDEPENDENT=TRUE`
-- `G3V_RETARGET_THRESHOLDS=UNCHANGED`
 
 ### Exact next action — ONLY THIS
 
