@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **B3-A READY TO RUN / B3-B BLOCKED UNTIL GUIDE REVIEW**
+Gate status: **B3-A V1 FAIL/CLOSED — V2 CORRECTED FEMALE GUIDE READY TO RUN / B3-B BLOCKED UNTIL V2 GUIDE REVIEW**
 
 ## Why this gate exists
 
@@ -88,7 +88,7 @@ The body-base art itself must be a dedicated native 2D source asset.
 
 B3 is split internally into two bounded steps, but remains one production gate.
 
-### B3-A — deterministic anatomy guide — READY
+### B3-A — deterministic anatomy guide — V2 READY
 
 Create a complete adult female, hairless, unclothed structural reference using the existing deterministic MPFB/hidden-rig infrastructure.
 
@@ -120,7 +120,49 @@ Expected review artifact:
 
 The contact sheet must be read as **anatomical/structural reference only**. A 3D-looking guide is not a failure by itself because B3-A does not own final visible pixels.
 
-### B3-B — native body source — BLOCKED UNTIL B3-A REVIEW
+### B3-A V1 review — FAIL/CLOSED 2026-09-05
+
+The submitted V1 output correctly proved several technical conditions:
+
+- complete body geometry existed;
+- visible height was exactly `128 px` at `640×360`, orthographic `26 deg`;
+- hair objects: `0`;
+- clothing objects: `0`;
+- restraint objects: `0`;
+- chain objects: `0`;
+- guide was correctly marked structural-only, not final visible art.
+
+However V1 **fails the required adult-female phenotype criterion**.
+
+Root cause: the V1 script set MPFB macro `gender = 1.0`. In the pinned MPFB target semantics used by this route, `0.0 = female` and `1.0 = male`; the macro target map likewise resolves low to `female` and high to `male`. The V1 manifest therefore proves it instantiated the wrong phenotype even though the layer/scale mechanics worked.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
+
+Submitted V1 evidence retained in the marker includes:
+
+- manifest macro gender: `1.0`;
+- lit SHA256: `8c296c8b80ea0705e26617948eb7a132eccd459f128737cfded2cc82bccea0ea`;
+- mask SHA256: `ad98ab36381a85545c7791d4de4e2f12fb53d045dcbd1db6f27e98373daa6a46`;
+- contact-sheet SHA256: `b24721e5d38547b3f329671f61e112aa980f24b35517377f643aaee6977738e1`.
+
+This is a **revision failure, not a route/model rejection**. MPFB `2.0.17`, the bootstrap, rig, camera/scale pipeline and zero-layer audit remain active. Therefore there is no model cleanup command for this failure.
+
+### B3-A V2 correction — READY TO RUN
+
+V2 keeps the same bounded structural route but adds explicit phenotype invariants:
+
+- MPFB macro `gender = 0.0`;
+- resolved macro stack must contain at least one `female` target;
+- resolved macro stack must contain zero `male` targets;
+- manifest records `phenotype_audit`;
+- runner refuses to continue unless revision is `G3S_B3A_NUDE_ANATOMY_GUIDE_V2`, resolved gender is `female`, female target count is at least `1`, and male target count is `0`;
+- contact sheet surfaces the phenotype audit explicitly.
+
+B3-B remains blocked until this corrected V2 contact sheet is reviewed.
+
+### B3-B — native body source — BLOCKED UNTIL B3-A V2 REVIEW
 
 Author one native `128×128` persistent body-base source against the approved structural guide.
 
@@ -132,13 +174,14 @@ No animation begins until B3-B passes.
 
 ### B3-A structural review
 
-1. one complete adult human body with one head/torso, two arms/hands and two legs/feet;
-2. no hair object/layer;
-3. no clothing/binding object/layer;
-4. no cuffs, shackles or chain objects;
-5. scalp/head/neck and all body regions are structurally complete;
-6. proportions are suitable for the Exilada target and G1 scale;
-7. output is clearly marked guide-only.
+1. one complete **adult female** human body with one head/torso, two arms/hands and two legs/feet;
+2. explicit MPFB phenotype audit resolves `female`, with at least one female macro target and zero male macro targets;
+3. no hair object/layer;
+4. no clothing/binding object/layer;
+5. no cuffs, shackles or chain objects;
+6. scalp/head/neck and all body regions are structurally complete;
+7. proportions are suitable for the Exilada target and G1 scale;
+8. output is clearly marked guide-only.
 
 ### B3-B visual body review
 
@@ -178,3 +221,5 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 Then STOP and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3a_nude_guide\g3s_b3a_contact_sheet.png`
+
+or the complete console error if the runner fails.
