@@ -91,11 +91,15 @@ def main():
     target_globals = target_main.__globals__
 
     # Runtime patches must bind into function.__globals__, not the copy returned by
-    # runpy.run_path(). Keep geometry/phase corrections and semantic diagnostics separate
-    # from the representative-character source so each failure mode remains inspectable.
+    # runpy.run_path(). Install the rigid attachment owner first so every later proxy
+    # creator, including the geometry-phase shackle replacement, captures the safe
+    # attachment implementation rather than Blender BONE-parent scale semantics.
     helper_dir = Path(__file__).resolve().parent
     if str(helper_dir) not in sys.path:
         sys.path.insert(0, str(helper_dir))
+
+    bone_attachment = importlib.import_module("g3v_bone_attachment_patch")
+    bone_attachment.install_rigid_bone_attachments(target_globals)
 
     geometry_phase = importlib.import_module("g3v_geometry_phase_patch")
     geometry_phase.install_geometry_phase_fixes(target_globals)
