@@ -46,10 +46,28 @@ def make_material(name, color, metallic=0.0, roughness=0.6):
     return mat
 
 
+def select_eevee_engine(scene):
+    """Select the Eevee identifier valid for the running Blender version.
+
+    Blender 4.2 used BLENDER_EEVEE_NEXT; Blender 5.0 changed the identifier
+    back to BLENDER_EEVEE. Probe the runtime instead of hard-coding a version
+    boundary so the headless gate survives both families.
+    """
+    errors = []
+    for candidate in ("BLENDER_EEVEE", "BLENDER_EEVEE_NEXT"):
+        try:
+            scene.render.engine = candidate
+            return candidate
+        except (TypeError, ValueError) as exc:
+            errors.append(f"{candidate}: {exc}")
+    raise RuntimeError("No supported Eevee render-engine identifier found: " + " | ".join(errors))
+
+
 def main():
-    output_dir = Path(get_arg("--output-dir", "")).resolve()
-    if not str(output_dir):
+    output_arg = get_arg("--output-dir")
+    if not output_arg:
         raise RuntimeError("Missing --output-dir")
+    output_dir = Path(output_arg).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Factory-clean scene so the result never depends on a user's Blender file/configuration.
@@ -57,8 +75,7 @@ def main():
     scene = bpy.context.scene
 
     # Use the local real-time renderer only as an automation probe. This is NOT the planned pixel renderer.
-    engine = "BLENDER_EEVEE_NEXT" if bpy.app.version >= (4, 0, 0) else "BLENDER_EEVEE"
-    scene.render.engine = engine
+    engine = select_eevee_engine(scene)
     scene.render.resolution_x = 320
     scene.render.resolution_y = 180
     scene.render.resolution_percentage = 100
@@ -149,7 +166,7 @@ def main():
         "purpose": "headless Blender automation probe only; not final visual rendering",
         "blender_version": bpy.app.version_string,
         "python_version": sys.version.split()[0],
-        "render_engine": scene.render.engine,
+        "render_engine": engine,
         "resolution": [scene.render.resolution_x, scene.render.resolution_y],
         "camera": {
             "name": camera.name,
@@ -172,6 +189,7 @@ def main():
 
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print("G0_HEADLESS_PROBE=PASS")
+    print(f"G0_ENGINE={engine}")
     print(f"G0_PNG={png_path}")
     print(f"G0_MANIFEST={manifest_path}")
     print(f"G0_SHA256={manifest['png_sha256']}")
