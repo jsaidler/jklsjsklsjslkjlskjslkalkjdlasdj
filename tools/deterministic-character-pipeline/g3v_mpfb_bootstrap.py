@@ -91,9 +91,9 @@ def main():
     target_globals = target_main.__globals__
 
     # Runtime patches must bind into function.__globals__, not the copy returned by
-    # runpy.run_path(). Install the rigid attachment owner first so every later proxy
-    # creator, including the geometry-phase shackle replacement, captures the safe
-    # attachment implementation rather than Blender BONE-parent scale semantics.
+    # runpy.run_path(). Install structural transforms first, semantic masks next, and
+    # explicit motion binding last so the motion wrapper executes before every final
+    # bbox/render call while still delegating through all existing diagnostics.
     helper_dir = Path(__file__).resolve().parent
     if str(helper_dir) not in sys.path:
         sys.path.insert(0, str(helper_dir))
@@ -106,6 +106,9 @@ def main():
 
     semantic_masks = importlib.import_module("g3v_semantic_masks")
     semantic_masks.install_binary_semantic_masks(target_globals)
+
+    motion_binding = importlib.import_module("g3v_motion_binding_patch")
+    motion_binding.install_motion_binding(target_globals)
 
     print("G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN")
     target_globals["main"]()
