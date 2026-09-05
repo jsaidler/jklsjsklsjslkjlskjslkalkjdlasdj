@@ -161,44 +161,29 @@ Tooling:
 - `tools/deterministic-character-pipeline/g3v_mpfb_bootstrap.py`
 - `tools/deterministic-character-pipeline/g3v_representative_visual_proxy.py`
 
-### MPFB runtime decision
+### Current G3V state
 
-The initial Blender-extension-management route was abandoned after repeated headless activation failures despite a successful verified install.
+The pipeline now reliably reaches the actual representative-human path:
 
-The current runner:
+- pinned MPFB 2.0.17 loads directly in one background Blender process;
+- MPFB `base.obj` imports;
+- continuous female body and CMU-compatible rig are created;
+- G2 real walk is reused;
+- representative hair/cloth/shackle geometry is created;
+- camera calibration projects the representative character to **127 px**, matching the locked `128 px` target;
+- Eevee writes the semantic frame.
 
-1. acquires pinned MPFB 2.0.17 from the official Blender Extensions API;
-2. verifies the advertised SHA256 (`4f0a879d64a39bf646fbf5f53601ac678855da329d650617dca5737548239a87` on the validated download);
-3. extracts the pinned archive locally;
-4. locates the real MPFB Python package root;
-5. launches **one Blender background process only**;
-6. bootstraps the MPFB service layer directly from the verified package, bypassing extension repository/add-on preference state;
-7. creates a continuous adult female MPFB basemesh;
-8. adds MPFB's built-in `cmu_mb` weighted rig;
-9. reuses the approved G2 real walk action;
-10. adds representative persistent long-dark-hair masses, asymmetric beige cloth and named left/right wrist/ankle shackles.
-
-### Latest G3V result — SEMANTIC ID CLASSIFIER FAILURE, NOT VISUAL FAILURE
-
-The current run reached the actual MPFB/Eevee render path successfully:
-
-- MPFB service bootstrap: **PASS**;
-- MPFB `base.obj` imported;
-- representative geometry projected to **127 px** against the locked `128 px` target;
-- Eevee wrote the semantic ID frame;
-- validator recognized only `143` pixels, all as `cloth`;
-- `skin=0`, `hair=0`, `metal=0`.
-
-This run did **not** reach aesthetic review. It exposed a diagnostic bug: the PNG classifier used an additional absolute squared-distance cutoff (`0.12`) after nearest-color selection. Blender PNG color management can shift emission colors enough for valid semantic pixels to fail that cutoff.
+The latest repeated `143 cloth-only pixels` result was traced to a bootstrap bug, not a visual result. `runpy.run_path()` returned a copied namespace; runtime fixes were installed into that copy while target functions continued to resolve globals through `function.__globals__`. Consequently stdout claimed `NEAREST_VS_BACKGROUND`/`Raw`, but the old classifier still ran.
 
 Current fix:
 
-- target script is loaded as a module by the bootstrap before execution;
-- semantic classifier is replaced at runtime with **nearest semantic vs. background** and no arbitrary absolute threshold;
-- semantic ID pass uses `Raw` view transform;
-- neutral-light pass uses `Standard` transform;
-- every sampled frame must contain visible `skin`, `hair`, `cloth` **and** `metal` pixels or G3V hard-fails;
-- no contact sheet is accepted unless all representative semantic layers are present.
+- bootstrap obtains `target_main.__globals__`;
+- classifier, ID render wrapper and strict semantic validator are bound directly into that real globals dictionary;
+- binding identity is asserted before execution;
+- stdout must include `G3V_RUNTIME_PATCH_GLOBALS=BOUND_TO_MAIN`;
+- every sampled semantic frame must include `skin`, `hair`, `cloth` and `metal` before review.
+
+This makes the next rerun meaningful: a future missing semantic layer will represent a real render/visibility defect, not an inert monkey patch.
 
 Expected valid review artifact:
 
