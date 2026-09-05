@@ -41,7 +41,7 @@ $Model = Join-Path $ComfyRoot 'models\unet\Qwen-Image-Edit-2509-Q4_0.gguf'
 $Clip = Join-Path $ComfyRoot 'models\text_encoders\qwen_2.5_vl_7b_fp8_scaled.safetensors'
 $Vae = Join-Path $ComfyRoot 'models\vae\qwen_image_vae.safetensors'
 
-$Missing = @($Python,$MainPy,$Model,$Clip,$Vae) | Where-Object { -not (Test-Path $_ -PathType Leaf) }
+$Missing = @(@($Python,$MainPy,$Model,$Clip,$Vae) | Where-Object { -not (Test-Path $_ -PathType Leaf) })
 if ($Missing.Count -gt 0) {
     Write-Host 'G3S-A will not download large dependencies implicitly. Missing:' -ForegroundColor Red
     $Missing | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
