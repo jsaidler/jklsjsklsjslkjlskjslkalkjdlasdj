@@ -1,0 +1,26 @@
+{
+  "gate": "G3V",
+  "status": "FAIL",
+  "date": "2026-09-05",
+  "technical_subresults": {
+    "headless_mpfb": "PASS",
+    "continuous_human_body": "PASS",
+    "retarget_g3v_r": "PASS",
+    "motion_phase_diversity": "PASS",
+    "major_limb_topology": "PASS",
+    "representative_hair_cloth_restraints": "PASS"
+  },
+  "visual_kill_switch": {
+    "status": "FAIL",
+    "reason": "The validated representative human remains visually identifiable as conventional 3D translated into coarse palette-banded/native-raster output rather than intentional modern pixel art.",
+    "observed": [
+      "four gait phases are distinct and structurally coherent",
+      "no major-limb duplication or collapse is visible",
+      "the visible row preserves 3D form/shading logic and reads as blocky low-resolution 3D",
+      "pixel clustering does not exhibit authored pixel-art shape language sufficient for production"
+    ]
+  },
+  "decision": "Hidden 3D is rejected as owner of the final visible character image. Retain it for motion, topology, sockets, physics, depth/occlusion and semantic guides only.",
+  "next_gate": "G3S structured 2D visible representation",
+  "g4_status": "BLOCKED_AND_RESCOPED"
+}
