@@ -200,6 +200,10 @@ Output:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_a_alucard`
 
+### Harness correction
+
+The first invocation stopped before model download or inference during the expected first-pass dependency probe. This was a runner bug: Windows PowerShell 5.1 promoted Python stderr to a terminating `NativeCommandError` under `$ErrorActionPreference='Stop'`, so the intended install branch never ran. Commit `5d65039e406a4d3c01ce0dad37e51578cffa4a4e` routes every Python probe/pip/helper call through `Invoke-PythonSafe` and treats the native exit code as authoritative. If imports still fail after installation, the exact traceback is printed deliberately. Sampling parameters are unchanged.
+
 ## Alucard license boundary
 
 This is **research-only** until licensing is resolved. Alucard uses FAIR License 1.0.0: published terms permit non-commercial personal/research use; commercial use requires visible attribution; Business Use requires a separate signed commercial agreement with the author. A visual PASS therefore does not automatically authorize production adoption.
