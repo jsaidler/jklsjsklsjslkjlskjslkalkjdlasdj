@@ -1,0 +1,12 @@
+{
+  "gate": "G3S-A1-FACIAL-ANATOMY-LOCK",
+  "status": "HARNESS_FAILURE_FIXED",
+  "date": "2026-09-05",
+  "failure": "ModuleNotFoundError: No module named 'g3s_a_authored_native_v1'",
+  "root_cause": "The G3S-A1 helper imported a sibling module by bare module name while running under ComfyUI's embeddable Python. The script directory was not guaranteed to be on sys.path, so execution stopped before any anatomy processing or output generation.",
+  "fix": "Load g3s_a_authored_native_v1.py directly by absolute sibling file path using importlib.util.spec_from_file_location. Do not rely on cwd, PYTHONPATH, or embeddable-Python sys.path behavior.",
+  "fix_commit": "bf5fe174165ee9cd08ed2f50a09e3ca7563f8658",
+  "sampling_or_art_changed": false,
+  "model_inference_occurred": false,
+  "next_action": "Rerun 08_run_g3s_a1_facial_anatomy_lock.ps1 after git pull; review contact sheet only if G3S-A1 reaches REVIEW REQUIRED."
+}
