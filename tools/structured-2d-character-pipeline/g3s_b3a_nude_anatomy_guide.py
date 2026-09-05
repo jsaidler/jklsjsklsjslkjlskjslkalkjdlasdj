@@ -8,7 +8,7 @@ from pathlib import Path
 from mathutils import Vector
 from bpy_extras.object_utils import world_to_camera_view
 
-REVISION = "G3S_B3A_NUDE_ANATOMY_GUIDE_V1"
+REVISION = "G3S_B3A_NUDE_ANATOMY_GUIDE_V2"
 WIDTH = 640
 HEIGHT = 360
 BG = (0.045, 0.050, 0.060)
@@ -179,6 +179,33 @@ def project_joint(scene, camera, rig, bone_name, tail=False):
     return [round(float(co.x * scene.render.resolution_x), 3), round(float((1.0 - co.y) * scene.render.resolution_y), 3)]
 
 
+def audit_female_macro_stack(TargetService, macro):
+    if abs(float(macro.get("gender", -1.0))) > 1e-9:
+        raise RuntimeError(f"G3S-B3A phenotype audit failed: MPFB female requires gender=0.0, got {macro.get('gender')}")
+
+    raw_stack = TargetService.calculate_target_stack_from_macro_info_dict(macro)
+    stack = [[str(name), float(weight)] for name, weight in raw_stack]
+    female_targets = [entry for entry in stack if "female" in entry[0].lower()]
+    male_targets = [
+        entry for entry in stack
+        if "male" in entry[0].lower() and "female" not in entry[0].lower()
+    ]
+    if not female_targets:
+        raise RuntimeError("G3S-B3A phenotype audit failed: no female macro targets resolved")
+    if male_targets:
+        raise RuntimeError("G3S-B3A phenotype audit failed: male macro targets resolved: " + json.dumps(male_targets))
+
+    return {
+        "gender_value": 0.0,
+        "resolved_gender": "female",
+        "female_target_count": len(female_targets),
+        "male_target_count": len(male_targets),
+        "female_targets": female_targets,
+        "male_targets": male_targets,
+        "upstream_semantics": "MPFB gender 0.0=female, 1.0=male",
+    }
+
+
 def main():
     out = Path(arg("--output-dir", "")).resolve()
     pitch = float(arg("--pitch", "26"))
@@ -208,7 +235,7 @@ def main():
 
     macro = TargetService.get_default_macro_info_dict()
     macro.update({
-        "gender": 1.0,
+        "gender": 0.0,
         "age": 0.48,
         "muscle": 0.40,
         "weight": 0.36,
@@ -217,6 +244,7 @@ def main():
         "cupsize": 0.42,
         "firmness": 0.55,
     })
+    phenotype_audit = audit_female_macro_stack(TargetService, macro)
 
     body = HumanService.create_human(
         mask_helpers=True,
@@ -325,6 +353,7 @@ def main():
         "art_authority": "STRUCTURAL_GUIDE_ONLY_NOT_FINAL_PIXEL_ART",
         "mpfb_module_root": mpfb_root,
         "macro": macro,
+        "phenotype_audit": phenotype_audit,
         "body_object": body.name,
         "rig": "cmu_mb",
         "camera": {
@@ -366,6 +395,9 @@ def main():
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     print(f"G3S_B3A_REVISION={REVISION}")
+    print("G3S_B3A_PHENOTYPE_GENDER=FEMALE")
+    print(f"G3S_B3A_FEMALE_TARGETS={phenotype_audit['female_target_count']}")
+    print("G3S_B3A_MALE_TARGETS=0")
     print("G3S_B3A_COMPLETE_NUDE_GEOMETRY=PASS")
     print("G3S_B3A_HAIR_OBJECTS=0")
     print("G3S_B3A_CLOTHING_OBJECTS=0")
