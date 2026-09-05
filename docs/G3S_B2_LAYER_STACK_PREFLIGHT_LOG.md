@@ -2,127 +2,73 @@
 
 Status date: **2026-09-05**
 
-Gate status: **READY TO RUN**
+Gate status: **PASS / CLOSED — DIAGNOSTIC ONLY**
 
-## Why this gate exists
+## Why this gate existed
 
-G3S-B V1 passed its technical recomposition audit but failed architectural visual review.
+G3S-B V1 passed pixel-exact recomposition but failed architectural review because body, hair and clothing ownership were mixed.
 
-The V1 result proved that the provisional 128×128 source could be partitioned and recomposed pixel-exactly, but the masks were not valid production ownership boundaries:
+B2 was created only to expose the ownership problem without inventing hidden body pixels.
 
-- body parts still contained clothing/bandage pixels;
-- hair masks contained non-hair pixels;
-- the body did not exist completely underneath clothing;
-- the body did not exist completely underneath hair;
-- this violated the already-canonical layer stack in `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`.
+## Result
 
-Canonical failure marker:
+The diagnostic succeeded technically and visually for its intended purpose.
 
-`tools/structured-2d-character-pipeline/g3s_b_v1_failure.json`
+Measured result:
 
-## Canonical correction — LOCKED
+- exact recomposition: **PASS**;
+- source opaque pixels: `2974`;
+- visible body pixels: `1538`;
+- hair pixels: `826`;
+- clothing pixels: `610`;
+- hidden/unknown body pixels under hair/clothing: **`1205`**.
 
-The structured-2D character must use the same ownership model already defined for the systemic damage/equipment architecture:
+These values are preserved in the user-generated B2 result/manifest and in:
 
-1. **Body base** — complete persistent unclothed anatomy, independent of all removable layers.
-2. **Hair** — separate persistent secondary-motion layer family.
-3. **Clothing** — separate removable/damageable overlay layer family.
-4. **Restraints/chains** — separate accessories attached to sockets.
-5. **Surface states** — later overlays on the correct owner layer.
+`tools/structured-2d-character-pipeline/g3s_b2_approval.json`
 
-The initial character may visually begin with cloth/bindings/accessories equipped, but those pixels must not be authored into the permanent body base.
+## Critical conclusion — LOCKED
 
-## What G3S-B2 does
+The composite source **cannot** be turned into a complete body by subtracting hair and clothing.
 
-G3S-B2 is a **preflight**, not final body authoring.
+The magenta unresolved map correctly shows that large portions of anatomy simply do not exist in the composite pixels. Those regions must be authored as a dedicated body asset.
 
-It rebuilds the same pinned provisional source and separates the currently visible composite into diagnostic ownership families:
+Therefore B2 does **not** feed its extracted `body_visible_incomplete`, `hair` or `clothing` images directly into production.
 
-- `body_visible_incomplete`;
-- `hair`;
-- `clothing`.
+They are evidence/diagnostics only.
 
-It then recomposes those three layers and requires an exact pixel match to the provisional source.
+## Correct production staging — LOCKED
 
-Most importantly, it overlays a magenta diagnostic on body regions that are currently hidden by hair/clothing and therefore still need real body-base pixels.
+1. **G3S-B3 — complete nude body base, hairless and without clothing/restraints.**
+2. **G3S-B4 — hair as a separate persistent asset/layer family.**
+3. **G3S-B5 — clothing, bindings, cuffs/shackles and chains as independent overlays/accessories.**
+4. **G3S-C — layered four-phase walk proof.**
 
-G3S-B2 deliberately does **not** invent those hidden pixels. A fake skin-color fill would only create another technical mannequin problem.
+This order replaces the earlier idea of carving production layers out of the composite master.
 
-## Input
+## Nudity implication
 
-Pinned design/scaffold control:
+Because the body base is complete and independent, nudity is a normal state of the runtime character rather than a special sprite variant.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
+`nude = body base (+ optional hair/body-state overlays) with garment/equipment layers omitted`
 
-SHA256:
+No hidden anatomy is reconstructed at runtime.
 
-`ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
+## What remains useful from B2
 
-## Tooling
+B2 remains valuable because it proved:
 
-Specification:
+- the current composite contains insufficient underbody data;
+- clothing/hair subtraction is not a production solution;
+- body-first authoring is mandatory;
+- animation must remain blocked until the body base exists.
 
-`tools/structured-2d-character-pipeline/g3s_b2_layer_stack_spec_v1.json`
+## Next gate
 
-Helper:
+**G3S-B3 — Nude Body Base**
 
-`tools/structured-2d-character-pipeline/g3s_b2_layer_stack_preflight.py`
+Canonical plan:
 
-Runner:
-
-`tools/structured-2d-character-pipeline/10_run_g3s_b2_layer_stack_preflight.ps1`
-
-Output workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack`
-
-Expected artifacts:
-
-- `g3s_b2_source128.png`
-- `g3s_b2_body_visible_incomplete.png`
-- `g3s_b2_hair_layer.png`
-- `g3s_b2_clothing_layer.png`
-- `g3s_b2_recomposed.png`
-- `g3s_b2_unresolved_underbody.png`
-- `g3s_b2_contact_sheet.png`
-- `g3s_b2_layer_manifest.json`
-- `g3s_b2_result.json`
-
-## Review order
-
-1. body-visible layer contains no obvious hair masses;
-2. body-visible layer contains no obvious garment masses;
-3. hair layer contains hair, not torso/limb chunks;
-4. clothing layer contains the initial cloth/bindings as overlays;
-5. exact recomposition matches the source;
-6. magenta unresolved-body map correctly exposes where hidden body pixels are still missing;
-7. no attempt is made to start animation with an incomplete body base.
-
-## PASS meaning
-
-PASS does **not** mean the body base is finished.
-
-PASS means the ownership architecture is now correct and the missing-underlayer problem is explicitly bounded. The next gate is:
-
-**G3S-B3 — Body Base Completion**
-
-That gate must produce a complete persistent body base under clothing/hair before G3S-C animation starts.
-
-## Kill switch
-
-If diagnostic material separation is too contaminated to support ownership decisions, revise only the segmentation/specification. Do not return to another generative sprite model and do not start animation.
-
-## Exact next action
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\10_run_g3s_b2_layer_stack_preflight.ps1"
-```
-
-Then STOP and review:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b2_layer_stack\g3s_b2_contact_sheet.png`
+`docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 
 Do not run G3S-C.
