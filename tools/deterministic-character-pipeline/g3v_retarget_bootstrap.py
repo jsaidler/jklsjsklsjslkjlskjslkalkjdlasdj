@@ -74,6 +74,13 @@ def main():
     if not target_script.exists():
         raise RuntimeError(f"Retarget preflight target script not found: {target_script}")
 
+    # Route the canonical preflight through the V2 solver when present. This keeps the
+    # operator command stable while replacing the failed local-axis retarget assumption.
+    v2 = target_script.with_name("g3v_retarget_preflight_v2.py")
+    if v2.exists():
+        target_script = v2
+        print("G3V_RETARGET_BOOTSTRAP_SOLVER=V2")
+
     bootstrap_mpfb(mpfb_root, user_root)
     namespace = runpy.run_path(str(target_script), run_name="g3v_retarget_preflight")
     target_main = namespace.get("main")
