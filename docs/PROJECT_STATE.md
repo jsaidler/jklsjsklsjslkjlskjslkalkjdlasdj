@@ -53,6 +53,15 @@ Normal operator loop:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
+## Model-discard cleanup rule — LOCKED
+
+Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and that model is no longer required as an active dependency, the same response must include an exact PowerShell command that removes its downloaded model-specific files.
+
+- Preserve small result images, JSON markers and logs as evidence unless explicitly asked to remove them.
+- If the model shares a runtime that is still used elsewhere, delete only that model's weights/model-specific dependency files; do not delete the shared runtime.
+- If the model has an isolated dependency workspace and nothing else depends on it, the cleanup command may remove that workspace recursively.
+- This cleanup command is mandatory at the moment the model is discarded; do not wait for the user to ask.
+
 ## Locked gameplay camera baseline
 
 - `640×360`;
