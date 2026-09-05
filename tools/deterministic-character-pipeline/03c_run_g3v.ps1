@@ -35,7 +35,7 @@ function Invoke-BlenderArgs([string[]]$Args, [switch]$AllowFail) {
     }
     finally { $ErrorActionPreference = $old }
     if ($out) { $out | ForEach-Object { Write-Host $_ } }
-    if ($code -ne 0 -and -not $AllowFail) { Fail "Blender command failed with exit code $code: $($Args -join ' ')" }
+    if ($code -ne 0 -and -not $AllowFail) { Fail "Blender command failed with exit code ${code}: $($Args -join ' ')" }
     return [pscustomobject]@{ ExitCode=$code; Output=($out -join "`n") }
 }
 
