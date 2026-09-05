@@ -1,0 +1,7 @@
+{
+  "gate": "G3R",
+  "status": "FAIL",
+  "decision": "Do not iterate on mannequin post-processing. D/E/F only transformed insufficient primitive geometry and did not test representative character art.",
+  "next_gate": "G3V",
+  "next_gate_purpose": "Use a continuous adult female human mesh with representative hair, cloth and shackles before judging deterministic pixel translation."
+}
