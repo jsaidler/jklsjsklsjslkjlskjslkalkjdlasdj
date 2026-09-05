@@ -37,6 +37,31 @@ if ($failure.gate -ne 'G3S-A-PIXELLOCK' -or $failure.status -ne 'FAIL') { Fail '
 $Python = 'Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe'
 if (-not (Test-Path $Python -PathType Leaf)) { Fail "Existing embedded Python not found: $Python" }
 
+# Windows PowerShell 5.1 can convert native-process stderr into PowerShell ErrorRecord
+# objects. With ErrorActionPreference=Stop that can abort the script BEFORE we can
+# inspect $LASTEXITCODE. Dependency probes are expected to fail on the first run,
+# so every Python invocation goes through this wrapper and exit code remains the
+# single authority for success/failure.
+function Invoke-PythonSafe {
+    param(
+        [Parameter(Mandatory=$true)][string[]]$Arguments,
+        [switch]$Quiet
+    )
+    $savedPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $captured = @(& $Python @Arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $savedPreference
+    }
+    if (-not $Quiet) {
+        foreach ($line in $captured) { Write-Host ([string]$line) }
+    }
+    return [int]$exitCode
+}
+
 New-Item -ItemType Directory -Force -Path $DependencyRoot | Out-Null
 $AlucardRoot = Join-Path $DependencyRoot 'alucard'
 if (-not (Test-Path (Join-Path $AlucardRoot '.git') -PathType Container)) {
@@ -60,18 +85,26 @@ $env:PYTHONPATH = "$PyDeps;$AlucardRoot"
 $env:HF_HOME = Join-Path $DependencyRoot 'hf_home'
 $env:TORCH_HOME = Join-Path $DependencyRoot 'torch_home'
 
+$ImportProbe = 'import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex; import timm, ftfy, open_clip; print(torch.__version__); print(torch.cuda.is_available())'
 function Test-AlucardImports {
-    & $Python -c 'import torch, torchvision, PIL, numpy, safetensors, huggingface_hub, regex; import timm, ftfy, open_clip; print(torch.__version__); print(torch.cuda.is_available())' *> $null
-    return ($LASTEXITCODE -eq 0)
+    $code = Invoke-PythonSafe -Arguments @('-c', $ImportProbe) -Quiet
+    return ($code -eq 0)
 }
 
 if (-not (Test-AlucardImports)) {
     Write-Host '[INSTALL] Isolated Alucard Python extras (no Torch replacement)...' -ForegroundColor Cyan
-    & $Python -m pip install --disable-pip-version-check --no-warn-script-location --target $PyDeps --no-deps `
-        'open_clip_torch==3.2.0' 'timm==1.0.19' 'ftfy==6.3.1'
-    if ($LASTEXITCODE -ne 0) { Fail 'Could not install isolated Alucard Python extras.' }
+    $pipCode = Invoke-PythonSafe -Arguments @(
+        '-m','pip','install','--disable-pip-version-check','--no-warn-script-location',
+        '--target',$PyDeps,'--no-deps',
+        'open_clip_torch==3.2.0','timm==1.0.19','ftfy==6.3.1'
+    )
+    if ($pipCode -ne 0) { Fail "Could not install isolated Alucard Python extras (pip exit $pipCode)." }
 }
-if (-not (Test-AlucardImports)) { Fail 'Alucard Python import preflight still fails after isolated dependency install.' }
+if (-not (Test-AlucardImports)) {
+    Write-Host '[ERROR] Alucard import probe still fails; exact Python traceback follows:' -ForegroundColor Red
+    $probeCode = Invoke-PythonSafe -Arguments @('-c', $ImportProbe)
+    Fail "Alucard Python import preflight still fails after isolated dependency install (exit $probeCode)."
+}
 Write-Host '[OK] Torch/OpenCLIP dependencies ready without replacing ComfyUI Torch.' -ForegroundColor Green
 
 $ModelDir = Join-Path $DependencyRoot 'model'
@@ -112,16 +145,17 @@ New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 try {
     Write-Host '[RUN] one reference-conditioned native 128x128 RGBA Alucard candidate...' -ForegroundColor Cyan
     Write-Host '[INFO] First run may also fetch the OpenAI CLIP ViT-B/32 text encoder into the isolated TORCH_HOME.' -ForegroundColor DarkGray
-    & $Python $Helper `
-        --alucard-root $AlucardRoot `
-        --model $Model `
-        --control $Control `
-        --output-dir $OutDir `
-        --seed $Seed `
-        --code-commit $AlucardCommit `
-        --model-revision $ModelRevision
-    $code = $LASTEXITCODE
-    if ($code -ne 0) { Fail "Alucard helper exited with code $code" }
+    $helperCode = Invoke-PythonSafe -Arguments @(
+        $Helper,
+        '--alucard-root',$AlucardRoot,
+        '--model',$Model,
+        '--control',$Control,
+        '--output-dir',$OutDir,
+        '--seed',[string]$Seed,
+        '--code-commit',$AlucardCommit,
+        '--model-revision',$ModelRevision
+    )
+    if ($helperCode -ne 0) { Fail "Alucard helper exited with code $helperCode" }
 }
 finally {
     $env:PYTHONPATH = $oldPythonPath
