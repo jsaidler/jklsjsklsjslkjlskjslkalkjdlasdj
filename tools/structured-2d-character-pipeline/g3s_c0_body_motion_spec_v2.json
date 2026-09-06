@@ -1,0 +1,49 @@
+{
+  "gate": "G3S-C0",
+  "revision": "CONTINUOUS_CHAIN_WARP_V2",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "purpose": "replace the failed rigid cutout-part deformation with continuous native-2D body warping while keeping the same approved real-motion source",
+  "canonical_body": {
+    "path": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+    "size": [37, 128],
+    "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+    "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+    "must_remain_unchanged": true
+  },
+  "motion": {
+    "source": "G2_CANONICAL_RIG / CMU 105_34 NormalWalk",
+    "direction_space_approval": "tools/deterministic-character-pipeline/g3v_retarget_approval.json",
+    "samples": [1568, 1578, 1588, 1598, 1608, 1618, 1628, 1638],
+    "manual_final_keyposes": false
+  },
+  "v1_failure_marker": "tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json",
+  "deformation": {
+    "method": "continuous polyline/chain warp per persistent body region",
+    "regions": ["head", "torso", "left_arm", "right_arm", "left_leg", "right_leg"],
+    "independent_rigid_limb_slabs": false,
+    "joint_mapping": "source pixels near elbow/knee/ankle chain joints blend adjacent segment mappings",
+    "raster_rule": "source pixels are mapped as integer-grid quads with nearest-grid rasterization; no antialiasing",
+    "pinholes": "single deterministic local fill pass may copy an adjacent existing source color only into a one-pixel enclosed raster hole",
+    "depth_order": "per-frame average G2 camera-space joint depth by region",
+    "new_visual_colors_synthesized": false,
+    "hidden_3d_rgb_used": false,
+    "per_frame_diffusion": false
+  },
+  "review_contract": {
+    "must_read_as_one_connected_articulated_body": true,
+    "must_not_show_loop_like_or_arc_like detached limb fragments": true,
+    "must_preserve real left_right gait progression": true,
+    "must_keep canonical body identity readable": true,
+    "must_not_modify canonical body file": true,
+    "automatic_production_promotion": false
+  },
+  "runner": "tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1",
+  "outputs": [
+    "g3s_c0_v2_body_walk_in_place.gif",
+    "g3s_c0_v2_body_walk_travel.gif",
+    "g3s_c0_v2_contact_sheet.png",
+    "g3s_c0_v2_zoom_contact_sheet.png",
+    "g3s_c0_v2_report.json"
+  ]
+}
