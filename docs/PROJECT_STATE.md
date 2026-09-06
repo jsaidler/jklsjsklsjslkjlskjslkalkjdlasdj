@@ -21,7 +21,22 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 13. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
 14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
-After every material step: update the relevant thematic document + this file and make a focused commit.
+## Living-document invariant — LOCKED
+
+**Every project action that changes state must update the living documents before that action is reported as complete.**
+
+This includes, without exception: decisions, approvals/rejections, generated or reviewed artifacts, PASS/FAIL/CLOSED results, runner/tool creation or removal, runtime/install/cleanup state, architecture changes, visual-direction changes, next-step changes and operator instructions.
+
+Required sequence for every such action:
+
+1. perform/inspect the action;
+2. update the relevant thematic living document(s);
+3. update `docs/PROJECT_STATE.md` with the current gate/state when the action affects project state;
+4. update the active cross-chat handoff when continuation instructions or local runtime/tool state changed;
+5. make the focused Git commit(s);
+6. only then tell the user the action is complete and give the next command/action.
+
+Do **not** leave the canonical state only in chat. Do **not** postpone documentation until the end of a batch. Cross-chat continuation must be possible from GitHub alone.
 
 ## Game identity — LOCKED
 
