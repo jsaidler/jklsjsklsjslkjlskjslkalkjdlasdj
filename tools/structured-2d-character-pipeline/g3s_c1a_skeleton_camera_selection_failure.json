@@ -1,7 +1,7 @@
 {
   "gate": "G3S-C1A",
   "revision": "SKELETON_ONLY_WALK_CYCLE_V1",
-  "status": "TECHNICAL_FAILURE_FIXED_PENDING_RERUN",
+  "status": "CLOSED_RESOLVED_AFTER_SUCCESSFUL_RERUN",
   "date": "2026-09-06",
   "failed_component": "front-three-quarter camera side selection",
   "observed_error": "RuntimeError: could not choose front-three-quarter camera with screen-left forward travel",
@@ -20,5 +20,11 @@
     "if neither candidate exposes the desired X handedness, normalize only guide screen-X coordinates while preserving rig/world transforms, camera depth and anatomical laterality",
     "keep final root-travel screen-left assertion"
   ],
+  "resolution_evidence": {
+    "c1a_approval": "tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json",
+    "contact_sheet_sha256": "672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd",
+    "zoom_gif_sha256": "9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970",
+    "observed_root_travel_px": -43.77
+  },
   "cleanup": "none; no model, API, download or new runtime was added"
 }
