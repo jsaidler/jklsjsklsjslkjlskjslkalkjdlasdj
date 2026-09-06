@@ -2,11 +2,11 @@
 
 Status date: **2026-09-05**
 
-Gate status: **B3-A V2 PASS/CLOSED — B3-B V1 3D-MASK ROUTE FAIL/CLOSED — B3-B V2 AUTHORED NATIVE 2D SOURCE READY FOR REVIEW**
+Gate status: **B3A V2 PASS/CLOSED — B3B V1/V2 CLOSED — BODY REFERENCE APPROVED — PIXEL TRANSLATION NEXT**
 
 ## Why this gate exists
 
-G3S-B2 proved that the complete persistent body cannot be recovered by subtracting hair/clothing from the composite master. The body must therefore be authored independently and must remain complete beneath every removable layer.
+G3S-B2 proved that a complete persistent body cannot be recovered by subtracting hair/clothing from the composite master. The body must be authored independently and remain complete beneath every removable layer.
 
 Measured B2 facts:
 
@@ -27,144 +27,93 @@ Approval marker:
 3. separate clothing/bindings/cuffs/shackles/chains/accessories;
 4. layered motion proof.
 
-No hair, clothing or animation begins before B3-B passes visually.
+No hair, clothing or animation begins before B3B passes visually.
 
 ## Body ownership — LOCKED
 
-The complete body base owns skin, silhouette, anatomical continuity and permanent body-side identity. It contains no hair, garment, binding, restraint or chain pixels. Nudity is a normal supported runtime state produced by omitting garment/equipment layers rather than reconstructing hidden body pixels.
+The complete body base owns skin, final body silhouette, anatomical continuity and permanent body-side identity. It contains no hair, garment, binding, restraint or chain pixels. Nudity is a normal supported runtime state produced by omitting garment/equipment layers.
 
-The project does not impose blanket desexualization. Adult-body presentation may be neutral, sensual, erotic, heroic, vulnerable or brutal according to scene intent. Native gameplay scale limits microdetail, but no censor layer is structurally required.
+No censor layer is structurally required. Mature presentation may be neutral, sensual, erotic, heroic, vulnerable or brutal according to scene intent.
 
 ## Visible-ownership invariant — LOCKED
 
-G3V demoted hidden 3D from visible-image ownership.
+G3V demoted hidden 3D from visible-image ownership. Hidden 3D may supply motion, topology, left/right identity, joints, sockets, depth/occlusion, physics and structural/anatomical reference. It may not own final visible RGB, alpha or final sprite silhouette.
 
-Hidden 3D may supply motion, topology, left/right identity, joints, sockets, depth/occlusion, physics and structural/anatomical reference. It may not own final visible RGB, alpha or final sprite silhouette.
+A B3A render/mask is reference only and may not be mechanically promoted into final sprite coverage.
 
-Consequently:
+## B3A V1 — FAIL/CLOSED REVISION
 
-- a B3A render is reference only;
-- a B3A binary mask is reference only;
-- neither may be copied into final sprite coverage;
-- recoloring/downsampling a 3D raster is not authored 2D art.
-
-Final exported/runtime art remains sprite-based.
-
-## B3-A V1 — FAIL/CLOSED REVISION
-
-The first deterministic anatomy guide used `MPFB gender = 1.0`, which resolves male in the pinned MPFB semantics. This was a script revision error, not a rejection of MPFB as structural infrastructure.
-
-Failure marker:
+Wrong MPFB gender polarity. Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
 
-No model cleanup command applies.
+## B3A V2 — PASS/CLOSED
 
-## B3-A V2 — PASS/CLOSED
-
-The corrected structural guide validates:
-
-- adult female phenotype;
-- complete body geometry;
-- female targets `21`, male targets `0`;
-- adult targets `21`, minor targets `0`;
-- zero hair/clothing/restraint/chain objects;
-- visible height `128 px` at the locked gameplay camera/scale;
-- guide-only art authority.
+Validated adult-female structural anatomy, complete geometry, zero forbidden layer objects and locked `128 px` gameplay scale.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-B3A is closed. Do not iterate MPFB appearance as final art.
+B3A remains structural reference only.
 
-## B3-B V1 — FAIL/CLOSED ROUTE
+## B3B V1 — FAIL/CLOSED ROUTE
 
-The first B3B implementation copied the B3A projected body mask into the final native alpha/silhouette and then procedurally colored it. Even without copying lit RGB, this left hidden 3D as visible silhouette owner and revived the rejected procedural-man­nequin authoring route.
+Copied the B3A projected mask into final alpha/silhouette. This violated visible ownership.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-The invalid V1 script and runner were removed from `main`. No model was downloaded or discarded by this correction, so no cleanup command applies.
+## B3B V2 — FAIL/CLOSED VISUAL ROUTE
 
-## B3-B V2 — AUTHORED NATIVE 2D SOURCE — READY FOR REVIEW
+Ownership was technically 2D, but the art failed: procedural/mannequin anatomy, distorted proportions, poor hands/feet, crude pelvis/thigh transitions, pseudo-3D banding and absent Exilada identity.
 
-V2 changes the authority boundary completely: the final body source now exists as a committed native `128×128` 2D pixel asset authored independently from the B3A RGB, mask and projected silhouette.
+Failure marker:
 
-Art authority:
+`tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
 
-`assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png`
+Rejected V2 art/tooling was removed from `main`; no model cleanup applies.
 
-SHA256:
+## Approved high-resolution body reference — PASS
 
-`0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53`
+The current primary body reference is the user-approved Grok four-view turnaround.
 
-Metadata:
+Approval marker:
 
-`tools/structured-2d-character-pipeline/g3s_b3b_body_base_source_v2.json`
+`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
-Validation/export tooling:
+Source identity:
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_validate_authored_body_v2.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_authored_body_v2.ps1`
+- SHA256 `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`;
+- `1168×784`;
+- front / back / profile / front-three-quarter;
+- adult woman, approximately 162 cm identity;
+- natural feminine proportions, lean/functional/resilient;
+- severe, sensual, dangerous and lived-in;
+- aligned with Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
 
-Canonical dedicated log:
+The minimal dark loincloth/tapa-sexo visible in the reference is only an occluder. It has no body-base ownership and must not become a mandatory coverage layer. Final pelvic pixels belong to B3B; any later garment belongs to B5.
 
-`docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+## B3B visual PASS criteria
 
-### V2 source ownership
+A production body must:
 
-The committed 2D asset owns:
+1. read as a complete adult female body at native 1×;
+2. preserve natural adult proportions and Exilada-specific body language;
+3. read as attractive, sensual, severe, dangerous and lived-in — beauty + hardness + survival;
+4. have coherent chest, pelvis, thighs, hands and feet;
+5. read as intentional modern pixel art, not filtered 3D or procedural mannequin construction;
+6. own its own 2D RGB/alpha/silhouette;
+7. contain no hair/clothing/restraint/chain ownership;
+8. remain readable at the locked `640×360` / ~`128 px` gameplay scale.
 
-- final visible RGB;
-- final alpha;
-- final silhouette;
-- native pixel clusters/value structure.
+Automatic FAIL: generic fitness/character-creator body, superhero exaggeration, short/squat distortion, sanitized mature body language, poor anatomy or absent sword-and-sorcery/Exilada identity.
 
-The validator does not load or sample B3A rendered output. B3A is only an already-passed gate prerequisite and anatomical/scale reference.
+## Current exact action
 
-### V2 measured source facts
+Create and visually review the first **pixel-art translation candidate** from the approved high-resolution body direction.
 
-- native canvas: `128×128`;
-- visible bbox: `[17, 0, 120, 127]`;
-- visible height: `128 px`;
-- visible width: `104 px`;
-- opaque palette colors: `8`;
-- binary alpha;
-- hair/clothing/binding/restraint/chain ownership: `0`.
+The high-resolution turnaround must **not** simply be resized/quantized and declared production art. The candidate is a visual gate. After it passes, establish the replacement B3B native production source and deterministic validation/export tooling.
 
-These technical facts do not approve the art.
-
-## B3-B visual PASS criteria
-
-1. complete readable adult female body at native 1×;
-2. independently authored 2D silhouette;
-3. Exilada-compatible lean/resilient proportions;
-4. coherent chest, pelvis, hands and feet;
-5. intentional modern pixel-art clusters rather than low-resolution 3D or procedural mannequin appearance;
-6. useful persistent body-base source for later structured 2D part/deformation work;
-7. no hair/clothing/restraint/chain pixels;
-8. no hidden-3D visible ownership;
-9. readable gameplay preview at `640×360` / `128 px` body height.
-
-If V2 fails visual review, revise the committed 2D art directly. Do not return to B3A mask copying and do not reopen sprite-model search.
-
-## After B3-B PASS
-
-Only then proceed to G3S-B4 hair, G3S-B5 clothing/restraints/accessories and G3S-C layered motion.
-
-## Exact next action
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_authored_body_v2.ps1"
-```
-
-Then STOP and share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_authored_body_v2\g3s_b3b_contact_sheet_v2.png`
-
-or the complete console error.
+No local B3B runner is currently approved. B4/B5/G3S-C remain blocked.
