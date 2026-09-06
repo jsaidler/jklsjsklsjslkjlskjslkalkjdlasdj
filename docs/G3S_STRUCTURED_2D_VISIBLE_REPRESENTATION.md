@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 BODY MOTION CURRENT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 V2 BODY MOTION CURRENT**
 
 ## Locked architecture
 
@@ -53,40 +53,58 @@ Motion inputs:
 - G3V-R `DIRECTION_SPACE_FK` = PASS;
 - validated phase frames `1568, 1588, 1608, 1628`.
 
-C0 pipeline:
-
-`G2 real motion -> screen-space joints/depth -> direction deltas -> persistent body pixel regions -> deterministic nearest-neighbor transforms -> per-frame depth ordering -> animated GIF/contact sheet`
-
 The visible source remains the canonical body PNG. Hidden 3D contributes joint/depth data only.
 
-C0 deliberately does **not** use:
+### C0 V1 — FAIL/CLOSED
 
-- hidden-3D RGB/masks as visible art;
-- diffusion or visual models;
-- manual final key poses;
-- manual user frame repair;
-- automatic production promotion.
+V1 used hard persistent body-part partitions and independently rotated torso/head/upper-lower limbs/feet.
 
-The first C0 revision is a cutout/deformation diagnostic and may expose seams or rigid-part artifacts. Those are judged as deformation problems; they do not invalidate the real-motion backbone by themselves.
+Reviewed contact sheet SHA256:
+
+`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+
+The real-motion progression was visible, but the body did not remain visually coherent. Later stride frames expose detached knees/ankles and loop/arc-like assembled limb silhouettes.
+
+Therefore the following deformation route is **closed**:
+
+`nearest-segment hard partition -> independent rigid part rotation`
+
+Do not fix this by adding more hand-tuned rigid pivots or overlap.
+
+### C0 V2 — CONTINUOUS CHAIN WARP — CURRENT
+
+V2 retains the same real-motion inputs and persistent body ownership but replaces hard limb slabs with six continuous regions:
+
+- head;
+- torso;
+- left/right arm;
+- left/right leg.
+
+Each arm/leg is mapped as one polyline chain. Pixel mapping blends adjacent source-segment transforms near elbows/knees/ankles, so articulation bends through a joint instead of splitting the source image at that joint.
+
+Native source colors are rasterized directly back to the integer grid. No antialiasing, hidden-3D RGB, diffusion, paid API or image-model repainting is introduced.
+
+Pipeline:
+
+`G2 real motion -> projected joints/depth -> direction-space target skeleton -> continuous native-2D chain warp -> per-frame depth ordering -> GIF/contact-sheet review`
 
 Spec:
 
-`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec.json`
+`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1`
+`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-Supporting tools:
+Builder:
 
-- `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`;
-- `tools/structured-2d-character-pipeline/g3s_c0_body_puppet_walk.py`.
+`tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
 
-Expected review outputs:
-
-- `g3s_c0_body_walk_in_place.gif`;
-- `g3s_c0_body_walk_travel.gif`;
-- `g3s_c0_body_walk_contact_sheet.png`.
+V2 must at minimum eliminate V1's disconnected/loop-like limb behavior. If it cannot, the next deformation class is a weighted 2D mesh/cage rather than another rigid-cutout revision.
 
 ## Full layered motion remains later
 
