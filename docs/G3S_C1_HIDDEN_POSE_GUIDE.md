@@ -2,11 +2,11 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A SKINNED-BODY REVISIONS CLOSED / SKELETON-ONLY EIGHT-STATE WALK RUNNER READY / REVIEW REQUIRED**
+Gate status: **C1A SKINNED-BODY REVISIONS CLOSED / SKELETON-ONLY EIGHT-STATE WALK TECHNICAL FAILURE FIXED / RERUN REQUIRED / VISUAL REVIEW PENDING**
 
 ## Purpose
 
-C1 now implements the architecture the user originally intended:
+C1 implements:
 
 `real motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root control -> persistent native-2D walk poses -> sprite playback`
 
@@ -35,8 +35,6 @@ No MPFB body or G3V body is used.
 
 ## Current eight-state walk cycle
 
-To stop iterating on isolated pose proofs, the current gate exports all eight first-walk states in one run:
-
 | Index | Source frame | Event | Support foot |
 |---:|---:|---|---|
 | 0 | 1588 | left_contact | left |
@@ -48,18 +46,39 @@ To stop iterating on isolated pose proofs, the current gate exports all eight fi
 | 6 | 1648 | right_passing | right |
 | 7 | 1658 | right_up | right |
 
-These states preserve the existing real-motion basis and left/right alternation. Frame duration for the first review playback is `83 ms`, matching a 10-source-frame interval at approximately 120 fps.
+Frame duration for first review playback is `83 ms`, matching a 10-source-frame interval at approximately 120 fps.
 
 ## Camera / direction
 
 - native raster: `640×360`;
 - orthographic;
 - pitch: `26°`;
-- horizontal view: front-three-quarter at `45°` from the measured root-travel heading;
-- the rig is never rotated to manufacture screen facing;
-- the camera chooses the lateral side that makes real forward root travel project **screen-left**;
-- maximum projected skeleton height is calibrated to approximately `128 px`;
-- camera tracking follows only forward root translation, preserving lateral sway and vertical gait movement in the in-place diagnostic.
+- horizontal view: front-three-quarter at `45°` from measured root-travel heading;
+- rig is never rotated to manufacture screen facing;
+- maximum projected skeleton height targets approximately `128 px`;
+- camera tracking follows only forward root translation, preserving lateral sway and vertical gait movement.
+
+### Technical failure on first skeleton-only run
+
+The first local run stopped before guide generation with:
+
+`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+
+This is classified as a **technical camera-selection failure**, not a failure of the skeleton-only motion method. No visual skeleton package was produced, so no visual grade exists yet.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+
+The correction is now committed in `g3s_c1_export_skeleton_walk.py`:
+
+- force Blender dependency-graph evaluation after every camera transform;
+- record both lateral camera candidate projections;
+- prefer a candidate that already projects forward travel screen-left;
+- if Blender's evaluated camera X handedness still disagrees with the canonical family, normalize **guide screen-X coordinates only** while leaving rig/world transforms, camera-space depth and anatomical laterality unchanged;
+- retain the final root-travel `< 0` assertion.
+
+This screen-X normalization is control-coordinate normalization only. It does not mirror or alter final visible pixels because C1A does not own visible art.
 
 ## Data exported per state
 
@@ -73,7 +92,7 @@ These states preserve the existing real-motion basis and left/right alternation.
 - anatomical left/right ownership;
 - near/far anatomical side;
 - support foot;
-- left/right distance from the cycle ground reference;
+- left/right distance from cycle ground reference;
 - real projected root-travel displacement.
 
 No visible body pixels are produced by Blender.
@@ -109,9 +128,7 @@ Expected review outputs:
 - `g3s_c1_skeleton_walk_contact_sheet.png`;
 - eight labeled frame PNGs.
 
-The zoom GIF crop is computed directly from the union of projected skeleton joint bounds across the eight states, so diagnostic labels/ground graphics cannot distort the inspection crop.
-
-Blue means anatomical left, red anatomical right, yellow the center chain, and white rings mark the support foot.
+The zoom GIF crop is computed directly from the union of projected skeleton joint bounds across the eight states. Blue means anatomical left, red anatomical right, yellow center chain, white rings support foot.
 
 ## PASS requirement
 
@@ -121,14 +138,14 @@ C1A passes only if the animated skeleton shows:
 - correct left/right progression;
 - no duplicated/missing/reversed limb chains;
 - plausible depth/near-far switching through the stride;
-- support-foot states consistent with the gait;
+- support-foot states consistent with gait;
 - real root travel to screen-left;
 - readable pelvis/trunk/leg relationship;
-- approximately 128 px maximum skeletal height at the locked camera;
-- no use of a skinned human mesh, final 3D pixels, static-body warp, model/API or manual user rigging.
+- approximately 128 px maximum skeletal height at locked camera;
+- no skinned human mesh, final 3D pixels, static-body warp, model/API or manual user rigging.
 
 ## Next gate
 
-After this skeleton animation passes, C1B goes directly to the **eight persistent native-2D body poses** for the first left-facing walk family. It uses C1A as motion/spatial control and B3B V4 as the visible identity/body-style anchor.
+After this skeleton animation passes, C1B goes directly to the **eight persistent native-2D body poses** for the first left-facing walk family. It uses C1A as motion/spatial control and B3B V4 as visible identity/body-style anchor.
 
 The user will not be asked to redraw or repair frames manually. The static B3B still will not be warped into the gait, and hidden 3D will not become the visible sprite.
