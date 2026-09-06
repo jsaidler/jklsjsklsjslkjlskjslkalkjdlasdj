@@ -1,8 +1,8 @@
 # G3S — Structured 2D Visible Representation
 
-Status date: **2026-09-05**
+Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3B BODY REFERENCE APPROVED / PIXEL-TRANSLATION CANDIDATE NEXT**
+Gate status: **ACTIVE — NUDE B3B BODY REFERENCE APPROVED / V3 REVIEW SPIKE READY**
 
 ## Locked architecture
 
@@ -57,7 +57,7 @@ No censor garment is structurally required. Presentation may be neutral, sensual
 ## B3A history
 
 - B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity.
-- B3A V2 — PASS/CLOSED: adult-female structural anatomy, complete geometry, zero forbidden layers, locked `128 px` scale.
+- B3A V2 — PASS/CLOSED: adult-female structural anatomy, complete geometry, zero forbidden layers, locked `128 px` visible gameplay height.
 
 Approval marker:
 
@@ -83,9 +83,9 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
 
-## Approved high-resolution body reference — PASS
+## Approved high-resolution nude body reference — PASS
 
-A user-supplied Grok four-view turnaround is approved as the primary body reference for B3B authoring.
+A user-supplied Grok **fully nude** four-view turnaround is approved as the primary body reference for B3B authoring. It supersedes the previous covered turnaround.
 
 Approval marker:
 
@@ -93,26 +93,43 @@ Approval marker:
 
 Source identity:
 
-- SHA256 `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`;
-- `1168×784`;
+- SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
+- `2048×1401`;
 - front/back/profile/front-three-quarter;
 - adult natural feminine proportions at ~162 cm identity;
 - lean/functional/resilient, olive/brown, bald/hairless for body-reference purposes, barefoot;
 - mature, severe, sensual, dangerous and lived-in;
-- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell.
+- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
+- complete pelvic body anatomy visible;
+- no occluding garment.
+
+Canonical expected local path:
+
+`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
 Do not reinterpret the body as short/squat/flattened because of prior use of “compact”.
 
-The minimal dark loincloth/tapa-sexo is reference-only occlusion. It has no body ownership and must not become a mandatory censor layer. Final body pixels beneath it belong to B3B; any later garment belongs to B5.
+The old covered reference SHA `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474` remains historical evidence only.
 
-## Current gate — B3B pixel-art visual translation candidate
+## 128 px clarification — LOCKED
+
+`128 px` is the target **visible standing body height** in the native `640×360` gameplay raster with the locked orthographic `26°` camera. It is not a universal source/frame canvas dimension. Hair, weapons and extreme animation bounds may use larger transparent frames while preserving this body scale.
+
+## Current gate — B3B V3 pixel-art review spike
 
 The approved high-resolution turnaround is reference, not production pixel art. It may not simply be resized/quantized/pixel-filtered and promoted.
 
-The next artifact is the first **pixel-art visual translation candidate** proving that the approved body proportions, adult sensual/severe sword-and-sorcery language and Exilada identity survive translation into modern pixel art.
+V3 is a bounded native-grid review abstraction. It asks whether the approved body survives 128 px abstraction well enough to inform intentional pixel-art authoring.
+
+Current tooling:
+
+- `tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py`;
+- `tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`.
+
+The V3 helper now pins the nude reference, uses the front-three-quarter panel, performs no synthetic pelvic repair and reads no hidden-3D RGB/mask/silhouette.
 
 A candidate automatically fails if it reads as a procedural mannequin, generic fitness/character-creator body, superhero exaggeration, short/squat distortion, filtered 3D, sanitized mature body language or lacks Exilada/sword-and-sorcery identity.
 
-If the visual candidate passes, then commit the accepted native B3B production source and deterministic validation/export tooling.
+Even a visually useful V3 result is **not automatically the production B3B asset**. Final B3B still requires persistent 2D art ownership rather than mechanical promotion of the high-resolution reduction.
 
-No local B3B runner is currently approved. B4 hair, B5 clothing/restraints/accessories and G3S-C motion remain blocked until B3B passes.
+B4 hair, B5 clothing/restraints/accessories and G3S-C motion remain blocked until B3B passes.
