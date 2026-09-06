@@ -1,6 +1,6 @@
 # Characters — Living Document
 
-Status: **Exilada core identity and initial condition locked; canonical identity master approved; high-resolution body reference approved; final gameplay pixel-art body master still under development; masculine counterpart exploratory**
+Status: **Exilada core identity and initial condition locked; canonical identity master approved; body references locked; production nude/hairless body base approved and promoted; B4 hair current; masculine counterpart exploratory**
 
 This document stores canonical character decisions. It distinguishes fixed identity, initial state, gameplay-variable equipment, canonical reference material and exploratory variants so temporary production details do not become canon accidentally.
 
@@ -64,11 +64,9 @@ For the Exilada:
 - no blanket rule requires neutral, clinical or anti-erotic framing;
 - framing should be intentional to the scene rather than automatically sanitized or automatically sexualized.
 
-### Body-base and nudity rule — LOCKED 2026-09-05
+### Body-base and nudity rule — LOCKED
 
 The production character owns a **complete adult body base independent of hair, clothing and equipment**.
-
-This is not an alternate costume or a special generated nude version. It is the canonical underlying character body from which every equipped state is composed.
 
 Locked consequences:
 
@@ -76,7 +74,6 @@ Locked consequences:
 - removing all clothing/equipment reveals the same persistent body rather than reconstructing hidden pixels;
 - nudity is a normal supported world/gameplay state;
 - chest and pelvic anatomy must be coherent at native gameplay scale;
-- the body may be framed neutrally, erotically, heroically, vulnerably or brutally according to scene intent;
 - there is no structurally mandatory censor garment;
 - hair is a separate asset/layer and the body base itself is hairless;
 - permanent scars/body marks belong to the body or body-state overlays, not to clothing;
@@ -99,7 +96,7 @@ The approved visual direction uses:
 
 These are **equipped overlay assets**, not part of the permanent body sprite.
 
-### Captivity markers — updated 2026-09-05
+### Captivity markers
 
 The **history of captivity is canonical**.
 
@@ -129,30 +126,66 @@ Canonical file:
 
 It is the approved **high-detail design and identity reference**. It establishes adult lean anatomy/proportions, severe mature face, olive/brown skin, long black hair mass, minimal degraded clothing, captivity history, bare feet and weaponless base identity.
 
-It is not the final gameplay sprite and does not contain enough information to recover the complete nude body by subtraction.
+It is not the final gameplay sprite.
 
-## Approved high-resolution body reference — 2026-09-05
+## Supporting high-resolution nude anatomy reference
 
-A user-supplied Grok four-view body turnaround is approved as the **primary high-resolution body reference for B3B**.
+Canonical expected local path:
 
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
+`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
 Recorded source identity:
 
-- SHA256 `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`;
-- `1168×784`;
-- front / back / profile / front-three-quarter views;
-- bald/hairless for body-reference purposes;
-- adult, natural feminine proportions;
+- SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
+- `2048×1401`;
+- front / back / profile / front-three-quarter;
+- adult natural feminine proportions;
 - lean / functional / resilient;
-- sensual, severe, dangerous and lived-in physical presence;
-- aligned with Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
+- severe, sensual, dangerous and lived-in;
+- full pelvic anatomy visible;
+- no occluding garment.
 
-The turnaround contains a minimal dark loincloth/tapa-sexo. This is **reference-only occlusion**, not body geometry and not a permanent coverage requirement. Final B3B pelvic pixels belong to the complete body owner; any later loincloth belongs to clothing/equipment layers.
+This is anatomy/proportion reference only and is not visible sprite source.
 
-This body reference resolves the intended body direction. It is **not** production pixel art and must not simply be resized/quantized into the final sprite.
+## Locked pixel-art body reference
+
+Marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
+
+Recorded source:
+
+- SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
+- `1168×784` JPEG;
+- front/back/profile/front-three-quarter;
+- adult nude/hairless body;
+- pixel-art imagery on flat dark background.
+
+This reference loop is closed. Do not ask for another body turnaround or Grok body reference.
+
+## Canonical production nude/hairless body base — PASS
+
+Promotion commit:
+
+`2deb765c3980d586ef9747340bb48852dedca452`
+
+Canonical production files:
+
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
+
+Recorded facts:
+
+- `37×128` RGBA;
+- visible standing height `128 px`;
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- front-three-quarter elevated belt-scroller view;
+- adult nude/hairless/barefoot state;
+- persistent 2D visible ownership;
+- no baked hair, clothing, restraints, accessories or weapons.
+
+**G3S-B3/B3B is PASS/CLOSED.**
 
 ## Gameplay-scale identity anchors
 
@@ -176,10 +209,10 @@ Hidden 3D owns control data only, not final visible RGB, alpha or silhouette.
 
 Locked staged construction:
 
-1. complete nude/hairless body base;
-2. separate hair asset/layer family;
-3. separate clothing/bindings/restraints/chains/equipment assets;
-4. layered animation proof.
+1. complete nude/hairless body base — **PASS/CLOSED**;
+2. separate hair asset/layer family — **CURRENT**;
+3. separate clothing/bindings/restraints/chains/equipment assets — BLOCKED UNTIL HAIR PASS;
+4. layered animation proof — BLOCKED UNTIL BODY/HAIR/CLOTHING LAYERS READY.
 
 Detailed status:
 
@@ -187,6 +220,7 @@ Detailed status:
 - `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
 - `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 - `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+- `docs/G3S_B4_HAIR_LOG.md`
 
 ## Masculine counterpart — exploratory human-family variant
 
@@ -219,4 +253,4 @@ Exploratory only, not canonical as playable character or alternate protagonist.
 
 ## Open character decisions
 
-Not yet fixed: proper name beyond `Exilada`, exact age, detailed family history, exact enslavement/abandonment circumstances, detailed personality/voice, faction relationships, religion/culture beyond Ilhas do Sul, long-term clothing progression, final approved nude body-base pixel asset, final approved hair asset, final approved gameplay head/face detail asset, and the role of the masculine counterpart.
+Not yet fixed: proper name beyond `Exilada`, exact age, detailed family history, exact enslavement/abandonment circumstances, detailed personality/voice, faction relationships, religion/culture beyond Ilhas do Sul, long-term clothing progression, final approved hair asset, final approved gameplay head/face detail treatment, and the role of the masculine counterpart.
