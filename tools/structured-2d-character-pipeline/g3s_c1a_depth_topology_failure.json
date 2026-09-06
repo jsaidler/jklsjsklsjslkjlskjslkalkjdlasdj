@@ -1,0 +1,19 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V1",
+  "status": "FAIL_CLOSED_TECHNICAL_REVISION",
+  "date": "2026-09-06",
+  "failure_stage": "depth_guide_material_assignment",
+  "error": "evaluated body topology changed: eval=13378 source=18486",
+  "root_cause": "V1 incorrectly assumed a 1:1 polygon-index mapping between the MPFB source mesh and its evaluated/deformed render topology.",
+  "retained_outputs_before_failure": [
+    "g3s_c1_contact_left_hidden3d_neutral.png",
+    "g3s_c1_contact_left_silhouette_guide.png",
+    "g3s_c1_contact_left_regions_guide.png"
+  ],
+  "architecture_impact": "none; hidden-3D full-pose guide architecture remains active",
+  "fix": "C1A V2 freezes the already-retargeted evaluated mesh in-process for the depth-only guide pass and assigns depth bands directly on evaluated topology.",
+  "replacement_exporter": "tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py",
+  "runner": "tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1",
+  "promotion": "none"
+}
