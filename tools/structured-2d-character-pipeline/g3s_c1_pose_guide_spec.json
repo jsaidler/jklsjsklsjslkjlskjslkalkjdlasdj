@@ -1,9 +1,9 @@
 {
   "gate": "G3S-C1A",
-  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V5",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V6_CAMERA_DIRECTIONAL_FAMILY",
   "status": "RUNNER_READY_REVIEW_REQUIRED",
   "date": "2026-09-06",
-  "purpose": "export one complete left-facing non-rest gait pose from the retained hidden-3D motion/topology backbone as guide/control evidence for native-2D pose authoring",
+  "purpose": "export one complete screen-left non-rest gait pose from the retained hidden-3D motion/topology backbone as guide/control evidence for native-2D pose authoring without mutating the skinned rig/body transform state",
   "locked_architecture": "real motion -> hidden 3D full pose guide -> persistent native-2D pose asset -> sprite playback",
   "input_body_identity_anchor": {
     "path": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
@@ -24,14 +24,24 @@
     "requested": "left_contact",
     "candidate_frames": [1568, 1588, 1608, 1628],
     "selection": "choose the validated phase with anatomical left foot leading in source travel and strongest contact-like foot separation/grounding score",
-    "direction_family": "screen-left"
+    "direction_family": "screen-left",
+    "direction_family_method": "camera_relative_to_motion_no_rig_or_body_transform"
   },
   "camera": {
     "native_raster": [640, 360],
     "pitch_deg": 26,
     "type": "ORTHO",
+    "horizontal_view": "front_three_quarter",
+    "azimuth_from_motion_heading_deg": 45,
     "target_body_height_px": 128,
-    "allowed_height_error_px": 4.0
+    "allowed_height_error_px": 4.0,
+    "travel_screen_x_required": "negative"
+  },
+  "transform_safeguard": {
+    "rig_or_body_directional_transform_applied": false,
+    "grounding_transform_applied": false,
+    "preserve_parent_state": true,
+    "max_object_matrix_delta": 0.00000001
   },
   "depth_guide": {
     "mode": "original_body_camera_space_shader",
@@ -67,5 +77,6 @@
   "v2_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json",
   "v3_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json",
   "v4_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json",
-  "pass_requirement": "guide package must show one coherent left-facing full-body contact pose with explicit anatomical laterality, near/far ownership, depth ordering, contact metadata, approximately 128px camera scale and screen-left travel vector; depth must be rendered on the unchanged original evaluated body with no proxy/topology substitution and <=0.01px projected-height drift; only after visual review may C1B author one native-2D pose candidate"
+  "v5_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_v5_visual_transform_failure.json",
+  "pass_requirement": "guide package must visibly show a coherent adult human contact pose with no stretched/exploded skin geometry; the screen-left front-three-quarter family must be obtained by camera orientation relative to real motion while rig/body object transforms and parent state remain unchanged; travel screen x must be negative; body height must remain approximately 128px; depth must use the original-body camera-space shader with no topology substitution; only after visual review may C1B author one native-2D pose candidate"
 }
