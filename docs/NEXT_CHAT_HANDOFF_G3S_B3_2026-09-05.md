@@ -32,7 +32,7 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides, but persi
 
 High-resolution render/reference art may not be mechanically pixelated into production art.
 
-The final user-supplied body reference is different: it is already pixel-art imagery. A review candidate may therefore select one existing pixel-art view and normalize scale with nearest-neighbor only, without anatomy/silhouette repair or palette synthesis. This still requires visual approval before production promotion.
+The final user-supplied body reference is already pixel-art imagery. One existing view may therefore be extracted and scale-normalized with nearest-neighbor only, provided no anatomy/silhouette repair, palette synthesis, smoothing or render-to-pixel conversion is performed.
 
 ## Build order
 
@@ -51,7 +51,7 @@ The final user-supplied body reference is different: it is already pixel-art ima
 - high-resolution nude turnaround — supporting anatomy reference only.
 - B3B V3 — FAIL/CLOSED: reduced/quantized high-resolution render.
 - final user-supplied four-view pixel-art visual reference — PASS / LOCKED / no more user generation.
-- **B3B V4 locked pixel-reference normalization — CURRENT / RUNNER READY / REVIEW NEXT.**
+- **B3B V4 locked pixel-reference candidate — VISUAL PASS / PROMOTION PENDING.**
 
 ## Fixed references
 
@@ -65,51 +65,57 @@ Final user-supplied pixel-art reference marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
 
-Source:
+Source SHA256:
 
-- SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
-- `1168×784` JPEG;
-- front/back/profile/front-three-quarter;
-- adult nude/hairless body;
-- flat dark presentation background.
+`f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`
 
 Hard interaction lock: do not ask the user for another body image, another Grok prompt or another turnaround.
 
-## 128 px clarification
+## B3B V4 review — PASS
 
-`128 px` is the visible standing body height in the locked `640×360` gameplay raster, not a universal frame-canvas size.
+Reviewed contact sheet:
 
-## V4 implementation
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-Specification:
+SHA256:
 
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
+`2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
 
-Helper:
+Approved native body candidate:
 
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py`
+- `37×128` RGBA;
+- `128 px` visible standing height;
+- raw RGBA SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
 
-Runner:
+Approval marker:
 
-`tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1`
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_visual_approval.json`
 
-Output:
+This passes the nude/hairless **body-base** visual gate only.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`
+## Promotion implementation
 
-Method:
+Promotion helper:
 
-- locate exact locked reference by SHA;
-- verify `1168×784`;
-- select the existing rightmost front-three-quarter pixel-art body;
-- remove only the flat dark presentation background;
-- normalize standing height to `128 px` with nearest-neighbor only;
-- no hidden-3D visible source;
-- no high-resolution anatomy-render visible source;
-- no palette synthesis;
-- no anatomy repair;
-- no silhouette morphing;
-- no automatic production promotion.
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_promote_body_base.py`
+
+Promotion runner:
+
+`tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
+
+The runner:
+
+- rebuilds the exact reviewed candidate from the locked source;
+- verifies dimensions and approved raw RGBA digest;
+- refuses any pixel mismatch;
+- copies exact pixels to the canonical asset tree;
+- writes provenance JSON;
+- commits/pushes only the canonical body PNG + metadata JSON.
+
+Canonical targets:
+
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
 
 ## Exact next operator action
 
@@ -119,24 +125,19 @@ Run:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\14_run_g3s_b3b_v4_pixel_reference_candidate.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\15_promote_g3s_b3b_v4_body_base.ps1"
 ```
 
-The runner searches for the exact locked reference by SHA in the canonical repo path and common user image folders (`Downloads`, `Desktop`, `Pictures`).
+Then send the final console output.
 
-Then STOP and share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
-
-or the complete console error.
-
-B4/B5/G3S-C remain blocked.
+If promotion/push succeeds, the next documentation action is **G3S-B3B PASS/CLOSED**, then **G3S-B4 hair** opens.
 
 ## Actual local AI state
 
 - only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (historical folder name; Qwen weights removed);
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
+- PixelLab is historical external paid spike code only and is not active/authorized;
 - old Git tool directories do not prove installed models;
 - do not assume Wan-Animate-2 installed;
 - Qwen-native, SD1.5, PixelLock and Alucard remain closed.
@@ -149,6 +150,6 @@ B4/B5/G3S-C remain blocked.
 - no manual frame-by-frame repainting burden;
 - no additional body-reference requests;
 - no new sprite-model search unless explicitly reopened;
-- no B4/B5/G3S-C before B3B PASS;
+- no B4/B5/G3S-C before B3B promotion is confirmed;
 - include exact cleanup commands when a model route is closed and no longer needed;
 - verify actual local runtime/disk state before naming installed tools.
