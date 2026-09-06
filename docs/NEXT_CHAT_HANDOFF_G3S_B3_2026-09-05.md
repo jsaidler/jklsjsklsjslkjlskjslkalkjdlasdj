@@ -28,7 +28,7 @@ Hidden rig owns joint/bone transforms, anatomical side, chain depth/near-far, fo
 - 37×128 RGBA;
 - faces screen-left;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- identity/body-style anchor only; never warp it into the full gait.
+- identity/body-style anchor only; never warp it into full gait.
 
 ## Hair — DEFERRED
 
@@ -53,7 +53,7 @@ V1–V5 remain historical C1A failure evidence. V6 is superseded pre-run and sho
 
 ## CURRENT — C1A SKELETON-ONLY EIGHT-STATE WALK
 
-The runner now exports an entire motion cycle in one pass:
+Cycle:
 
 `1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
@@ -64,22 +64,40 @@ Current files:
 - `tools/structured-2d-character-pipeline/g3s_c1_build_skeleton_walk_review.py`;
 - `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
 
-Camera is `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` from actual root travel. Camera side is selected so real forward travel projects screen-left. Rig is not rotated for facing. Maximum projected skeleton height is approximately `128 px`.
+Camera: `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` from actual root travel, approximately `128 px` maximum skeleton height. Rig is not rotated for facing.
 
-The guide records complete bone matrices, projected joints, chain lengths/depths, laterality, near/far, support foot, ground distance and projected root travel. Review drawing orders chains by depth and computes the zoom crop from actual joint bounds, not labels/background graphics.
+## Latest run — technical failure fixed
+
+First skeleton-only run failed before producing a guide:
+
+`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+
+Failure classification: **technical camera-selection failure; motion architecture not disproven**.
+
+Marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+
+Fix committed in exporter:
+
+- Blender dependency graph is forced to update after every camera transform;
+- both lateral front-three-quarter candidates are measured and logged;
+- naturally screen-left projection is preferred;
+- if Blender's screen-X handedness still disagrees, only the hidden guide coordinate X axis is normalized; rig/world transforms, anatomical side and camera-space depth are unchanged;
+- root travel still must end negative/screen-left.
+
+No model/API/download/runtime added. No cleanup applies.
 
 Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
 
-Primary outputs:
+Primary outputs expected after rerun:
 
 - `g3s_c1_skeleton_walk_zoom.gif`;
 - `g3s_c1_skeleton_walk_travel.gif`;
 - `g3s_c1_skeleton_walk_contact_sheet.png`;
 - `g3s_c1_skeleton_walk_guide.json`.
-
-No model/API/download. No cleanup applies.
 
 ## Exact next operator action
 
@@ -90,7 +108,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\21_run_g3s_c1_hidden_pose_guide.ps1"
 ```
 
-If successful, share `g3s_c1_skeleton_walk_zoom.gif` and `g3s_c1_skeleton_walk_contact_sheet.png`. If it fails, share the complete console output.
+If successful, share `g3s_c1_skeleton_walk_zoom.gif` and `g3s_c1_skeleton_walk_contact_sheet.png`. If it fails, share complete console output.
 
 ## Immediately after C1A PASS
 
