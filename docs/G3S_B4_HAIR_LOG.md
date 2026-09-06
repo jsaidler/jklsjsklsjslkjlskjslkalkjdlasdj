@@ -2,13 +2,13 @@
 
 Status date: **2026-09-06**
 
-Gate status: **B4A PREFLIGHT PASS/CLOSED — B4B TWO-LAYER STATIC REVIEW RUNNER READY**
+Gate status: **B4A PASS/CLOSED DIAGNOSTIC — B4B V1 EXTRACTION FAIL/CLOSED PRE-RUN — B4B V2 AUTHORED TWO-LAYER RUNNER READY**
 
 ## Entry condition
 
 G3S-B3/B3B is PASS/CLOSED.
 
-Canonical body base:
+Canonical immutable body base:
 
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
@@ -17,34 +17,48 @@ Canonical body base:
 - visible standing height `128 px`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
 
-The body base is immutable input to B4. Hair must not be baked into or overwrite body ownership.
+The body is immutable input to B4. Hair may surround/occlude it through composition but may not overwrite its ownership.
 
 ## Canonical hair identity
 
-The Exilada's hair is black, very long, heavy, voluminous, messy and a primary silhouette anchor. It must read as deprivation/survival material, not salon styling.
+The Exilada's hair is:
+
+- black / nearly black;
+- very long;
+- heavy;
+- voluminous;
+- messy;
+- a primary silhouette anchor;
+- materially lived-in and compatible with deprivation/survival rather than salon styling.
 
 Identity/design authority:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master defines hair identity/mass. It is a local pixel-art reference asset and is not currently tracked in GitHub, so B4 operates on it locally and records its SHA through the preflight metadata.
+The master is a **visual inspiration/reference** for hair identity, mass, material and framing. It is not a complete geometric source for the final hair layers.
 
 ## Hair depth architecture — LOCKED
 
-Hair is **not one flat overlay**. Minimum valid representation:
+Minimum valid representation:
 
-1. `rear_hair` — behind body/head/shoulders;
-2. `front_hair` — in front where masses cross face/neck/chest/shoulders.
+1. `rear_hair` — persistent transparent layer behind body/head/shoulders/back;
+2. `front_hair` — persistent transparent layer in front where hair crosses face/neck/chest/shoulders.
 
 Minimum deterministic composition:
 
 `rear_hair -> body -> front_hair`
 
-Additional side/intermediate pieces are allowed later if required by occlusion or secondary motion, but two layers is the structural minimum.
+Additional side/intermediate masses may be introduced later only if occlusion or secondary motion requires them. One flat hair overlay is invalid.
 
 ## Ownership rule
 
-Hair is a separate persistent 2D layer family. It may own visible hair RGB/alpha/silhouette, front/back masses, stable attachment/depth metadata and later secondary-motion anchors. It may not modify the body asset, collapse into one irreversible body-baked sprite, use hidden-3D RGB/masks as final visible art, require per-frame generation or require manual user repainting.
+Hair owns its own visible RGB/alpha/silhouette and later its own secondary-motion anchors. It must not:
+
+- modify the canonical body asset;
+- be baked irreversibly into the body;
+- use hidden-3D RGB/masks as final visible art;
+- require per-frame generation;
+- require manual frame-by-frame repainting by the user.
 
 ## B4A preflight — PASS/CLOSED DIAGNOSTIC
 
@@ -52,7 +66,7 @@ Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
 
-Reviewed artifact SHA256:
+SHA256:
 
 `efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`
 
@@ -60,17 +74,39 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
 
-Result:
+The preflight confirmed:
 
-- canonical local master is suitable as the hair identity/mass source reference;
-- promoted B3B V4 body remains immutable;
-- the `96×160` shared review frame is adequate for the first static hair test;
-- mandatory minimum depth order is confirmed as `rear_hair -> body -> front_hair`;
-- B4 may proceed to a bounded two-layer static review candidate.
+- the local master is suitable as hair identity/mass inspiration;
+- promoted B3B body remains immutable;
+- shared review frame `96×160` is adequate for the first static test;
+- minimum depth order is `rear_hair -> body -> front_hair`.
 
-B4A created no production hair pixels and promoted nothing.
+B4A created no production hair pixels.
 
-## B4B — TWO-LAYER STATIC HAIR CANDIDATE — RUNNER READY
+## B4B V1 — MASTER EXTRACTION — FAIL/CLOSED PRE-RUN METHOD
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
+
+The first B4B implementation attempted to isolate visible hair pixels from the master and split them into front/rear ownership according to body overlap.
+
+That route is invalid because the master **does not contain sufficient visible information for the hair mass that falls behind the head, shoulders and back**. A valid `rear_hair` layer therefore cannot be recovered by extraction from the master.
+
+Consequences:
+
+- visible master hair pixels are not final hair geometry;
+- rear coverage behind the body must be newly authored;
+- front and rear layers must both be designed as new native-pixel assets;
+- the master remains inspiration/reference only.
+
+The V1 runner was not executed by the user. No production hair art was created. No model was downloaded; no cleanup command applies.
+
+## B4B V2 — AUTHORED TWO-LAYER STATIC CANDIDATE — CURRENT / RUNNER READY
+
+Machine-readable spec:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
 
 Helper:
 
@@ -84,28 +120,27 @@ Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair`
 
-### Method
+### V2 method
 
-B4B is deliberately bounded and review-only.
+B4B V2 is a deterministic **native-pixel authoring spike**. It does not extract, trace or copy master hair pixels.
 
 It:
 
-1. verifies the exact promoted B3B body hashes;
-2. reads B4A preflight metadata and verifies that the canonical master has not changed since preflight;
-3. isolates already-authored dark hair pixels from the canonical Exilada pixel-art master using bounded foreground/color/component analysis;
-4. aligns that source hair mass to the shared `96×160` B4 working frame using body/skin anchors and nearest-neighbor scaling;
-5. splits visible hair ownership into persistent `rear_hair` and `front_hair` candidates according to immutable body overlap;
-6. composes deterministically as `rear_hair -> body -> front_hair`;
-7. generates separate transparent layer PNGs, composite, native `640×360` gameplay preview, contact sheet and metadata;
-8. does **not** promote or commit hair assets automatically.
+1. verifies the exact promoted B3B body hashes and dimensions;
+2. verifies the local master SHA still matches the B4A preflight source;
+3. uses the master only as visual identity/mass inspiration in the review sheet;
+4. authors a new `rear_hair` mass directly on the native `96×160` pixel grid, including new geometry behind head/neck/shoulders/back that is not visible in the master;
+5. authors a new `front_hair` crown/framing/lock layer directly on the native grid;
+6. uses a compact dark 8-color palette and broad locks/value groups rather than strand noise;
+7. composes deterministically as `rear_hair -> immutable body -> front_hair`;
+8. outputs separate transparent layers, composite, `640×360` gameplay preview, contact sheet and metadata;
+9. performs no automatic promotion.
 
-### Important limitation
+No external paid API or external generative model is used.
 
-B4B uses only hair pixels already visible in the canonical master. It does **not** yet infer hidden rear-hair coverage behind the body and does not yet author secondary-motion segmentation. Those remain later structural work if the static visual candidate passes.
+### Review package
 
-## B4B review package
-
-The runner must produce:
+Expected outputs:
 
 - `g3s_b4b_rear_hair_candidate.png`;
 - `g3s_b4b_front_hair_candidate.png`;
@@ -114,27 +149,34 @@ The runner must produce:
 - `g3s_b4b_contact_sheet.png`;
 - `g3s_b4b_two_layer_hair_candidate.json`.
 
-Visual review must confirm:
+### Visual PASS requirements
 
-- hair immediately restores the Exilada's large dark silhouette anchor;
-- it reads as very long/heavy/voluminous/messy;
-- front and rear masses surround the body convincingly;
-- face/head/neck remain readable;
-- there is no featureless black blob or fine strand noise collapse;
-- source alignment does not create obviously misplaced hair geometry.
+At native scale the candidate must:
 
-Structural review must confirm:
+- immediately restore the Exilada's large dark silhouette anchor;
+- read as very long, heavy, voluminous and messy;
+- show convincing rear mass behind head/shoulders/back;
+- show front locks/masses framing face/neck/chest without erasing body readability;
+- avoid a featureless black blob;
+- avoid fine-strand noise that collapses at 1×;
+- feel compatible with the canonical master rather than like unrelated generic hair;
+- remain structurally suitable for later secondary-motion segmentation.
 
-- rear and front layers both exist and are non-empty;
-- body hashes remain canonical;
+### Structural PASS requirements
+
+- `rear_hair` and `front_hair` are separate non-empty transparent assets;
 - composition order is deterministic;
-- no external paid API/model is used;
-- no automatic promotion occurs.
+- body hashes remain canonical;
+- no master pixels are copied into the hair layers;
+- no hidden-3D visible ownership;
+- no external paid API/model;
+- no automatic promotion;
+- no manual user repainting dependency.
 
 ## Current exact action
 
-Run B4B once and inspect/share:
+Run B4B V2 once and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C until B4B visual/structural review is complete.
+Do not promote hair and do not start B5/G3S-C until the B4B V2 visual/structural review is complete.
