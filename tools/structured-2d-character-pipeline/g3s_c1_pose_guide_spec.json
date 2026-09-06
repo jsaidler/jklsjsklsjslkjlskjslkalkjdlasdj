@@ -1,6 +1,6 @@
 {
   "gate": "G3S-C1A",
-  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V1",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V2",
   "status": "RUNNER_READY_REVIEW_REQUIRED",
   "date": "2026-09-06",
   "purpose": "export one complete left-facing non-rest gait pose from the retained hidden-3D motion/topology backbone as guide/control evidence for native-2D pose authoring",
@@ -32,6 +32,10 @@
     "type": "ORTHO",
     "target_body_height_px": 128
   },
+  "depth_guide": {
+    "mode": "evaluated_mesh_bake",
+    "reason": "MPFB source and evaluated/deformed mesh polygon counts are not 1:1; depth materials are assigned directly on a frozen copy of the evaluated topology for this guide-only pose"
+  },
   "outputs": [
     "g3s_c1_contact_left_hidden3d_neutral.png",
     "g3s_c1_contact_left_silhouette_guide.png",
@@ -54,5 +58,6 @@
     "single_still_warp": false,
     "automatic_native_2d_pose_promotion": false
   },
+  "v1_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json",
   "pass_requirement": "guide package must show one coherent left-facing full-body contact pose with explicit anatomical laterality, near/far ownership, depth ordering, contact metadata, 128px camera scale and screen-left travel vector; only after visual review may C1B author one native-2D pose candidate"
 }
