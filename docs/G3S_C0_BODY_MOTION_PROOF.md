@@ -23,7 +23,20 @@ Canonical body:
 - `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- visible owner remains persistent native 2D pixels.
+- visible owner remains persistent native 2D pixels;
+- **canonical screen-facing for this body asset: LEFT**.
+
+### Facing/travel invariant — LOCKED
+
+The promoted B3B body is visibly oriented toward screen-left. Therefore any travel preview using this exact unmirrored asset must move screen-left.
+
+Earlier C0 code incorrectly hardcoded travel x-position from `250 -> 390`, making a left-facing body travel right. This is an implementation error, not a design choice.
+
+Correction marker:
+
+`tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json`
+
+V2 now rebuilds the travel preview from the generated logical frames with x decreasing `390 -> 250`. The body is **not mirrored** and gait frame order is **not reversed**.
 
 Motion evidence:
 
@@ -33,7 +46,7 @@ Motion evidence:
 - validated phase frames = `1568, 1588, 1608, 1628`;
 - eight review samples use `1568, 1578, 1588, 1598, 1608, 1618, 1628, 1638`.
 
-The real motion projection itself is retained. C0 failures concern only the visible 2D deformation method unless explicitly stated otherwise.
+The real motion projection itself is retained. C0 failures concern only the visible 2D deformation/presentation method unless explicitly stated otherwise.
 
 ## V1 — FAIL/CLOSED VISUAL DEFORMATION METHOD
 
@@ -70,7 +83,7 @@ The reviewed frames expose the method directly:
 - later stride frames create loop-like / arc-like disconnected leg-foot silhouettes;
 - knees and ankles do not remain welded;
 - extreme poses read as assembled rotating slabs rather than one body;
-- the failure is therefore not just polish or seam cleanup.
+- the travel presentation also incorrectly moved screen-right despite the body facing screen-left.
 
 **Decision:** close `nearest-segment hard partition + independent rigid part rotation` as the C0 body-deformation method. Do not make a V1.1 by adding more overlap or hand-tuning more rigid piece pivots.
 
@@ -95,6 +108,8 @@ Source pixel colors remain the visible material. Source pixels are rasterized ba
 
 Depth ordering remains derived from hidden G2 camera-space joint depth.
 
+Travel presentation is now explicitly locked to the canonical visual facing: **left-facing body -> screen-left travel**.
+
 V2 spec:
 
 `tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
@@ -102,6 +117,10 @@ V2 spec:
 V2 builder:
 
 `tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+
+Travel-direction builder:
+
+`tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py`
 
 V2 runner:
 
@@ -128,10 +147,11 @@ V2 is not required to be final production animation, but it must clear the V1 st
 - no loop-like detached limb arcs;
 - gait alternation must remain recognizable;
 - canonical body identity/proportions must remain readable at gameplay scale;
+- **travel direction must agree with the visible facing**;
 - no automatic promotion.
 
 If continuous chain warping still cannot keep the sprite coherent under the real walk, C0 must move to an actual weighted 2D mesh/cage representation rather than returning to rigid cutout parts.
 
 ## Current exact action
 
-Run V2 once and review the **in-place GIF plus zoom contact sheet**. Hair remains deferred until the user explicitly resumes it.
+Run V2 once and review the **in-place GIF, travel GIF and zoom contact sheet**. Hair remains deferred until the user explicitly resumes it.
