@@ -61,7 +61,7 @@ Nudity is a normal supported state. The project does not impose blanket desexual
 - covered Grok body turnaround — PASS historical reference / SUPERSEDED.
 - **fully nude Grok four-view turnaround — PASS / APPROVED PRIMARY BODY REFERENCE / NOT PRODUCTION ART.**
 - B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**: it produced a reduced/quantized render, not authored pixel art.
-- **B3B authored native-pixel body candidate — CURRENT.**
+- **B3B V4 direct native-pixel authoring — CURRENT / SPEC LOCKED / AWAITING VISUAL CANDIDATE.**
 
 ## Approved nude body reference
 
@@ -101,13 +101,41 @@ Reviewed artifact:
 
 V3 mechanically reduced the high-resolution reference to native scale, inherited its silhouette/value structure and quantized it. The result was a tiny reduced render / photo-like image with large pixels, not pixel art. It is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
 
-## Current exact gate
+## V4 direct native-pixel authoring — CURRENT
 
-**No B3B runner is currently approved.**
+Method specification:
 
-The next visual artifact must be an **actually authored native-pixel Exilada body candidate** at approximately `128 px` visible standing height. The approved nude turnaround is anatomy/design reference only.
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-Do not create another resize/quantize/filter conversion runner.
+Core rule: **do not convert the body reference. Author a new pixel image directly on a logical pixel grid while looking at the body reference.**
+
+Current authoring route uses the already-employed Grok image-generation workflow; no new local sprite-model install/search is authorized by this step.
+
+Preferred first-candidate contract:
+
+- output `1024×1024` representing a `256×256` logical canvas at exact integer `4×` display zoom;
+- each logical pixel is one uniform `4×4` output block;
+- standing body approximately `128` logical pixels tall, first-candidate tolerance `124–132`;
+- elevated front-three-quarter belt-scroller gameplay view approximating `26°` pitch;
+- fully nude adult hairless Exilada body only;
+- no hair, clothes, restraints, weapons, scenery or cast shadow;
+- transparent background if possible, otherwise one flat chroma color;
+- no antialiasing, dithering, smooth gradients or painterly texture;
+- deliberate connected clusters and controlled value groups.
+
+Grok must use:
+
+- approved nude turnaround for anatomy/proportion/body mass;
+- `exilada_master.png` for Exilada identity/face only;
+- hair/clothing from the identity master must not be copied into the B3B body candidate.
+
+A smooth illustration with fake pixel texture, inconsistent pseudo-pixels or render-like values is FAIL. Do not rescue it by quantizing/filtering.
+
+After a candidate exists, local tooling may validate the integer grid, remove a flat chroma background, strip exact `4×` display zoom without averaging, measure logical body height, run raster QA and generate native-1×/640×360 previews. It may not repair anatomy or redraw silhouette.
+
+## Current exact action
+
+Obtain **one Grok-authored V4 body candidate** under the contract above and review it visually before any new import/QA runner is written.
 
 Do not start B4/B5/G3S-C before B3B passes.
 
@@ -137,8 +165,6 @@ Interpretation is locked:
 6. Closed local sprite-model routes remain closed: Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen them or speak of their model weights as still present without fresh evidence.
 
 7. Blender/MPFB may remain as hidden structural infrastructure outside this `Z:\AI` inventory, but that is not a second local pixel-art authoring stack.
-
-This section exists specifically to prevent cross-chat confusion between **installed runtime**, **workspace/evidence**, and **historical repository tooling**.
 
 ## Operator/process rules
 
