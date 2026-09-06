@@ -1,6 +1,6 @@
 {
   "gate": "G3S-C1A",
-  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V2",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V3",
   "status": "RUNNER_READY_REVIEW_REQUIRED",
   "date": "2026-09-06",
   "purpose": "export one complete left-facing non-rest gait pose from the retained hidden-3D motion/topology backbone as guide/control evidence for native-2D pose authoring",
@@ -30,11 +30,13 @@
     "native_raster": [640, 360],
     "pitch_deg": 26,
     "type": "ORTHO",
-    "target_body_height_px": 128
+    "target_body_height_px": 128,
+    "allowed_height_error_px": 4.0
   },
   "depth_guide": {
-    "mode": "evaluated_mesh_bake",
-    "reason": "MPFB source and evaluated/deformed mesh polygon counts are not 1:1; depth materials are assigned directly on a frozen copy of the evaluated topology for this guide-only pose"
+    "mode": "evaluated_worldspace_bake",
+    "reason": "freeze the already-retargeted evaluated MPFB geometry in exact world coordinates before removing modifiers/parenting so the depth pass cannot alter the camera-calibrated guide scale",
+    "max_projected_height_delta_px": 0.25
   },
   "outputs": [
     "g3s_c1_contact_left_hidden3d_neutral.png",
@@ -59,5 +61,6 @@
     "automatic_native_2d_pose_promotion": false
   },
   "v1_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json",
-  "pass_requirement": "guide package must show one coherent left-facing full-body contact pose with explicit anatomical laterality, near/far ownership, depth ordering, contact metadata, 128px camera scale and screen-left travel vector; only after visual review may C1B author one native-2D pose candidate"
+  "v2_failure_marker": "tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json",
+  "pass_requirement": "guide package must show one coherent left-facing full-body contact pose with explicit anatomical laterality, near/far ownership, depth ordering, contact metadata, approximately 128px camera scale, screen-left travel vector and <=0.25px projected-height drift across depth topology freezing; only after visual review may C1B author one native-2D pose candidate"
 }
