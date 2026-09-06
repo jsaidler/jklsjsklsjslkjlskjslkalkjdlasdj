@@ -2,19 +2,19 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V4 VISUAL PASS — CORRECTED PROMOTION RUNNER READY**
+Gate status: **PASS/CLOSED — V4 PRODUCTION BODY BASE PROMOTED**
 
 ## Canonical ownership rule
 
 Hidden 3D remains motion/topology/reference infrastructure only. It does not own final visible RGB, alpha or sprite silhouette. Final exported/runtime character art is owned by persistent native 2D sprite assets.
 
-A valid B3B body source must own its own visible RGB, alpha, silhouette, native pixel clusters/value structure, adult-female anatomical readability and Exilada-specific physical presence.
+A valid B3B body source owns its own visible RGB, alpha, silhouette, native pixel clusters/value structure, adult-female anatomical readability and Exilada-specific physical presence.
 
-## Closed B3B attempts
+## Closed attempts
 
 ### V1 — FAIL/CLOSED ROUTE
 
-V1 copied the projected B3A/MPFB mask into final sprite alpha/silhouette and recolored it. This violated the G3V visible-ownership kill switch.
+V1 copied the projected B3A/MPFB mask into final sprite alpha/silhouette and violated the G3V visible-ownership rule.
 
 Failure marker:
 
@@ -22,27 +22,25 @@ Failure marker:
 
 ### V2 — FAIL/CLOSED VISUAL ROUTE
 
-V2 corrected visible ownership technically but failed visually: oversized torso, generic procedural-mannequin anatomy, blocky hands/feet, crude pelvis/thigh transitions, pseudo-3D banding, stiff silhouette and absent Exilada identity.
+V2 was technically 2D-owned but visually failed: procedural/mannequin anatomy, poor proportions, crude pelvis/thigh transitions, weak hands/feet, pseudo-3D banding and absent Exilada identity.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
 
-Rejected V2 source/tooling was removed from `main`; no model weights were downloaded, so no cleanup command applies.
+### V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
 
-### Chat image-generation probe — REJECTED / NON-PRODUCTION
+V3 mechanically reduced/quantized a high-resolution render and produced a miniaturized render rather than authored pixel art.
 
-The in-chat generated body sheet was rejected as generic/fitness-like and as faux technical presentation rather than trustworthy production art or metadata. It has no production authority.
+Failure marker:
 
-## Existing high-resolution nude anatomy reference — PASS / SUPPORTING REFERENCE
+`tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
 
-The earlier fully nude Grok turnaround remains anatomy/proportion support only.
+No model cleanup applies to V1/V2/V3 because these B3B routes downloaded no model weights.
 
-Approval marker:
+## Locked references
 
-`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
-
-Canonical local path:
+### Supporting high-resolution nude anatomy reference
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
@@ -50,145 +48,90 @@ SHA256:
 
 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
 
-It is not production pixel art and may not be used as visible sprite source.
+Role: anatomy/proportion support only; never visible sprite source.
 
-## Final user-supplied visual reference — LOCKED
+### Final user-supplied pixel-art visual reference
 
-The user explicitly ended the reference-acquisition loop and locked the current four-view pixel-art body image as the final visual reference to proceed from.
-
-Machine-readable marker:
+Marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
 
-Recorded source facts:
+Source facts:
 
-- SHA256: `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
-- dimensions: `1168×784`;
-- format: JPEG;
-- views: front, back, profile and front three-quarter;
+- SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
+- `1168×784` JPEG;
+- front/back/profile/front-three-quarter;
 - adult nude/hairless body;
-- already presented as pixel-art imagery on a dark flat background.
+- pixel-art imagery on a flat dark presentation background.
 
-### User-interaction lock
+User-interaction lock remains: do not reopen body-reference acquisition or ask for another Grok/body turnaround.
 
-From this point forward:
+## B3B V4 — PASS
 
-- do **not** ask the user to generate another body reference;
-- do **not** ask the user to run another Grok prompt for the body;
-- do **not** ask for another turnaround;
-- do **not** reopen the body-reference search loop;
-- the assistant/pipeline owns the work required to turn the already-available references into production pixel art.
+V4 extracted the existing front-three-quarter pixel-art view from the locked reference, removed only the flat presentation background and normalized visible standing height to `128 px` using nearest-neighbor only.
 
-## What `128 px` means — LOCKED
-
-`128 px` is the visible standing height at the locked native `640×360` gameplay scale. It is not a universal frame-canvas size.
-
-## B3B visual approval rule — LOCKED
-
-Required first-glance reading:
-
-**adult, attractive, sensual, strong, dangerous, severe and lived-in — beauty + hardness + survival — clearly within the project's sword-and-sorcery lineage.**
-
-Automatic visual FAIL conditions include mannequin/procedural-body appearance, generic fitness/character-creator reading, superhero/bodybuilder exaggeration, shortened/flattened proportions, weak chest/pelvis/thigh anatomy, poor hands/feet at native 1×, pseudo-3D/filtered-render appearance, sanitized mature body language, absent Exilada identity or failure to evoke Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
-
-## V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
-
-V3 started from the high-resolution render and reduced/quantized it. The result was a tiny reduced render rather than authored pixel art.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
-
-No model cleanup applies because V3 downloaded no model weights.
-
-## V4 — LOCKED PIXEL-REFERENCE NORMALIZATION — VISUAL PASS
-
-Specification:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
-
-Review helper:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py`
-
-Review runner:
-
-`tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1`
+No anatomy repair, silhouette morphing, palette synthesis, smoothing, hidden-3D RGB/mask use or render-to-pixel conversion was performed.
 
 Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-Recorded reviewed contact-sheet SHA256:
+Recorded contact-sheet SHA256:
 
 `2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
 
-Native candidate:
+Approved local candidate:
 
-- dimensions: `37×128` RGBA;
-- visible standing height: `128 px`;
-- **authoritative local raw RGBA SHA256:** `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
-
-The previously recorded `bd4a78e...` digest came from an assistant-side reconstructed candidate and is superseded for promotion purposes.
+- dimensions `37×128` RGBA;
+- visible standing height `128 px`;
+- authoritative raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
 
 Visual approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_visual_approval.json`
 
-### Review result
+## Promotion history
 
-**VISUAL PASS for the nude/hairless body-base gate.**
-
-The reviewed candidate reads as intentional pixel-art imagery at the locked native scale, preserves readable adult-female anatomy, remains compatible with the locked Exilada body direction and is readable in the `640×360` gameplay preview.
-
-This approves the **body base only**. Hair, clothing, restraints, accessories and animation remain separate gates.
-
-## First promotion attempt — FAIL/CLOSED IMPLEMENTATION BUG
-
-The first execution of `15_promote_g3s_b3b_v4_body_base.ps1` refused promotion with:
-
-- observed local raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- incorrectly hardcoded expected SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+The first promotion attempt correctly refused a mismatch because the expected digest had been measured from an assistant-side reconstruction rather than the user's actual local candidate.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json`
 
-The safety check behaved correctly; the bug was the source of the expected digest. It had been measured from an assistant-side reconstructed candidate rather than the user's actual local V4 output.
+The corrected promotion runner used the actual local candidate digest, did not regenerate V4, verified exact dimensions/raw RGBA/alpha height and copied the exact candidate pixels unchanged.
 
-No art decision changed. V4 remains VISUAL PASS. No model cleanup applies.
+## Canonical production body base — PROMOTED
 
-## Corrected promotion implementation — READY
+Git commit:
 
-Promotion helper:
+`2deb765c3980d586ef9747340bb48852dedca452`
 
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_promote_body_base.py`
-
-Promotion runner:
-
-`tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
-
-Correction:
-
-1. the authoritative promotion digest is now the actual local V4 candidate digest `818f0538...`;
-2. the promotion runner **does not rerun the V4 review generator**;
-3. it promotes only the already-existing local candidate in `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`;
-4. it verifies exact `37×128` dimensions, exact raw-RGBA digest and full 128 px alpha height;
-5. it copies those exact pixels unchanged to the canonical production asset path;
-6. it writes provenance metadata;
-7. it commits/pushes only the promoted body PNG and metadata JSON.
-
-Canonical target paths:
+Canonical files:
 
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
 
-No anatomy, silhouette, palette or pixel-cluster changes are permitted during promotion.
+Recorded production facts:
 
-## Current exact action
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- dimensions `37×128`;
+- visible standing height `128 px`;
+- view `front-three-quarter elevated belt-scroller`;
+- state `adult nude hairless barefoot body base`;
+- visible ownership `persistent 2D pixel asset`;
+- excludes hair, clothing, restraints, accessories and weapons.
 
-Run the **corrected** promotion runner once. Do not rerun V4 manually first; the existing candidate from the failed promotion attempt is the authoritative local artifact.
+## Decision
 
-After the production asset commit is confirmed in GitHub, mark **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
+**G3S-B3B = PASS/CLOSED.**
 
-B5 clothing/accessories and G3S-C animation remain blocked until their preceding gates pass.
+The complete persistent nude/hairless body base now exists as a canonical production 2D pixel asset. It is the body owner beneath all later removable layers.
+
+## Next gate
+
+**G3S-B4 — HAIR is OPEN/CURRENT.**
+
+Hair must be a separate persistent 2D asset/layer family. It must preserve the Exilada's very long, heavy, voluminous, messy black hair as a primary silhouette anchor while keeping the body base unchanged underneath.
+
+B5 clothing/restraints/accessories remains blocked until B4 passes. G3S-C layered motion remains blocked until B3/B4/B5 are ready.
