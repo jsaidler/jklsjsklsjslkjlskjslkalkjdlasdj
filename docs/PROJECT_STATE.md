@@ -59,9 +59,22 @@ Production body:
 - promotion commit `2deb765c3980d586ef9747340bb48852dedca452`;
 - dimensions `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- **canonical screen-facing for this asset: LEFT**.
 
 The body remains byte/pixel unchanged as the source asset. Hair, clothes, restraints and accessories are separate future owners.
+
+### Facing/travel invariant — LOCKED
+
+The canonical B3B body visually faces screen-left. Therefore any travel preview that uses this exact unmirrored sprite must travel screen-left.
+
+C0 previously hardcoded x travel from `250 -> 390`, which made the left-facing body move right. That was an implementation error.
+
+Correction marker:
+
+`tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json`
+
+Current V2 travel rebuild uses x `390 -> 250`. It does not mirror the sprite and does not reverse gait phase order.
 
 ## Motion infrastructure already approved
 
@@ -140,6 +153,8 @@ Continuous regions:
 
 Each complete arm/leg bends along its shoulder-elbow-wrist or hip-knee-ankle-toe chain. Pixels near joints blend adjacent segment mappings instead of splitting into independently rotated pieces.
 
+Travel presentation is locked to visible facing: **left-facing body -> screen-left travel**.
+
 Spec:
 
 `tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
@@ -152,6 +167,7 @@ Supporting tools:
 
 - `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`
 - `tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+- `tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py`
 
 Workspace:
 
@@ -181,6 +197,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 Then share:
 
 - `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_travel.gif`
 - `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
 
 If it fails, share the complete console output.
