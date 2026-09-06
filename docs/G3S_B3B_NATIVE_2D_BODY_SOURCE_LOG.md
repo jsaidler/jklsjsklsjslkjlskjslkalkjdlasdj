@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V4 FIXED REFERENCES LOCKED — NATIVE-PIXEL AUTHORING IMPLEMENTATION NEXT**
+Gate status: **V4 PIXEL-REFERENCE NORMALIZATION RUNNER READY — REVIEW NEXT**
 
 ## Canonical ownership rule
 
@@ -36,7 +36,7 @@ The in-chat generated body sheet was rejected as generic/fitness-like and as fau
 
 ## Existing high-resolution nude anatomy reference — PASS / SUPPORTING REFERENCE
 
-The user supplied a fully nude four-view Grok turnaround earlier in the B3B process.
+The earlier fully nude Grok turnaround remains anatomy/proportion support only.
 
 Approval marker:
 
@@ -46,27 +46,15 @@ Canonical local path:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
-Recorded source:
+SHA256:
 
-- SHA256: `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
-- dimensions: `2048×1401`;
-- views: front, back, profile and front three-quarter;
-- adult female;
-- approximately 162 cm target identity;
-- olive/brown skin;
-- bald/hairless for body-reference purposes;
-- bare feet;
-- natural feminine proportions, lean/functional/resilient;
-- mature, severe, sensual, dangerous and lived-in;
-- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
-- complete pelvic anatomy visible;
-- no occluding garment.
+`1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
 
-It remains available as anatomy/proportion support, not production pixel art.
+It is not production pixel art and may not be used as visible sprite source.
 
 ## Final user-supplied visual reference — LOCKED
 
-The user explicitly ended the reference-acquisition loop and locked the currently available four-view body image as the **final visual reference to proceed from**.
+The user explicitly ended the reference-acquisition loop and locked the current four-view pixel-art body image as the final visual reference to proceed from.
 
 Machine-readable marker:
 
@@ -78,8 +66,8 @@ Recorded source facts:
 - dimensions: `1168×784`;
 - format: JPEG;
 - views: front, back, profile and front three-quarter;
-- adult nude/hairless body reference;
-- dark flat presentation background.
+- adult nude/hairless body;
+- already presented as pixel-art imagery on a dark flat background.
 
 ### User-interaction lock
 
@@ -91,19 +79,9 @@ From this point forward:
 - do **not** reopen the body-reference search loop;
 - the assistant/pipeline owns the work required to turn the already-available references into production pixel art.
 
-The earlier high-resolution nude turnaround may remain as supporting anatomy evidence already available, but the newly locked four-view image is the user's final supplied visual reference.
-
 ## What `128 px` means — LOCKED
 
-`128 px` is the **visible standing height of the protagonist at the locked native gameplay scale**, not a universal sprite-frame or source-canvas dimension.
-
-G1 compared `112 / 128 / 144 px` at native `640×360` and locked `128 px` with the orthographic `26°` camera because it best balanced character readability with combat/walkable-screen composition.
-
-Consequences:
-
-- the standing body is reviewed at approximately `128 px` visible height;
-- production animation frames may be wider/taller than `128×128`;
-- reference images remain reference material and are never mechanically promoted into the final sprite.
+`128 px` is the visible standing height at the locked native `640×360` gameplay scale. It is not a universal frame-canvas size.
 
 ## B3B visual approval rule — LOCKED
 
@@ -115,56 +93,56 @@ Automatic visual FAIL conditions include mannequin/procedural-body appearance, g
 
 ## V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
 
-Reviewed artifact:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
-
-Reviewed artifact SHA256:
-
-`ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047`
+V3 started from the high-resolution render and reduced/quantized it. The result was a tiny reduced render rather than authored pixel art.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
 
-V3 did not author pixel art. It isolated the three-quarter reference, reduced it mechanically to `128 px`, retained the reduced silhouette/mask, quantized colors and applied local cleanup. The result read as a tiny reduced render rather than authored modern pixel art.
+No model cleanup applies because V3 downloaded no model weights.
 
-V3 is closed. Nothing from its candidate is promoted into B3B. No model cleanup command applies because V3 downloaded no model weights.
-
-## V4 — DIRECT NATIVE-PIXEL AUTHORING METHOD — CURRENT
+## V4 — LOCKED PIXEL-REFERENCE NORMALIZATION — CURRENT
 
 Machine-readable specification:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-V4 keeps the core rule exposed by V3: **do not convert the reference into pixel art. Author the production body for the native pixel grid while using the fixed references only as visual/anatomical guidance.**
+V4 now uses an important distinction that V3 did not have: **the user-locked source is itself pixel-art imagery.** Therefore the bounded review candidate may extract the existing front-three-quarter pixel-art view, key only the flat dark presentation background, and normalize its visible standing height to `128 px` using nearest-neighbor only.
 
-The previous V4 wording that depended on the user producing another Grok candidate is superseded.
+This is not permission to revive render-to-pixel conversion. The high-resolution anatomy render remains forbidden as a visible sprite source.
 
-### Fixed-reference authoring contract
+### V4 implementation — READY
 
-- use the already-locked visual/body references only;
-- no further user reference-generation burden;
-- target front-three-quarter elevated belt-scroller gameplay view at approximately the locked `26°` pitch;
-- target approximately `128 px` visible standing body height;
-- body owner is adult, nude, hairless, barefoot, with no clothes/restraints/weapons;
-- silhouette, anatomy simplification, value groups and pixel clusters must be intentionally authored for native gameplay readability;
-- no antialiasing, smooth painterly gradients or render microtexture in the production sprite;
-- no high-resolution resize/quantize/trace route;
-- no procedural mannequin anatomy promoted as final art.
+Helper:
 
-### Local tooling boundary
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py`
 
-Local deterministic tooling may validate already-authored pixel art, key a flat background without altering the silhouette, measure bounds/scale, perform raster QA, generate 1×/gameplay previews and package/hash an accepted source.
+Runner:
 
-It may not manufacture quality by mechanically pixelating a reference, repairing anatomy procedurally or shifting routine repainting onto the user.
+`tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1`
+
+Output directory:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`
+
+The helper:
+
+1. locates the exact locked JPEG by SHA256, including common user image folders;
+2. verifies exact `1168×784` dimensions;
+3. extracts the existing rightmost front-three-quarter pixel-art figure;
+4. removes only the flat dark presentation background to alpha;
+5. normalizes visible height to `128 px` with nearest-neighbor only;
+6. does **not** synthesize a palette, repair anatomy, morph the silhouette or use hidden-3D RGB/masks;
+7. generates native candidate, 4× review image, `640×360` gameplay preview and contact sheet.
+
+This runner is **review-only**. It cannot automatically promote the candidate to production B3B.
 
 ## Current exact action
 
-**The reference-gathering phase is closed.**
+Run the V4 review runner exactly once and inspect/share:
 
-The next project action is to **select/implement a valid native-pixel authoring path from the fixed references and produce the first real B3B body candidate without asking the user for another image or prompt.**
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-No conversion runner is approved. No further Grok/body-reference request is part of the operator loop.
+If the candidate reads well at native `1×` and in gameplay context, it can become the persistent B3B body source after validation metadata is added. If it collapses visually, close this normalization route without asking the user for another reference.
 
-B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until an authored B3B body source passes visual review.
+B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until B3B passes.
