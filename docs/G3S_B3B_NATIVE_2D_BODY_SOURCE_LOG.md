@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V3 FAIL/CLOSED — AUTHORED NATIVE-PIXEL BODY CANDIDATE NEXT**
+Gate status: **V4 DIRECT NATIVE-PIXEL AUTHORING SPEC LOCKED — AWAITING VISUAL CANDIDATE**
 
 ## Canonical ownership rule
 
@@ -125,12 +125,56 @@ V3 is closed. Nothing from its candidate is promoted into B3B.
 
 No model cleanup command applies because V3 downloaded no model weights and used only the existing Python/Pillow runtime.
 
-## Current gate
+## V4 — DIRECT NATIVE-PIXEL AUTHORING METHOD — CURRENT
 
-**G3S-B3B authored native-pixel body candidate** is current.
+Machine-readable specification:
 
-The next candidate must begin as actual character pixel art. The approved nude turnaround may guide anatomy, proportions, body mass and identity, but it may **not** be resized, quantized, mechanically traced or used as direct final silhouette authority.
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-The valid next artifact is one deliberately authored gameplay-view body sprite whose visible standing height is approximately `128 px`, judged at native 1× and in `640×360` gameplay context.
+V4 resolves the methodological mistake exposed by V3: **the high-resolution nude reference is not converted into pixel art. A new 2D pixel image is authored directly for a logical pixel grid while looking at the reference.**
 
-No B3B runner is approved at this point. Do not rerun V3. B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until an authored B3B body source passes visual review.
+The first V4 candidate uses the already-employed Grok image-generation workflow as the visual authoring engine; this does **not** install or reopen a local sprite-model route. Grok receives the approved nude body reference for anatomy/proportion and the canonical Exilada master for identity only.
+
+### Enlarged logical-grid contract
+
+Preferred candidate delivery:
+
+- output image: `1024×1024`;
+- logical working canvas: `256×256`;
+- integer display zoom: `4×`;
+- every actual logical pixel must appear as one uniform `4×4` output block;
+- intended standing body height: approximately `128` logical pixels, acceptable first-candidate range `124–132`;
+- front-three-quarter elevated belt-scroller gameplay view approximating the locked `26°` camera pitch;
+- nude adult hairless body only;
+- no clothing, hair, restraints, weapons or cast shadow;
+- transparent background if supported, otherwise a single flat chroma background;
+- no antialiasing, dithering, painterly microtexture or smooth gradients;
+- deliberate connected pixel clusters and controlled value groups.
+
+The enlargement is **display zoom, not source-detail scale**. Reducing a valid V4 `4×` grid to `1×` by selecting one sample from each uniform `4×4` block is equivalent to removing zoom from already-authored pixel art. It is not the prohibited V3 operation of downsampling a painting/render.
+
+### Local tooling role after Grok candidate exists
+
+Local deterministic tooling may only:
+
+- prove integer-grid/block consistency;
+- remove one flat chroma background to alpha;
+- strip exact integer display zoom without averaging/filtering;
+- measure native standing height and bounds without rescaling the body;
+- validate alpha, palette noise and orphan/singleton pixels;
+- generate native `1×`, enlarged and `640×360` gameplay previews;
+- hash/package an approved 2D asset.
+
+It may **not** repair anatomy, redraw silhouette, quantize a non-pixel image into compliance or rescue a failed candidate with filters.
+
+### V4 PASS/FAIL
+
+PASS only if the resulting logical-grid image reads immediately at native `1×` as intentional modern pixel art and the anatomy has been deliberately simplified for the grid rather than collapsed by reduction.
+
+If the Grok output is merely a smooth illustration with a pixelated texture, inconsistent pseudo-pixels, antialiasing or render-like values, it is **FAIL** and is regenerated under the same direct-authoring contract. No cleanup script is allowed to convert it into a PASS.
+
+## Current exact action
+
+Create **one V4 visual candidate** under the direct native-pixel authoring contract. Do not write another conversion runner before the candidate exists.
+
+No B3B runner is approved at this point. B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until an authored B3B body source passes visual review.
