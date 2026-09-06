@@ -1,0 +1,27 @@
+{
+  "gate": "G3S-B4B",
+  "revision": "B4B_V2_AUTHORED_TWO_LAYER_STATIC",
+  "status": "RUNNER_READY_REVIEW_ONLY",
+  "date": "2026-09-06",
+  "working_canvas_px": [96, 160],
+  "body_visible_height_px": 128,
+  "body_ground_y": 152,
+  "composition_order": ["rear_hair", "body", "front_hair"],
+  "master_role": "identity, mass, color and material inspiration only",
+  "master_pixel_extraction_allowed": false,
+  "rear_hair_requirement": "newly authored native-pixel mass behind head, neck, shoulders, back and body; must include coverage not visible in the master",
+  "front_hair_requirement": "newly authored native-pixel crown/framing/locks in front of face, neck, shoulders and chest where visually required",
+  "hair_identity": ["black", "very long", "heavy", "voluminous", "messy", "deprivation/survival", "primary silhouette anchor"],
+  "palette_target_colors": 8,
+  "external_paid_api_allowed": false,
+  "external_model_used": false,
+  "automatic_promotion": false,
+  "review_outputs": [
+    "g3s_b4b_rear_hair_candidate.png",
+    "g3s_b4b_front_hair_candidate.png",
+    "g3s_b4b_body_hair_composite.png",
+    "g3s_b4b_gameplay_preview.png",
+    "g3s_b4b_contact_sheet.png",
+    "g3s_b4b_two_layer_hair_candidate.json"
+  ]
+}
