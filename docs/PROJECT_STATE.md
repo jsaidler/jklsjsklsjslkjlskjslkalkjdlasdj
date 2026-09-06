@@ -19,7 +19,8 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 11. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
 12. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
 13. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+14. `docs/G3S_B4_HAIR_LOG.md`
+15. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -41,7 +42,7 @@ Canonical design master:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Adult woman, approximately 162 cm, lean/functional/resilient anatomy, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy black hair, degraded beige cloth in the initial equipped state, captivity history, bare feet, weaponless base identity.
+Adult woman, approximately 162 cm, lean/functional/resilient anatomy, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy messy black hair, captivity history, bare feet, weaponless base.
 
 Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references. Mature sensuality, erotic charge and adult nudity are legitimate parts of the visual language and are not automatically sanitized.
 
@@ -63,7 +64,7 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 
 High-resolution render/reference art may not be mechanically pixelated into production art.
 
-The user-locked **pixel-art** turnaround is a different case: one existing pixel-art view may be extracted and scale-normalized with nearest-neighbor only, provided no anatomy/silhouette repair, palette synthesis, smoothing or render-to-pixel conversion is performed.
+The user-locked pixel-art turnaround is a special bounded source case: an existing pixel-art view may be extracted and normalized with nearest-neighbor only without anatomy/silhouette repair or palette synthesis.
 
 ## Locked gameplay baseline
 
@@ -86,115 +87,82 @@ The user-locked **pixel-art** turnaround is a different case: one existing pixel
   - G3S-A1 facial/anatomy lock attempts — FAIL/CLOSED
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
   - G3S-B2 layer-stack preflight — PASS/CLOSED DIAGNOSTIC
-  - **G3S-B3 complete body base** ← CURRENT
+  - G3S-B3 complete body base — **PASS/CLOSED**
     - B3A V1 — FAIL/CLOSED REVISION
     - B3A V2 — PASS/CLOSED structural adult-female guide
-    - B3B V1 — FAIL/CLOSED ROUTE: 3D-mask-owned silhouette
-    - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin look
-    - fully nude Grok high-resolution turnaround — PASS / SUPPORTING ANATOMY REFERENCE / NOT PRODUCTION ART
-    - B3B V3 reduced-reference spike — FAIL/CLOSED VISUAL AND METHOD ROUTE
-    - final user-supplied four-view pixel-art visual reference — PASS / LOCKED / NO FURTHER USER GENERATION
-    - **B3B V4 locked pixel-reference candidate — VISUAL PASS / CORRECTED PROMOTION READY**
-  - B4 hair — BLOCKED UNTIL B3B PROMOTION CONFIRMED
-  - B5 clothing/restraints/accessories — BLOCKED UNTIL B4
+    - B3B V1 — FAIL/CLOSED ROUTE
+    - B3B V2 — FAIL/CLOSED VISUAL ROUTE
+    - B3B V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
+    - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
+  - **G3S-B4 hair** ← CURRENT / OPEN
+  - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
+
+## Canonical production body base — LOCKED
+
+Promotion commit:
+
+`2deb765c3980d586ef9747340bb48852dedca452`
+
+Canonical files:
+
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
+
+Recorded facts:
+
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- dimensions `37×128`;
+- visible standing height `128 px`;
+- front-three-quarter elevated belt-scroller view;
+- adult nude hairless barefoot body base;
+- persistent 2D visible ownership;
+- excludes hair, clothing, restraints, accessories and weapons.
 
 ## Locked B3B references
 
-Supporting high-resolution nude anatomy reference:
+Supporting high-resolution anatomy reference:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
 SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`.
 
-Role: anatomy/proportion support only; never visible sprite source.
-
-Final user-supplied pixel-art visual reference marker:
+Final user-supplied pixel-art reference marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
 
-Source SHA256:
+Source SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`.
 
-`f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`
+Hard interaction lock: do not ask the user for another body image, turnaround, Grok prompt or body-reference generation attempt.
 
-Hard interaction lock: do not ask the user for another body image, turnaround, Grok prompt or reference-generation attempt.
+## G3S-B4 hair — CURRENT
 
-## B3B V4 visual review — PASS
+Canonical hair identity:
 
-Reviewed contact sheet:
+- black;
+- very long;
+- heavy;
+- voluminous;
+- messy;
+- primary silhouette anchor;
+- deprivation/survival material language rather than styled glamour.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
+Hair is a separate persistent 2D layer family and must leave the B3 body asset unchanged underneath.
 
-Recorded contact-sheet SHA256:
+Detailed gate log:
 
-`2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
+`docs/G3S_B4_HAIR_LOG.md`
 
-Approved native candidate:
+First deliverable: one static front-three-quarter gameplay hair layer aligned to the canonical B3B body base, reviewed alone, composited and at native `640×360` gameplay scale.
 
-- `37×128` RGBA;
-- `128 px` visible standing height;
-- authoritative local raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
-
-The previously recorded `bd4a78e...` raw digest was from an assistant-side reconstructed candidate and is superseded for promotion.
-
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_visual_approval.json`
-
-The candidate passes the **nude/hairless body-base visual gate**. This does not approve hair, clothing, restraints, accessories or animation.
-
-## First V4 promotion attempt — FAIL/CLOSED IMPLEMENTATION BUG
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json`
-
-Observed failure:
-
-- local candidate raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- hardcoded expected SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
-
-The refusal was correct; the expected digest was not. No art decision changed and no model cleanup applies.
-
-## Corrected promotion implementation — READY
-
-Promotion helper:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v4_promote_body_base.py`
-
-Promotion runner:
-
-`tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
-
-Correction:
-
-- promotion is locked to the user's actual local candidate digest `818f0538...`;
-- the runner no longer reruns V4 generation;
-- it promotes the existing local candidate unchanged;
-- it verifies dimensions, raw RGBA and alpha height before writing assets;
-- it commits/pushes only the canonical body PNG + provenance JSON.
-
-Canonical target paths:
-
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
+**No B4 runner is approved yet.** Before implementation, inspect the canonical identity master and promoted body base together and choose the smallest valid 2D hair-layer construction method. No external paid API is authorized by default.
 
 ## Current exact action
 
-Run exactly:
+Inspect the canonical `exilada_master.png` together with `exilada_body_base_b3b_v4.png` and define/implement the first static B4 hair-layer review candidate without modifying the body base.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\15_promote_g3s_b3b_v4_body_base.ps1"
-```
-
-**Do not run V4/runner 14 first.** The existing local candidate from the failed promotion attempt is the artifact to promote.
-
-Then share the final console output.
-
-If promotion succeeds and the production asset commit is visible on GitHub, update living docs to **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
+B5/G3S-C remain blocked.
 
 ## Actual local AI disk/runtime state — LOCKED 2026-09-06
 
