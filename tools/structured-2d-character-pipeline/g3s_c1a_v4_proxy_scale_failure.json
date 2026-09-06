@@ -1,0 +1,16 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V4",
+  "status": "FAIL_CLOSED_TECHNICAL",
+  "date": "2026-09-06",
+  "failure_class": "DETACHED_EVALUATED_PROXY_NOT_GEOMETRY_EQUIVALENT",
+  "observed": {
+    "pre_height_px": 128.0,
+    "post_height_px": 102.4259,
+    "delta_px": 25.5741
+  },
+  "evidence": "C1A detached evaluated depth proxy changed projected geometry: pre=128.0000px post=102.4259px delta=25.5741px",
+  "conclusion": "On the retained MPFB stack, copying the evaluated mesh to a separate object and assigning ev.matrix_world does not reproduce the exact projected geometry of the original evaluated G3V_BODY. The detached-proxy depth route is closed.",
+  "architecture_impact": "none; hidden 3D remains the full pose/anatomy/occlusion guide backbone",
+  "next_revision": "V5 renders camera-space depth directly on the original evaluated body using a guide-only shader, with no topology substitution, mesh bake, proxy object or geometry mutation."
+}
