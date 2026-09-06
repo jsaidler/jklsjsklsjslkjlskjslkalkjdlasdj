@@ -33,11 +33,12 @@ $DirectionApproval = Join-Path $RepoRoot 'tools\deterministic-character-pipeline
 $Spec = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c0_body_motion_spec_v2.json'
 $Extract = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c0_extract_g2_motion.py'
 $Build = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c0_continuous_warp_v2.py'
+$BuildTravel = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c0_build_left_facing_travel.py'
 $Python = 'Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe'
 $Workspace = Join-Path $PipelineWorkspace 'g3s_c0_body_walk_v2'
 $MotionJson = Join-Path $Workspace 'g3s_c0_motion_projection.json'
 
-foreach ($p in @($Body,$G2Blend,$G2Approval,$DirectionApproval,$Spec,$Extract,$Build,$Python)) {
+foreach ($p in @($Body,$G2Blend,$G2Approval,$DirectionApproval,$Spec,$Extract,$Build,$BuildTravel,$Python)) {
     if (-not (Test-Path $p -PathType Leaf)) { Fail "Required file missing: $p" }
 }
 
@@ -63,6 +64,7 @@ Write-Host ''
 Write-Host 'Roguelite - G3S-C0 V2 CONTINUOUS BODY MOTION PROOF' -ForegroundColor Cyan
 Write-Host '[V1 CLOSED] Rigid chopped body-part rotation produced detached/loop-like limb silhouettes.' -ForegroundColor Yellow
 Write-Host '[V2] Continuous chain warp keeps each arm/leg as one deforming region across its joints.' -ForegroundColor Green
+Write-Host '[FACING LOCK] Canonical B3B source faces screen-left; travel preview must move screen-left.' -ForegroundColor Green
 Write-Host '[LOCK] Exact promoted B3B body is still the visible source.' -ForegroundColor Green
 Write-Host '[LOCK] Motion is still approved CMU 105_34 / G2 projected real motion.' -ForegroundColor Green
 Write-Host '[LOCK] Hidden 3D supplies motion/depth only; no hidden-3D RGB is used.' -ForegroundColor Green
@@ -85,6 +87,11 @@ if (-not (Test-Path $MotionJson -PathType Leaf)) { Fail "Motion projection missi
 & $Python $Build --body $Body --motion $MotionJson --workspace $Workspace
 if ($LASTEXITCODE -ne 0) { Fail "Continuous-warp builder exited with code $LASTEXITCODE" }
 
+# The canonical body visibly faces left. Rebuild only the travel presentation so spatial travel agrees
+# with the sprite facing. Do not mirror the body and do not reverse gait phase order.
+& $Python $BuildTravel --workspace $Workspace
+if ($LASTEXITCODE -ne 0) { Fail "Left-facing travel builder exited with code $LASTEXITCODE" }
+
 $InPlace = Join-Path $Workspace 'g3s_c0_v2_body_walk_in_place.gif'
 $Travel = Join-Path $Workspace 'g3s_c0_v2_body_walk_travel.gif'
 $Contact = Join-Path $Workspace 'g3s_c0_v2_contact_sheet.png'
@@ -101,4 +108,5 @@ Write-Host "TRAVEL GIF:   $Travel"
 Write-Host "CONTACT:      $Contact"
 Write-Host "ZOOM CONTACT: $Zoom"
 Write-Host "REPORT:       $Report"
-Write-Host 'STOP. Share the in-place GIF and zoom contact sheet for visual review.' -ForegroundColor Yellow
+Write-Host 'FACING: canonical left-facing source; travel direction = left.' -ForegroundColor Green
+Write-Host 'STOP. Share the in-place GIF, travel GIF and zoom contact sheet for visual review.' -ForegroundColor Yellow
