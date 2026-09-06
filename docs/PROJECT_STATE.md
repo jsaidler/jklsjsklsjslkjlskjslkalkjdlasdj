@@ -64,7 +64,7 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 
 High-resolution render/reference art may not be mechanically pixelated into production art.
 
-The user-locked pixel-art turnaround is a special bounded source case: an existing pixel-art view may be extracted and normalized with nearest-neighbor only without anatomy/silhouette repair or palette synthesis.
+The user-locked pixel-art turnaround is a bounded source case: an existing pixel-art view may be extracted and normalized with nearest-neighbor only without anatomy/silhouette repair or palette synthesis.
 
 ## Locked gameplay baseline
 
@@ -94,7 +94,9 @@ The user-locked pixel-art turnaround is a special bounded source case: an existi
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE
     - B3B V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
     - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
-  - **G3S-B4 hair** ← CURRENT / B4A PREFLIGHT RUNNER READY
+  - **G3S-B4 hair** ← CURRENT
+    - B4A preflight — **PASS/CLOSED DIAGNOSTIC**
+    - **B4B two-layer static hair candidate** ← RUNNER READY / REVIEW NEXT
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
@@ -163,23 +165,39 @@ Minimum deterministic composition:
 
 Additional side/intermediate masses may be introduced only if occlusion or secondary motion requires them.
 
-### B4A hair preflight — RUNNER READY
+### B4A hair preflight — PASS/CLOSED DIAGNOSTIC
 
-The canonical `exilada_master.png` is a local reference asset and is not currently tracked in GitHub. Therefore the next step is a deterministic local inspection packet, not fake reconstruction from chat/Git history.
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_b4_hair_preflight.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/16_run_g3s_b4_hair_preflight.ps1`
-
-Output:
+Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
 
-The preflight verifies the immutable body, records the local master SHA/dimensions, places the body on a provisional shared `96×160` review canvas and shows the master/body/two-layer depth contract. It creates no production hair pixels and cannot promote B4.
+SHA256:
+
+`efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`
+
+Approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
+
+The preflight confirms that the local canonical master is suitable as hair identity/mass reference, the promoted body remains immutable, the `96×160` shared review frame is adequate for the first static test, and B4 must use the minimum `rear_hair -> body -> front_hair` ownership split.
+
+### B4B two-layer static candidate — RUNNER READY
+
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_two_layer_hair_candidate.py`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
+
+Output contact sheet:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
+
+B4B uses only already-authored hair pixels from the local canonical master, verifies the body/master provenance, aligns hair by body/skin anchors with nearest-neighbor scaling, separates `rear_hair` and `front_hair` according to immutable body overlap, and produces a review-only package. It does not use an external paid API and does not promote hair automatically.
+
+Known limitation: hidden rear-hair coverage behind the body and secondary-motion segmentation are not yet authored; B4B is a static visual/depth ownership review first.
 
 ## Current exact action
 
@@ -189,14 +207,14 @@ Run exactly:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\16_run_g3s_b4_hair_preflight.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\17_run_g3s_b4b_two_layer_hair_candidate.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-After visual inspection of master versus promoted body, author the first actual static `rear_hair` + `front_hair` candidate. B5/G3S-C remain blocked.
+Do not promote hair and do not start B5/G3S-C before B4B review.
 
 ## Actual local AI disk/runtime state — LOCKED 2026-09-06
 
