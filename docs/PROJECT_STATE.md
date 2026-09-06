@@ -23,9 +23,9 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 ## Living-document invariant — LOCKED
 
-Every project action that changes state updates the thematic docs, this file and the active handoff before completion is reported.
+Every state-changing action updates the thematic doc, this file and the active handoff before completion is reported.
 
-Normal operator loop once a runner is approved:
+Normal operator loop only after an approved runner exists:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
@@ -60,154 +60,119 @@ Production body:
 - dimensions `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- **canonical screen-facing for this asset: LEFT**.
+- canonical screen-facing for this asset: **LEFT**.
 
-The body remains byte/pixel unchanged as the source asset. Hair, clothes, restraints and accessories are separate future owners.
+The body remains byte/pixel unchanged as source art.
 
-### Facing/travel invariant — LOCKED
+## Facing/laterality invariant — LOCKED
 
-The canonical B3B body visually faces screen-left. Therefore any travel preview that uses this exact unmirrored sprite must travel screen-left.
+The current body is an authored **front-three-quarter, screen-left-facing** sprite. Screen-left/screen-right positions in this raster are not automatically anatomical left/right or near/far limb ownership.
 
-C0 previously hardcoded x travel from `250 -> 390`, which made the left-facing body move right. That was an implementation error.
+Any travel preview using this exact source family must move screen-left unless a separately authored right-facing family is selected. Do not mirror silently and do not infer anatomical laterality from x-position alone.
 
-Correction marker:
-
-`tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json`
-
-Current V2 travel rebuild uses x `390 -> 250`. It does not mirror the sprite and does not reverse gait phase order.
-
-## Motion infrastructure already approved
+## Motion infrastructure — RETAINED
 
 - G2 real motion/topology — **PASS/CLOSED**;
 - motion source: CMU `105_34 NormalWalk`;
 - source rig: `G2_CANONICAL_RIG`;
 - G3V-R retarget preflight — **PASS/CLOSED**;
-- validated method: `DIRECTION_SPACE_FK`;
-- validated gait phase frames: `1568, 1588, 1608, 1628`.
+- method: `DIRECTION_SPACE_FK`;
+- validated phase frames: `1568, 1588, 1608, 1628`.
+
+This infrastructure remains useful for pose guides, contacts, timing, root travel, sockets and depth. It does not by itself create valid visible 2D anatomy.
 
 ## Hair — DEFERRED BY USER
 
-B4 is **not approved** and is no longer the current gate.
-
-The structural rule remains locked for later:
+B4 remains open and unapproved. Eventual minimum structure remains:
 
 `rear_hair -> body -> front_hair`
 
-B4 history includes failed extraction/procedural routes and the B4C FLUX.2 visual-adaptation review. No B4C pixels were promoted. On 2026-09-06 the user explicitly instructed to forget hair for now and show the doll moving. Hair work is therefore paused, not approved or closed.
+No hair pixels were promoted. Hair does not resume automatically.
 
 ## Gate order — CURRENT
 
 - G0 automation — PASS/CLOSED
 - G1 camera/native scale — PASS/CLOSED
 - G2 real motion/topology — PASS/CLOSED
-- G3/G3R/G3V visible 3D translation routes — CLOSED/REJECTED as final visible ownership
+- G3/G3R/G3V direct visible 3D translation routes — CLOSED/REJECTED
 - G3S-B3 production body — **PASS/CLOSED**
 - G3S-B4 hair — **DEFERRED / OPEN**
-- **G3S-C0 body-only motion proof** ← **CURRENT**
-  - C0 V1 rigid cutout/part rotation — **FAIL/CLOSED VISUAL DEFORMATION METHOD**
-  - **C0 V2 continuous chain warp** — **RUNNER READY / REVIEW NEXT**
+- **G3S-C0 body-only motion proof**
+  - V1 rigid cutout — **FAIL/CLOSED**
+  - V2 continuous chain warp — **FAIL/CLOSED**
+  - **single-still puppet/warp route — CLOSED**
+- **CURRENT architectural task: animation-ready native-2D pose source**
 - G3S-B5 clothing/restraints/accessories — DEFERRED
-- full G3S-C layered motion proof — still requires B4/B5 later
+- full layered G3S-C — later, after visible layer families exist
 
 ## G3S-C0 V1 — FAIL/CLOSED
-
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_contact_sheet.png`
-
-Reviewed SHA256:
-
-`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
 
-V1 proved that approved real motion reaches the persistent 2D body, but its visible deformation method failed. Hard partitions into upper/lower limb slabs rotate independently, causing joint detachment and loop/arc-like broken leg-foot silhouettes in later stride frames.
+The single body still was partitioned into rigid limb pieces. Real motion reached the sprite, but joints detached and later stride poses produced broken loop/arc silhouettes.
 
-**Closed method:** `nearest-segment hard partition + independent rigid per-part rotation`.
+Closed method:
 
-Do not iterate it with more overlap or more hand-tuned rigid pivots.
+`one monolithic still -> hard body-part cutout -> independent rigid rotations`
 
-## G3S-C0 V2 — CURRENT
+## G3S-C0 V2 — FAIL/CLOSED VISUAL + METHOD
 
-V2 retains:
+Reviewed contact sheet:
 
-- the exact promoted B3B body;
-- the same CMU/G2 projected real-motion samples;
-- hidden 3D as joints/depth only;
-- no diffusion/model/API;
-- no hidden-3D RGB;
-- no automatic promotion.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`
 
-V2 changes only the visible 2D deformation:
+Reviewed SHA256:
 
-`real G2 walk -> projected joints/depth -> direction-space target skeleton -> six continuous body regions -> chain warp across joints -> depth-aware integer-grid composition -> GIF/contact-sheet review`
+`6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
 
-Continuous regions:
+Failure marker:
 
-- head;
-- torso;
-- left/right arm;
-- left/right leg.
+`tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
 
-Each complete arm/leg bends along its shoulder-elbow-wrist or hip-knee-ankle-toe chain. Pixels near joints blend adjacent segment mappings instead of splitting into independently rotated pieces.
+V2 used continuous arm/leg chain warping. It still produced anatomically impossible legs and stride silhouettes.
 
-Travel presentation is locked to visible facing: **left-facing body -> screen-left travel**.
+Root cause is architectural, not cosmetic:
 
-Spec:
+- sprite facing/laterality/near-far ownership was not registered against the authored 3/4 view;
+- G2 screen-space deltas and sprite rest/camera basis were not validated as a common coordinate system;
+- real gait depth/foreshortening cannot be reduced to 2D angle warp;
+- a single 3/4 raster lacks hidden body surfaces needed when occlusion changes;
+- bbox-bottom grounding is not true foot-contact/root grounding.
 
-`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
+Therefore all of the following are closed when the only visible source is the single B3B still:
 
-Runner:
+- rigid cutout animation;
+- continuous chain warp;
+- more pivot/anchor/overlap tuning;
+- weighted cage/mesh as a supposed fix for missing visible anatomy.
+
+The V2 runner is intentionally disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-Supporting tools:
+## Current architectural requirement
 
-- `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`
-- `tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
-- `tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py`
+A production walk needs **pose-specific native-2D visible information**.
 
-Workspace:
+Preferred first source family: a small left-facing gait set tied to actual motion events, e.g. contact/down/passing/up for both sides. Each key state must be a complete native-2D body pose with correct:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2`
+- anatomical left/right and near/far ownership;
+- foreshortening;
+- hip/knee/ankle geometry;
+- foot contact/roll;
+- pelvis/torso counter-motion;
+- silhouette and occlusion.
 
-Expected review outputs:
+G2 supplies pose guides/timing/contacts/root/depth; persistent 2D art owns the visible result.
 
-- `g3s_c0_v2_body_walk_in_place.gif`
-- `g3s_c0_v2_body_walk_travel.gif`
-- `g3s_c0_v2_contact_sheet.png`
-- `g3s_c0_v2_zoom_contact_sheet.png`
-- `g3s_c0_v2_report.json`
+**No runner is currently approved.** The next implementation must first prove a source-authoring method for at least one non-rest gait pose without asking the user to manually redraw frames.
 
-If V2 still cannot keep the body visually continuous, the next deformation class is an actual weighted 2D mesh/cage, not a return to rigid cutout parts.
-
-## Current exact action
-
-Run exactly:
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\20_run_g3s_c0_body_walk_v2.ps1"
-```
-
-Then share:
-
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_travel.gif`
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
-
-If it fails, share the complete console output.
-
-Do not resume hair automatically.
-
-## Actual local state relevant to C0
+## Local state relevant to next step
 
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - retained embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
-- Blender was already used successfully by G0/G1/G2;
-- C0 requires the existing `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`;
-- no AI model is required by C0.
+- retained FLUX.2 workspace exists historically at `Z:\AI\Flux2RefControlSpike` but is not automatically authorized as the next animation-source method;
+- no new model search is open;
+- PixelLab remains historical paid spike only and is not authorized.
