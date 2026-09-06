@@ -1,0 +1,17 @@
+{
+  "gate": "G3S-B3B-V3-REFERENCE-GUIDED-PIXEL-TRANSLATION-SPIKE",
+  "status": "READY_FOR_OPERATOR_RUN_REVIEW_ONLY",
+  "date": "2026-09-06",
+  "purpose": "Bounded visual test of deterministic 2D reference-guided native-grid abstraction from the approved Exilada body turnaround.",
+  "runner": "tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1",
+  "helper": "tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py",
+  "reference_marker": "tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json",
+  "expected_reference_sha256": "2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474",
+  "production_authority": false,
+  "automatic_promotion_allowed": false,
+  "hidden_3d_visible_ownership": false,
+  "success_condition": "Candidate reads at native 1x and gameplay context as intentional modern pixel art while preserving the approved adult Exilada body proportions/presence, without mannequin or reduced-illustration/filter appearance.",
+  "failure_condition": "Any filtered/reduced illustration reading, mannequin/procedural reading, weak anatomy, lost Exilada presence, or unacceptable pelvic/hand/foot readability closes V3 without promotion.",
+  "next_if_pass": "Freeze/re-author accepted native cluster language into a persistent B3B production source and add deterministic validator/export tooling.",
+  "next_if_fail": "Record V3 visual failure; do not promote; B3B remains current. No model cleanup applies because V3 downloads no model weights."
+}
