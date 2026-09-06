@@ -1,0 +1,17 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4A_HAIR_PREFLIGHT_V1",
+  "status": "PASS_CLOSED_DIAGNOSTIC",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4_hair_preflight\\g3s_b4_hair_preflight_contact_sheet.png",
+  "reviewed_artifact_sha256": "efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f",
+  "result": [
+    "canonical Exilada master is suitable as hair identity/mass source reference",
+    "promoted B3B V4 body remains the immutable body owner",
+    "minimum hair depth architecture is rear_hair -> body -> front_hair",
+    "B4 may proceed to a bounded two-layer static review candidate"
+  ],
+  "production_hair_art_created": false,
+  "automatic_promotion": false,
+  "next_gate": "G3S-B4B two-layer static hair extraction/review candidate"
+}
