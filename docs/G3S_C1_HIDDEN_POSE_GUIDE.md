@@ -2,38 +2,40 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A SKINNED-BODY REVISIONS CLOSED / SKELETON-ONLY EIGHT-STATE WALK TECHNICAL FAILURE FIXED / RERUN REQUIRED / VISUAL REVIEW PENDING**
+Gate status: **C1A SKELETON-ONLY EIGHT-STATE WALK PASS/CLOSED / C1B VISIBLE WALK PROOF CURRENT**
 
 ## Purpose
 
-C1 implements:
+Canonical motion path:
 
-`real motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root control -> persistent native-2D walk poses -> sprite playback`
+`real motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root control -> complete visible 2D pose assets -> sprite playback`
 
 The hidden guide is skeletal control data only. It does not require or render a skinned human body.
 
-## Closed skinned-body history
+## Closed history
 
-C1A V1–V4 failed while trying to derive guide depth from MPFB body topology/bakes/proxies. V5 finally produced stable numeric metadata but the rendered skin visibly exploded into large triangular surfaces while the skeleton itself remained coherent. V6 then failed before execution because of an import error, but was deliberately **superseded rather than repaired** after the user clarified that hidden 3D should simply be a rig/skeleton.
+C1A V1–V5 attempted to use a skinned MPFB body for hidden visual/depth guidance and are closed. V5 proved the skeleton remained coherent while the skin mesh exploded. V6 was superseded before meaningful execution after the architecture was corrected to skeleton-only control.
 
-The following class is closed for C1A:
+The first skeleton-only run then hit a technical camera-selection bug:
 
-`mocap -> character-proportioned skinned MPFB human -> rendered anatomy/silhouette/depth guide`
+`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
 
-Historical failure evidence remains in the repository. `G3V_BODY` is not required by current C1A.
+That failure is now **CLOSED/RESOLVED**. Marker:
 
-## Current source
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
 
-C1A reads the already-approved G2 motion artifact directly:
+No model/API/download/runtime was added by C1A; no cleanup applies.
+
+## Approved source
 
 - motion: `CMU 105_34 NormalWalk`;
 - armature: `G2_CANONICAL_RIG`;
 - local blend: `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`;
-- G2 approval: `tools/deterministic-character-pipeline/g2_approval.json` = PASS.
+- G2 approval: PASS.
 
-No MPFB body or G3V body is used.
+No MPFB body or G3V body is used by current C1A.
 
-## Current eight-state walk cycle
+## Approved eight-state cycle
 
 | Index | Source frame | Event | Support foot |
 |---:|---:|---|---|
@@ -46,106 +48,60 @@ No MPFB body or G3V body is used.
 | 6 | 1648 | right_passing | right |
 | 7 | 1658 | right_up | right |
 
-Frame duration for first review playback is `83 ms`, matching a 10-source-frame interval at approximately 120 fps.
+Review playback uses `83 ms` per state.
 
-## Camera / direction
+Camera/control baseline:
 
-- native raster: `640×360`;
+- `640×360`;
 - orthographic;
-- pitch: `26°`;
-- horizontal view: front-three-quarter at `45°` from measured root-travel heading;
-- rig is never rotated to manufacture screen facing;
-- maximum projected skeleton height targets approximately `128 px`;
-- camera tracking follows only forward root translation, preserving lateral sway and vertical gait movement.
+- pitch `26°`;
+- front-three-quarter at `45°` from measured travel heading;
+- rig is not rotated to manufacture facing;
+- maximum projected skeleton height approximately `128 px`;
+- real forward travel normalized to the canonical screen-left family.
 
-### Technical failure on first skeleton-only run
+## C1A approval
 
-The first local run stopped before guide generation with:
+Approval file:
 
-`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
 
-This is classified as a **technical camera-selection failure**, not a failure of the skeleton-only motion method. No visual skeleton package was produced, so no visual grade exists yet.
+Reviewed artifacts supplied by the user:
 
-Failure marker:
+- contact sheet SHA256 `672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd`;
+- zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
+- projected root travel approximately `-43.77 px` screen-left.
 
-`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+Visual review PASS:
 
-The correction is now committed in `g3s_c1_export_skeleton_walk.py`:
-
-- force Blender dependency-graph evaluation after every camera transform;
-- record both lateral camera candidate projections;
-- prefer a candidate that already projects forward travel screen-left;
-- if Blender's evaluated camera X handedness still disagrees with the canonical family, normalize **guide screen-X coordinates only** while leaving rig/world transforms, camera-space depth and anatomical laterality unchanged;
-- retain the final root-travel `< 0` assertion.
-
-This screen-X normalization is control-coordinate normalization only. It does not mirror or alter final visible pixels because C1A does not own visible art.
-
-## Data exported per state
-
-- full world matrix for every required motion bone;
-- bone head/tail world coordinates;
-- projected pelvis/chest/neck/head;
-- projected left/right shoulder, elbow, wrist;
-- projected left/right hip, knee, ankle, toe;
-- camera-space depth for each joint;
-- chain screen length, world length and mean depth;
-- anatomical left/right ownership;
-- near/far anatomical side;
-- support foot;
-- left/right distance from cycle ground reference;
-- real projected root-travel displacement.
-
-No visible body pixels are produced by Blender.
-
-## Current implementation
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_c1_skeleton_walk_spec.json`
-
-Blender exporter:
-
-`tools/structured-2d-character-pipeline/g3s_c1_export_skeleton_walk.py`
-
-Review/animation builder:
-
-`tools/structured-2d-character-pipeline/g3s_c1_build_skeleton_walk_review.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
-
-Workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
-
-Expected review outputs:
-
-- `g3s_c1_skeleton_walk_guide.json`;
-- `g3s_c1_skeleton_walk_in_place.gif`;
-- `g3s_c1_skeleton_walk_travel.gif`;
-- `g3s_c1_skeleton_walk_zoom.gif`;
-- `g3s_c1_skeleton_walk_contact_sheet.png`;
-- eight labeled frame PNGs.
-
-The zoom GIF crop is computed directly from the union of projected skeleton joint bounds across the eight states. Blue means anatomical left, red anatomical right, yellow center chain, white rings support foot.
-
-## PASS requirement
-
-C1A passes only if the animated skeleton shows:
-
-- one coherent eight-state human gait cycle;
-- correct left/right progression;
-- no duplicated/missing/reversed limb chains;
-- plausible depth/near-far switching through the stride;
-- support-foot states consistent with gait;
-- real root travel to screen-left;
+- coherent eight-state gait;
+- left/right progression;
+- intact limb chains;
+- support-foot progression;
 - readable pelvis/trunk/leg relationship;
-- approximately 128 px maximum skeletal height at locked camera;
-- no skinned human mesh, final 3D pixels, static-body warp, model/API or manual user rigging.
+- laterality and near/far readability;
+- screen-left directional family.
 
-## Next gate
+C1A is therefore **PASS/CLOSED**. It approves only the hidden motion/control cycle, not final visible body art.
 
-After this skeleton animation passes, C1B goes directly to the **eight persistent native-2D body poses** for the first left-facing walk family. It uses C1A as motion/spatial control and B3B V4 as visible identity/body-style anchor.
+## C1A implementation retained
 
-The user will not be asked to redraw or repair frames manually. The static B3B still will not be warped into the gait, and hidden 3D will not become the visible sprite.
+- spec: `tools/structured-2d-character-pipeline/g3s_c1_skeleton_walk_spec.json`;
+- exporter: `tools/structured-2d-character-pipeline/g3s_c1_export_skeleton_walk.py`;
+- review builder: `tools/structured-2d-character-pipeline/g3s_c1_build_skeleton_walk_review.py`;
+- runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`;
+- workspace: `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`.
+
+## Current next gate — C1B
+
+C1B now goes directly to a visible eight-frame Exilada walk proof using:
+
+- the approved C1A skeleton cycle as pose/spatial control;
+- canonical B3B V4 as visible identity/body-style anchor;
+- no static-body warp;
+- no hidden-3D RGB promotion;
+- no hair/clothing/accessories yet.
+
+Current C1B document:
+
+`docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
