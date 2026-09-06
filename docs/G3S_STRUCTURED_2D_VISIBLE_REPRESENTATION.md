@@ -2,7 +2,7 @@
 
 Status date: **2026-09-05**
 
-Gate status: **ACTIVE — G3S-B3B V2 AUTHORED NATIVE 2D BODY SOURCE READY FOR REVIEW**
+Gate status: **ACTIVE — B3B BODY REFERENCE APPROVED / PIXEL-TRANSLATION CANDIDATE NEXT**
 
 ## Locked architecture
 
@@ -12,14 +12,14 @@ Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides on
 
 ## Visible-ownership invariant — LOCKED
 
-G3V is authoritative: the direct visible-3D route failed and was closed.
+G3V is authoritative: direct visible 3D failed and was closed.
 
 Therefore:
 
 - 3D may guide anatomy, motion, topology, sockets, contacts, depth and occlusion;
 - 3D may not be mechanically promoted into final visible sprite geometry;
 - a 3D render or mask is not a sprite template;
-- cropping/recoloring/quantizing a projected 3D mask or render remains a 3D-owned visible route;
+- cropping/recoloring/quantizing a projected 3D mask/render is rejected;
 - final character pixels are owned by persistent structured 2D assets;
 - runtime/export uses sprites.
 
@@ -27,156 +27,92 @@ Therefore:
 
 - no per-frame diffusion as animation owner;
 - no routine frame-by-frame repainting by the user;
-- no required Blender/Aseprite/Spine GUI operation by the user;
+- no required Blender/Aseprite/Spine GUI work by the user;
 - no beauty-render shrink/pixel-filter route as final art;
-- no bilinear filtering;
 - recurring work remains scriptable/headless;
-- animation consumes persistent 2D parts rather than independently generated frames;
 - body, hair, clothing and accessories have separate ownership;
 - a complete body exists under every removable layer.
 
 ## Model-discard cleanup rule — LOCKED
 
-Whenever a model/route is declared **FAIL/CLOSED/REJECTED** and no longer required, the same response must include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved; small evidence outputs remain unless explicitly removed.
+Whenever a model/route is declared FAIL/CLOSED/REJECTED and no longer required, include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved.
 
 Closed direct sprite-model routes remain Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen model hunting.
 
-# Correct staged character build — LOCKED
+## Correct staged character build — LOCKED
 
-1. **G3S-B3 — complete body base**
-   - adult female body;
-   - hairless;
-   - no clothing/bindings;
-   - no cuffs/shackles/chains;
-   - complete scalp/head/neck/torso/limbs under all future layers;
-   - owned as a native 2D sprite asset.
+1. **B3 — complete body base**: adult female, hairless, complete under future layers, owned as native 2D sprite art.
+2. **B4 — hair**: independent persistent 2D asset/layer family.
+3. **B5 — clothing/restraints/accessories**: chest wrap, hip cloth, bindings, cuffs/shackles, chain segments and other equipment, each with independent ownership/state.
+4. **G3S-C — layered motion proof**: hidden rig drives 2D deformation/ordering guides; exported/runtime result remains sprite-based.
 
-2. **G3S-B4 — hair**
-   - independent persistent 2D asset/layer family;
-   - later separable into back/front/submasses for wind and secondary motion;
-   - never part of body pixels.
+## Nudity — LOCKED SYSTEMIC STATE
 
-3. **G3S-B5 — clothing and accessories**
-   - chest wrap;
-   - hip cloth;
-   - arm/leg bindings;
-   - cuffs/shackles;
-   - chain segments;
-   - each owns coverage, sockets, depth and state independently.
-
-4. **G3S-C — four-phase walk proof**
-   - only after B3/B4/B5 assets are layered correctly;
-   - validated motion frames `1568,1588,1608,1628`;
-   - hidden rig drives 2D deformation/ordering guides;
-   - no independently regenerated animation frame;
-   - exported/runtime result is sprite-based.
-
-# Nudity — LOCKED SYSTEMIC STATE
-
-Nudity is a normal supported state, not a special variant and not a runtime generation task.
-
-Runtime composition:
+Nudity is a normal supported state, not a special variant. Runtime composition is:
 
 `complete body base + optional hair + body-state overlays + zero or more garment/equipment/accessory layers`
 
-The body remains complete beneath every removable layer. No censor garment is structurally required. Presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent.
+No censor garment is structurally required. Presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent.
 
-# G3S-B3 — Body Base — CURRENT
+## B3A history
 
-Canonical logs:
-
-- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-- `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-
-## G3S-B3A V1 — FAIL/CLOSED REVISION
-
-The first guide run used the wrong MPFB gender polarity. This was a script revision failure only.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3a_v1_failure.json`
-
-## G3S-B3A V2 — PASS/CLOSED
-
-The corrected V2 structural guide validates adult-female anatomy, complete body geometry, zero forbidden layer objects and the locked `128 px` gameplay scale.
+- B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity.
+- B3A V2 — PASS/CLOSED: adult-female structural anatomy, complete geometry, zero forbidden layers, locked `128 px` scale.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-B3A is closed. Its RGB, mask and projected silhouette are reference/guide data only.
+B3A RGB/mask/silhouette remain guide data only.
 
-## G3S-B3B V1 — FAIL/CLOSED ROUTE
+## B3B history
 
-V1 copied the B3A projected binary mask into the final native alpha/silhouette and procedurally colored it. It was rejected because hidden 3D still owned the visible silhouette.
+### V1 — FAIL/CLOSED ROUTE
+
+Copied B3A projected mask into final silhouette; hidden 3D still owned visible geometry.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-The invalid V1 runner/script were removed before user execution. No model cleanup command applies.
+### V2 — FAIL/CLOSED VISUAL ROUTE
 
-## G3S-B3B V2 — READY FOR REVIEW
+Technically 2D-owned but visually unacceptable: procedural/mannequin anatomy, distorted proportions, poor hands/feet, crude pelvis/thigh transitions, pseudo-3D banding and absent Exilada identity.
 
-V2 commits the actual visible body source as an independently authored native 2D asset:
+Failure marker:
 
-`assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png`
+`tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
 
-SHA256:
+## Approved high-resolution body reference — PASS
 
-`0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53`
+A user-supplied Grok four-view turnaround is approved as the primary body reference for B3B authoring.
 
-The asset itself owns:
+Approval marker:
 
-- visible RGB;
-- alpha;
-- silhouette;
-- pixel clusters/value structure.
+`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
-B3A rendered output is not loaded or sampled by the validator. It remains an already-passed structural reference only.
+Source identity:
 
-Current source facts:
+- SHA256 `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`;
+- `1168×784`;
+- front/back/profile/front-three-quarter;
+- adult natural feminine proportions at ~162 cm identity;
+- lean/functional/resilient, olive/brown, bald/hairless for body-reference purposes, barefoot;
+- mature, severe, sensual, dangerous and lived-in;
+- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell.
 
-- native `128×128`;
-- visible height `128 px`;
-- bbox `[17, 0, 120, 127]`;
-- 8 opaque palette colors;
-- binary alpha;
-- zero hair/clothing/binding/restraint/chain ownership.
+Do not reinterpret the body as short/squat/flattened because of prior use of “compact”.
 
-Tooling:
+The minimal dark loincloth/tapa-sexo is reference-only occlusion. It has no body ownership and must not become a mandatory censor layer. Final body pixels beneath it belong to B3B; any later garment belongs to B5.
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_body_base_source_v2.json`
-- `tools/structured-2d-character-pipeline/g3s_b3b_validate_authored_body_v2.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_authored_body_v2.ps1`
+## Current gate — B3B pixel-art visual translation candidate
 
-Technical ownership is correct, but **visual PASS is not automatic**. The source must be reviewed at native 1× for anatomy, Exilada-compatible proportions, hands/feet, chest/pelvis and intentional modern pixel-art language.
+The approved high-resolution turnaround is reference, not production pixel art. It may not simply be resized/quantized/pixel-filtered and promoted.
 
-If V2 fails visually, revise the committed 2D asset directly. Do not return to 3D-mask authoring and do not reopen source-model search.
+The next artifact is the first **pixel-art visual translation candidate** proving that the approved body proportions, adult sensual/severe sword-and-sorcery language and Exilada identity survive translation into modern pixel art.
 
-# G3S-B4 — Hair
+A candidate automatically fails if it reads as a procedural mannequin, generic fitness/character-creator body, superhero exaggeration, short/squat distortion, filtered 3D, sanitized mature body language or lacks Exilada/sword-and-sorcery identity.
 
-Blocked until B3B body approval.
+If the visual candidate passes, then commit the accepted native B3B production source and deterministic validation/export tooling.
 
-# G3S-B5 — Clothing / restraints / chains
-
-Blocked until B3B body approval.
-
-# G3S-C — Four-phase walk proof
-
-Blocked until B3/B4/B5 are structurally correct.
-
-## Exact next action
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_authored_body_v2.ps1"
-```
-
-Then STOP and share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_authored_body_v2\g3s_b3b_contact_sheet_v2.png`
-
-or the complete console error.
+No local B3B runner is currently approved. B4 hair, B5 clothing/restraints/accessories and G3S-C motion remain blocked until B3B passes.
