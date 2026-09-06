@@ -2,7 +2,11 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V1 FAIL/CLOSED — V2 FAIL/CLOSED — SINGLE-STILL PUPPET/WARP ROUTE CLOSED — NEXT: ANIMATION-READY NATIVE-2D SOURCE ARCHITECTURE**
+Gate status: **V1 FAIL/CLOSED — V2 FAIL/CLOSED — SINGLE-STILL PUPPET/WARP ROUTE CLOSED — NEXT: FULL HIDDEN-3D-GUIDED NATIVE-2D POSE SOURCE**
+
+Canonical architecture lock:
+
+`docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
 ## Purpose
 
@@ -24,6 +28,28 @@ Motion backbone remains valid:
 - source motion = CMU `105_34 NormalWalk`;
 - source rig = `G2_CANONICAL_RIG`;
 - G3V-R = PASS using `DIRECTION_SPACE_FK` as hidden motion/retarget infrastructure.
+
+## Critical architecture correction
+
+The project had already decided that hidden 3D would guide animation while final visible art remained native 2D.
+
+C0 V1/V2 drifted away from that decision by using only **projected joint deltas** from the hidden rig and attempting to force the entire walk out of the single B3B still.
+
+That reduction was wrong.
+
+The intended role of hidden 3D is to guide the **full pose state**:
+
+- anatomical left/right;
+- near/far ownership;
+- complete limb pose;
+- foreshortening;
+- occlusion/depth order;
+- contact foot/foot roll;
+- pelvis/root transform;
+- body-part semantic shapes;
+- fixed camera/scale.
+
+Hidden-3D RGB/alpha/final silhouette still remain forbidden as final visible art.
 
 ## C0 V1 — FAIL/CLOSED
 
@@ -57,15 +83,16 @@ V2 replaced rigid pieces with continuous arm/leg chain warps, but the result sti
 
 ### Root causes — LOCKED
 
-1. **Facing/laterality was not registered correctly.** The authored sprite faces screen-left in 3/4. Screen-x position was treated as if it directly encoded anatomical left/right/near/far ownership. It does not.
-2. **Rest/camera basis mismatch.** G2 screen-space direction deltas were applied to an unrelated authored sprite rest pose without a validated sprite-to-rig rest registration.
-3. **Depth/foreshortening loss.** A real walk contains substantial toward/away-from-camera limb motion. V1/V2 used depth mainly for draw order and tried to express the rest as 2D angle deformation, producing impossible arcs.
-4. **Missing visible information.** One monolithic 3/4 raster does not contain the hidden limb/body surfaces that become visible as near/far occlusion changes during the stride. Warping can only stretch existing pixels; it cannot reveal correct new anatomy.
-5. **Invalid grounding shortcut.** Grounding every frame by the alpha-bbox bottom is not equivalent to preserving the actual contact foot and root motion.
+1. **The hidden-3D guide was reduced incorrectly.** Full 3D pose information was collapsed to projected joint-angle deltas instead of being used as a complete pose/anatomy/occlusion guide.
+2. **Facing/laterality was not registered correctly.** The authored sprite faces screen-left in 3/4. Screen-x position was treated as if it directly encoded anatomical left/right/near/far ownership. It does not.
+3. **Rest/camera basis mismatch.** G2 screen-space direction deltas were applied to an unrelated authored sprite rest pose without a validated sprite-to-rig rest registration.
+4. **Depth/foreshortening loss.** A real walk contains substantial toward/away-from-camera limb motion. V1/V2 tried to express this as 2D angle deformation, producing impossible arcs.
+5. **Missing visible information.** One monolithic 3/4 raster does not contain the hidden limb/body surfaces that become visible as near/far occlusion changes during the stride.
+6. **Invalid grounding shortcut.** Grounding every frame by the alpha-bbox bottom is not equivalent to preserving the actual contact foot and root motion.
 
 ### Closed methods
 
-Do not create V2.1/V3 by tuning more:
+Do not create another revision by tuning:
 
 - pivots;
 - anchors;
@@ -91,30 +118,54 @@ Any travel preview using this source family must therefore move screen-left unle
 Retained:
 
 - real CMU walk data reaches the project;
-- hidden motion/topology infrastructure is usable;
-- the promoted body sprite can remain persistent visible source art;
-- no hidden-3D RGB or per-frame diffusion is required for motion control.
+- hidden motion/topology infrastructure is valid and remains the guide/control backbone;
+- the promoted body sprite remains a valid static identity/style anchor;
+- no hidden-3D RGB or runtime/per-frame diffusion is required for motion control.
 
 Rejected:
 
-- deriving a convincing full walk by deforming the single B3B still.
+- deriving a convincing full walk by deforming the single B3B still from joint deltas.
 
 ## Next architecture — CURRENT
 
-The animation-ready visible representation must contain **pose-specific native-2D information**.
+The first walk proof now follows the already-decided hidden-3D-guided architecture correctly.
 
-For the first walk proof, the preferred production shape is a small persistent left-facing pose family tied to real gait events, e.g. contact/down/passing/up across both sides. Each accepted key pose is a complete native-2D body sprite (or equivalently complete pose-specific visible body state), with correct:
+### Step 1 — hidden 3D exports a full guide package
 
-- anatomical left/right;
-- near/far limb ownership;
-- foreshortening;
-- hip/knee/ankle relationships;
-- foot contact/roll;
-- torso/pelvis counter-motion;
-- silhouette and occlusion.
+For one selected non-rest gait event first, export:
 
-The hidden G2 rig supplies pose guides, timing, contacts, root travel and depth metadata. It does **not** supply final visible RGB/silhouette.
+- projected joints;
+- anatomical-side labels;
+- near/far limb identity;
+- depth/body-part order;
+- contact foot and foot-roll state;
+- root/pelvis transform;
+- projected semantic body-part shapes/guide masks;
+- fixed G1 camera/scale.
 
-No new runner is approved until the source-authoring method for those pose-specific native-2D states is demonstrated on at least one non-rest gait pose without asking the user to manually redraw frames.
+These are pose/anatomy/occlusion controls only.
+
+### Step 2 — author one matching persistent native-2D pose
+
+The resulting 2D pose must own its own final RGB, alpha, silhouette, foreshortening and occlusion. It must preserve the Exilada body identity from B3B without being a warped copy of the rest pose.
+
+The user is not expected to redraw it manually.
+
+### Step 3 — expand to the first walk family
+
+Target eight persistent native-2D gait states:
+
+1. left contact;
+2. left down/loading;
+3. left passing;
+4. left up;
+5. right contact;
+6. right down/loading;
+7. right passing;
+8. right up.
+
+Runtime playback is normal sprite animation using motion-derived timing/contact/root metadata. No interpolation is required for the first proof.
+
+No new runner is approved until Step 1 is implemented correctly and the source-authoring method for Step 2 is selected/proven.
 
 Hair remains deferred until the user resumes it.
