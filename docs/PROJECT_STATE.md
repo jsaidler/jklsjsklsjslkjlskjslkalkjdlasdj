@@ -94,7 +94,7 @@ The user-locked **pixel-art** turnaround is a different case: one existing pixel
     - fully nude Grok high-resolution turnaround — PASS / SUPPORTING ANATOMY REFERENCE / NOT PRODUCTION ART
     - B3B V3 reduced-reference spike — FAIL/CLOSED VISUAL AND METHOD ROUTE
     - final user-supplied four-view pixel-art visual reference — PASS / LOCKED / NO FURTHER USER GENERATION
-    - **B3B V4 locked pixel-reference candidate — VISUAL PASS / PROMOTION PENDING**
+    - **B3B V4 locked pixel-reference candidate — VISUAL PASS / CORRECTED PROMOTION READY**
   - B4 hair — BLOCKED UNTIL B3B PROMOTION CONFIRMED
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B4
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -125,7 +125,7 @@ Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-SHA256:
+Recorded contact-sheet SHA256:
 
 `2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
 
@@ -133,7 +133,9 @@ Approved native candidate:
 
 - `37×128` RGBA;
 - `128 px` visible standing height;
-- raw RGBA SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+- authoritative local raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+
+The previously recorded `bd4a78e...` raw digest was from an assistant-side reconstructed candidate and is superseded for promotion.
 
 Approval marker:
 
@@ -141,7 +143,20 @@ Approval marker:
 
 The candidate passes the **nude/hairless body-base visual gate**. This does not approve hair, clothing, restraints, accessories or animation.
 
-## Promotion implementation — READY
+## First V4 promotion attempt — FAIL/CLOSED IMPLEMENTATION BUG
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json`
+
+Observed failure:
+
+- local candidate raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- hardcoded expected SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+
+The refusal was correct; the expected digest was not. No art decision changed and no model cleanup applies.
+
+## Corrected promotion implementation — READY
 
 Promotion helper:
 
@@ -151,7 +166,13 @@ Promotion runner:
 
 `tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
 
-The runner rebuilds the exact reviewed candidate, verifies its approved raw RGBA digest, copies it unchanged to the canonical body asset path, writes provenance metadata, and commits/pushes only those two production asset files.
+Correction:
+
+- promotion is locked to the user's actual local candidate digest `818f0538...`;
+- the runner no longer reruns V4 generation;
+- it promotes the existing local candidate unchanged;
+- it verifies dimensions, raw RGBA and alpha height before writing assets;
+- it commits/pushes only the canonical body PNG + provenance JSON.
 
 Canonical target paths:
 
@@ -168,6 +189,8 @@ git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\15_promote_g3s_b3b_v4_body_base.ps1"
 ```
+
+**Do not run V4/runner 14 first.** The existing local candidate from the failed promotion attempt is the artifact to promote.
 
 Then share the final console output.
 
