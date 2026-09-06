@@ -1,0 +1,27 @@
+{
+  "gate": "G3S-C0",
+  "revision": "CONTINUOUS_CHAIN_WARP_V2",
+  "status": "FAIL_CLOSED_VISUAL_AND_METHOD",
+  "date": "2026-09-06",
+  "reviewed_contact_sheet": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_c0_body_walk_v2\\g3s_c0_v2_contact_sheet.png",
+  "reviewed_contact_sheet_sha256": "6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3",
+  "root_causes": [
+    "canonical B3B sprite faces screen-left but anatomical near/far and left/right ownership were never registered against that authored 3/4 view",
+    "G2 screen-space motion deltas were applied to an unrelated authored sprite rest pose/camera basis without a validated sprite-to-rig rest registration",
+    "walk motion contains essential camera-depth/foreshortening changes that cannot be represented by 2D chain-angle warping alone",
+    "a single monolithic 3/4 raster does not contain hidden limb/body surfaces needed when occlusion order changes across a stride",
+    "continuous warp therefore stretches existing visible pixels into anatomically impossible arcs/loops instead of producing valid new pose silhouettes",
+    "grounding by per-frame alpha-bbox bottom is not a valid substitute for contact-foot/root grounding"
+  ],
+  "closed_methods": [
+    "hard cutout limb rotation from one monolithic sprite",
+    "continuous chain warp from one monolithic sprite",
+    "further pivot/anchor/overlap tuning of the same single-still puppet approach"
+  ],
+  "retained": {
+    "canonical_body": "PASS/CLOSED and unchanged",
+    "G2_real_motion": "PASS/CLOSED",
+    "G3V_R_DIRECTION_SPACE_FK": "retained as hidden motion/retarget infrastructure only"
+  },
+  "next_architectural_requirement": "animation-ready native 2D source must contain pose-specific visible information; for walk, use persistent authored pose-family/key sprites or an equivalent native-2D representation with valid near/far limb and occlusion ownership. Do not attempt to infer a full walk from the single B3B still by warping."
+}
