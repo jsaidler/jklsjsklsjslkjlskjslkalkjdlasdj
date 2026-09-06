@@ -69,7 +69,9 @@ G3V rejected hidden 3D as visible-image owner.
 
 Hidden 3D may own motion, topology/left-right identity, sockets/contacts/root data, physics, depth/occlusion metadata and structural guides. It **must not own final visible RGB, alpha or final sprite silhouette**.
 
-Final character art is owned by persistent 2D pixel assets. Runtime/export remains sprite-based.
+The same principle now explicitly applies to high-resolution 2D reference art: reference images may guide design/anatomy but may not be mechanically resized, quantized, traced or filtered into final production sprite geometry.
+
+Final character art is owned by persistent native 2D pixel assets. Runtime/export remains sprite-based.
 
 ## Locked gameplay baseline
 
@@ -106,8 +108,9 @@ Animation frames, hair, weapons and extreme actions may require larger transpare
     - B3B V1 — FAIL/CLOSED ROUTE: 3D-mask-owned silhouette
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin look
     - covered Grok body turnaround — PASS historical reference / SUPERSEDED
-    - **fully nude Grok body turnaround — PASS / APPROVED PRIMARY BODY REFERENCE / NOT PRODUCTION ART**
-    - **B3B V3 nude-reference native-grid review spike** ← CURRENT / READY TO RERUN
+    - fully nude Grok body turnaround — **PASS / APPROVED PRIMARY BODY REFERENCE / NOT PRODUCTION ART**
+    - B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**
+    - **B3B authored native-pixel body candidate** ← CURRENT
   - B4 hair — BLOCKED UNTIL B3B PASS
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -118,7 +121,7 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
-Canonical expected local path:
+Canonical local path:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
@@ -134,62 +137,49 @@ Source facts:
 - full pelvic anatomy visible;
 - no occluding garment.
 
-It supersedes the previous covered turnaround SHA `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474` as primary anatomy reference.
+This reference resolves the intended body but remains design/anatomy reference only.
 
-This eliminates the previous reference-stage pelvic occlusion problem. V3 must not synthesize or patch that region.
+## B3B V3 — FAIL/CLOSED
+
+Reviewed contact sheet:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
+
+SHA256:
+
+`ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
+
+V3 mechanically isolated the three-quarter reference, downscaled it to `128 px`, retained the reduced reference silhouette/mask, quantized colors and applied cleanup. The result reads as a **tiny reduced render**, not authored modern pixel art.
+
+Observed failure:
+
+- no deliberate pixel-art silhouette authoring;
+- face/hands/feet collapse at native scale;
+- render-like/noisy value structure survives reduction;
+- anatomy is inherited mechanically rather than redesigned for the pixel grid;
+- the route proves no usable production pixel-language solution.
+
+V3 is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
 
 ## B3B visual PASS rule
 
 A candidate must read immediately as the Exilada's adult sword-and-sorcery body: attractive, sensual, strong, dangerous, severe and lived-in — **beauty + hardness + survival**.
 
-Automatic FAIL: procedural mannequin, generic fitness/character-creator body, superhero exaggeration, shortened/squat body, weak chest/pelvis/thigh anatomy, bad hands/feet at 1×, pseudo-3D/filtered render, sanitized body language or absent Exilada identity.
-
-## B3B V3 — current bounded visual spike
-
-Runner:
-
-`tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py`
-
-V3 now pins the approved nude **2D** turnaround by SHA256 and canonical repo-local path. It uses the front-three-quarter panel for a native-scale review abstraction, performs no synthetic pelvic repair and does not read B3A/hidden-3D RGB or mask for visible translation.
-
-### V3 authority boundary
-
-**V3 output is not automatically a production B3B source.**
-
-The existing rule rejecting simple high-resolution resize/quantize as final Production Pixel Master remains locked. V3 is only a bounded test of whether the approved body survives native-scale abstraction well enough to inform authored pixel art.
-
-If the contact sheet reads as reduced illustration/filtering, procedural art or mannequin anatomy, V3 is FAIL/CLOSED and nothing is promoted. No model cleanup applies because V3 downloads no model weights.
-
-If V3 is visually useful, the accepted native cluster/silhouette language must then be established as an independently owned persistent B3B production asset and validated.
+Automatic FAIL: procedural mannequin, generic fitness/character-creator body, superhero exaggeration, shortened/squat body, weak chest/pelvis/thigh anatomy, bad hands/feet at 1×, pseudo-3D/filtered render, reduced-illustration look, sanitized body language or absent Exilada identity.
 
 ## Current exact action
 
-One-time prerequisite: save the exact approved nude turnaround at:
+**No B3B runner is approved.**
 
-`D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_body_turnaround_nude_approved.jpg`
+The next artifact must be an **actually authored native-pixel body candidate**, not another conversion script. It should be one gameplay-view body sprite at approximately `128 px` visible standing height, using the approved nude turnaround only as anatomy/design reference.
 
-Expected SHA256:
+Do not resize, quantize, mechanically trace or filter the high-resolution turnaround into the final candidate.
 
-`1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
-
-Then run exactly:
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\13_run_g3s_b3b_v3_reference_guided_translation.ps1"
-```
-
-Then STOP and inspect/share only:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
-
-or the complete console error.
+Only after that authored candidate visually passes should deterministic import/validation/export tooling be committed.
 
 B4/B5/G3S-C remain blocked.
 
