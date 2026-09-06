@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -47,6 +46,7 @@ def draw_frame(frame: dict, travel_shift: float = 0.0, label_prefix: str = "") -
     d.rectangle((0, ground_y, SCENE[0], SCENE[1]), fill=GROUND)
     d.line((0, ground_y, SCENE[0], ground_y), fill=(88, 77, 67), width=1)
 
+    # Draw far chains first, near chains last.
     chains = sorted(frame["chains"], key=lambda row: float(row["mean_depth"]), reverse=True)
     for chain in chains:
         a = xy(chain["a"])
@@ -63,9 +63,7 @@ def draw_frame(frame: dict, travel_shift: float = 0.0, label_prefix: str = "") -
         d.ellipse((x-r, y-r, x+r, y+r), fill=color)
 
     support = str(frame["support_foot"])
-    ankle = xy(f"{support}_ankle")
-    toe = xy(f"{support}_toe")
-    for p in (ankle, toe):
+    for p in (xy(f"{support}_ankle"), xy(f"{support}_toe")):
         d.ellipse((p[0]-7, p[1]-7, p[0]+7, p[1]+7), outline=(245, 245, 245), width=2)
 
     title = f"{label_prefix}{frame['event']} | source {frame['frame']} | support {support}"
@@ -75,40 +73,30 @@ def draw_frame(frame: dict, travel_shift: float = 0.0, label_prefix: str = "") -
     return im
 
 
-def alpha_bbox_like(im: Image.Image):
-    pix = im.load()
+def skeleton_union_square(frames_data):
     xs, ys = [], []
-    for y in range(28, im.height):
-        for x in range(im.width):
-            r, g, b = pix[x, y]
-            if (r, g, b) not in (BG, GROUND) and not (r < 100 and g < 90 and b < 80):
-                xs.append(x); ys.append(y)
-    if not xs:
-        return (160, 20, 480, 340)
-    return (max(0, min(xs)-18), max(28, min(ys)-18), min(im.width, max(xs)+19), min(im.height, max(ys)+19))
+    for frame in frames_data:
+        for rec in frame["joints"].values():
+            xs.append(float(rec["x"]))
+            ys.append(float(rec["y"]))
+    x0, x1 = min(xs)-20.0, max(xs)+20.0
+    y0, y1 = min(ys)-20.0, max(ys)+20.0
+    side = int(max(x1-x0, y1-y0, 160.0))
+    side = min(side, 340)
+    cx = int(round((x0+x1)*0.5))
+    cy = int(round((y0+y1)*0.5))
+    left = max(0, min(SCENE[0]-side, cx-side//2))
+    top = max(0, min(SCENE[1]-side, cy-side//2))
+    return (left, top, left+side, top+side)
 
 
-def union_bbox(boxes):
-    return (
-        min(b[0] for b in boxes), min(b[1] for b in boxes),
-        max(b[2] for b in boxes), max(b[3] for b in boxes)
-    )
-
-
-def make_zoom(frames):
-    boxes = [alpha_bbox_like(im) for im in frames]
-    x0, y0, x1, y1 = union_bbox(boxes)
-    w, h = x1-x0, y1-y0
-    side = max(w, h, 160)
-    cx, cy = (x0+x1)//2, (y0+y1)//2
-    x0 = max(0, min(SCENE[0]-side, cx-side//2))
-    y0 = max(0, min(SCENE[1]-side, cy-side//2))
-    x1, y1 = x0+side, y0+side
+def make_zoom(frames, frames_data):
+    box = skeleton_union_square(frames_data)
     out = []
     for im in frames:
-        crop = im.crop((x0, y0, x1, y1))
-        out.append(crop.resize((side*2, side*2), Image.Resampling.NEAREST))
-    return out
+        crop = im.crop(box)
+        out.append(crop.resize((crop.width*2, crop.height*2), Image.Resampling.NEAREST))
+    return out, box
 
 
 def save_gif(path: Path, frames, duration_ms: int):
@@ -155,7 +143,7 @@ def main():
     total_dx = float(guide["root_travel_total_dx_px"])
     start_pad = min(100.0, max(36.0, abs(total_dx) * 0.45))
     travel = [draw_frame(row, start_pad + float(row["root_travel_dx_px"]), "TRAVEL | ") for row in frames_data]
-    zoom = make_zoom(in_place)
+    zoom, zoom_box = make_zoom(in_place, frames_data)
 
     in_place_path = ws / "g3s_c1_skeleton_walk_in_place.gif"
     travel_path = ws / "g3s_c1_skeleton_walk_travel.gif"
@@ -194,6 +182,7 @@ def main():
         "in_place_gif": str(in_place_path),
         "travel_gif": str(travel_path),
         "zoom_gif": str(zoom_path),
+        "zoom_crop_box_640x360": list(zoom_box),
         "contact_sheet": str(sheet_path),
     }
     guide_path.write_text(json.dumps(guide, indent=2) + "\n", encoding="utf-8")
@@ -203,6 +192,7 @@ def main():
     print(f"TRAVEL:   {travel_path}")
     print(f"ZOOM:     {zoom_path}")
     print(f"SHEET:    {sheet_path}")
+    print(f"ZOOM BOX: {zoom_box}")
     return 0
 
 
