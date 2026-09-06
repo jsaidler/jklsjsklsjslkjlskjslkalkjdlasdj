@@ -84,7 +84,7 @@ G3V rejected hidden 3D as visible-image owner.
 
 Hidden 3D may own motion, topology/left-right identity, sockets/contacts/root data, physics, depth/occlusion metadata and structural guides. It **must not own final visible RGB, alpha or final sprite silhouette**.
 
-The same principle now explicitly applies to high-resolution 2D reference art: reference images may guide design/anatomy but may not be mechanically resized, quantized, traced or filtered into final production sprite geometry.
+The same principle explicitly applies to high-resolution 2D reference art: reference images may guide design/anatomy but may not be mechanically resized, quantized, traced or filtered into final production sprite geometry.
 
 Final character art is owned by persistent native 2D pixel assets. Runtime/export remains sprite-based.
 
@@ -125,7 +125,7 @@ Animation frames, hair, weapons and extreme actions may require larger transpare
     - covered Grok body turnaround — PASS historical reference / SUPERSEDED
     - fully nude Grok body turnaround — **PASS / APPROVED PRIMARY BODY REFERENCE / NOT PRODUCTION ART**
     - B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**
-    - **B3B authored native-pixel body candidate** ← CURRENT
+    - **B3B V4 direct native-pixel authoring** ← CURRENT / SPEC LOCKED / AWAITING VISUAL CANDIDATE
   - B4 hair — BLOCKED UNTIL B3B PASS
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -170,15 +170,33 @@ Failure marker:
 
 V3 mechanically isolated the three-quarter reference, downscaled it to `128 px`, retained the reduced reference silhouette/mask, quantized colors and applied cleanup. The result reads as a **tiny reduced render**, not authored modern pixel art.
 
-Observed failure:
-
-- no deliberate pixel-art silhouette authoring;
-- face/hands/feet collapse at native scale;
-- render-like/noisy value structure survives reduction;
-- anatomy is inherited mechanically rather than redesigned for the pixel grid;
-- the route proves no usable production pixel-language solution.
-
 V3 is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
+
+## B3B V4 direct native-pixel authoring — CURRENT
+
+Machine-readable method specification:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
+
+V4 does **not convert the high-resolution body render into pixel art**. Instead, a new pixel image is authored directly on a logical pixel grid while using the approved render only as anatomy/proportion reference and `exilada_master.png` only as identity reference.
+
+Current authoring route uses the already-employed Grok image-generation workflow; this does not require or reopen a local sprite-model installation.
+
+Preferred delivery contract:
+
+- `1024×1024` image representing a `256×256` logical pixel canvas at exact `4×` display zoom;
+- every logical pixel is one uniform `4×4` block;
+- Exilada body approximately `128` logical pixels tall, acceptable first-candidate range `124–132`;
+- elevated front-three-quarter belt-scroller view approximating the locked `26°` pitch;
+- fully nude adult hairless body only;
+- no hair, clothing, restraints, weapons, shadow or scenery;
+- transparent background if supported, otherwise one flat chroma background;
+- no antialiasing, dithering, smooth gradients or painterly microtexture;
+- deliberate connected pixel clusters and controlled value groups.
+
+If the image is a smooth illustration with a fake pixel texture, inconsistent pseudo-pixels or render-like values, it is a direct FAIL. Local scripts are not allowed to convert it into compliance.
+
+Local deterministic tooling comes **after** the visual candidate exists and may only verify grid integrity, strip exact integer display zoom, key a flat background, measure height/bounds, run raster QA and build 1×/gameplay previews. It may not repair anatomy or redraw silhouette.
 
 ## B3B visual PASS rule
 
@@ -188,13 +206,9 @@ Automatic FAIL: procedural mannequin, generic fitness/character-creator body, su
 
 ## Current exact action
 
-**No B3B runner is approved.**
+Create and visually review **one B3B V4 direct-authored pixel candidate** under the contract above. Do not write another conversion runner before the candidate exists.
 
-The next artifact must be an **actually authored native-pixel body candidate**, not another conversion script. It should be one gameplay-view body sprite at approximately `128 px` visible standing height, using the approved nude turnaround only as anatomy/design reference.
-
-Do not resize, quantize, mechanically trace or filter the high-resolution turnaround into the final candidate.
-
-Only after that authored candidate visually passes should deterministic import/validation/export tooling be committed.
+If it passes visually, then implement deterministic import/grid-validation/alpha/QA/export tooling and promote the accepted logical-grid image as the persistent B3B 2D body source.
 
 B4/B5/G3S-C remain blocked.
 
