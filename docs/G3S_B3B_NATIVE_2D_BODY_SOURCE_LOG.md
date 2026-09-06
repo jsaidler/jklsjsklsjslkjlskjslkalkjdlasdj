@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V4 PIXEL-REFERENCE NORMALIZATION RUNNER READY — REVIEW NEXT**
+Gate status: **V4 VISUAL PASS — PROMOTION RUNNER READY**
 
 ## Canonical ownership rule
 
@@ -101,48 +101,81 @@ Failure marker:
 
 No model cleanup applies because V3 downloaded no model weights.
 
-## V4 — LOCKED PIXEL-REFERENCE NORMALIZATION — CURRENT
+## V4 — LOCKED PIXEL-REFERENCE NORMALIZATION — VISUAL PASS
 
 Machine-readable specification:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-V4 now uses an important distinction that V3 did not have: **the user-locked source is itself pixel-art imagery.** Therefore the bounded review candidate may extract the existing front-three-quarter pixel-art view, key only the flat dark presentation background, and normalize its visible standing height to `128 px` using nearest-neighbor only.
-
-This is not permission to revive render-to-pixel conversion. The high-resolution anatomy render remains forbidden as a visible sprite source.
-
-### V4 implementation — READY
-
-Helper:
+Review helper:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py`
 
-Runner:
+Review runner:
 
 `tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1`
 
-Output directory:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`
-
-The helper:
-
-1. locates the exact locked JPEG by SHA256, including common user image folders;
-2. verifies exact `1168×784` dimensions;
-3. extracts the existing rightmost front-three-quarter pixel-art figure;
-4. removes only the flat dark presentation background to alpha;
-5. normalizes visible height to `128 px` with nearest-neighbor only;
-6. does **not** synthesize a palette, repair anatomy, morph the silhouette or use hidden-3D RGB/masks;
-7. generates native candidate, 4× review image, `640×360` gameplay preview and contact sheet.
-
-This runner is **review-only**. It cannot automatically promote the candidate to production B3B.
-
-## Current exact action
-
-Run the V4 review runner exactly once and inspect/share:
+Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-If the candidate reads well at native `1×` and in gameplay context, it can become the persistent B3B body source after validation metadata is added. If it collapses visually, close this normalization route without asking the user for another reference.
+Contact-sheet SHA256:
 
-B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until B3B passes.
+`2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
+
+Native candidate:
+
+- dimensions: `37×128` RGBA;
+- visible standing height: `128 px`;
+- approved raw RGBA SHA256: `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+
+Visual approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_visual_approval.json`
+
+### Review result
+
+**VISUAL PASS for the nude/hairless body-base gate.**
+
+The reviewed candidate:
+
+- reads as intentional pixel-art imagery at the locked native scale rather than a reduced smooth render;
+- preserves readable adult-female anatomy at `128 px` standing height;
+- keeps face, chest, pelvis, legs, hands and feet distinguishable at gameplay scale;
+- remains compatible with the locked Exilada body direction;
+- provides a usable persistent 2D nude/hairless body layer;
+- remains readable in the `640×360` gameplay preview.
+
+This is approval of the **body base only**. Hair, clothing, restraints, accessories and animation remain separate gates.
+
+## Promotion implementation — READY
+
+Promotion helper:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_promote_body_base.py`
+
+Promotion runner:
+
+`tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
+
+The promotion step is deliberately non-artistic. It:
+
+1. rebuilds the exact reviewed V4 candidate from the locked reference;
+2. verifies `37×128` dimensions and the approved raw-RGBA digest;
+3. refuses any pixel mismatch;
+4. copies the exact approved pixels to the canonical production asset path;
+5. writes provenance metadata;
+6. commits/pushes only the promoted body PNG and metadata JSON.
+
+Canonical target paths:
+
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
+
+No anatomy, silhouette, palette or pixel-cluster changes are permitted during promotion.
+
+## Current exact action
+
+Run the promotion runner once. After the resulting production asset is confirmed in GitHub, mark **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
+
+B5 clothing/accessories and G3S-C animation remain blocked until their preceding gates pass.
