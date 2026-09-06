@@ -1,0 +1,18 @@
+{
+  "gate": "G3S-B3B-V4-PROMOTION",
+  "status": "FAIL/CLOSED IMPLEMENTATION BUG — FIXED AFTER OBSERVED LOCAL HASH",
+  "date": "2026-09-06",
+  "attempted_runner": "tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1",
+  "failure": "candidate raw-RGBA digest mismatch during promotion",
+  "observed_local_candidate_raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+  "incorrect_hardcoded_expected_raw_rgba_sha256": "bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9",
+  "root_cause": "The promotion lock was bound to an assistant-side reconstructed candidate digest instead of the actual candidate bytes produced by the user's local V4 runner. The safety check correctly refused promotion, but the expected digest was wrong for the authoritative local artifact.",
+  "fix": [
+    "Treat the observed local V4 candidate digest as the authoritative promotion digest.",
+    "Do not rerun the V4 review generator inside the promotion runner.",
+    "Promote the already-produced local reviewed candidate only after exact size/raw-RGBA verification."
+  ],
+  "art_status_changed": false,
+  "visual_approval_remains": "PASS",
+  "model_cleanup_required": false
+}
