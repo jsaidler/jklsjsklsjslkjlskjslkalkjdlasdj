@@ -1,0 +1,55 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4C_FLUX2_VISUAL_ADAPTER_V1",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "purpose": "prove real visual adaptation of the Exilada hair identity to the exact canonical B3B pose before attempting final rear/front layer authoring",
+  "canonical_body": {
+    "path": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+    "size": [37, 128],
+    "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+    "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+    "production_pixels_must_remain_unchanged": true
+  },
+  "hair_reference": "assets/source/characters/exilada/reference/exilada_master.png",
+  "hair_reference_role": "identity/style/material/mass only; clothing/accessories/pose are explicitly excluded from transfer",
+  "visual_runtime": {
+    "workspace": "Z:\\AI\\Flux2RefControlSpike\\ComfyUI_windows_portable",
+    "reuse_scope": "narrow B4 static visual adaptation only; this does not reopen the closed animation/refcontrol route",
+    "required_existing_files": [
+      "models/diffusion_models/flux-2-klein-base-4b-fp8.safetensors",
+      "models/text_encoders/qwen_3_4b.safetensors",
+      "models/vae/flux2-vae.safetensors"
+    ],
+    "downloads_allowed_by_runner": false,
+    "paid_api": false
+  },
+  "conditioning": {
+    "logical_canvas": [96, 160],
+    "integer_reference_upscale": 6,
+    "model_canvas": [576, 960],
+    "body_reference": "exact B3B body pixels on flat neutral background, enlarged only with nearest-neighbor",
+    "master_reference": "canonical Exilada master"
+  },
+  "generation": {
+    "seed": 20260906,
+    "steps": 20,
+    "cfg": 4.5,
+    "sampler": "euler",
+    "submissions": 1,
+    "retry_policy": "one-shot; no automatic rerun after accepted prompt"
+  },
+  "review_contract": {
+    "generated_output_is_production_art": false,
+    "automatic_promotion": false,
+    "must_visually_follow_actual_b3b_pose": true,
+    "must_transfer_only_hair_identity_from_master": true,
+    "must_not_transfer_clothing_or_accessories": true,
+    "must_show_rear_dominant_irregular_mass": true,
+    "must_keep_face_neck_clavicle_center_torso_readable": true,
+    "procedural_pillow_hair_geometry": false,
+    "next_if_pass": "author separate rear_hair and front_hair with the same real visual adapter, then persist validated native 2D layers"
+  },
+  "runner": "tools/structured-2d-character-pipeline/18_run_g3s_b4c_flux2_visual_hair_adapter.ps1",
+  "expected_review_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4c_flux2_visual_adapter\\g3s_b4c_flux2_contact_sheet.png"
+}
