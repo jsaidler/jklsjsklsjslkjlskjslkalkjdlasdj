@@ -1,0 +1,32 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V3",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "working_canvas": [96, 160],
+  "composition_order": ["rear_hair", "body", "front_hair"],
+  "body_contract": {
+    "dimensions": [37, 128],
+    "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+    "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+    "immutable": true
+  },
+  "master_usage": "identity_and_mass_inspiration_only_no_pixel_extraction_copy_or_trace",
+  "visual_corrections_from_v2": [
+    "rear_hair is the dominant mass",
+    "rear silhouette is intentionally asymmetric and irregular",
+    "front_hair is reduced to sparse lateral face/neck/shoulder framing",
+    "center face/clavicle/chest/abdomen remain substantially readable",
+    "equal-width curtain/dread rhythm is removed",
+    "broad primary masses, side masses and distinct long falls replace repetitive locks",
+    "rear geometry explicitly represents hair behind head/shoulders/back"
+  ],
+  "palette_rgba": [
+    [3,4,6,255], [7,8,11,255], [11,12,16,255], [16,17,21,255],
+    [22,23,28,255], [29,30,35,255], [39,39,44,255], [50,49,53,255]
+  ],
+  "external_paid_api_or_model": false,
+  "automatic_promotion": false,
+  "runner": "tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1",
+  "review_contact_sheet": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4b_two_layer_hair\\g3s_b4b_contact_sheet.png"
+}
