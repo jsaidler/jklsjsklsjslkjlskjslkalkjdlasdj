@@ -79,8 +79,8 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
     - B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**
     - B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**
     - B4B V4 pose-anchored authored two-layer — **FAIL/CLOSED VISUAL AND METHOD**
-    - **procedural Pillow/heuristic-anchor hair authoring route — CLOSED**
-    - **no approved B4 runner currently exists**
+    - procedural Pillow/heuristic-anchor hair authoring — **CLOSED**
+    - **B4C FLUX.2 real visual hair adapter** ← RUNNER READY / REVIEW NEXT
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
@@ -103,13 +103,9 @@ Mandatory composition:
 
 `rear_hair -> body -> front_hair`
 
-### B4B V4 — FAIL/CLOSED VISUAL AND METHOD
+### Closed B4B method
 
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
-
-SHA256:
+B4B V4 reviewed contact sheet SHA256:
 
 `50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
 
@@ -117,37 +113,66 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
 
-Root cause:
+Root cause: the pose detector itself was invalid (`shoulder_span=6.36 px` for a `37 px` body), and a few scalar anchors cannot represent the actual 3/4 anatomy/occlusion required for hair placement. Hard-coded Pillow polygons/lines are therefore closed as a visual-production route. Runner `17_run_g3s_b4b_two_layer_hair_candidate.ps1` remains disabled.
 
-- the pose detector itself is invalid for this task; the reviewed sheet reports `shoulder_span=6.36 px` for a `37 px`-wide body, proving it is not measuring the real shoulder span;
-- head center + shoulder row/span + torso center + binary facing bias do not encode enough of the actual 3/4 pose;
-- they omit head tilt, shoulder slope, torso rotation, arm occlusion, back contour and local depth;
-- hard-coded Pillow polygons/lines therefore cannot visually wrap the hair around the actual body pose.
+### B4C FLUX.2 real visual adapter — CURRENT / RUNNER READY
 
-### Route closure — LOCKED
+User instruction `faça` authorizes a **narrow static B4 visual-adaptation reuse** of the already-retained local FLUX.2 workspace. This is not a reopening of the old animation/refcontrol production route and is not a broad model search.
 
-Do not create another B4 hair candidate by:
+Spec:
 
-- extracting master pixels;
-- fixed master-pose coordinates;
-- heuristic body anchors plus hard-coded Pillow polygons/lines;
-- primitive procedural lock generation.
+`tools/structured-2d-character-pipeline/g3s_b4c_flux2_visual_adapter_spec.json`
 
-`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled to prevent accidental reruns of the closed route.
+Runner:
 
-No model/API was used by V4; no cleanup command applies.
+`tools/structured-2d-character-pipeline/18_run_g3s_b4c_flux2_visual_hair_adapter.ps1`
+
+Supporting tools:
+
+- `tools/structured-2d-character-pipeline/g3s_b4c_prepare_flux2_visual_adapter.py`
+- `tools/structured-2d-character-pipeline/g3s_b4c_build_flux2_visual_review.py`
+
+Expected contact sheet:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
+
+B4C:
+
+- uses the exact canonical B3B body as the authoritative pose/proportion/scale/camera/placement visual reference;
+- uses the master only for hair identity/style/material;
+- explicitly forbids transfer of master clothing/restraints/accessories/pose;
+- asks a real local visual model to adapt the hair to the actual B3B pose;
+- uses one artistic submission only;
+- performs no automatic retry or promotion;
+- generates review evidence only, not final production hair layers;
+- downloads nothing and uses no paid API.
+
+If the retained FLUX.2 model files are absent, the runner stops and reports exact missing paths. It does not download them.
+
+If B4C visually passes, the next step is controlled visual authoring of separate `rear_hair` and `front_hair` passes using the same adapter, followed by persistent native-2D validation/promotion.
 
 ## Current exact action
 
-**No B4 runner is approved.**
+Run exactly:
 
-The next B4 solution must be **real visual 2D authoring/adaptation to the actual canonical B3B pose**, while preserving separate `rear_hair` and `front_hair` ownership. Do not start B5 or G3S-C before B4 passes.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\18_run_g3s_b4c_flux2_visual_hair_adapter.ps1"
+```
+
+Then share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
+
+If it fails, share the console output. Do not start B5 or G3S-C before B4 passes.
 
 ## Actual local AI state — LOCKED 2026-09-06
 
-- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`;
+- retained shared/general runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (historical folder name; Qwen route itself remains closed);
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
-- frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
+- `Z:\AI\Flux2RefControlSpike` is retained local historical visual-model workspace. For B4C only, it is conditionally reused if its already-existing FLUX.2 Klein files are still present; the runner does not download missing files;
 - PixelLab is historical external paid spike only and is not active/authorized;
 - Qwen-native, SD1.5, PixelLock and Alucard remain closed;
 - do not assume Wan-Animate-2 installed without fresh verification.
