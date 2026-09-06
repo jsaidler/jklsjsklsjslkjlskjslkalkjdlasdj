@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR CURRENT / B4B V4 POSE-ANCHORED REVIEW NEXT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR CURRENT OPEN / NO APPROVED B4 RUNNER**
 
 ## Locked architecture
 
@@ -22,7 +22,7 @@ Hidden 3D may own motion/topology/sockets/contacts/depth/physics/semantic guides
 ## Staged build
 
 1. **B3 complete body base** — **PASS/CLOSED**.
-2. **B4 hair** — **CURRENT**.
+2. **B4 hair** — **CURRENT / OPEN**.
 3. **B5 clothing/restraints/accessories** — **BLOCKED UNTIL B4 PASS**.
 4. **G3S-C layered motion proof** — **BLOCKED UNTIL B3/B4/B5**.
 
@@ -47,47 +47,33 @@ Minimum representation:
 - body remains byte/pixel unchanged underneath;
 - additional sublayers may be added later only for real occlusion/secondary-motion needs.
 
-Canonical hair master is identity/style/material inspiration only. **Its pose is not a geometry-placement template.**
+Canonical hair master is identity/style/material inspiration only. Its pose is not a geometry-placement template.
 
 ## B4B history
 
 - V1 extraction — **FAIL/CLOSED PRE-RUN**: hidden rear hair absent from master.
 - V2 authored — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**.
 - V3 authored — **FAIL/CLOSED VISUAL + ALIGNMENT METHOD** because fixed master-like coordinates ignored the production body's different pose.
+- V4 pose-anchored authored — **FAIL/CLOSED VISUAL + METHOD**.
 
-V3 failure marker:
+V4 failure marker:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v3_pose_mismatch_failure.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
 
-Reviewed V3 contact sheet SHA256:
+Reviewed V4 contact sheet SHA256:
 
-`9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33`
+`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
 
-## B4B V4 — CURRENT
+## Procedural hair-authoring route closure — LOCKED
 
-V4 establishes a new invariant for visible-layer authoring:
+The V4 contact sheet exposes the key failure: `shoulder_span=6.36 px` was reported for the canonical `37 px`-wide body. The detector therefore did not recover a credible shoulder geometry.
 
-**When a reference/master pose differs from the production sprite pose, placement geometry must be anchored to the actual production sprite, not to reference-image coordinates.**
+More importantly, the entire abstraction is insufficient. Head center/bounds, shoulder row/span, torso center and a binary facing flag cannot encode the actual 3/4 relationship of head tilt, shoulder slope, torso rotation, arm occlusion, back contour and local depth.
 
-V4 measures from the canonical body alpha/silhouette:
+Therefore **heuristic pose anchors + hard-coded Pillow polygons/lines are not a viable visual author for production hair**.
 
-- head center/bounds;
-- shoulder row/span;
-- torso center;
-- facing bias.
+Do not iterate this route with more hand-tuned anchors or procedural locks. The runner `tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled.
 
-New `rear_hair` and `front_hair` geometry is authored relative to those body-pose anchors. The contact sheet exposes the detected anchors for review.
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchored_hair_spec.json`
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_pose_anchored_hair_candidate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
+The next B4 solution must use real visual 2D authoring/adaptation to the canonical B3B pose while preserving separate `rear_hair` and `front_hair` ownership.
 
 No B5/G3S-C starts before B4 passes.
