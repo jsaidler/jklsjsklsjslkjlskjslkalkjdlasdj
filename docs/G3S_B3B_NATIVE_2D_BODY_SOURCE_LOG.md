@@ -1,8 +1,8 @@
 # G3S-B3B — Native 2D Body Source
 
-Status date: **2026-09-05**
+Status date: **2026-09-06**
 
-Gate status: **BODY REFERENCE APPROVED — PIXEL-TRANSLATION CANDIDATE NEXT**
+Gate status: **V3 REFERENCE-GUIDED PIXEL TRANSLATION SPIKE READY FOR RUN — REVIEW ONLY / NOT PRODUCTION PASS**
 
 ## Canonical ownership rule
 
@@ -36,7 +36,7 @@ A bald nude body sheet generated in-chat was rejected as a generic polished/fitn
 
 ## Approved Exilada high-resolution body reference — PASS
 
-A user-supplied Grok turnaround is now the **primary high-resolution body reference for B3B authoring**.
+A user-supplied Grok turnaround is the **primary high-resolution body reference for B3B authoring**.
 
 Approval marker:
 
@@ -89,18 +89,55 @@ Automatic visual FAIL conditions include:
 - no meaningful Exilada identity;
 - failure to evoke Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
 
-## Current gate — pixel-art visual translation candidate
+## V3 — reference-guided native-grid translation spike — READY FOR RUN
 
-The approved turnaround is **reference**, not final production pixel art. It must not simply be resized, quantized or pixel-filtered into B3B.
+V3 is a **bounded visual spike**, not a production-source promotion.
 
-The next artifact is a **pixel-art visual translation candidate** built from the approved body direction. Its job is to prove that the body language and proportions survive the modern-pixel-art translation before a replacement production B3B native asset/runner is committed.
+Tooling:
 
-The candidate may use the approved turnaround and canonical Exilada master as visual references. It may not use B3A/3D projection as final silhouette authority.
+- helper: `tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py`;
+- runner: `tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`;
+- ready marker: `tools/structured-2d-character-pipeline/g3s_b3b_v3_spike_ready.json`.
 
-No B4 hair, B5 clothing/accessories or G3S-C animation begins until a replacement B3B body source passes visual review.
+The runner:
 
-## Next operator action
+1. verifies the canonical approved body-reference marker;
+2. locates the exact approved image by SHA256 in common user image folders;
+3. uses only the approved 2D turnaround, never B3A/3D RGB or mask, for this visible-translation study;
+4. isolates the approved front-three-quarter reference view;
+5. normalizes to the locked `128 px` native body height;
+6. creates a deterministic palette/cluster abstraction at the native grid;
+7. explicitly removes the dark reference loincloth from body ownership by reconstructing the covered pelvic region in skin tones at native pixels;
+8. emits a native guide, visual candidate, silhouette/gameplay preview and machine-readable result;
+9. marks every output **REVIEW REQUIRED / NOT PRODUCTION PASS**.
 
-**No local B3B runner is currently approved.**
+### Critical boundary
 
-Create/review the pixel-art visual translation candidate first. After visual approval, establish the accepted native 2D production source and its deterministic validation/export tooling.
+The project rule rejecting simple high-resolution resize/quantize as a final Production Pixel Master remains in force.
+
+Therefore V3 cannot be promoted automatically merely because the script succeeds. It exists to answer one bounded visual question: **can deterministic 2D reference-guided abstraction yield a native-grid body that actually reads as intentional modern pixel art rather than reduced illustration/filtering?**
+
+If the answer is no, V3 closes as a visual failure and its candidate is not promoted. No model cleanup applies because V3 downloads no model weights.
+
+If the answer is yes, the accepted native cluster language must then be frozen/re-authored as the persistent B3B production source and validated independently from the high-resolution reference.
+
+## Current gate
+
+**G3S-B3B V3 visual review is current.**
+
+B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until a replacement B3B production source passes.
+
+## Exact next operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\13_run_g3s_b3b_v3_reference_guided_translation.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
+
+or the complete console error.
