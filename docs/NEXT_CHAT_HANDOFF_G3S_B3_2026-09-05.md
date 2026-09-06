@@ -37,17 +37,7 @@ B4 remains open and unapproved. Required eventual structure remains:
 
 `rear_hair -> body -> front_hair`
 
-The user explicitly instructed on 2026-09-06 to forget hair for now and show the doll moving.
-
-B4C produced a review contact sheet but no hair was promoted:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
-
-User-provided SHA256:
-
-`ac95bf9e3fae2df1e25cc91bcbda69be061526c163ce61cbe0d065cfc7be1c1c`
-
-Do not resume B4 automatically.
+The user explicitly instructed on 2026-09-06 to forget hair for now and show the doll moving. Do not resume B4 automatically.
 
 ## Motion backbone already validated
 
@@ -59,37 +49,70 @@ Do not resume B4 automatically.
 
 ## CURRENT GATE — G3S-C0 BODY-ONLY MOTION PROOF
 
-C0 is a diagnostic exception to the full layered order. It is allowed now because the user wants to inspect the approved body in motion before more visual-layer work.
+C0 is a diagnostic exception to the full layered order because the user wants to inspect the approved body in motion before more visual-layer work.
 
-C0 uses:
+### C0 V1 — FAIL/CLOSED
 
-`real G2 walk -> projected joints/depth -> direction deltas -> persistent B3B pixel-part transforms -> depth-aware native 2D composition`
+Reviewed contact sheet:
 
-It does not use diffusion, hidden-3D RGB, paid APIs, new model downloads or user keyframing.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_contact_sheet.png`
+
+SHA256:
+
+`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+
+V1's real-motion transfer worked, but the visible deformation did not. Hard upper/lower limb pieces visibly detach and create broken loop/arc silhouettes in later gait frames.
+
+Closed method:
+
+`nearest-segment body partition + independent rigid per-part rotation`
+
+Do not patch V1 with more overlap or more rigid pivot tuning.
+
+### C0 V2 — CURRENT / RUNNER READY
+
+V2 keeps the approved real-motion projection but replaces hard limb slabs with continuous chain deformation.
+
+Visible regions:
+
+- head;
+- torso;
+- left/right arm;
+- left/right leg.
+
+An arm/leg is warped as one complete chain, with adjacent-segment mapping blended around elbows/knees/ankles. Source pixel colors remain the visible art; hidden 3D contributes joints/depth only.
+
+No diffusion, hidden-3D RGB, paid API, model download or manual user animation is used.
+
+Spec:
+
+`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
+
+Builder:
+
+`tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1`
-
-Support:
-
-- `g3s_c0_body_motion_spec.json`
-- `g3s_c0_extract_g2_motion.py`
-- `g3s_c0_body_puppet_walk.py`
+`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
 Workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2`
 
 Expected outputs:
 
-- `g3s_c0_body_walk_in_place.gif`
-- `g3s_c0_body_walk_travel.gif`
-- `g3s_c0_body_walk_contact_sheet.png`
-- `g3s_c0_motion_projection.json`
-- `g3s_c0_body_walk_report.json`
+- `g3s_c0_v2_body_walk_in_place.gif`
+- `g3s_c0_v2_body_walk_travel.gif`
+- `g3s_c0_v2_contact_sheet.png`
+- `g3s_c0_v2_zoom_contact_sheet.png`
+- `g3s_c0_v2_report.json`
 
-The first C0 revision is a diagnostic cutout/deformation proof. Visible seams or rigid-joint artifacts should be analyzed and fixed in the deformation method; they are not final accepted animation quality.
+If V2 still cannot keep the body visually continuous, move to an actual weighted 2D mesh/cage deformation representation. Do not return to rigid cutout parts.
 
 ## Exact next operator action
 
@@ -97,12 +120,16 @@ The first C0 revision is a diagnostic cutout/deformation proof. Visible seams or
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\19_run_g3s_c0_body_walk_proof.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\20_run_g3s_c0_body_walk_v2.ps1"
 ```
 
-Then share the in-place GIF first:
+Then share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_in_place.gif`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
+
+and
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
 
 If the runner fails, share the complete console output.
 
@@ -110,5 +137,5 @@ If the runner fails, share the complete console output.
 
 - `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend` must still exist from approved G2;
 - Blender must remain installed/discoverable;
-- embedded Python used for deterministic raster work: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
+- embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
 - no AI model is required.
