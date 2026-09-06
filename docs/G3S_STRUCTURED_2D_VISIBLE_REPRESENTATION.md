@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / C1A HIDDEN-3D FULL-POSE GUIDE CURRENT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / C1A V6 HIDDEN-3D FULL-POSE GUIDE CURRENT**
 
 Canonical animation architecture lock:
 
@@ -45,15 +45,11 @@ This B3B asset remains the approved static body identity/style anchor for that v
 
 ## Facing/laterality rule — LOCKED
 
-A 3/4 raster cannot infer anatomical left/right or near/far ownership from screen-x alone. Any animation source family must explicitly register:
-
-- screen facing;
-- anatomical side;
-- near/far limb ownership;
-- occlusion order;
-- pose/rest basis relative to hidden motion guides.
+A 3/4 raster cannot infer anatomical left/right or near/far ownership from screen-x alone. Any animation source family must explicitly register screen facing, anatomical side, near/far limb ownership, occlusion order and pose/rest basis relative to hidden motion guides.
 
 The current B3B family faces screen-left; travel using that family must move screen-left unless another direction family is authored.
+
+For hidden-3D guide presentation, **directional family is now a camera/view selection relative to real motion heading, not an object-space rotation of the skinned rig/body**. This rule was locked after C1A V5 visually exploded the MPFB body while its skeleton remained coherent.
 
 ## B4 hair — DEFERRED
 
@@ -72,71 +68,42 @@ Motion infrastructure retained:
 - `G2_CANONICAL_RIG`;
 - G3V-R `DIRECTION_SPACE_FK` = PASS.
 
-### C0 V1 — FAIL/CLOSED
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
-
-Method: hard body-part cutout + independent rigid rotation from the single B3B still.
-
-Failure: detached joints and broken/loop-like stride silhouettes.
-
-### C0 V2 — FAIL/CLOSED VISUAL + METHOD
-
-Reviewed contact sheet SHA256:
-
-`6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
-
-Method: continuous chain warp of arms/legs from the same single still.
-
-Failure: anatomically impossible limb arcs persisted.
-
-Root cause is architectural:
-
-- the hidden-3D guide was incorrectly reduced to projected joint deltas;
-- sprite-facing/laterality/near-far ownership was not registered;
-- sprite rest/camera basis and hidden-rig projected-motion basis were not a validated common coordinate system;
-- real gait depth and foreshortening were collapsed into 2D chain deformation;
-- the still lacks hidden anatomy revealed by changing occlusion;
-- bbox-bottom placement is not true contact/root grounding.
-
-Therefore the entire following class is closed when the **only visible source** is the single B3B still:
-
-`single still -> projected joints -> cutout / chain warp / cage warp -> manufacture full gait`
-
-A smoother weighted mesh is not a solution to missing visible surfaces or wrong near/far anatomy.
-
-V2 runner is disabled:
-
-`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
+C0 V1 hard cutout and C0 V2 continuous-chain warp are FAIL/CLOSED. The entire route `single still -> projected joints -> cutout/warp/cage -> manufacture gait` is closed.
 
 ## G3S-C1A — HIDDEN FULL-POSE GUIDE — CURRENT
 
-C1A implements the retained hidden-3D backbone as a **full pose guide**, exactly as intended.
+C1A implements the retained hidden-3D backbone as a **full pose guide**.
 
-For the first event it exports an anatomical **left-contact** pose in the screen-left family using:
+### V5 reviewed failure
 
-- the real CMU G2 motion;
+Reviewed contact sheet SHA256:
+
+`74ee1979afa58b8bbe77a3549fdc6af41e24524287f6329a33425aa7b15f6ba9`
+
+V5 numerically hit 128 px, screen-left travel and correct explicit contact/near/far metadata, but visually failed because the skinned body formed giant triangular stretched surfaces while the skeleton remained coherent.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_v5_visual_transform_failure.json`
+
+The rejected presentation sub-method was post-retarget object-space rotation/translation of both target rig and skinned body to manufacture facing/grounding.
+
+### V6 current architecture
+
+For the first event C1A V6 exports an anatomical **left-contact** pose in the screen-left family using:
+
+- real CMU G2 motion;
 - retained continuous MPFB adult female hidden body;
 - `G3V_CMU_RIG`;
 - validated `DIRECTION_SPACE_FK`;
-- G1 `640×360` / `26°` / approximately `128 px` scale.
+- unchanged post-retarget rig/body object matrices and parent state;
+- G1 `640×360` / `26°` / approximately `128 px` scale;
+- front-three-quarter camera at `45°` azimuth relative to real motion heading, selected so forward travel projects screen-left;
+- original-body camera-space depth shader from V5 with no geometry proxy/bake/index mapping.
 
-C1A exports:
+V6 explicitly forbids directional or grounding transforms on the target rig/body. Object matrix delta must remain `<=1e-8`.
 
-- neutral continuous-body anatomy guide;
-- silhouette guide;
-- explicit anatomical region/laterality guide;
-- camera-space depth-band guide;
-- projected skeleton overlay;
-- JSON with joints, anatomical sides, near/far side, contact foot, root/pelvis, camera and phase-selection metadata;
-- logical `96×160` guide crops;
-- review contact sheet including the canonical B3B static identity anchor.
+C1A exports neutral body guide, silhouette guide, anatomical region/laterality guide, camera-space depth guide, projected skeleton overlay, JSON metadata, logical `96×160` guide crops and one review contact sheet.
 
 Runner:
 
@@ -152,16 +119,9 @@ C1A must pass visual review before C1B begins.
 
 ## G3S-C1B — BLOCKED UNTIL C1A REVIEW
 
-C1B will author one complete persistent native-2D left-contact body pose using:
+C1B will author one complete persistent native-2D left-contact body pose using C1A as pose/anatomy/laterality/near-far/occlusion control and B3B V4 as identity/body-style anchor.
 
-- C1A as pose/anatomy/laterality/near-far/occlusion control;
-- B3B V4 as identity/body-style anchor.
-
-C1B may not:
-
-- deform the static B3B still into the pose;
-- quantize/recolor/crop the 3D guide into a sprite;
-- make hidden 3D the final visible owner.
+C1B may not deform the static B3B still into the pose, quantize/recolor/crop the 3D guide into a sprite, or make hidden 3D the final visible owner.
 
 If the first C1B pose passes, the same architecture expands to the remaining seven gait events.
 
