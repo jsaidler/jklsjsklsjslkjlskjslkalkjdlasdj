@@ -73,14 +73,38 @@ Reason for rejection:
 
 The only useful conclusion from this probe is negative: adult nudity itself is not the blocker; the blocker is obtaining production-quality Exilada-specific character art that satisfies the native-2D pipeline contract.
 
+## High-detail Exilada body reference sheet — APPROVED REFERENCE / NOT B3B 2026-09-05
+
+A Grok-generated four-view high-detail body sheet (front / back / side / three-quarter) was reviewed and is **approved as the current high-detail body reference for B3B authoring**.
+
+What it successfully establishes:
+
+- adult female body with mature severe presence;
+- strong sword-and-sorcery physical language aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
+- sensuality and physical attractiveness without the previously rejected generic fitness-model reading;
+- lean/functional/resilient anatomy with believable hips, thighs, chest, shoulders, arms and legs;
+- grounded barefoot stance;
+- coherent front/back/profile/three-quarter proportion reference;
+- sufficiently dangerous, severe and lived-in body language to serve as Exilada-specific visual guidance.
+
+Important boundary:
+
+- this sheet is **reference authority only**, not the native B3B sprite;
+- it is high-resolution illustrative/reference material, not production pixel art;
+- the small dark pubic covering is an occluder and must never be baked into the permanent body-base ownership;
+- final B3B must still author its own native sprite RGB/alpha/silhouette and must keep hair/clothing/restraints separate;
+- B3A remains structural/anatomical sanity-check reference only.
+
+This reference materially resolves the previous uncertainty about the intended body language. The remaining B3B problem is no longer "what body are we trying to make?" but "how do we translate this approved body identity into a production-quality native 2D pixel asset without returning visible ownership to hidden 3D or procedural mannequin construction?"
+
 ## Current gate
 
 **B3B remains current.**
 
-The next candidate must be actual character art, not a primitive/mannequin construction and not a generic generated nude sheet. It may use B3A only as anatomy/proportion/joint/scale reference and may use the canonical Exilada identity master as design reference. Final art still must remain sprite-owned and native-2D.
+The next candidate must be actual character art, not a primitive/mannequin construction and not a generic generated nude sheet. It may use B3A only as anatomy/proportion/joint/scale reference and may use both the canonical Exilada identity master and the approved high-detail body reference sheet as design references. Final art still must remain sprite-owned and native-2D.
 
 No hair, clothing or animation may begin until a B3B body source passes visual review.
 
 ## Next operator action
 
-**No runner is currently approved.** Do not rerun V2.
+**No runner is currently approved.** Do not rerun V2. The next implementation step is to author a replacement B3B native-pixel body candidate using the approved body reference sheet as visual reference while preserving 2D sprite ownership.
