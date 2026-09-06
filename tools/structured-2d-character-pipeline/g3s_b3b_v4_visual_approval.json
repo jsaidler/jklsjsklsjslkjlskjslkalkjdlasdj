@@ -1,0 +1,22 @@
+{
+  "gate": "G3S-B3B-V4",
+  "status": "VISUAL_PASS_PROMOTION_PENDING",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b3b_v4_pixel_reference\\g3s_b3b_v4_contact_sheet.png",
+  "reviewed_artifact_sha256": "2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182",
+  "locked_reference_sha256": "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a",
+  "approved_source_view": "front-three-quarter",
+  "native_candidate_size": [37, 128],
+  "native_candidate_raw_rgba_sha256": "bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9",
+  "review_basis": [
+    "reads as intentional pixel-art imagery at native scale rather than a reduced smooth render",
+    "adult female anatomy remains readable at 128 px standing height",
+    "face, chest, pelvis, legs, hands and feet remain distinguishable at gameplay scale",
+    "body mass is compatible with the locked Exilada reference direction",
+    "silhouette is usable as the persistent nude/hairless body layer",
+    "gameplay preview is readable in the locked 640x360 scene"
+  ],
+  "scope": "Approves the nude/hairless body base only. Hair, clothing, restraints, accessories and animation remain separate later gates.",
+  "automatic_promotion": false,
+  "next_action": "Run the deterministic promotion runner, validate the exact approved RGBA pixels, copy the body base into the canonical assets tree, write provenance metadata, and commit/push only those production asset files."
+}
