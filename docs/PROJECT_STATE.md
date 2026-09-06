@@ -23,20 +23,9 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 ## Living-document invariant — LOCKED
 
-**Every project action that changes state must update the living documents before that action is reported as complete.**
+Every project action that changes state must update the living documents before that action is reported complete.
 
-This includes, without exception: decisions, approvals/rejections, generated or reviewed artifacts, PASS/FAIL/CLOSED results, runner/tool creation or removal, runtime/install/cleanup state, architecture changes, visual-direction changes, next-step changes and operator instructions.
-
-Required sequence for every such action:
-
-1. perform/inspect the action;
-2. update the relevant thematic living document(s);
-3. update `docs/PROJECT_STATE.md` with the current gate/state when the action affects project state;
-4. update the active cross-chat handoff when continuation instructions or local runtime/tool state changed;
-5. make the focused Git commit(s);
-6. only then tell the user the action is complete and give the next command/action.
-
-Do **not** leave the canonical state only in chat. Do **not** postpone documentation until the end of a batch. Cross-chat continuation must be possible from GitHub alone.
+Required sequence: perform/inspect -> update thematic docs -> update `PROJECT_STATE` -> update active handoff when applicable -> commit -> only then report completion/next action.
 
 ## Game identity — LOCKED
 
@@ -54,21 +43,11 @@ Canonical design master:
 
 Adult woman, approximately 162 cm, lean/functional/resilient anatomy, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy black hair, degraded beige cloth in the initial equipped state, captivity history, bare feet, weaponless base identity.
 
-Do **not** reinterpret “compact” as short, squat or flattened anatomy. The approved body direction is natural adult proportion at ~162 cm, lean/functional/resilient.
-
 Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references. Mature sensuality, erotic charge and adult nudity are legitimate parts of the visual language and are not automatically sanitized.
 
 ## Body-first rule — LOCKED
 
-The production character owns a **complete adult body base independent of hair, clothing and restraints**.
-
-- body base is hairless;
-- hair is a separate persistent 2D layer family;
-- clothing/bindings are separate overlays;
-- cuffs/shackles/chains are accessories/equipment;
-- the body remains complete under removable layers;
-- nudity is a normal supported state;
-- no censor garment is structurally required.
+The production character owns a complete adult body base independent of hair, clothing and restraints.
 
 ## Hard operator constraint
 
@@ -80,28 +59,18 @@ Normal operator loop once a runner is approved:
 
 ## Visible-ownership invariant — CRITICAL
 
-G3V rejected hidden 3D as visible-image owner.
+Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not final visible RGB/alpha/silhouette. Final visible art is owned by persistent native 2D pixel assets.
 
-Hidden 3D may own motion, topology/left-right identity, sockets/contacts/root data, physics, depth/occlusion metadata and structural guides. It **must not own final visible RGB, alpha or final sprite silhouette**.
+High-resolution render/reference art may not be mechanically pixelated into production art.
 
-The same principle explicitly applies to 2D reference art: reference images may guide design/anatomy but may not be mechanically resized, quantized, traced or filtered into final production sprite geometry.
-
-Final character art is owned by persistent native 2D pixel assets. Runtime/export remains sprite-based.
+A separate case is now explicitly recognized for the user-locked **pixel-art** turnaround: a bounded review candidate may extract an existing pixel-art view and normalize scale using nearest-neighbor only, provided no anatomy/silhouette repair, palette synthesis, smoothing or render-to-pixel conversion is performed. Visual approval is still mandatory before promotion.
 
 ## Locked gameplay baseline
 
-- scene canvas: `640×360`;
+- native scene: `640×360`;
 - orthographic camera;
 - pitch: `26°`;
-- protagonist **visible standing height**: approximately `128 px`.
-
-### 128 px clarification — LOCKED
-
-`128 px` is the target **on-screen standing height** of the protagonist at native `640×360`. It is **not** a universal sprite-frame dimension and does not require production frames to be `128×128`.
-
-G1 compared `112 / 128 / 144 px`; `128 px` was selected as the best compromise between character identity/equipment/gore readability and combat/walkable-screen composition.
-
-Animation frames, hair, weapons and extreme actions may require larger transparent bounds while preserving the same native body scale.
+- protagonist visible standing height: approximately `128 px`.
 
 ## Gate order — CURRENT
 
@@ -118,15 +87,14 @@ Animation frames, hair, weapons and extreme actions may require larger transpare
   - G3S-B persistent part decomposition V1 — FAIL/CLOSED
   - G3S-B2 layer-stack preflight — PASS/CLOSED DIAGNOSTIC
   - **G3S-B3 complete body base** ← CURRENT
-    - B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity
+    - B3A V1 — FAIL/CLOSED REVISION
     - B3A V2 — PASS/CLOSED structural adult-female guide
     - B3B V1 — FAIL/CLOSED ROUTE: 3D-mask-owned silhouette
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin look
-    - covered Grok body turnaround — PASS historical reference / SUPERSEDED
-    - fully nude Grok body turnaround — PASS / SUPPORTING ANATOMY REFERENCE / NOT PRODUCTION ART
-    - B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**
-    - final user-supplied four-view visual reference — **PASS / LOCKED / NO FURTHER USER GENERATION**
-    - **B3B V4 native-pixel authoring from fixed references** ← CURRENT / IMPLEMENTATION NEXT
+    - fully nude Grok high-resolution turnaround — PASS / SUPPORTING ANATOMY REFERENCE / NOT PRODUCTION ART
+    - B3B V3 reduced-reference spike — FAIL/CLOSED VISUAL AND METHOD ROUTE
+    - final user-supplied four-view pixel-art visual reference — PASS / LOCKED / NO FURTHER USER GENERATION
+    - **B3B V4 locked pixel-reference normalization** ← CURRENT / RUNNER READY / REVIEW NEXT
   - B4 hair — BLOCKED UNTIL B3B PASS
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -135,21 +103,13 @@ Animation frames, hair, weapons and extreme actions may require larger transpare
 
 ### Supporting high-resolution nude anatomy reference
 
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
-
-Canonical local path:
-
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
-SHA256:
+SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`.
 
-`1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
+Role: anatomy/proportion support only; never visible sprite source.
 
-Role: anatomy/proportion support only; not production pixel art.
-
-### Final user-supplied visual reference — LOCKED
+### Final user-supplied pixel-art visual reference — LOCKED
 
 Marker:
 
@@ -160,89 +120,67 @@ Source facts:
 - SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
 - dimensions `1168×784`;
 - JPEG;
-- four views: front/back/profile/front-three-quarter;
-- adult nude/hairless body reference.
+- front/back/profile/front-three-quarter;
+- adult nude/hairless body;
+- pixel-art imagery on flat dark background.
 
-**User-interaction lock:** do not ask the user for another body image, another turnaround, another Grok prompt or another reference-generation attempt. The references already available are sufficient; the assistant/pipeline owns the remaining authoring work.
+Hard interaction lock: do not ask the user for another body image, turnaround, Grok prompt or reference-generation attempt.
 
 ## B3B V3 — FAIL/CLOSED
 
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
-
-SHA256:
-
-`ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047`
+V3 reduced/quantized a high-resolution render and therefore produced a reduced render, not authored pixel art.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
 
-V3 mechanically isolated the three-quarter reference, downscaled it to `128 px`, retained the reduced reference silhouette/mask, quantized colors and applied cleanup. The result reads as a **tiny reduced render**, not authored modern pixel art.
+No model cleanup applies.
 
-V3 is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
+## B3B V4 — CURRENT
 
-## B3B V4 direct native-pixel authoring — CURRENT
-
-Machine-readable method specification:
+Spec:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-Core rule: **the fixed references are not converted into the sprite. The production body must be intentionally authored for the native pixel grid.**
+Helper:
 
-The previous dependency on the user generating another Grok candidate is superseded and removed.
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py`
 
-Target:
+Approved review runner:
 
-- front-three-quarter elevated gameplay view approximating `26°` pitch;
-- adult nude hairless body;
-- approximately `128 px` visible standing height;
-- deliberate pixel clusters/value groups and gameplay-readable silhouette;
-- no high-resolution resize/quantize/trace route;
-- no procedural mannequin promoted as final art;
-- no routine manual repainting burden on the user.
+`tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1`
 
-## B3B visual PASS rule
+V4 uses only the locked pixel-art turnaround as visible source. It selects the existing front-three-quarter figure, removes the flat presentation background, normalizes visible height to `128 px` using nearest-neighbor only, and produces native/enlarged/gameplay review outputs. It does not use the high-resolution anatomy render as visible source and does not invent/repair anatomy.
 
-A candidate must read immediately as the Exilada's adult sword-and-sorcery body: attractive, sensual, strong, dangerous, severe and lived-in — **beauty + hardness + survival**.
-
-Automatic FAIL: procedural mannequin, generic fitness/character-creator body, superhero exaggeration, shortened/squat body, weak chest/pelvis/thigh anatomy, bad hands/feet at 1×, pseudo-3D/filtered render, reduced-illustration look, sanitized body language or absent Exilada identity.
+Automatic promotion is forbidden.
 
 ## Current exact action
 
-**Reference acquisition is closed. No B3B runner is currently approved.**
+Run exactly:
 
-The next action is the assistant/pipeline task of **selecting and implementing a valid native-pixel authoring path from the fixed references, then producing the first genuine B3B body candidate.**
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-Do not ask the user for another image or prompt. Do not create another mechanical conversion runner. Do not reopen closed model routes automatically.
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\14_run_g3s_b3b_v4_pixel_reference_candidate.ps1"
+```
 
-Only after a genuine authored candidate visually passes should deterministic import/validation/export tooling be committed.
+The runner searches the exact locked reference by SHA in the canonical repo path and common user image folders (`Downloads`, `Desktop`, `Pictures`).
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
+
+or the complete console error.
 
 B4/B5/G3S-C remain blocked.
 
 ## Actual local AI disk/runtime state — LOCKED 2026-09-06
 
-User visually verified the contents of `Z:\AI` after cleanup. Relevant retained directories:
-
-- `Z:\AI\QwenImageEditSpike`
-- `Z:\AI\RogueliteCharacterPipeline`
-- `Z:\AI\Flux2RefControlSpike`
-
-Interpret them correctly:
-
-- **`QwenImageEditSpike\ComfyUI_windows_portable` is the only retained general local AI application/runtime currently used by this project.** The directory name is historical. Qwen image-edit model weights were removed when that route was closed.
-- **`RogueliteCharacterPipeline` is deterministic project workspace/output**, not a second AI model/application.
-- **`Flux2RefControlSpike` is frozen evidence/workspace from the closed RefControl investigation**, not the current B3B authoring tool.
-- repository folders for old spikes are historical code and do not prove corresponding models are installed locally;
-- **Wan-Animate-2 is not to be assumed installed locally** without fresh local verification;
-- closed model routes Qwen-native, SD1.5, PixelLock and Alucard remain closed;
-- Blender/MPFB may remain as hidden structural infrastructure outside this `Z:\AI` inventory.
-
-## Workspaces
-
-- repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
-- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
-- deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
-- retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
-- frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
+- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (folder name historical; Qwen weights removed);
+- deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
+- frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
+- repository-only old spike code does not imply local model installation;
+- Wan-Animate-2 must not be assumed installed without fresh verification;
+- Qwen-native, SD1.5, PixelLock and Alucard remain closed;
+- Blender/MPFB may remain only as hidden structural infrastructure.
