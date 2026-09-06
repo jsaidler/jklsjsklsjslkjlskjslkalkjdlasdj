@@ -64,8 +64,6 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 
 High-resolution render/reference art may not be mechanically pixelated into production art.
 
-The user-locked pixel-art turnaround is a bounded source case: an existing pixel-art view may be extracted and normalized with nearest-neighbor only without anatomy/silhouette repair or palette synthesis.
-
 ## Locked gameplay baseline
 
 - native scene: `640×360`;
@@ -96,7 +94,8 @@ The user-locked pixel-art turnaround is a bounded source case: an existing pixel
     - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
   - **G3S-B4 hair** ← CURRENT
     - B4A preflight — **PASS/CLOSED DIAGNOSTIC**
-    - **B4B two-layer static hair candidate** ← RUNNER READY / REVIEW NEXT
+    - B4B V1 master-extraction route — **FAIL/CLOSED PRE-RUN METHOD**
+    - **B4B V2 authored two-layer static candidate** ← RUNNER READY / REVIEW NEXT
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
@@ -122,27 +121,11 @@ Recorded facts:
 - persistent 2D visible ownership;
 - excludes hair, clothing, restraints, accessories and weapons.
 
-## Locked B3B references
-
-Supporting high-resolution anatomy reference:
-
-`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
-
-SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`.
-
-Final user-supplied pixel-art reference marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
-
-Source SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`.
-
-Hard interaction lock: do not ask the user for another body image, turnaround, Grok prompt or body-reference generation attempt.
-
 ## G3S-B4 hair — CURRENT
 
 Canonical hair identity:
 
-- black;
+- black / nearly black;
 - very long;
 - heavy;
 - voluminous;
@@ -156,18 +139,18 @@ Hair is a separate persistent 2D layer family and must leave the B3 body asset u
 
 Minimum valid B4 representation:
 
-1. `rear_hair` — behind body/head/shoulders;
+1. `rear_hair` — behind body/head/shoulders/back;
 2. `front_hair` — in front where hair crosses face/neck/chest/shoulders.
 
 Minimum deterministic composition:
 
 `rear_hair -> body -> front_hair`
 
-Additional side/intermediate masses may be introduced only if occlusion or secondary motion requires them.
+Additional side/intermediate masses may be introduced only if later occlusion/secondary motion proves they are needed.
 
-### B4A hair preflight — PASS/CLOSED DIAGNOSTIC
+### B4A preflight — PASS/CLOSED DIAGNOSTIC
 
-Reviewed contact sheet:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
 
@@ -179,9 +162,23 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
 
-The preflight confirms that the local canonical master is suitable as hair identity/mass reference, the promoted body remains immutable, the `96×160` shared review frame is adequate for the first static test, and B4 must use the minimum `rear_hair -> body -> front_hair` ownership split.
+The master is suitable as hair identity/mass inspiration, the body remains immutable, and `96×160` is adequate for the first static review.
 
-### B4B two-layer static candidate — RUNNER READY
+### B4B V1 extraction route — FAIL/CLOSED PRE-RUN
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
+
+Reason: the master does not show enough of the hair that falls behind the head, shoulders and back. Therefore valid `rear_hair` geometry cannot be extracted by splitting only visible master pixels.
+
+The V1 runner was not executed by the user, produced no production art, downloaded no model and requires no cleanup.
+
+### B4B V2 authored two-layer candidate — RUNNER READY
+
+Spec:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
 
 Helper:
 
@@ -195,9 +192,7 @@ Output contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-B4B uses only already-authored hair pixels from the local canonical master, verifies the body/master provenance, aligns hair by body/skin anchors with nearest-neighbor scaling, separates `rear_hair` and `front_hair` according to immutable body overlap, and produces a review-only package. It does not use an external paid API and does not promote hair automatically.
-
-Known limitation: hidden rear-hair coverage behind the body and secondary-motion segmentation are not yet authored; B4B is a static visual/depth ownership review first.
+V2 authors **new native-pixel geometry** for both layers. The canonical master is inspiration/reference only; its pixels are not copied, extracted, traced or split into final hair layers. `rear_hair` explicitly includes new back-hair coverage absent from the master. The runner uses no external paid API/model and performs no automatic promotion.
 
 ## Current exact action
 
@@ -214,11 +209,11 @@ Then STOP and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C before B4B review.
+Do not promote hair and do not start B5/G3S-C before B4B V2 review.
 
 ## Actual local AI disk/runtime state — LOCKED 2026-09-06
 
-- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (folder name historical; Qwen weights removed);
+- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (historical folder name; Qwen weights removed);
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
 - repository-only old spike code does not imply local model installation;
