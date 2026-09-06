@@ -1,0 +1,21 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "V2_EVALUATED_DEPTH_TOPOLOGY",
+  "status": "FAIL_CLOSED_TECHNICAL",
+  "date": "2026-09-06",
+  "failure": "depth topology bake changed the calibrated projected guide scale",
+  "observed": {
+    "selected_frame": 1588,
+    "near_side": "left",
+    "far_side": "right",
+    "travel_dx_px": -62.7345,
+    "measured_body_height_px_after_bake": 102.4258804321289,
+    "target_body_height_px": 128,
+    "source_polygon_count": 18486,
+    "evaluated_polygon_count": 13378
+  },
+  "root_cause": "V2 copied the evaluated mesh into the source object's local data while retaining the source object transform. The retained MPFB evaluated-object transform/local-space relationship is not identity-equivalent, so the frozen guide no longer occupied the same world-space geometry used during camera calibration.",
+  "correction": "V3 transforms evaluated vertices into exact world coordinates before freezing, removes parenting/modifiers, sets object matrix to identity, and asserts projected-height invariance <= 0.25 px.",
+  "architecture_impact": "none; hidden-3D full-pose guide architecture remains current",
+  "cleanup": "none; no model/API/download was used"
+}
