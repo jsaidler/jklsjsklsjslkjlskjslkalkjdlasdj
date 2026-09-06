@@ -2,106 +2,86 @@
 
 Status date: **2026-09-06**
 
-Status: **CANONICAL / LOCKED — HIDDEN 3D = SKELETON/RIG GUIDE, NOT SKINNED BODY**
+Status: **CANONICAL / LOCKED — SKELETON-ONLY C1A EIGHT-STATE WALK RUNNER READY**
 
-## Final architecture
+## Final production architecture
 
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact guide data -> persistent native-2D pose assets -> deterministic timing/depth/composition -> sprite/runtime export -> QA`
+`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root guide data -> persistent native-2D pose assets -> deterministic sprite playback -> QA`
 
-## Hidden 3D owns
+The hidden 3D is a **skeleton/armature**, not a hidden character render.
 
-- the animation skeleton / armature topology;
-- real motion and retargeting;
-- complete joint transforms for each sampled event/frame;
+### Hidden skeleton owns
+
+- real motion and skeletal topology;
+- complete bone/joint transforms for each sampled state;
 - anatomical left/right identity;
-- near/far limb identity from camera-space depth;
-- foreshortening of bone chains;
-- foot contacts and foot-roll timing;
-- pelvis/root translation;
-- sockets/attachments;
-- secondary-motion drivers;
-- per-bone / per-chain depth and occlusion ordering.
+- near/far chain identity from camera-space depth;
+- bone-chain foreshortening;
+- contact/support-foot timing;
+- pelvis/root travel;
+- sockets and attachment transforms;
+- secondary-motion driving data.
 
-## Hidden 3D does NOT require or own
+### Hidden skeleton does not own or require
 
 - a skinned human body mesh;
 - detailed 3D anatomy;
-- production body topology;
-- final visible RGB;
-- final visible alpha;
+- final RGB or alpha;
 - final sprite silhouette;
 - final pixel-art clusters/value language.
 
-A skinned MPFB body is **not part of the animation-guide requirement**. The previous C1A revisions incorrectly conflated "full pose guide" with "render a posed 3D human mesh". That is now superseded.
-
-The hidden guide may be literally an armature/skeleton. If a particular control task later benefits from volume, only simple deterministic non-skinned debug primitives/capsules may be generated from bone transforms. Such primitives are optional control visualizations, never character anatomy or final art.
-
-## Critical distinction
-
-"Full pose" means the rig provides the full spatial state of the pose, not that a full 3D human surface must exist.
-
-For each gait/action event, the guide package needs, at minimum:
-
-- projected joints;
-- full bone-chain transforms;
-- anatomical-side labels;
-- near/far labels;
-- per-chain camera-space depth;
-- contact foot/contact state;
-- root/pelvis transform;
-- travel direction;
-- fixed camera/view metadata.
-
-That is enough to control authorship of a complete 2D pose without asking one static 2D raster to deform into every other pose.
-
-## Visible 2D ownership
-
-Each accepted key event has a complete persistent native-2D body pose at production scale. Those 2D assets own visible anatomy, silhouette, RGB and alpha.
-
-The approved B3B V4 body remains:
-
-- the canonical identity/body-style anchor for the current screen-left family;
-- one valid static pose;
-- not the sole pixel source for every animated pose.
-
-The source-authoring step for new poses must be automated or assistant-operated. The user is not expected to redraw frames manually.
-
-A visual authoring model/tool may be used offline to create persistent source candidates only when explicitly approved for that gate. It does not become the runtime/per-frame animation owner.
-
-## Motion backbone
-
-The retained motion infrastructure remains valid:
-
-- G2 CMU `105_34 NormalWalk`;
-- `G2_CANONICAL_RIG`;
-- G3V-R `DIRECTION_SPACE_FK` retarget approval;
-- `G3V_CMU_RIG` may be retained as a convenient character-proportioned hidden armature.
-
-The retained `G3V_BODY` mesh is historical G3V evidence only and is no longer required for the animation guide path.
+Simple lines/capsules may be rendered only as debug visualization of bone data.
 
 ## Closed routes
 
-- direct visible 3D -> final pixel art;
-- single B3B still -> cutout/warp/cage -> full gait;
-- skinned MPFB body -> rendered anatomy/silhouette/depth package as mandatory animation guide.
+The following remain closed:
 
-## First walk implementation
+- hidden 3D render -> final visible pixel art;
+- single B3B still -> projected joints -> cutout/warp/cage -> full gait;
+- MPFB skinned body as mandatory pose/anatomy/silhouette/depth guide.
 
-Target events remain:
+The B3B V4 body remains the approved visible identity/body-style anchor. It is not stretched into new gait poses.
 
-1. left contact;
-2. left down/loading;
-3. left passing;
-4. left up;
-5. right contact;
-6. right down/loading;
-7. right passing;
-8. right up.
+## C1A — eight-state skeleton walk cycle
 
-For the first proof, export **one left-contact skeleton guide** first. Only after that spatial guide is validated should C1B author one complete persistent native-2D left-contact body pose.
+The user explicitly prioritized seeing motion rather than stopping at another single-pose proof. C1A therefore exports the complete first walk cycle in one pass from the already-approved `G2_CANONICAL_RIG` and CMU `105_34 NormalWalk` motion.
+
+States:
+
+1. `1588` — left contact;
+2. `1598` — left down;
+3. `1608` — left passing;
+4. `1618` — left up;
+5. `1628` — right contact;
+6. `1638` — right down;
+7. `1648` — right passing;
+8. `1658` — right up.
+
+The guide camera is orthographic `640×360`, pitch `26°`, front-three-quarter at `45°` relative to the actual root-travel heading. The rig is not rotated to manufacture facing; the camera side is chosen so real forward root travel projects screen-left. Maximum projected skeleton height is calibrated to approximately `128 px`.
+
+C1A records full bone matrices, projected joints, per-chain depths/lengths, anatomical laterality, near/far ownership, support foot, ground distance and real projected root travel for all eight states.
+
+Current runner:
+
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
+
+Current spec:
+
+`tools/structured-2d-character-pipeline/g3s_c1_skeleton_walk_spec.json`
+
+No MPFB body, image-generation model, paid API or new download is used.
+
+## C1B — visible body animation source
+
+After the eight-state skeleton motion is visually confirmed, C1B authors the **eight persistent native-2D body poses** needed for the first left-facing walk family, using:
+
+- the C1A skeleton cycle as spatial/motion control;
+- B3B V4 as identity/body-style anchor.
+
+The user is not expected to draw or repair frames manually. C1B may use an explicitly approved offline source-authoring tool, but accepted outputs become frozen native-2D assets; no per-frame generation occurs at runtime.
+
+C1B may not revive the static-still warp route and may not promote a hidden-3D render as final sprite art.
 
 ## Runtime
 
-Once the pose family exists, gameplay animation is ordinary sprite animation driven by motion-derived timing/contact/root metadata.
-
-The current authored body family faces screen-left and therefore its travel preview must move screen-left.
+Once the eight native-2D body states exist, gameplay playback is ordinary sprite animation using motion-derived timing/contact/root metadata. Hair, clothing, restraints and equipment remain separate persistent layers and are added after the body walk source is viable.
