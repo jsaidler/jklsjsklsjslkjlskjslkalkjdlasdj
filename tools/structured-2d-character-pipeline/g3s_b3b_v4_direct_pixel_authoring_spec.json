@@ -1,11 +1,14 @@
 {
-  "gate": "G3S-B3B-V4-DIRECT-NATIVE-PIXEL-AUTHORING",
-  "status": "FIXED_REFERENCES_LOCKED_IMPLEMENTATION_NEXT",
+  "gate": "G3S-B3B-V4-LOCKED-PIXEL-REFERENCE-NORMALIZATION",
+  "status": "RUNNER_APPROVED_REVIEW_ONLY",
   "date": "2026-09-06",
-  "purpose": "Create the first genuine Exilada body pixel-art candidate by direct pixel-art authoring from the already-locked visual references, not by reducing/filtering them and not by asking the user to generate more reference material.",
+  "purpose": "Produce the first reviewable native-scale Exilada body candidate from the user-locked pixel-art turnaround without reopening generation, model search, or manual repainting.",
   "authoring_source": {
     "locked_visual_reference_marker": "tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json",
     "locked_visual_reference_sha256": "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a",
+    "locked_visual_reference_dimensions": [1168, 784],
+    "locked_visual_reference_format": "JPEG",
+    "locked_visual_reference_is_pixel_art_imagery": true,
     "high_resolution_anatomy_reference": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg",
     "high_resolution_anatomy_reference_sha256": "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf",
     "identity_reference": "assets/source/characters/exilada/reference/exilada_master.png",
@@ -18,55 +21,46 @@
     "camera": "elevated belt-scroller / false-3D, approximately 26-degree pitch",
     "gameplay_view": "front three-quarter",
     "visible_standing_height_target_px": 128,
-    "acceptable_first-candidate_height_range_px": [124, 132],
     "body_state": "adult nude hairless body base",
     "hair": false,
     "clothing": false,
     "restraints": false,
     "weapon": false,
-    "background": "transparent preferred; otherwise one flat removable background"
+    "background": "transparent"
   },
-  "native_pixel_art_contract": {
-    "must_be_authored_for_pixel_grid": true,
-    "must_not_be_high_res_resize": true,
-    "must_not_be_quantized_render": true,
-    "must_not_be_mechanical_trace": true,
-    "anti_aliasing": false,
-    "dithering": false,
-    "painterly_microtexture": false,
-    "smooth_gradient_shading": false,
-    "pixel_clusters": "deliberate connected clusters authored for native gameplay readability",
-    "palette_target": "controlled value/color groups; exact count is secondary to intentional cluster design"
-  },
-  "local_processing_boundary": {
+  "method_boundary": {
+    "why_this_is_not_v3": "V3 started from a high-resolution render and attempted to manufacture pixel art by reduction/quantization. V4 starts from the user's locked image that is already pixel-art imagery and performs only a bounded source-view extraction, conservative flat-background key, and nearest-neighbor scale normalization for review.",
     "allowed": [
-      "validate native-grid consistency of already-authored pixel art",
-      "remove a flat background to alpha without altering silhouette",
-      "measure visible height and bounds without rescaling the body",
-      "validate alpha and palette noise",
-      "detect singleton/orphan-pixel noise",
-      "generate native-1x and 640x360 gameplay previews",
-      "hash and package an approved 2D asset"
+      "select the existing front-three-quarter pixel-art view from the locked four-view image",
+      "remove only the flat dark presentation background to alpha",
+      "normalize visible standing height to 128 px using nearest-neighbor only",
+      "preserve source RGB/value structure without palette synthesis",
+      "generate enlarged nearest-neighbor and 640x360 gameplay previews",
+      "hash and report the resulting candidate"
     ],
     "forbidden": [
-      "resize the locked references into the final sprite",
-      "quantize or pixel-filter a painting/render and call it pixel art",
-      "mechanically trace a reference silhouette into final production geometry",
-      "procedurally invent or repair final human anatomy and call that authored art",
-      "shift routine manual repainting burden to the user"
+      "use the high-resolution photorealistic/anatomy render as visible sprite source",
+      "quantize or pixel-filter a smooth render into compliance",
+      "invent or repair anatomy procedurally",
+      "change silhouette using morphology/painting/trace repair",
+      "smooth, average or antialias during scaling",
+      "automatically promote the candidate without visual review"
     ]
   },
+  "runner": "tools/structured-2d-character-pipeline/14_run_g3s_b3b_v4_pixel_reference_candidate.ps1",
+  "helper": "tools/structured-2d-character-pipeline/g3s_b3b_v4_extract_pixel_reference_candidate.py",
+  "output_dir": "Z:/AI/RogueliteCharacterPipeline/g3s_b3b_v4_pixel_reference",
   "visual_pass": [
-    "reads immediately as intentional modern pixel art at native 1x",
-    "preserves approved adult Exilada proportions and body mass",
-    "face, hands, feet, chest, pelvis and legs are deliberately simplified for the grid rather than collapsed by reduction",
-    "silhouette is authored for gameplay readability",
-    "value grouping is cluster-based rather than render-like",
+    "reads as intentional pixel art at native 1x rather than a reduced render",
+    "body silhouette remains recognizably the locked Exilada body",
+    "face, hands, feet, chest, pelvis and legs remain readable enough at native scale",
+    "value grouping remains coherent after scale normalization",
     "retains mature severe sensual dangerous sword-and-sorcery presence",
-    "does not read as a pixelated photo/render, procedural mannequin, generic fitness model or low-resolution 3D"
+    "looks acceptable in the 640x360 gameplay preview"
   ],
-  "failure_policy": "Reject the authoring method/candidate; do not ask the user for another body reference and do not rescue failed art with mechanical filters.",
-  "next_action": "Assistant owns selection/implementation of a valid native-pixel authoring path from the fixed references. No further user reference-generation request is permitted.",
-  "next_if_pass": "Promote the accepted native-grid image to the persistent B3B 2D body source, then add deterministic import/QA/export tooling before B4.",
+  "automatic_promotion_allowed": false,
+  "failure_policy": "Close this normalization route if the native candidate visibly collapses or reads as filtered/reduced art. Do not ask the user for another reference and do not rescue it with anatomy/silhouette repair filters.",
+  "next_action": "Run the approved V4 review runner once and inspect the contact sheet.",
+  "next_if_pass": "Promote the accepted native candidate to the persistent B3B body source and add deterministic validation/export metadata before B4.",
   "next_if_fail": "Keep B3B current and revise the authoring implementation while preserving the fixed-reference lock."
 }
