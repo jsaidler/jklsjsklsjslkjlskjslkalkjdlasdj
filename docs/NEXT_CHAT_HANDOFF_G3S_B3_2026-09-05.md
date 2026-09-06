@@ -81,27 +81,57 @@ Minimum valid representation:
 - optional side/intermediate pieces may be added only if later occlusion/secondary motion actually requires them;
 - one flat hair overlay is invalid.
 
-## B4A preflight — CURRENT / RUNNER READY
+## B4A preflight — PASS/CLOSED DIAGNOSTIC
 
-The canonical identity master `assets/source/characters/exilada/reference/exilada_master.png` is local-only and is not currently tracked in GitHub. Do not pretend its pixels are available from repository history.
-
-Preflight helper:
-
-`tools/structured-2d-character-pipeline/g3s_b4_hair_preflight.py`
-
-Preflight runner:
-
-`tools/structured-2d-character-pipeline/16_run_g3s_b4_hair_preflight.ps1`
-
-Output directory:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight`
-
-Primary review artifact:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
 
-The preflight verifies the canonical body by exact hashes/dimensions, records the local master SHA/dimensions, places the body on a provisional shared `96×160` review canvas and shows the master/body/two-layer depth contract. It creates **no production hair pixels** and performs no automatic promotion.
+SHA256:
+
+`efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`
+
+Approval marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
+
+The preflight confirmed:
+
+- canonical local `exilada_master.png` is suitable as hair identity/mass source;
+- promoted B3B body remains immutable;
+- provisional shared frame `96×160` is adequate for first static hair review;
+- minimum composition remains `rear_hair -> body -> front_hair`.
+
+## B4B two-layer static hair candidate — RUNNER READY
+
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_two_layer_hair_candidate.py`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
+
+Output directory:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair`
+
+Primary review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
+
+Method:
+
+- verify exact promoted body hashes;
+- read B4A local preflight metadata and verify unchanged master SHA;
+- isolate already-authored dark hair pixels from the canonical pixel-art master;
+- align by body/skin anchors with nearest-neighbor scaling;
+- split visible ownership into `rear_hair` and `front_hair` by immutable body overlap;
+- compose `rear_hair -> body -> front_hair`;
+- produce separate transparent layer PNGs + composite + native `640×360` preview + metadata;
+- **no automatic promotion** and no paid/external API.
+
+Known limitation: hidden rear-hair coverage behind the body and secondary-motion segmentation are not yet authored. B4B is the static visual/depth-ownership review.
 
 ## Exact next operator action
 
@@ -111,14 +141,14 @@ Run:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\16_run_g3s_b4_hair_preflight.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\17_run_g3s_b4b_two_layer_hair_candidate.ps1"
 ```
 
 Then STOP and share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-After that visual inspection, author the first actual static `rear_hair` + `front_hair` candidate. Do not start B5/G3S-C.
+Do not promote hair and do not start B5/G3S-C before B4B review.
 
 ## Actual local AI state
 
