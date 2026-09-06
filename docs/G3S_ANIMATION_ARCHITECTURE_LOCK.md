@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Status: **CANONICAL / LOCKED**
+Status: **CANONICAL / LOCKED — C1A IMPLEMENTED / REVIEW REQUIRED**
 
 This document resolves the recurring ambiguity between hidden-3D motion infrastructure and final visible 2D animation.
 
@@ -52,9 +52,9 @@ The problem is not insufficient smoothing. One still does not contain the visibl
 
 ## First walk implementation
 
-For the first body-only walk proof, the hidden rig will define a small left-facing key-pose family from the real CMU walk.
+For the first body-only walk proof, the hidden rig defines a small left-facing key-pose family from the real CMU walk.
 
-Initial target events:
+Target events:
 
 1. left contact;
 2. left down/loading;
@@ -65,7 +65,7 @@ Initial target events:
 7. right passing;
 8. right up.
 
-Each event receives a **full hidden-3D guide package**, not just joint coordinates. At minimum that package must include:
+Each event receives a **full hidden-3D guide package**, not just joint coordinates. At minimum that package includes:
 
 - projected joints;
 - anatomical-side labels;
@@ -77,6 +77,22 @@ Each event receives a **full hidden-3D guide package**, not just joint coordinat
 - fixed G1 camera/scale.
 
 The guide package is reference/control data only.
+
+## C1A — implemented current gate
+
+The first implementation now exists:
+
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
+
+It exports one **left-contact** full-pose guide from the retained hidden G3V body/rig while re-applying the validated `DIRECTION_SPACE_FK` solver.
+
+Canonical gate record:
+
+`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+
+C1A outputs neutral anatomy, silhouette, explicit anatomical-region/laterality, depth-band, skeleton overlay and machine-readable pose/contact/near-far/root/camera data at the locked `640×360` / `26°` / `128 px` baseline. It also builds `96×160` logical crops for later pose-authoring control.
+
+All C1A rendered hidden-3D images remain **non-promotable guide evidence**.
 
 ## Visible 2D ownership
 
@@ -119,6 +135,6 @@ The retained hidden-3D backbone is **guide/control infrastructure**, not the fin
 
 ## Current next technical gate
 
-Do **not** create another single-still warp runner.
+Run and review **C1A** first.
 
-The next implementation is a **3D pose-guide exporter for one non-rest gait event**, followed by a proof that a matching native-2D pose can be authored at production quality without manual redraw by the user.
+Only after the hidden full-pose guide passes visual review may **C1B** author one complete persistent native-2D left-contact pose candidate. C1B must use C1A as pose/anatomy/occlusion control and B3B V4 as identity/body-style anchor; it may not warp the rest still or quantize the hidden-3D guide.
