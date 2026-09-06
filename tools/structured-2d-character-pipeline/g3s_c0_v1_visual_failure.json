@@ -1,0 +1,27 @@
+{
+  "gate": "G3S-C0",
+  "revision": "BODY_ONLY_DIRECTION_SPACE_PUPPET_V1",
+  "status": "FAIL_CLOSED_VISUAL_DEFORMATION_METHOD",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_c0_body_walk\\g3s_c0_body_walk_contact_sheet.png",
+  "reviewed_sha256": "730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4",
+  "source_motion": "CMU 105_34 NormalWalk via approved G2 projected joints/depth",
+  "canonical_body": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+  "structural_result": {
+    "real_motion_sequence_present": true,
+    "left_right_gait_progression_visible": true,
+    "canonical_source_body_unchanged": true,
+    "hidden_3d_rgb_used": false,
+    "per_frame_diffusion_used": false
+  },
+  "visual_failures": [
+    "independently rotated hard body-part slabs visibly detach at joints",
+    "leg/foot segmentation creates loop-like and arc-like disconnected silhouettes in later gait frames",
+    "knees and ankles do not remain continuously welded through deformation",
+    "extreme stride frames expose the partition method rather than reading as one articulated body",
+    "the V1 nearest-segment partition plus rigid per-part rotation is not acceptable as the body deformation method"
+  ],
+  "route_decision": "close rigid cutout-part rotation as the C0 body deformation method; retain approved real-motion projection and persistent native-2D source ownership",
+  "next_revision": "CONTINUOUS_CHAIN_WARP_V2",
+  "cleanup": "No model/API/new external runtime was added by V1; no cleanup command applies."
+}
