@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION CLOSED / C1A SKELETON-ONLY EIGHT-STATE WALK CURRENT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION CLOSED / C1A SKELETON-ONLY WALK TECHNICAL FIX COMMITTED / RERUN NEXT**
 
 Canonical animation lock:
 
@@ -42,7 +42,8 @@ C1A V5 made the reason explicit: the skeleton overlay remained coherent while th
 - current visible source family faces/travels screen-left;
 - anatomical left/right comes from the skeleton, never screen-x;
 - near/far comes from camera-space skeleton depth;
-- hidden directional-family selection is a camera/view decision relative to real root travel, not a transform of a skinned character object.
+- hidden directional-family selection is a camera/view decision relative to real root travel, not a transform of a skinned character object;
+- if Blender's evaluated camera screen-X handedness does not match the canonical family, C1A may normalize only the hidden guide's screen-X coordinates; rig/world transforms and depth remain unchanged.
 
 ## B4 hair — DEFERRED
 
@@ -50,7 +51,7 @@ Hair remains paused by user. Eventual composition still requires `rear_hair -> b
 
 ## C1A — current skeleton walk cycle
 
-C1A now consumes the already-approved `G2_CANONICAL_RIG` directly, using CMU `105_34 NormalWalk`.
+C1A consumes the approved `G2_CANONICAL_RIG` directly, using CMU `105_34 NormalWalk`.
 
 Current eight-state cycle:
 
@@ -58,9 +59,21 @@ Current eight-state cycle:
 
 It exports complete bone matrices, projected joints, chain lengths/depths, anatomical ownership, near/far state, support foot, ground distances and projected root travel.
 
-Camera baseline remains `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` relative to real travel, approximately `128 px` maximum skeleton height. Camera side is chosen so forward travel projects screen-left. The rig itself is not rotated for facing.
+Camera baseline remains `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` relative to real travel, approximately `128 px` maximum skeleton height. The rig itself is not rotated for facing.
 
-Runner:
+### Latest technical failure and fix
+
+First skeleton-only local run failed before visual output with:
+
+`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+
+This was a camera-evaluation/selection bug, not a motion-method failure. The exporter now forces dependency-graph updates after camera transforms, records both lateral camera candidates, and has a deterministic guide-coordinate X-normalization fallback while retaining the final screen-left root-travel assertion.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+
+Runner remains:
 
 `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
@@ -68,20 +81,20 @@ Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
 
-Primary visual review outputs:
+Primary visual review outputs after rerun:
 
 - `g3s_c1_skeleton_walk_zoom.gif`;
 - `g3s_c1_skeleton_walk_contact_sheet.png`;
 - `g3s_c1_skeleton_walk_travel.gif`.
 
-This is the final hidden-motion sanity gate. No MPFB body, image model, API or new download is involved.
+No MPFB body, image model, API or new download is involved. No cleanup applies.
 
 ## C1B — immediately after C1A PASS
 
-C1B authors the **eight complete persistent native-2D body poses** needed for the first left-facing walk cycle. C1A supplies the motion/spatial control; B3B V4 supplies visible body identity/style.
+C1B authors the **eight complete persistent native-2D body poses** needed for the first left-facing walk cycle. C1A supplies motion/spatial control; B3B V4 supplies visible body identity/style.
 
 C1B may not deform the static B3B still into the gait, promote a hidden-3D render, or make the user repair frames manually. An offline visual authoring tool, if used, must be explicitly approved for that gate; accepted results become frozen native-2D source assets.
 
 ## Later layered animation
 
-After the body walk is viable, hair, clothing, restraints and equipment return as separate persistent layers. Full layered composition remains later; it does not block proving the body locomotion source first.
+After the body walk is viable, hair, clothing, restraints and equipment return as separate persistent layers. Full layered composition remains later; it does not block proving body locomotion first.
