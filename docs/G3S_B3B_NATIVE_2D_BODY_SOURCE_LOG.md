@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V3 NUDE-REFERENCE PIXEL TRANSLATION SPIKE — READY TO RERUN**
+Gate status: **V3 FAIL/CLOSED — AUTHORED NATIVE-PIXEL BODY CANDIDATE NEXT**
 
 ## Canonical ownership rule
 
@@ -36,13 +36,13 @@ The in-chat generated body sheet was rejected as generic/fitness-like and as fau
 
 ## Approved Exilada high-resolution nude body reference — PASS
 
-The user supplied a new **fully nude four-view Grok turnaround**. It supersedes the earlier covered body sheet as the primary high-resolution B3B body reference.
+The user supplied a **fully nude four-view Grok turnaround**. It is the primary high-resolution B3B body reference.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
-Canonical local path expected by the runner:
+Canonical local path:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
@@ -58,26 +58,11 @@ Recorded source:
 - bare feet;
 - natural feminine proportions, lean/functional/resilient;
 - mature, severe, sensual, dangerous and lived-in;
-- visually aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
-- complete pelvic body anatomy visible in the reference;
-- no occluding loincloth/tapa-sexo.
+- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
+- complete pelvic anatomy visible;
+- no occluding garment.
 
-Superseded covered reference SHA256:
-
-`2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`
-
-The covered reference remains historical evidence only. It is no longer the primary B3B anatomy source.
-
-### Consequence of the nude reference
-
-The previous need to infer/reconstruct pixels beneath a small covering disappears at the reference stage.
-
-Locked consequences:
-
-- the V3 helper must not synthesize or patch the pelvic region;
-- no `repair_pelvis` or equivalent authored reconstruction is allowed/needed in the V3 review spike;
-- body-base ownership remains independent of future clothes;
-- later loincloths/garments still belong to B5, not to B3B.
+The older covered turnaround remains historical evidence only.
 
 ## What `128 px` means — LOCKED
 
@@ -87,9 +72,9 @@ G1 compared `112 / 128 / 144 px` at native `640×360` and locked `128 px` with t
 
 Consequences:
 
-- the standing body is normalized to approximately `128 px` visible height for native-scale review;
-- production animation frames may be wider/taller than `128×128` to contain limbs, hair, weapons and extreme actions;
-- the high-resolution turnaround remains high-resolution reference material.
+- the standing body is reviewed at approximately `128 px` visible height;
+- production animation frames may be wider/taller than `128×128`;
+- the high-resolution turnaround remains reference material and is never mechanically promoted into the final sprite.
 
 ## B3B visual approval rule — LOCKED
 
@@ -99,60 +84,53 @@ Required first-glance reading:
 
 Automatic visual FAIL conditions include mannequin/procedural-body appearance, generic fitness/character-creator reading, superhero/bodybuilder exaggeration, shortened/flattened proportions, weak chest/pelvis/thigh anatomy, poor hands/feet at native 1×, pseudo-3D/filtered-render appearance, sanitized mature body language, absent Exilada identity or failure to evoke Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
 
-## V3 — nude-reference native-grid translation spike
+## V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
 
-V3 is a **bounded visual spike**, not a production-source promotion.
-
-Tooling:
-
-- helper: `tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py`;
-- runner: `tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`;
-- ready marker: `tools/structured-2d-character-pipeline/g3s_b3b_v3_spike_ready.json`.
-
-The helper/runner now:
-
-- pin the new nude reference by SHA256;
-- expect it at the canonical repo-local path above;
-- use the front-three-quarter panel for the bounded native-scale review abstraction;
-- do not use hidden-3D RGB/mask/silhouette;
-- do not perform pelvic reconstruction;
-- state explicitly that the output is review-only and cannot be promoted automatically.
-
-### Critical boundary
-
-The project rule rejecting simple high-resolution resize/quantize as a final Production Pixel Master remains in force.
-
-V3 exists only to answer a bounded visual question: **does the approved body survive native 128 px abstraction well enough to inform authored pixel art, or does it still read as reduced illustration/filtering?**
-
-If V3 fails visually, V3 closes and nothing is promoted. No model cleanup applies because V3 downloads no model weights.
-
-If V3 passes as a visual study, the accepted cluster/silhouette language must then be established as an independently owned persistent B3B production asset rather than mechanically promoting the high-resolution reduction.
-
-## Current gate
-
-**G3S-B3B V3 visual review remains current.** B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until a replacement B3B production source passes.
-
-## Exact next operator action
-
-One-time prerequisite: save the exact approved nude turnaround at:
-
-`D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_body_turnaround_nude_approved.jpg`
-
-Expected SHA256:
-
-`1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
-
-Then run:
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\13_run_g3s_b3b_v3_reference_guided_translation.ps1"
-```
-
-Then STOP and share:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
 
-or the complete console error.
+Reviewed artifact SHA256:
+
+`ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
+
+### What V3 actually did
+
+V3 did **not** author pixel art. It:
+
+1. isolated the front-three-quarter figure from the approved high-resolution render;
+2. reduced that figure mechanically to `128 px` visible height using image resampling;
+3. retained the mechanically reduced reference mask/silhouette;
+4. quantized the reduced colors;
+5. applied local majority cleanup.
+
+That is a reduced-render / resize-and-quantize study, not authored native pixel character art.
+
+### Why V3 fails
+
+The output visibly demonstrates the existing kill switch rather than solving B3B:
+
+- it reads as a tiny reduced illustration/render;
+- hands, feet and face collapse at native scale;
+- anatomical masses are inherited from reduction rather than redesigned for the pixel grid;
+- value structure remains render-like/noisy instead of intentional connected pixel clusters;
+- the high-resolution reference mechanically owns the review silhouette;
+- the method therefore does not test the actual missing capability: intentional native pixel-art authoring.
+
+V3 is closed. Nothing from its candidate is promoted into B3B.
+
+No model cleanup command applies because V3 downloaded no model weights and used only the existing Python/Pillow runtime.
+
+## Current gate
+
+**G3S-B3B authored native-pixel body candidate** is current.
+
+The next candidate must begin as actual character pixel art. The approved nude turnaround may guide anatomy, proportions, body mass and identity, but it may **not** be resized, quantized, mechanically traced or used as direct final silhouette authority.
+
+The valid next artifact is one deliberately authored gameplay-view body sprite whose visible standing height is approximately `128 px`, judged at native 1× and in `640×360` gameplay context.
+
+No B3B runner is approved at this point. Do not rerun V3. B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until an authored B3B body source passes visual review.
