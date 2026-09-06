@@ -29,9 +29,12 @@ The logical stack is not a fixed painter's-order list; actual visibility is dept
    - owns canonical anatomical left/right identity.
 
 2. **Hair / body-attached secondary masses**
-   - persistent rigged masses/curves;
+   - persistent 2D hair assets/layer family;
+   - minimum structural split is **rear/back hair** and **front hair**;
+   - minimum deterministic composition is `rear_hair -> body -> front_hair`;
+   - additional side/intermediate masses are allowed when occlusion or secondary motion requires them;
    - may use deterministic secondary motion and wind response;
-   - not regenerated as independent frame detail.
+   - not regenerated as independent frame detail and not baked into the body.
 
 3. **Underlayers / soft clothing**
    - wraps, underwear, tunics, shirts, trousers, bindings and similar garments;
@@ -246,6 +249,8 @@ Examples:
 - detached cloth becomes world debris;
 - exposed loose layers react to wind more strongly.
 
+Hair uses the same deterministic secondary-motion principle but preserves its own persistent front/back depth ownership while moving.
+
 These effects must remain deterministic and scriptable. If a damage state requires routine manual simulation repair, that implementation is rejected.
 
 ## Liquid and surface-state integration
@@ -272,12 +277,16 @@ Preferred data flow:
 
 The renderer may output separate pixel layers/passes for:
 
+- rear/back hair;
 - body;
-- hair;
+- front hair;
+- optional intermediate hair masses;
 - each relevant clothing/armor slot/group;
 - equipment;
 - state overlays;
 - depth/occlusion metadata.
+
+For the Exilada's baseline long hair, the minimum valid composition explicitly preserves `rear_hair -> body -> front_hair` rather than treating hair as one flat post-body overlay.
 
 If fully independent per-item depth composition proves impractical at gameplay scale, G6 must choose a bounded front/back/slot-family strategy before the equipment catalog is expanded.
 
