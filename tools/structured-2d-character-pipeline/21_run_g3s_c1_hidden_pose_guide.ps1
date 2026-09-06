@@ -28,7 +28,7 @@ function Find-BlenderExe {
 
 $ArchitectureLock = Join-Path $RepoRoot 'docs\G3S_ANIMATION_ARCHITECTURE_LOCK.md'
 $Spec = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_pose_guide_spec.json'
-$Exporter = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_export_hidden_pose_guide_v5.py'
+$Exporter = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_export_hidden_pose_guide_v6.py'
 $ReviewBuilder = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_build_pose_guide_review.py'
 $RetargetApproval = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_retarget_approval.json'
 $G3VFailure = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_failure.json'
@@ -75,7 +75,8 @@ Write-Host '[LOCK] G3V direct visible 3D route remains FAIL/CLOSED.' -Foreground
 Write-Host '[LOCK] No single-still warp/cutout/cage animation is used.' -ForegroundColor Green
 Write-Host '[LOCK] No model/API/diffusion is used in C1A.' -ForegroundColor Green
 Write-Host '[LOCK] Nothing is promoted automatically.' -ForegroundColor Yellow
-Write-Host '[FIX] C1A V5 renders camera-space depth directly on the original evaluated G3V_BODY with a guide-only shader. No bake, proxy or topology substitution.' -ForegroundColor DarkCyan
+Write-Host '[FIX] C1A V6 never rotates/translates the skinned MPFB body or target rig for facing. The screen-left front-3/4 directional family is camera-relative to real motion.' -ForegroundColor DarkCyan
+Write-Host '[FIX] Depth remains V5 original-body camera-space shader: no proxy/bake/topology substitution.' -ForegroundColor DarkCyan
 Write-Host "[OK] Blender: $Blender" -ForegroundColor Green
 Write-Host ''
 
@@ -116,23 +117,26 @@ foreach ($p in @($Skeleton,$Contact) + $Crops) {
 
 $pose = Get-Content -LiteralPath $PoseJson -Raw | ConvertFrom-Json
 if ($pose.gate -ne 'G3S-C1A' -or $pose.status -ne 'REVIEW_REQUIRED') { Fail 'Unexpected C1A pose manifest status.' }
+if ($pose.revision -ne 'HIDDEN_3D_FULL_POSE_GUIDE_V6_CAMERA_DIRECTIONAL_FAMILY') { Fail "Unexpected C1A exporter revision: $($pose.revision)" }
 if ($pose.hidden_3d_visible_art_owner -ne $false) { Fail 'Hidden 3D ownership contract violated.' }
+if ($pose.direction_family_method -ne 'camera_relative_to_motion_no_rig_or_body_transform') { Fail 'C1A V6 did not use camera-only directional-family selection.' }
 if ([double]$pose.travel_vector_screen_dx_px -ge 0) { Fail 'Pose guide does not satisfy left-facing/left-travel direction contract.' }
 if ([math]::Abs([double]$pose.camera.measured_body_height_px - 128.0) -gt 4.0) {
     Fail "C1A body height is outside camera tolerance: $($pose.camera.measured_body_height_px)px"
 }
+if ($pose.camera.horizontal_view -ne 'front_three_quarter' -or [math]::Abs([double]$pose.camera.azimuth_from_motion_heading_deg - 45.0) -gt 0.001) {
+    Fail 'C1A V6 camera is not the locked front-three-quarter motion-relative guide view.'
+}
+if ($pose.transform_safeguard.rig_or_body_directional_transform_applied -ne $false) { Fail 'C1A V6 illegally transformed rig/body for directional facing.' }
+if ($pose.transform_safeguard.grounding_transform_applied -ne $false) { Fail 'C1A V6 illegally moved rig/body for visual grounding.' }
+if ($pose.transform_safeguard.target_parent_preserved -ne $true -or $pose.transform_safeguard.body_parent_preserved -ne $true) { Fail 'C1A V6 changed hidden rig/body parent state.' }
+if ([double]$pose.transform_safeguard.max_object_matrix_delta_after_render -gt 0.00000001) { Fail "C1A V6 changed hidden object matrices: $($pose.transform_safeguard.max_object_matrix_delta_after_render)" }
 if ($pose.depth_guide.mode -ne 'original_body_camera_space_shader') {
     Fail "C1A depth guide did not use the original-body camera-space shader: $($pose.depth_guide.mode)"
 }
-if ($pose.depth_guide.source_geometry_mutated -ne $false) {
-    Fail 'C1A V5 unexpectedly mutated source body geometry.'
-}
-if ($pose.depth_guide.proxy_object_used -ne $false) {
-    Fail 'C1A V5 unexpectedly used a detached geometry proxy.'
-}
-if ($pose.depth_guide.topology_index_mapping_used -ne $false) {
-    Fail 'C1A V5 unexpectedly used source/evaluated polygon-index mapping.'
-}
+if ($pose.depth_guide.source_geometry_mutated -ne $false) { Fail 'C1A V6 unexpectedly mutated source body geometry.' }
+if ($pose.depth_guide.proxy_object_used -ne $false) { Fail 'C1A V6 unexpectedly used a detached geometry proxy.' }
+if ($pose.depth_guide.topology_index_mapping_used -ne $false) { Fail 'C1A V6 unexpectedly used source/evaluated polygon-index mapping.' }
 if ([double]$pose.depth_guide.projected_height_delta_px -gt 0.01) {
     Fail "C1A depth shader changed projected guide scale by $($pose.depth_guide.projected_height_delta_px)px"
 }
