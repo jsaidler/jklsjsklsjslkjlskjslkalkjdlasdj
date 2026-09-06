@@ -32,54 +32,91 @@ Mandatory composition:
 
 `rear_hair -> body -> front_hair`
 
-## B4 history
+## Closed B4B route
 
 - B4A preflight — **PASS/CLOSED DIAGNOSTIC**.
-- B4B V1 master extraction — **FAIL/CLOSED PRE-RUN**: master lacks hidden rear-hair information.
-- B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**: centered curtain/cape, too much front coverage.
-- B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**: fixed master-like coordinates ignored the actual production pose.
-- B4B V4 pose-anchored authored two-layer — **FAIL/CLOSED VISUAL AND METHOD**.
+- B4B V1 master extraction — **FAIL/CLOSED PRE-RUN**.
+- B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**.
+- B4B V3 — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**.
+- B4B V4 — **FAIL/CLOSED VISUAL AND METHOD**.
 
-## B4B V4 failure — IMPORTANT
-
-Reviewed contact sheet SHA256:
-
-`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
-
-Failure marker:
+V4 failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
 
-The V4 contact sheet itself proves the anchor detector is not reliable: it reports `shoulder_span=6.36 px` for the canonical `37 px`-wide body. More fundamentally, a few scalar anchors cannot encode the 3/4 anatomy needed for hair placement: head tilt, shoulder slope, torso rotation, arm occlusion, back contour and local depth are missing.
+Reviewed V4 contact sheet SHA256:
 
-### Closed route — DO NOT REOPEN
+`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
 
-The **Pillow polygon/line + heuristic body-anchor hair-authoring route is closed**.
+The procedural `Pillow polygons/lines + heuristic pose anchors` visual-authoring route is closed. `17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled. Do not create another anchor/polygon revision.
 
-Do not create a V5 by adding more manually tuned anchors, polygons, curves or procedural locks. Also do not return to master-pixel extraction or fixed master-pose coordinates.
+## B4C FLUX.2 real visual adapter — CURRENT / RUNNER READY
 
-The valid structural contract remains:
+User instruction `faça` authorizes narrow reuse of the **already-retained local FLUX.2 workspace** for this static hair visual-adaptation gate only. This does not reopen the old animation/refcontrol production route and does not authorize a broad new model search.
 
-`rear_hair -> immutable body -> front_hair`
+Spec:
 
-The master remains identity/style/material reference only.
+`tools/structured-2d-character-pipeline/g3s_b4c_flux2_visual_adapter_spec.json`
 
-Runner `tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled.
+Runner:
 
-No model/API was used by V4; no cleanup applies.
+`tools/structured-2d-character-pipeline/18_run_g3s_b4c_flux2_visual_hair_adapter.ps1`
 
-## Exact continuation state
+Supporting tools:
 
-**B4 remains OPEN. There is currently NO approved B4 runner.**
+- `g3s_b4c_prepare_flux2_visual_adapter.py`
+- `g3s_b4c_build_flux2_visual_review.py`
 
-The next method must use real visual 2D authoring/adaptation to the actual canonical B3B body pose and output separate persistent `rear_hair` and `front_hair` assets.
+Workspace:
 
-Do not start B5 or G3S-C before B4 passes.
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter`
+
+Expected review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
+
+### B4C contract
+
+- exact canonical B3B body is image 1 and authoritative for pose/proportion/scale/camera/placement;
+- master is image 2 and supplies hair identity/style/material only;
+- master clothing, restraints, chains, accessories and pose are explicitly excluded from transfer;
+- no procedural hair geometry is authored;
+- one visual generation only, fixed seed `20260906`;
+- no automatic retry;
+- no paid API;
+- no download;
+- no production promotion;
+- generated composite is visual evidence only.
+
+B4C expects existing files inside `Z:\AI\Flux2RefControlSpike\ComfyUI_windows_portable\ComfyUI`:
+
+- `models\diffusion_models\flux-2-klein-base-4b-fp8.safetensors`;
+- `models\text_encoders\qwen_3_4b.safetensors`;
+- `models\vae\flux2-vae.safetensors`.
+
+If they are not present, the runner fails before generation and prints the exact missing paths. Do not infer they are present from the directory name.
+
+If B4C visually passes, proceed to two controlled visual-authoring passes for separate persistent `rear_hair` and `front_hair`, then validate/promote native 2D layers. If it fails, close this narrow route without touching the canonical body.
+
+## Exact next operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\18_run_g3s_b4c_flux2_visual_hair_adapter.ps1"
+```
+
+Then share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
+
+If it fails, share console output. Do not start B5/G3S-C before B4 passes.
 
 ## Actual local AI state
 
-- retained general local runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`;
+- retained shared/general runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`;
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
-- frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
+- retained historical FLUX.2 workspace: `Z:\AI\Flux2RefControlSpike`; B4C may reuse its already-existing weights only after file checks;
 - PixelLab is historical paid spike only, not active/authorized;
 - Qwen-native, SD1.5, PixelLock and Alucard remain closed.
