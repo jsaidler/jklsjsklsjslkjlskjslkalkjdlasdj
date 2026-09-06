@@ -2,11 +2,15 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / HIDDEN-3D-GUIDED NATIVE-2D POSE SOURCE CURRENT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / C1A HIDDEN-3D FULL-POSE GUIDE CURRENT**
 
 Canonical animation architecture lock:
 
 `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+
+Current pose-guide gate:
+
+`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
 
 ## Locked architecture
 
@@ -111,40 +115,56 @@ V2 runner is disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-## Hidden-3D-guided animation-ready source — CURRENT REQUIREMENT
+## G3S-C1A — HIDDEN FULL-POSE GUIDE — CURRENT
 
-The first real walk proof uses the hidden 3D as a **full pose guide**, exactly as originally intended.
+C1A implements the retained hidden-3D backbone as a **full pose guide**, exactly as intended.
 
-For each selected gait event, the hidden rig must export at least:
+For the first event it exports an anatomical **left-contact** pose in the screen-left family using:
 
-- projected joints;
-- anatomical side labels;
-- near/far limb identity;
-- depth and occlusion order;
-- contact foot and foot-roll state;
-- root/pelvis transform;
-- projected semantic body-part shapes/guide masks;
-- fixed G1 camera and scale.
+- the real CMU G2 motion;
+- retained continuous MPFB adult female hidden body;
+- `G3V_CMU_RIG`;
+- validated `DIRECTION_SPACE_FK`;
+- G1 `640×360` / `26°` / approximately `128 px` scale.
 
-Those guides define the pose completely enough to author visible 2D anatomy, but remain non-visible production controls.
+C1A exports:
 
-The first left-facing walk family targets eight persistent native-2D key poses:
+- neutral continuous-body anatomy guide;
+- silhouette guide;
+- explicit anatomical region/laterality guide;
+- camera-space depth-band guide;
+- projected skeleton overlay;
+- JSON with joints, anatomical sides, near/far side, contact foot, root/pelvis, camera and phase-selection metadata;
+- logical `96×160` guide crops;
+- review contact sheet including the canonical B3B static identity anchor.
 
-1. left contact;
-2. left down/loading;
-3. left passing;
-4. left up;
-5. right contact;
-6. right down/loading;
-7. right passing;
-8. right up.
+Runner:
 
-Each accepted pose owns complete visible anatomy for that event, including foreshortening, pelvis/torso counter-motion, hip/knee/ankle geometry, contact foot, silhouette and occlusion.
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-The hidden rig supplies guide/control information; persistent 2D art owns final RGB/alpha/silhouette.
+Spec:
 
-No new animation runner is approved until one non-rest hidden-3D-guided pose can be authored at production quality without manual frame redraw by the user.
+`tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`
+
+All rendered hidden-3D outputs remain **guide/control data only**. They may not become final RGB, alpha or sprite silhouette.
+
+C1A must pass visual review before C1B begins.
+
+## G3S-C1B — BLOCKED UNTIL C1A REVIEW
+
+C1B will author one complete persistent native-2D left-contact body pose using:
+
+- C1A as pose/anatomy/laterality/near-far/occlusion control;
+- B3B V4 as identity/body-style anchor.
+
+C1B may not:
+
+- deform the static B3B still into the pose;
+- quantize/recolor/crop the 3D guide into a sprite;
+- make hidden 3D the final visible owner.
+
+If the first C1B pose passes, the same architecture expands to the remaining seven gait events.
 
 ## Full layered motion remains later
 
-C0 does not waive eventual persistent hair, clothing, restraints and equipment. Full layered G3S-C approval still waits for those layer families after the body animation source architecture is viable.
+C1 does not waive eventual persistent hair, clothing, restraints and equipment. Full layered G3S-C approval still waits for those layer families after the body animation source architecture is viable.
