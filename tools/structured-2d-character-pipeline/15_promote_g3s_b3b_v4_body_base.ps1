@@ -12,26 +12,25 @@ function Fail([string]$Message) {
 }
 
 $Python = 'Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe'
-$ReviewRunner = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\14_run_g3s_b3b_v4_pixel_reference_candidate.ps1'
 $Promoter = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b3b_v4_promote_body_base.py'
 $Approval = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b3b_v4_visual_approval.json'
+$FailureMarker = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b3b_v4_promotion_hash_mismatch.json'
 
-foreach ($p in @($Python,$ReviewRunner,$Promoter,$Approval)) {
+foreach ($p in @($Python,$Promoter,$Approval,$FailureMarker)) {
     if (-not (Test-Path $p -PathType Leaf)) { Fail "Required file missing: $p. Run git pull --ff-only first." }
 }
 
 Write-Host ''
 Write-Host 'Roguelite - G3S-B3B V4 BODY-BASE PROMOTION' -ForegroundColor Cyan
 Write-Host '[LOCK] Visual candidate already passed review; promotion may not alter its pixels.' -ForegroundColor Green
+Write-Host '[LOCK] Promotion uses the existing local reviewed candidate and does NOT rerun V4 generation.' -ForegroundColor Green
 Write-Host '[LOCK] Only canonical body PNG + provenance JSON will be committed by this runner.' -ForegroundColor Green
 Write-Host ''
 
-# Rebuild the review candidate deterministically from the exact locked source.
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ReviewRunner -RepoRoot $RepoRoot -PipelineWorkspace $PipelineWorkspace
-if ($LASTEXITCODE -ne 0) { Fail "review runner exited with code $LASTEXITCODE" }
-
 $Candidate = Join-Path $PipelineWorkspace 'g3s_b3b_v4_pixel_reference\g3s_b3b_v4_pixel_reference_candidate.png'
-if (-not (Test-Path $Candidate -PathType Leaf)) { Fail "candidate missing after review runner: $Candidate" }
+if (-not (Test-Path $Candidate -PathType Leaf)) {
+    Fail "reviewed candidate missing: $Candidate. Do not regenerate automatically; report this error."
+}
 
 & $Python $Promoter --candidate $Candidate --repo-root $RepoRoot
 if ($LASTEXITCODE -ne 0) { Fail "promotion helper exited with code $LASTEXITCODE" }
