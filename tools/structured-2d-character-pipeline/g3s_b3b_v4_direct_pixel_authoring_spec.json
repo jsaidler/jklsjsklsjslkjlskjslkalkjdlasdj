@@ -1,14 +1,17 @@
 {
   "gate": "G3S-B3B-V4-DIRECT-NATIVE-PIXEL-AUTHORING",
-  "status": "SPEC_LOCKED_AWAITING_VISUAL_CANDIDATE",
+  "status": "FIXED_REFERENCES_LOCKED_IMPLEMENTATION_NEXT",
   "date": "2026-09-06",
-  "purpose": "Create the first genuine Exilada body pixel-art candidate by direct pixel-art authoring, not by reducing or filtering the approved high-resolution body reference.",
+  "purpose": "Create the first genuine Exilada body pixel-art candidate by direct pixel-art authoring from the already-locked visual references, not by reducing/filtering them and not by asking the user to generate more reference material.",
   "authoring_source": {
-    "primary_body_reference": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg",
-    "primary_body_reference_sha256": "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf",
+    "locked_visual_reference_marker": "tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json",
+    "locked_visual_reference_sha256": "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a",
+    "high_resolution_anatomy_reference": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg",
+    "high_resolution_anatomy_reference_sha256": "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf",
     "identity_reference": "assets/source/characters/exilada/reference/exilada_master.png",
-    "external_authoring_engine": "Grok image generation already in use for the approved body-reference workflow",
-    "new_local_model_install_required": false
+    "additional_user_reference_generation_required": false,
+    "additional_user_grok_prompting_required": false,
+    "new_local_model_install_authorized_by_this_spec": false
   },
   "logical_target": {
     "native_scene": [640, 360],
@@ -16,55 +19,54 @@
     "gameplay_view": "front three-quarter",
     "visible_standing_height_target_px": 128,
     "acceptable_first-candidate_height_range_px": [124, 132],
-    "body_state": "fully nude adult hairless body base",
+    "body_state": "adult nude hairless body base",
     "hair": false,
     "clothing": false,
     "restraints": false,
     "weapon": false,
-    "background": "transparent if supported; otherwise one flat chroma color with no shadow"
+    "background": "transparent preferred; otherwise one flat removable background"
   },
-  "enlarged_grid_contract": {
-    "preferred_output_canvas_px": [1024, 1024],
-    "logical_canvas_px": [256, 256],
-    "display_zoom_integer": 4,
-    "logical_pixel_representation": "each authored logical pixel must appear as one uniform 4x4 output block",
+  "native_pixel_art_contract": {
+    "must_be_authored_for_pixel_grid": true,
+    "must_not_be_high_res_resize": true,
+    "must_not_be_quantized_render": true,
+    "must_not_be_mechanical_trace": true,
     "anti_aliasing": false,
     "dithering": false,
     "painterly_microtexture": false,
-    "gradient_shading": false,
-    "pixel_clusters": "deliberate connected clusters authored for the logical grid",
-    "palette_target": "controlled approximately 24-32 foreground colors; palette count alone is not a PASS criterion"
+    "smooth_gradient_shading": false,
+    "pixel_clusters": "deliberate connected clusters authored for native gameplay readability",
+    "palette_target": "controlled value/color groups; exact count is secondary to intentional cluster design"
   },
   "local_processing_boundary": {
     "allowed": [
-      "verify integer-grid/block consistency",
-      "remove a flat chroma background to alpha",
-      "strip the 4x display zoom by exact nearest-neighbor decimation / one logical sample per uniform block",
-      "measure native visible height and bounds without rescaling the body",
+      "validate native-grid consistency of already-authored pixel art",
+      "remove a flat background to alpha without altering silhouette",
+      "measure visible height and bounds without rescaling the body",
       "validate alpha and palette noise",
       "detect singleton/orphan-pixel noise",
-      "generate native-1x, enlarged and 640x360 gameplay previews",
+      "generate native-1x and 640x360 gameplay previews",
       "hash and package an approved 2D asset"
     ],
     "forbidden": [
-      "resize the high-resolution body reference into the sprite",
+      "resize the locked references into the final sprite",
       "quantize or pixel-filter a painting/render and call it pixel art",
-      "mechanically trace the high-resolution silhouette into the final sprite",
-      "smooth/average/downsample non-grid artwork into native pixels",
-      "procedurally invent or repair final human anatomy",
-      "manually repaint frames as a routine production burden"
+      "mechanically trace a reference silhouette into final production geometry",
+      "procedurally invent or repair final human anatomy and call that authored art",
+      "shift routine manual repainting burden to the user"
     ]
   },
   "visual_pass": [
     "reads immediately as intentional modern pixel art at native 1x",
     "preserves approved adult Exilada proportions and body mass",
-    "face, hands, feet, chest, pelvis and legs are deliberately simplified rather than collapsed by reduction",
+    "face, hands, feet, chest, pelvis and legs are deliberately simplified for the grid rather than collapsed by reduction",
     "silhouette is authored for gameplay readability",
     "value grouping is cluster-based rather than render-like",
     "retains mature severe sensual dangerous sword-and-sorcery presence",
     "does not read as a pixelated photo/render, procedural mannequin, generic fitness model or low-resolution 3D"
   ],
-  "failure_policy": "Reject/regenerate the direct-authored candidate; do not rescue it with filters or mechanical cleanup that changes anatomy/silhouette.",
-  "next_if_pass": "Promote the accepted logical-grid image to the persistent B3B native 2D body source, then add deterministic import/QA/export tooling before B4.",
-  "next_if_fail": "Keep B3B current and request another directly authored pixel candidate under the same contract; do not reopen closed local model routes automatically."
+  "failure_policy": "Reject the authoring method/candidate; do not ask the user for another body reference and do not rescue failed art with mechanical filters.",
+  "next_action": "Assistant owns selection/implementation of a valid native-pixel authoring path from the fixed references. No further user reference-generation request is permitted.",
+  "next_if_pass": "Promote the accepted native-grid image to the persistent B3B 2D body source, then add deterministic import/QA/export tooling before B4.",
+  "next_if_fail": "Keep B3B current and revise the authoring implementation while preserving the fixed-reference lock."
 }
