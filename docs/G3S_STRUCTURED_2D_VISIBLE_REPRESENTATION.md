@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY BASE PASS/CLOSED / B4 HAIR CURRENT**
+Gate status: **ACTIVE — B3 BODY BASE PASS/CLOSED / B4 HAIR CURRENT / B4B V3 REVIEW NEXT**
 
 ## Locked architecture
 
@@ -11,10 +11,6 @@ Gate status: **ACTIVE — B3 BODY BASE PASS/CLOSED / B4 HAIR CURRENT**
 Hidden 3D owns motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB, alpha or final sprite silhouette.
 
 ## Visible-ownership invariant — LOCKED
-
-G3V is authoritative: direct visible 3D failed and was closed.
-
-Therefore:
 
 - 3D may guide anatomy, motion, topology, sockets, contacts, depth and occlusion;
 - 3D may not be mechanically promoted into final visible sprite geometry;
@@ -32,37 +28,14 @@ Therefore:
 - body, hair, clothing and accessories have separate ownership;
 - a complete body exists under every removable layer.
 
-## Model-discard cleanup rule — LOCKED
-
-Whenever a model/route is declared FAIL/CLOSED/REJECTED and no longer required, include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved.
-
-Closed direct sprite-model routes remain Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen model hunting without an explicit project decision.
-
 ## Correct staged character build — LOCKED
 
-1. **B3 — complete body base**: adult female, hairless, complete under future layers, owned as native 2D sprite art. **PASS/CLOSED**.
-2. **B4 — hair**: independent persistent 2D asset/layer family. **CURRENT**.
-3. **B5 — clothing/restraints/accessories**: chest wrap, hip cloth, bindings, cuffs/shackles, chain segments and other equipment, each with independent ownership/state. **BLOCKED UNTIL B4 PASS**.
-4. **G3S-C — layered motion proof**: hidden rig drives 2D deformation/ordering guides; exported/runtime result remains sprite-based. **BLOCKED UNTIL B3/B4/B5**.
-
-## Nudity — LOCKED SYSTEMIC STATE
-
-Nudity is a normal supported state, not a special variant. Runtime composition is:
-
-`complete body base + optional hair + body-state overlays + zero or more garment/equipment/accessory layers`
-
-No censor garment is structurally required. Presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent.
+1. **B3 — complete body base** — **PASS/CLOSED**.
+2. **B4 — hair** — **CURRENT**.
+3. **B5 — clothing/restraints/accessories** — **BLOCKED UNTIL B4 PASS**.
+4. **G3S-C — layered motion proof** — **BLOCKED UNTIL B3/B4/B5**.
 
 ## B3 — PASS/CLOSED
-
-B3A V2 remains the validated adult-female hidden structural guide only.
-
-B3B history:
-
-- V1 — FAIL/CLOSED: hidden 3D mask owned final silhouette;
-- V2 — FAIL/CLOSED: procedural/mannequin visual route;
-- V3 — FAIL/CLOSED: high-resolution render mechanically reduced/quantized;
-- V4 — PASS: user-locked pixel-art source view normalized with nearest-neighbor only and promoted unchanged.
 
 Canonical production body base:
 
@@ -83,14 +56,9 @@ Recorded production facts:
 - adult nude/hairless/barefoot body base;
 - persistent 2D visible ownership.
 
-Detailed body history:
-
-- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-- `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-
 ## 128 px clarification — LOCKED
 
-`128 px` is the target **visible standing body height** in the native `640×360` gameplay raster with the locked orthographic `26°` camera. It is not a universal source/frame canvas dimension. Hair, weapons and extreme animation bounds may use larger transparent frames while preserving this body scale.
+`128 px` is the target visible standing body height in the native `640×360` gameplay raster. It is not a universal source/frame canvas dimension. Hair, weapons and extreme animation bounds may use larger transparent frames while preserving this body scale.
 
 ## Current gate — B4 HAIR
 
@@ -101,20 +69,20 @@ Canonical hair direction:
 - voluminous;
 - messy black hair;
 - primary silhouette anchor;
-- separate from the body base;
-- persistent across animation rather than regenerated independently per frame;
+- separate from body base;
+- persistent across animation;
 - eligible for deterministic secondary-motion/wind guides later;
-- must preserve body visibility/ownership underneath.
+- body visibility/ownership underneath must remain intact.
 
 ### Hair depth ownership — LOCKED
 
-Minimum valid representation is not one flat overlay. It is:
+Minimum valid representation:
 
 `rear_hair -> body -> front_hair`
 
-- `rear_hair` owns the newly authored mass behind head, neck, shoulders and back;
-- `front_hair` owns crown/framing/locks that cross in front of face, neck, shoulders or chest;
-- additional sublayers may be introduced later only when occlusion/secondary motion requires them.
+- `rear_hair` owns mass behind head, neck, shoulders and back;
+- `front_hair` owns framing/locks in front of face, neck, shoulders or chest;
+- additional sublayers may be introduced later only if occlusion/secondary motion requires them.
 
 ### B4A preflight — PASS/CLOSED DIAGNOSTIC
 
@@ -122,19 +90,41 @@ The canonical master is suitable as identity/mass inspiration and the shared `96
 
 ### B4B V1 master extraction — FAIL/CLOSED PRE-RUN
 
-The master does not reveal enough rear-hair coverage to reconstruct a valid `rear_hair` layer by pixel extraction/splitting. That method is closed before user execution.
+The master does not reveal enough rear-hair coverage to reconstruct valid `rear_hair` by extraction/splitting.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
 
-### B4B V2 authored two-layer static candidate — CURRENT
+### B4B V2 authored two-layer static candidate — FAIL/CLOSED VISUAL / STRUCTURAL PASS
 
-Both mandatory hair layers are authored as **new native-pixel assets**. The master is visual inspiration/reference only and supplies no copied/traced/extracted final hair pixels.
+Reviewed contact sheet SHA256:
+
+`73a9b53d35c158d78079039b4425c94028c8836e82b775ee0ce3e38b8d32a09d`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_visual_failure.json`
+
+Structural architecture passed, but visual massing failed: centered curtain/bell silhouette, excessive front coverage, cape-like rear mass, repetitive equal-width lock rhythm, buried face/head and insufficient asymmetry/hierarchy.
+
+### B4B V3 authored two-layer static candidate — CURRENT / RUNNER READY
+
+V3 retains the valid architecture but rewrites the visible massing:
+
+- rear-dominant asymmetric irregular silhouette;
+- sparse front framing;
+- face/clavicle/chest/abdomen substantially open;
+- broad primary masses and distinct long falls instead of repetitive equal-width locks;
+- explicit rear geometry behind head/shoulders/back;
+- master used for inspiration only;
+- body hash-verified and immutable;
+- no external paid API/model;
+- no automatic promotion.
 
 Spec:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v3_authored_two_layer_hair_spec.json`
 
 Runner:
 
