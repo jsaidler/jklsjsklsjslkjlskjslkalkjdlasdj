@@ -29,6 +29,20 @@ It reuses the retained validated infrastructure:
 
 The four validated gait phase frames are `1568, 1588, 1608, 1628`. C1A chooses the left-contact candidate deterministically by preferring anatomical-left lead in source travel and strongest contact-like foot separation/grounding score. The selected frame is recorded in the output JSON and must be visually reviewed.
 
+## Transform-space safeguards — LOCKED
+
+C1A does not repeat the C0 facing/rest-space mistakes.
+
+- `DIRECTION_SPACE_FK` solves the complete hidden pose first;
+- directional-family conversion happens only **after** the full hidden pose is solved;
+- the hidden body mesh and its armature are rotated together by `180°` around world Z for the screen-left family, preserving mesh↔armature bind-space relationships;
+- grounding translation is applied to body mesh and armature together for the same reason;
+- the real G2 travel direction is explicitly flipped into the selected directional family and then projected through the final C1 camera;
+- the runner aborts unless projected travel x is negative for this screen-left family;
+- anatomical left/right remains bone identity from the hidden rig, never screen-x position.
+
+These safeguards control the hidden guide only and do not create final visible pixels.
+
 ## Guide outputs
 
 Workspace:
