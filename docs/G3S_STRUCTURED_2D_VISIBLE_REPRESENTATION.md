@@ -2,21 +2,17 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION CLOSED / C1A SKELETON-ONLY WALK TECHNICAL FIX COMMITTED / RERUN NEXT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION CLOSED / C1A SKELETON WALK PASS/CLOSED / C1B VISIBLE WALK PROOF RUNNER READY**
 
 Canonical animation lock:
 
 `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
-Current motion-guide gate:
-
-`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-
 ## Locked visible/hidden ownership
 
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root guide data -> persistent native-2D pose assets -> deterministic sprite playback -> QA`
+`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root guide data -> complete visible 2D pose assets -> deterministic sprite playback -> QA`
 
-The hidden 3D is an armature. It may own skeletal motion, joint transforms, laterality, depth/order, contacts, root travel and sockets. It does **not** require a skinned human mesh and does not own final RGB, alpha, anatomy or sprite silhouette.
+Hidden 3D is an armature only. It may own skeletal motion, joint transforms, anatomical side, near/far depth/order, contacts, root travel and sockets. It does not require a skinned human mesh and does not own final visible RGB, alpha, anatomy or silhouette.
 
 ## Canonical B3 body — PASS/CLOSED
 
@@ -25,76 +21,97 @@ The hidden 3D is an armature. It may own skeletal motion, joint transforms, late
 - visible standing body height `128 px`;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- authored front-three-quarter view facing screen-left.
+- front-three-quarter family facing screen-left.
 
-B3B remains the visible identity/body-style anchor. It is not stretched or warped into arbitrary gait poses.
+B3B is identity/body-style reference only. It is never stretched/warped into arbitrary gait poses.
 
 ## Closed methods
 
 - direct hidden-3D render -> final pixel art — CLOSED;
 - single B3B still -> cutout/warp/cage -> full walk — CLOSED;
-- skinned MPFB body as mandatory animation pose/anatomy/silhouette/depth guide — CLOSED.
-
-C1A V5 made the reason explicit: the skeleton overlay remained coherent while the skinned MPFB body visibly exploded. The guide never needed that body mesh.
+- skinned MPFB human as mandatory hidden animation guide — CLOSED.
 
 ## Facing/laterality
 
-- current visible source family faces/travels screen-left;
-- anatomical left/right comes from the skeleton, never screen-x;
-- near/far comes from camera-space skeleton depth;
-- hidden directional-family selection is a camera/view decision relative to real root travel, not a transform of a skinned character object;
-- if Blender's evaluated camera screen-X handedness does not match the canonical family, C1A may normalize only the hidden guide's screen-X coordinates; rig/world transforms and depth remain unchanged.
+- visible family faces/travels screen-left;
+- anatomical left/right comes from skeleton identity, never screen-x;
+- near/far comes from camera-space depth;
+- hidden directional-family handling may normalize guide screen-X convention without transforming the rig or changing anatomical ownership.
 
 ## B4 hair — DEFERRED
 
-Hair remains paused by user. Eventual composition still requires `rear_hair -> body -> front_hair`. No B4 pixels are promoted and C1 does not resume hair.
+Hair remains paused. Eventual composition still requires `rear_hair -> body -> front_hair`. C1 body locomotion does not resume hair.
 
-## C1A — current skeleton walk cycle
+## C1A — PASS/CLOSED
 
-C1A consumes the approved `G2_CANONICAL_RIG` directly, using CMU `105_34 NormalWalk`.
-
-Current eight-state cycle:
+Approved eight-state cycle:
 
 `1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
-It exports complete bone matrices, projected joints, chain lengths/depths, anatomical ownership, near/far state, support foot, ground distances and projected root travel.
+C1A uses only `G2_CANONICAL_RIG` + CMU `105_34 NormalWalk`.
 
-Camera baseline remains `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` relative to real travel, approximately `128 px` maximum skeleton height. The rig itself is not rotated for facing.
+Approval:
 
-### Latest technical failure and fix
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
 
-First skeleton-only local run failed before visual output with:
+Reviewed evidence:
 
-`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+- contact sheet SHA256 `672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd`;
+- zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
+- projected root travel approximately `-43.77 px` screen-left.
 
-This was a camera-evaluation/selection bug, not a motion-method failure. The exporter now forces dependency-graph updates after camera transforms, records both lateral camera candidates, and has a deterministic guide-coordinate X-normalization fallback while retaining the final screen-left root-travel assertion.
+C1A visually passed coherent gait, left/right progression, support-foot progression, limb-chain integrity and readable pelvis/trunk/leg relationship.
 
-Failure marker:
+The earlier skeleton camera-selection failure is closed/resolved in:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
 
-Runner remains:
+No model/API/download was used in C1A; no cleanup applies.
 
-`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
+## C1B — CURRENT visible walk proof
+
+Goal: finally show the bald body of the Exilada walking as one eight-frame visible sequence.
+
+Current bounded authoring route:
+
+`C1A approved skeleton pose -> exact B3B identity/style reference + pose-control reference -> existing local FLUX.2 Klein -> complete redraw for each of 8 gait states -> review GIF/contact sheet`
+
+This is a **visual proof gate**, not automatic production promotion.
+
+It reuses only the already-retained local stack at:
+
+`Z:\AI\Flux2RefControlSpike`
+
+No download and no paid API are allowed.
+
+Current files:
+
+- `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`;
+- `tools/structured-2d-character-pipeline/g3s_c1b_flux2_walk_spec.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1b_prepare_flux2_walk_inputs.py`;
+- `tools/structured-2d-character-pipeline/g3s_c1b_build_flux2_walk_review.py`;
+- `tools/structured-2d-character-pipeline/22_run_g3s_c1b_flux2_walk_visual_proof.ps1`.
 
 Workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof`
 
-Primary visual review outputs after rerun:
+Expected primary outputs:
 
-- `g3s_c1_skeleton_walk_zoom.gif`;
-- `g3s_c1_skeleton_walk_contact_sheet.png`;
-- `g3s_c1_skeleton_walk_travel.gif`.
+- `g3s_c1b_exilada_walk_visual_proof.gif`;
+- `g3s_c1b_exilada_walk_contact_sheet.png`;
+- `g3s_c1b_review.json`.
 
-No MPFB body, image model, API or new download is involved. No cleanup applies.
+Hard locks:
 
-## C1B — immediately after C1A PASS
+- no static-body warp;
+- no hidden-3D RGB promotion;
+- no hair/clothing/restraints/accessories/weapons;
+- no automatic promotion of generated frames;
+- no manual frame repair demanded from the user.
 
-C1B authors the **eight complete persistent native-2D body poses** needed for the first left-facing walk cycle. C1A supplies motion/spatial control; B3B V4 supplies visible body identity/style.
+The `96×160` reductions made by the review builder are inspection images only and are not production sprite assets.
 
-C1B may not deform the static B3B still into the gait, promote a hidden-3D render, or make the user repair frames manually. An offline visual authoring tool, if used, must be explicitly approved for that gate; accepted results become frozen native-2D source assets.
+## After C1B review
 
-## Later layered animation
-
-After the body walk is viable, hair, clothing, restraints and equipment return as separate persistent layers. Full layered composition remains later; it does not block proving body locomotion first.
+If the visible eight-frame body proof is coherent, freeze/author the accepted walk family into native persistent 2D assets under the existing production-art rules. Only after body locomotion is viable do hair, clothing, restraints and equipment return as separate layers.
