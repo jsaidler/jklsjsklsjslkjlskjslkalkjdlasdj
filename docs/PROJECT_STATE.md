@@ -150,17 +150,30 @@ Canonical hair identity:
 
 Hair is a separate persistent 2D layer family and must leave the B3 body asset unchanged underneath.
 
+### Mandatory hair depth split — LOCKED
+
+The minimum valid B4 representation contains **at least two persistent hair layers**:
+
+1. `rear_hair` — behind body/head/shoulders;
+2. `front_hair` — in front of body/head/shoulders where hair crosses the silhouette.
+
+Minimum deterministic composition order:
+
+`rear_hair -> body -> front_hair`
+
+Additional side/intermediate masses may be introduced later only if occlusion or secondary motion requires them. Two layers is the structural minimum; hair must not be collapsed into one flat overlay or baked into the body.
+
 Detailed gate log:
 
 `docs/G3S_B4_HAIR_LOG.md`
 
-First deliverable: one static front-three-quarter gameplay hair layer aligned to the canonical B3B body base, reviewed alone, composited and at native `640×360` gameplay scale.
+First deliverable: one static front-three-quarter gameplay **hair layer family**, with rear layer, front layer, composite, enlarged nearest-neighbor review and native `640×360` gameplay preview.
 
-**No B4 runner is approved yet.** Before implementation, inspect the canonical identity master and promoted body base together and choose the smallest valid 2D hair-layer construction method. No external paid API is authorized by default.
+**No B4 runner is approved yet.** Before implementation, inspect the canonical identity master and promoted body base together and choose the smallest valid two-layer 2D hair construction method. No external paid API is authorized by default.
 
 ## Current exact action
 
-Inspect the canonical `exilada_master.png` together with `exilada_body_base_b3b_v4.png` and define/implement the first static B4 hair-layer review candidate without modifying the body base.
+Inspect the canonical `exilada_master.png` together with `exilada_body_base_b3b_v4.png` and define/implement the first static B4 hair candidate as a minimum two-layer family (`rear_hair` + `front_hair`) without modifying the body base.
 
 B5/G3S-C remain blocked.
 
