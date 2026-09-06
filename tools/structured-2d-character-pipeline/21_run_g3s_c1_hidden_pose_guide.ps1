@@ -28,7 +28,7 @@ function Find-BlenderExe {
 
 $ArchitectureLock = Join-Path $RepoRoot 'docs\G3S_ANIMATION_ARCHITECTURE_LOCK.md'
 $Spec = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_pose_guide_spec.json'
-$Exporter = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_export_hidden_pose_guide_v2.py'
+$Exporter = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_export_hidden_pose_guide_v3.py'
 $ReviewBuilder = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_c1_build_pose_guide_review.py'
 $RetargetApproval = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_retarget_approval.json'
 $G3VFailure = Join-Path $RepoRoot 'tools\deterministic-character-pipeline\g3v_failure.json'
@@ -75,7 +75,7 @@ Write-Host '[LOCK] G3V direct visible 3D route remains FAIL/CLOSED.' -Foreground
 Write-Host '[LOCK] No single-still warp/cutout/cage animation is used.' -ForegroundColor Green
 Write-Host '[LOCK] No model/API/diffusion is used in C1A.' -ForegroundColor Green
 Write-Host '[LOCK] Nothing is promoted automatically.' -ForegroundColor Yellow
-Write-Host '[FIX] C1A V2 bakes the evaluated MPFB mesh for the depth guide; source/evaluated polygon counts need not match.' -ForegroundColor DarkCyan
+Write-Host '[FIX] C1A V3 freezes evaluated MPFB geometry in WORLD space so depth baking cannot change the calibrated 128px guide scale.' -ForegroundColor DarkCyan
 Write-Host "[OK] Blender: $Blender" -ForegroundColor Green
 Write-Host ''
 
@@ -121,8 +121,11 @@ if ([double]$pose.travel_vector_screen_dx_px -ge 0) { Fail 'Pose guide does not 
 if ([math]::Abs([double]$pose.camera.measured_body_height_px - 128.0) -gt 4.0) {
     Fail "C1A body height is outside camera tolerance: $($pose.camera.measured_body_height_px)px"
 }
-if ($pose.depth_guide.mode -ne 'evaluated_mesh_bake') {
-    Fail "C1A depth guide did not use evaluated topology bake: $($pose.depth_guide.mode)"
+if ($pose.depth_guide.mode -ne 'evaluated_worldspace_bake') {
+    Fail "C1A depth guide did not use world-space evaluated topology bake: $($pose.depth_guide.mode)"
+}
+if ([double]$pose.depth_guide.projected_height_delta_px -gt 0.25) {
+    Fail "C1A depth bake changed projected guide scale by $($pose.depth_guide.projected_height_delta_px)px"
 }
 
 Write-Host ''
