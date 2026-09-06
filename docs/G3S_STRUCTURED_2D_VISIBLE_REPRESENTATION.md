@@ -94,8 +94,6 @@ Detailed body history:
 
 ## Current gate — B4 HAIR
 
-Hair is now the only current visible-layer gate.
-
 Canonical hair direction:
 
 - very long;
@@ -108,6 +106,38 @@ Canonical hair direction:
 - eligible for deterministic secondary-motion/wind guides later;
 - must preserve body visibility/ownership underneath.
 
-The first B4 deliverable should establish one static gameplay-view hair layer aligned to the promoted B3B body base before any animation test.
+### Hair depth ownership — LOCKED
+
+Minimum valid representation is not one flat overlay. It is:
+
+`rear_hair -> body -> front_hair`
+
+- `rear_hair` owns the newly authored mass behind head, neck, shoulders and back;
+- `front_hair` owns crown/framing/locks that cross in front of face, neck, shoulders or chest;
+- additional sublayers may be introduced later only when occlusion/secondary motion requires them.
+
+### B4A preflight — PASS/CLOSED DIAGNOSTIC
+
+The canonical master is suitable as identity/mass inspiration and the shared `96×160` review frame is adequate.
+
+### B4B V1 master extraction — FAIL/CLOSED PRE-RUN
+
+The master does not reveal enough rear-hair coverage to reconstruct a valid `rear_hair` layer by pixel extraction/splitting. That method is closed before user execution.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
+
+### B4B V2 authored two-layer static candidate — CURRENT
+
+Both mandatory hair layers are authored as **new native-pixel assets**. The master is visual inspiration/reference only and supplies no copied/traced/extracted final hair pixels.
+
+Spec:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
 
 No B5 clothing/restraints/accessories or G3S-C motion begins before B4 passes.
