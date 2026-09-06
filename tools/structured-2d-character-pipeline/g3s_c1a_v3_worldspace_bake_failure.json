@@ -1,0 +1,20 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V3",
+  "status": "FAIL_CLOSED_TECHNICAL",
+  "date": "2026-09-06",
+  "failure_class": "evaluated_worldspace_bake_did_not_preserve_projected_geometry",
+  "observed": {
+    "selected_event": "left_contact",
+    "selected_frame": 1588,
+    "projected_height_before_bake_px": 128.0,
+    "projected_height_after_bake_px": 99.0563,
+    "projected_height_delta_px": 28.9437
+  },
+  "root_cause": "V3 mutated the original rigged MPFB body object by replacing its mesh and neutralizing parent/object transforms. On the retained MPFB bind/parent stack, this object-state mutation was not world-geometry invariant even though the copied vertices had been transformed by the evaluated object matrix.",
+  "closed_method": "replace G3V_BODY data with evaluated mesh and neutralize that same object's rig/parent transform state for depth rendering",
+  "next_revision": "V4 uses a separate detached object created from the evaluated posed mesh with the exact evaluated matrix_world; G3V_BODY is not mutated.",
+  "architecture_impact": "none; hidden-3D full-pose guide architecture remains active",
+  "model_or_api_used": false,
+  "cleanup": "none"
+}
