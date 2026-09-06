@@ -1,0 +1,28 @@
+{
+  "gate": "G3S-B3B-LOCKED-VISUAL-REFERENCE",
+  "status": "PASS_LOCKED_REFERENCE_NO_FURTHER_USER_GENERATION_REQUIRED",
+  "date": "2026-09-06",
+  "provenance": "user-provided four-view body image in project chat; user explicitly locked this as the reference and declined further prompt/generation requests",
+  "source_facts": {
+    "sha256": "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a",
+    "dimensions": [1168, 784],
+    "format": "JPEG",
+    "views": ["front", "back", "profile", "front_three_quarter"],
+    "body_state": "adult nude hairless body reference",
+    "background": "dark flat presentation background"
+  },
+  "role": "LOCKED_VISUAL_BODY_REFERENCE_FOR_B3B_AUTHORING",
+  "production_authority": false,
+  "pixel_art_authority": false,
+  "user_interaction_lock": {
+    "request_additional_body_reference_generation": false,
+    "request_additional_grok_prompting": false,
+    "request_another_turnaround": false,
+    "interpretation": "The project proceeds from the references already available. Further visual-source acquisition is the assistant/pipeline responsibility, not a user burden."
+  },
+  "relationship_to_existing_reference": {
+    "high_resolution_anatomy_reference_sha256": "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf",
+    "note": "The earlier high-resolution nude turnaround may remain as historical/anatomical support already available, but this locked four-view image is the user's final supplied visual reference. Do not ask the user to generate or source another body image."
+  },
+  "next_gate": "G3S-B3B-NATIVE-PIXEL-AUTHORING-FROM-FIXED-REFERENCES"
+}
