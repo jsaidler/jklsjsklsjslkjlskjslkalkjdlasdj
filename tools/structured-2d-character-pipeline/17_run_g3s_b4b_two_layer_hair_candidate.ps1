@@ -17,17 +17,20 @@ $Body = Join-Path $RepoRoot 'assets\source\characters\exilada\body\exilada_body_
 $PreflightMeta = Join-Path $PipelineWorkspace 'g3s_b4_hair_preflight\g3s_b4_hair_preflight.json'
 $Helper = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b4b_two_layer_hair_candidate.py'
 $Approval = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b4a_preflight_approval.json'
+$FailureMarker = Join-Path $RepoRoot 'tools\structured-2d-character-pipeline\g3s_b4b_v1_extraction_route_failure.json'
 $Workspace = Join-Path $PipelineWorkspace 'g3s_b4b_two_layer_hair'
 
-foreach ($p in @($Python,$Master,$Body,$PreflightMeta,$Helper,$Approval)) {
-    if (-not (Test-Path $p -PathType Leaf)) { Fail "Required file missing: $p" }
+foreach ($p in @($Python,$Master,$Body,$PreflightMeta,$Helper,$Approval,$FailureMarker)) {
+    if (-not (Test-Path $p -PathType Leaf)) { Fail "Required file missing: $p. Run git pull --ff-only first." }
 }
 
 Write-Host ''
-Write-Host 'Roguelite - G3S-B4B TWO-LAYER HAIR REVIEW' -ForegroundColor Cyan
+Write-Host 'Roguelite - G3S-B4B V2 AUTHORED TWO-LAYER HAIR REVIEW' -ForegroundColor Cyan
 Write-Host '[LOCK] canonical B3B body is immutable and hash-verified.' -ForegroundColor Green
 Write-Host '[LOCK] minimum depth order: rear_hair -> body -> front_hair.' -ForegroundColor Green
-Write-Host '[LOCK] source hair pixels come only from the canonical Exilada master.' -ForegroundColor Green
+Write-Host '[LOCK] canonical master is inspiration/identity reference only.' -ForegroundColor Green
+Write-Host '[LOCK] no master hair pixels are extracted, copied, traced, or split into final layers.' -ForegroundColor Green
+Write-Host '[LOCK] rear_hair and front_hair are newly authored native-pixel assets.' -ForegroundColor Green
 Write-Host '[LOCK] review-only; no hair asset is promoted or committed by this runner.' -ForegroundColor Yellow
 Write-Host ''
 
@@ -41,10 +44,16 @@ New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
 
 if ($LASTEXITCODE -ne 0) { Fail "B4B helper exited with code $LASTEXITCODE" }
 
+$Rear = Join-Path $Workspace 'g3s_b4b_rear_hair_candidate.png'
+$Front = Join-Path $Workspace 'g3s_b4b_front_hair_candidate.png'
 $Contact = Join-Path $Workspace 'g3s_b4b_contact_sheet.png'
-if (-not (Test-Path $Contact -PathType Leaf)) { Fail "contact sheet missing: $Contact" }
+foreach ($p in @($Rear,$Front,$Contact)) {
+    if (-not (Test-Path $p -PathType Leaf)) { Fail "review output missing: $p" }
+}
 
 Write-Host ''
-Write-Host 'G3S-B4B: REVIEW PACKAGE READY' -ForegroundColor Green
+Write-Host 'G3S-B4B: AUTHORED TWO-LAYER REVIEW PACKAGE READY' -ForegroundColor Green
+Write-Host "REAR:    $Rear"
+Write-Host "FRONT:   $Front"
 Write-Host "CONTACT: $Contact"
 Write-Host 'STOP. Share the contact sheet. Do not promote hair and do not start B5/C.' -ForegroundColor Yellow
