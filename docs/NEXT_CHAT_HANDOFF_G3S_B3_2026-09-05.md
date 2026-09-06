@@ -103,14 +103,29 @@ Canonical hair direction:
 
 Hair is a **separate persistent 2D layer family**. It may not modify the canonical body asset or be baked into it.
 
+### Mandatory front/back split
+
+B4 has a locked minimum of **two persistent depth layers**:
+
+1. `rear_hair` — composited behind the body/head/shoulders;
+2. `front_hair` — composited in front where hair crosses face/neck/chest/shoulders.
+
+Minimum composition:
+
+`rear_hair -> body -> front_hair`
+
+This split is structural and required for occlusion, long-hair silhouette, later animation, wind and secondary-motion ownership. Optional side/intermediate masses may be added later if needed, but a single flat hair overlay is invalid.
+
 First B4 deliverable:
 
-- static front-three-quarter gameplay hair layer aligned to the promoted body;
-- hair layer alone on transparency;
-- body + hair composite;
+- static front-three-quarter `rear_hair` transparent asset;
+- static front-three-quarter `front_hair` transparent asset;
+- body alone;
+- each hair layer alone;
+- deterministic `rear_hair + body + front_hair` composite;
 - enlarged nearest-neighbor review;
 - native `640×360` gameplay preview;
-- enough ownership/depth metadata to distinguish front/back hair mass if needed.
+- stable anchor/depth metadata.
 
 Detailed log:
 
@@ -120,7 +135,7 @@ Detailed log:
 
 **No B4 runner is approved yet.**
 
-Before asking the user to run anything, inspect the canonical `exilada_master.png` and promoted `exilada_body_base_b3b_v4.png` together, then implement the smallest valid static B4 hair-layer review method that preserves true 2D visible ownership.
+Before asking the user to run anything, inspect the canonical `exilada_master.png` and promoted `exilada_body_base_b3b_v4.png` together, then implement the smallest valid static B4 review method with the mandatory two-layer minimum (`rear_hair` + `front_hair`).
 
 Do not use PixelLab or another paid external API without explicit authorization. Do not reopen closed Qwen/SD1.5/PixelLock/Alucard sprite-model search.
 
