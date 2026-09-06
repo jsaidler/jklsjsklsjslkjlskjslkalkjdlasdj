@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A RUNNER READY / REVIEW REQUIRED — C1B NATIVE-2D POSE AUTHORING BLOCKED UNTIL GUIDE REVIEW**
+Gate status: **C1A V1 FAIL/CLOSED TECHNICAL REVISION — C1A V2 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
 
 ## Purpose
 
@@ -42,6 +42,49 @@ C1A does not repeat the C0 facing/rest-space mistakes.
 - anatomical left/right remains bone identity from the hidden rig, never screen-x position.
 
 These safeguards control the hidden guide only and do not create final visible pixels.
+
+## C1A V1 — FAIL/CLOSED TECHNICAL REVISION
+
+The first local run successfully produced the neutral, silhouette and anatomical-region guide passes, then failed while preparing the depth-band guide.
+
+Observed error:
+
+`evaluated body topology changed: eval=13378 source=18486`
+
+Root cause:
+
+- V1 assumed that MPFB `G3V_BODY` source-mesh polygons and the evaluated/deformed render mesh had a 1:1 polygon-index mapping;
+- that assumption is false on the retained MPFB stack because modifiers/helper masking change evaluated topology;
+- therefore depth measured on the evaluated mesh cannot be written back to `body.data.polygons[i]` by the same polygon index.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`
+
+This is **not** an animation-architecture failure. The complete hidden pose, screen-left direction contract and first three guide passes remained viable.
+
+## C1A V2 — CURRENT
+
+V2 keeps the same hidden-pose architecture and fixes only the depth-pass topology assumption.
+
+For the single frozen guide pose:
+
+1. evaluate the already-retargeted MPFB body;
+2. copy that evaluated/deformed mesh in-process;
+3. replace the temporary Blender object's mesh data with that evaluated copy;
+4. remove modifiers from that temporary in-process object so the evaluated geometry is not deformed twice;
+5. assign depth-band materials directly to the evaluated topology;
+6. record both source and evaluated polygon counts in the pose JSON.
+
+The source `.blend`, canonical B3B sprite and any repository art asset remain untouched. This bake exists only inside the headless guide-export process.
+
+V2 exporter:
+
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`
+
+The original V1 exporter is retained as historical implementation evidence:
+
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`
 
 ## Guide outputs
 
@@ -95,8 +138,8 @@ No screen-x heuristic is allowed to substitute for anatomical laterality.
 
 Support:
 
-- `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`;
-- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`;
+- `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json` — current revision `HIDDEN_3D_FULL_POSE_GUIDE_V2`;
+- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`;
 - `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`.
 
 C1A uses no image-generation model, paid API or new download.
@@ -113,6 +156,7 @@ C1A passes only if the review package visibly and numerically shows:
 - readable pelvis/torso/leg relationship;
 - explicit contact/root metadata;
 - approximately `128 px` body height at the locked G1 camera;
+- depth guide produced from the evaluated mesh topology (`mode = evaluated_mesh_bake`);
 - no claim that hidden-3D RGB/silhouette is final pixel art.
 
 ## Next gate after C1A review
