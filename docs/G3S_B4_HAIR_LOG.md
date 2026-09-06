@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **OPEN/CURRENT — STATIC HAIR LAYER NOT YET APPROVED**
+Gate status: **OPEN/CURRENT — STATIC HAIR LAYER FAMILY NOT YET APPROVED**
 
 ## Entry condition
 
@@ -37,6 +37,23 @@ Identity/design authority:
 
 The master defines hair identity and mass, but does not automatically own final gameplay hair pixels if it is not already at the production raster/pose.
 
+## Hair depth architecture — LOCKED
+
+The hair is **not one flat overlay**. It is a persistent 2D layer family with **at least two mandatory depth layers**:
+
+1. **rear/back hair mass** — composited behind the body/head/shoulders;
+2. **front hair mass** — composited in front of the body/head/shoulders where strands/masses cross the face, neck, chest or shoulders.
+
+Canonical minimum composition:
+
+`rear_hair -> body -> front_hair`
+
+This front/back split is structural, not merely a contact-sheet convenience. It is required so long hair can wrap around the silhouette, cross shoulders/chest, survive animation and later respond to depth/secondary-motion guides without being baked into the body.
+
+Additional side/intermediate hair pieces are allowed later if required by occlusion or secondary motion, but **two layers is the minimum valid B4 representation**.
+
+Each hair layer must have stable semantic ownership and may later be subdivided into motion masses/segments without changing body ownership.
+
 ## Ownership rule
 
 Hair is a separate persistent 2D layer family.
@@ -44,30 +61,35 @@ Hair is a separate persistent 2D layer family.
 It may own:
 
 - visible hair RGB/alpha/silhouette;
-- front/back hair masses;
+- mandatory rear/back and front hair masses;
+- optional side/intermediate masses when needed;
 - stable attachment to head/upper body;
 - later secondary-motion segmentation/guide anchors;
-- later wind/physics response metadata.
+- later wind/physics response metadata;
+- layer-local depth/occlusion behavior.
 
 It may not:
 
 - replace body pixels permanently;
 - require a censored or incomplete body beneath it;
+- collapse all hair into one irreversible body-baked sprite;
 - be regenerated independently per animation frame;
 - use hidden-3D RGB/masks as final visible art;
 - require manual frame-by-frame repainting by the user.
 
 ## First B4 deliverable
 
-One **static front-three-quarter gameplay hair layer** aligned to the promoted B3B V4 body base.
+One **static front-three-quarter gameplay hair layer family** aligned to the promoted B3B V4 body base.
 
 Review package must show:
 
 1. body base alone;
-2. hair layer alone on transparency;
-3. body + hair composite at enlarged nearest-neighbor review scale;
-4. body + hair at native `640×360` gameplay context;
-5. front/back ownership split or equivalent depth metadata if required by the silhouette.
+2. rear/back hair layer alone on transparency;
+3. front hair layer alone on transparency;
+4. rear hair + body + front hair composite at enlarged nearest-neighbor review scale;
+5. same composite at native `640×360` gameplay context;
+6. explicit ownership/depth metadata for both mandatory hair layers;
+7. optional extra side/intermediate pieces only if actually required.
 
 ## Visual PASS requirements
 
@@ -77,6 +99,7 @@ At native scale the hair must:
 - read as very long/heavy/voluminous/messy rather than a generic bob/ponytail;
 - preserve a severe adult sword-and-sorcery presence;
 - maintain readable head/neck/shoulder/body separation;
+- convincingly occupy both rear and front depth where the design requires it;
 - avoid a single featureless black blob;
 - avoid fine strand noise that collapses at 1×;
 - use deliberate pixel clusters/value grouping;
@@ -84,9 +107,10 @@ At native scale the hair must:
 
 ## Structural PASS requirements
 
-- hair is a separate transparent asset/layer;
+- rear hair and front hair exist as separate transparent persistent assets/layers;
 - body asset remains byte/pixel unchanged;
-- stable anchor/ownership metadata exists;
+- stable anchor/ownership/depth metadata exists;
+- composition order can reproduce `rear_hair -> body -> front_hair` deterministically;
 - no clothing/restraint pixels are introduced;
 - no hidden-3D visible ownership;
 - no per-frame generative dependency;
@@ -94,7 +118,7 @@ At native scale the hair must:
 
 ## Current exact action
 
-Before writing a B4 production runner, inspect the canonical identity master and promoted body base together and choose the smallest valid hair-layer construction method that preserves true 2D visible ownership.
+Before writing a B4 production runner, inspect the canonical identity master and promoted body base together and implement the smallest valid **two-layer minimum** static hair representation: rear mass + front mass. Add further sublayers only if the silhouette/occlusion actually requires them.
 
 No external paid API is authorized by default. PixelLab remains historical/closed for this project state.
 
