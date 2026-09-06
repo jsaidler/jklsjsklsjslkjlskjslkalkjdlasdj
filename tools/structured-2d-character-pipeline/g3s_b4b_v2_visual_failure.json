@@ -1,0 +1,25 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V2",
+  "status": "FAIL_CLOSED_VISUAL",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4b_two_layer_hair\\g3s_b4b_contact_sheet.png",
+  "reviewed_artifact_sha256": "73a9b53d35c158d78079039b4425c94028c8836e82b775ee0ce3e38b8d32a09d",
+  "structural_result": "PASS",
+  "visual_result": "FAIL",
+  "observed_failures": [
+    "overall silhouette reads as a centered curtain/bell rather than the Exilada master hair language",
+    "front_hair coverage hides too much face/neck/chest/body readability",
+    "rear_hair reads too uniformly and cape-like instead of as a real irregular rear mass behind shoulders/back",
+    "lock hierarchy is too repetitive/equal-width and approaches a dread/cable rhythm",
+    "head and face are visually buried inside the dark mass",
+    "insufficient asymmetry and hierarchy between primary mass, side masses, and dominant long falls"
+  ],
+  "retained_architecture": [
+    "rear_hair -> body -> front_hair",
+    "body remains byte/pixel immutable",
+    "rear_hair and front_hair remain separate persistent transparent 2D assets"
+  ],
+  "next_revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V3",
+  "model_cleanup": "not_applicable_no_model_weights_or_external_paid_api_used"
+}
