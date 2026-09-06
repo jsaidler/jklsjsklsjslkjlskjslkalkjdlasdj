@@ -1,0 +1,39 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V4_POSE_ANCHORED",
+  "status": "IMPLEMENTATION_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "body_owner": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+  "master_role": "identity_style_mass_inspiration_only",
+  "working_canvas": [96, 160],
+  "composition_order": ["rear_hair", "body", "front_hair"],
+  "critical_correction": "Hair geometry is not placed from the master pose. The helper measures head center, shoulder span, torso center and body orientation bias directly from the canonical B3B body alpha/silhouette, then authors both hair layers relative to those production-pose anchors.",
+  "rear_hair": {
+    "ownership": "behind head, neck, shoulders, back and body",
+    "requirements": [
+      "dominant mass",
+      "very long and heavy",
+      "irregular hierarchy of broad locks",
+      "back-side bias follows measured production pose",
+      "new geometry for hidden rear coverage"
+    ]
+  },
+  "front_hair": {
+    "ownership": "front scalp/framing and selected locks crossing face, neck, shoulders or chest",
+    "requirements": [
+      "scalp coverage follows measured head anchor",
+      "face remains readable",
+      "front coverage remains subordinate to rear mass",
+      "locks are placed from measured shoulder/torso anchors rather than master coordinates"
+    ]
+  },
+  "review_contract": [
+    "body remains exact hash-verified B3B V4",
+    "contact sheet displays body-alone pose anchors",
+    "rear/front are separate transparent PNGs",
+    "composite uses rear_hair -> body -> front_hair",
+    "native 640x360 preview included",
+    "no automatic promotion",
+    "no external paid API/model"
+  ]
+}
