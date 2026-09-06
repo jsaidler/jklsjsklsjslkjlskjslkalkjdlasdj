@@ -94,7 +94,7 @@ The user-locked pixel-art turnaround is a special bounded source case: an existi
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE
     - B3B V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
     - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
-  - **G3S-B4 hair** ← CURRENT / OPEN
+  - **G3S-B4 hair** ← CURRENT / B4A PREFLIGHT RUNNER READY
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
@@ -152,30 +152,51 @@ Hair is a separate persistent 2D layer family and must leave the B3 body asset u
 
 ### Mandatory hair depth split — LOCKED
 
-The minimum valid B4 representation contains **at least two persistent hair layers**:
+Minimum valid B4 representation:
 
 1. `rear_hair` — behind body/head/shoulders;
-2. `front_hair` — in front of body/head/shoulders where hair crosses the silhouette.
+2. `front_hair` — in front where hair crosses face/neck/chest/shoulders.
 
-Minimum deterministic composition order:
+Minimum deterministic composition:
 
 `rear_hair -> body -> front_hair`
 
-Additional side/intermediate masses may be introduced later only if occlusion or secondary motion requires them. Two layers is the structural minimum; hair must not be collapsed into one flat overlay or baked into the body.
+Additional side/intermediate masses may be introduced only if occlusion or secondary motion requires them.
 
-Detailed gate log:
+### B4A hair preflight — RUNNER READY
 
-`docs/G3S_B4_HAIR_LOG.md`
+The canonical `exilada_master.png` is a local reference asset and is not currently tracked in GitHub. Therefore the next step is a deterministic local inspection packet, not fake reconstruction from chat/Git history.
 
-First deliverable: one static front-three-quarter gameplay **hair layer family**, with rear layer, front layer, composite, enlarged nearest-neighbor review and native `640×360` gameplay preview.
+Helper:
 
-**No B4 runner is approved yet.** Before implementation, inspect the canonical identity master and promoted body base together and choose the smallest valid two-layer 2D hair construction method. No external paid API is authorized by default.
+`tools/structured-2d-character-pipeline/g3s_b4_hair_preflight.py`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/16_run_g3s_b4_hair_preflight.ps1`
+
+Output:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+
+The preflight verifies the immutable body, records the local master SHA/dimensions, places the body on a provisional shared `96×160` review canvas and shows the master/body/two-layer depth contract. It creates no production hair pixels and cannot promote B4.
 
 ## Current exact action
 
-Inspect the canonical `exilada_master.png` together with `exilada_body_base_b3b_v4.png` and define/implement the first static B4 hair candidate as a minimum two-layer family (`rear_hair` + `front_hair`) without modifying the body base.
+Run exactly:
 
-B5/G3S-C remain blocked.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\16_run_g3s_b4_hair_preflight.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+
+After visual inspection of master versus promoted body, author the first actual static `rear_hair` + `front_hair` candidate. B5/G3S-C remain blocked.
 
 ## Actual local AI disk/runtime state — LOCKED 2026-09-06
 
