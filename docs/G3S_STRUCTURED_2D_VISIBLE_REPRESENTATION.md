@@ -2,13 +2,19 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / ANIMATION-READY 2D SOURCE REQUIRED**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / HIDDEN-3D-GUIDED NATIVE-2D POSE SOURCE CURRENT**
+
+Canonical animation architecture lock:
+
+`docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
 ## Locked architecture
 
-`real motion -> validated hidden rig -> pose/contact/depth/sockets/guides -> persistent 2D pixel assets -> pose-specific visible state/deformation within valid limits -> depth-aware composition -> native sprite -> QA`
+`real/captured motion -> validated hidden rig -> full pose/contact/depth/laterality/occlusion guides -> persistent native-2D pose assets -> deterministic timing/depth composition -> native sprite -> QA`
 
 Hidden 3D may own motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB, alpha or final sprite silhouette.
+
+The hidden rig must guide the **entire pose state**, not merely export joint deltas. A pose guide may include projected semantic shapes/masks and 3D-derived silhouette reference, but those are guide/control data only and may not be promoted into final sprite geometry.
 
 ## Production constraints
 
@@ -31,7 +37,7 @@ Hidden 3D may own motion/topology/sockets/contacts/depth/physics/semantic guides
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
 - authored front-three-quarter view facing **screen-left**.
 
-This B3B asset remains the approved static body master for that view. It is not by itself an animation-ready source for arbitrary gait silhouettes.
+This B3B asset remains the approved static body identity/style anchor for that view. It is not by itself an animation-ready source for arbitrary gait silhouettes.
 
 ## Facing/laterality rule — LOCKED
 
@@ -54,8 +60,6 @@ Hair remains structurally separate and later must still satisfy:
 No hair candidate is approved. No B4C generated pixels were promoted. The user paused hair on 2026-09-06.
 
 ## G3S-C0 — BODY-ONLY MOTION DIAGNOSTIC
-
-The user requested to see the approved doll moving before more layer work.
 
 Motion infrastructure retained:
 
@@ -90,15 +94,16 @@ Failure: anatomically impossible limb arcs persisted.
 
 Root cause is architectural:
 
+- the hidden-3D guide was incorrectly reduced to projected joint deltas;
 - sprite-facing/laterality/near-far ownership was not registered;
-- sprite rest/camera basis and G2 projected-motion basis were not a validated common coordinate system;
+- sprite rest/camera basis and hidden-rig projected-motion basis were not a validated common coordinate system;
 - real gait depth and foreshortening were collapsed into 2D chain deformation;
 - the still lacks hidden anatomy revealed by changing occlusion;
 - bbox-bottom placement is not true contact/root grounding.
 
 Therefore the entire following class is closed when the **only visible source** is the single B3B still:
 
-`single still -> cutout / chain warp / cage warp -> manufacture full gait`
+`single still -> projected joints -> cutout / chain warp / cage warp -> manufacture full gait`
 
 A smoother weighted mesh is not a solution to missing visible surfaces or wrong near/far anatomy.
 
@@ -106,23 +111,39 @@ V2 runner is disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-## Animation-ready visible source — CURRENT REQUIREMENT
+## Hidden-3D-guided animation-ready source — CURRENT REQUIREMENT
 
-The first real walk proof needs a small persistent native-2D pose family tied to actual gait events, such as contact/down/passing/up for both sides.
+The first real walk proof uses the hidden 3D as a **full pose guide**, exactly as originally intended.
 
-Each pose state must own complete visible anatomy for that phase, including:
+For each selected gait event, the hidden rig must export at least:
 
-- anatomical left/right;
-- near/far limb ownership;
-- foreshortening;
-- pelvis/torso counter-motion;
-- hip/knee/ankle geometry;
-- foot contact/roll;
-- silhouette and occlusion.
+- projected joints;
+- anatomical side labels;
+- near/far limb identity;
+- depth and occlusion order;
+- contact foot and foot-roll state;
+- root/pelvis transform;
+- projected semantic body-part shapes/guide masks;
+- fixed G1 camera and scale.
 
-The hidden rig supplies pose guides, timing, root/contact/depth metadata. Persistent 2D art owns final visible pixels.
+Those guides define the pose completely enough to author visible 2D anatomy, but remain non-visible production controls.
 
-No new animation runner is approved until one non-rest pose can be authored at production quality without manual frame redraw by the user.
+The first left-facing walk family targets eight persistent native-2D key poses:
+
+1. left contact;
+2. left down/loading;
+3. left passing;
+4. left up;
+5. right contact;
+6. right down/loading;
+7. right passing;
+8. right up.
+
+Each accepted pose owns complete visible anatomy for that event, including foreshortening, pelvis/torso counter-motion, hip/knee/ankle geometry, contact foot, silhouette and occlusion.
+
+The hidden rig supplies guide/control information; persistent 2D art owns final RGB/alpha/silhouette.
+
+No new animation runner is approved until one non-rest hidden-3D-guided pose can be authored at production quality without manual frame redraw by the user.
 
 ## Full layered motion remains later
 
