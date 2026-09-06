@@ -80,15 +80,7 @@ The structural rule remains locked for later:
 
 `rear_hair -> body -> front_hair`
 
-B4 history includes failed extraction/procedural routes and the B4C FLUX.2 visual-adaptation review. The B4C contact sheet was generated at:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
-
-Reviewed-file SHA256 from the user-provided artifact:
-
-`ac95bf9e3fae2df1e25cc91bcbda69be061526c163ce61cbe0d065cfc7be1c1c`
-
-No B4C pixels were promoted. On 2026-09-06 the user explicitly instructed: **forget hair for now and show the doll moving**. Hair work is therefore paused, not silently approved or closed.
+B4 history includes failed extraction/procedural routes and the B4C FLUX.2 visual-adaptation review. No B4C pixels were promoted. On 2026-09-06 the user explicitly instructed to forget hair for now and show the doll moving. Hair work is therefore paused, not approved or closed.
 
 ## Gate order — CURRENT
 
@@ -98,52 +90,82 @@ No B4C pixels were promoted. On 2026-09-06 the user explicitly instructed: **for
 - G3/G3R/G3V visible 3D translation routes — CLOSED/REJECTED as final visible ownership
 - G3S-B3 production body — **PASS/CLOSED**
 - G3S-B4 hair — **DEFERRED / OPEN**
-- **G3S-C0 body-only motion proof** ← **CURRENT / RUNNER READY / REVIEW NEXT**
+- **G3S-C0 body-only motion proof** ← **CURRENT**
+  - C0 V1 rigid cutout/part rotation — **FAIL/CLOSED VISUAL DEFORMATION METHOD**
+  - **C0 V2 continuous chain warp** — **RUNNER READY / REVIEW NEXT**
 - G3S-B5 clothing/restraints/accessories — DEFERRED
 - full G3S-C layered motion proof — still requires B4/B5 later
 
-## G3S-C0 — CURRENT
+## G3S-C0 V1 — FAIL/CLOSED
 
-Purpose: show the exact promoted body moving now, without waiting for hair/clothing.
+Reviewed contact sheet:
 
-C0 is a diagnostic exception to the full layered gate order. It does **not** claim final production animation quality.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_contact_sheet.png`
 
-Pipeline:
+Reviewed SHA256:
 
-`CMU real walk / G2 -> projected joints + depth -> direction-space deltas -> persistent B3B pixel regions -> deterministic nearest-neighbor 2D transforms -> depth-aware composition -> animated review`
+`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
 
-C0 does not use:
+Failure marker:
 
-- diffusion/per-frame image generation;
-- hidden-3D RGB;
-- paid API;
-- new model downloads;
-- manual user animation.
+`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+
+V1 proved that approved real motion reaches the persistent 2D body, but its visible deformation method failed. Hard partitions into upper/lower limb slabs rotate independently, causing joint detachment and loop/arc-like broken leg-foot silhouettes in later stride frames.
+
+**Closed method:** `nearest-segment hard partition + independent rigid per-part rotation`.
+
+Do not iterate it with more overlap or more hand-tuned rigid pivots.
+
+## G3S-C0 V2 — CURRENT
+
+V2 retains:
+
+- the exact promoted B3B body;
+- the same CMU/G2 projected real-motion samples;
+- hidden 3D as joints/depth only;
+- no diffusion/model/API;
+- no hidden-3D RGB;
+- no automatic promotion.
+
+V2 changes only the visible 2D deformation:
+
+`real G2 walk -> projected joints/depth -> direction-space target skeleton -> six continuous body regions -> chain warp across joints -> depth-aware integer-grid composition -> GIF/contact-sheet review`
+
+Continuous regions:
+
+- head;
+- torso;
+- left/right arm;
+- left/right leg.
+
+Each complete arm/leg bends along its shoulder-elbow-wrist or hip-knee-ankle-toe chain. Pixels near joints blend adjacent segment mappings instead of splitting into independently rotated pieces.
 
 Spec:
 
-`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec.json`
+`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1`
+`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
 Supporting tools:
 
 - `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`
-- `tools/structured-2d-character-pipeline/g3s_c0_body_puppet_walk.py`
+- `tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
 
 Workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2`
 
-Expected outputs:
+Expected review outputs:
 
-- `g3s_c0_body_walk_in_place.gif`
-- `g3s_c0_body_walk_travel.gif`
-- `g3s_c0_body_walk_contact_sheet.png`
-- `g3s_c0_motion_projection.json`
-- `g3s_c0_body_walk_report.json`
+- `g3s_c0_v2_body_walk_in_place.gif`
+- `g3s_c0_v2_body_walk_travel.gif`
+- `g3s_c0_v2_contact_sheet.png`
+- `g3s_c0_v2_zoom_contact_sheet.png`
+- `g3s_c0_v2_report.json`
+
+If V2 still cannot keep the body visually continuous, the next deformation class is an actual weighted 2D mesh/cage, not a return to rigid cutout parts.
 
 ## Current exact action
 
@@ -153,10 +175,15 @@ Run exactly:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\19_run_g3s_c0_body_walk_proof.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\20_run_g3s_c0_body_walk_v2.ps1"
 ```
 
-Then review/share the **in-place GIF** first. If the runner fails, share the complete console output.
+Then share:
+
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
+
+If it fails, share the complete console output.
 
 Do not resume hair automatically.
 
@@ -165,5 +192,5 @@ Do not resume hair automatically.
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - retained embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
 - Blender was already used successfully by G0/G1/G2;
-- C0 requires the existing `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend` and G2 result;
+- C0 requires the existing `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`;
 - no AI model is required by C0.
