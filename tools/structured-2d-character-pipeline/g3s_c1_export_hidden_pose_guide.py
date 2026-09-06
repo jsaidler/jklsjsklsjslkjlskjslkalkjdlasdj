@@ -174,7 +174,6 @@ def assign_region_materials(body, mats, order):
         region = category_for_group(vg.name)
         if region:
             group_region[vg.index] = region
-
     if not group_region:
         raise RuntimeError("MPFB body exposes no recognizable rig-weight vertex groups")
 
@@ -289,19 +288,6 @@ def source_contact_metrics(scene, source, frames):
     return int(chosen["frame"]), serial, float(ground)
 
 
-def ensure_left_facing(scene, camera, target, travel_world):
-    # The validated G2 clip travels +X before directional-family conversion.
-    # Flip the already-retargeted target in world space, then verify its travel vector projects left.
-    target.rotation_euler[2] += math.pi
-    bpy.context.view_layer.update()
-    hips = bone_world(target, "Hips")
-    rotated_travel = target.matrix_world.to_3x3() @ travel_world
-    p0 = world_to_camera_view(scene, camera, hips)
-    p1 = world_to_camera_view(scene, camera, hips + rotated_travel)
-    dx = float((p1.x - p0.x) * scene.render.resolution_x)
-    return dx
-
-
 def main():
     g3v_blend = Path(arg("--g3v-blend", "")).resolve()
     approval_path = Path(arg("--approval", "")).resolve()
@@ -341,25 +327,25 @@ def main():
 
     chosen_frame, contact_metrics, source_ground = source_contact_metrics(scene, source, candidate_frames)
 
-    # Measure source travel direction before posing target. G2 canonical clip is real captured motion.
+    # G2 normalizes the accepted locomotion window so forward travel is +X.
     scene.frame_set(chosen_frame)
     bpy.context.view_layer.update()
     root0 = bone_world(source, "Hips")
     scene.frame_set(chosen_frame + 1)
     bpy.context.view_layer.update()
     root1 = bone_world(source, "Hips")
-    travel_world = root1 - root0
-    travel_world.z = 0.0
-    if travel_world.length <= 1e-8:
-        travel_world = Vector((1.0, 0.0, 0.0))
+    source_travel = root1 - root0
+    source_travel.z = 0.0
+    if source_travel.length <= 1e-8:
+        source_travel = Vector((1.0, 0.0, 0.0))
     else:
-        travel_world.normalize()
+        source_travel.normalize()
 
     scene.frame_set(chosen_frame)
     bpy.context.view_layer.update()
     motion_patch._apply_direction_space_fk(source, target)
 
-    # Hide everything except the continuous hidden adult body. No hair/cloth/metal/ground is part of C1A.
+    # C1A is body-only guide evidence. Hide every other mesh from historical G3V.
     for obj in scene.objects:
         if obj.type == "MESH":
             obj.hide_render = (obj != body)
@@ -367,14 +353,17 @@ def main():
     target.hide_render = True
     body.hide_render = False
 
-    # Neutralize target object orientation first; the blend already stores the G2-aligned basis.
-    # The full pose has already been solved in target armature space, so directional-family flip happens after solve.
+    # Convert the entire hidden body/rig pair to the screen-left directional family.
+    # Rotate BOTH mesh and armature together so bind-space relationships do not change.
     target.rotation_euler[2] += math.pi
+    body.rotation_euler[2] += math.pi
     bpy.context.view_layer.update()
 
-    # Put evaluated body on z=0; this is only guide framing, while contact metadata remains explicit in JSON.
-    lo, hi = bbox_world(body)
-    target.location.z -= lo.z
+    # Ground the pair together, preserving armature<->mesh relative transforms.
+    lo, _ = bbox_world(body)
+    shift_z = -float(lo.z)
+    target.location.z += shift_z
+    body.location.z += shift_z
     bpy.context.view_layer.update()
     lo, hi = bbox_world(body)
 
@@ -389,7 +378,8 @@ def main():
     camera.data.clip_end = 1000.0
     scene.camera = camera
 
-    scene.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in {item.identifier for item in bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items} else "BLENDER_EEVEE"
+    # BLENDER_EEVEE is already proven on this exact local G3V stack.
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 640
     scene.render.resolution_y = 360
     scene.render.resolution_percentage = 100
@@ -408,16 +398,15 @@ def main():
     configure_camera(camera, pitch, target_point)
     calibrate_camera(scene, camera, body, hero_px)
 
-    # Verify the chosen directional family projects travel to screen-left.
+    # A 180-degree world-Z flip reverses the G2 +X travel vector. Validate screen-left projection.
+    flipped_travel = Vector((-source_travel.x, -source_travel.y, 0.0))
     hips_world = bone_world(target, "Hips")
-    rotated_travel = target.matrix_world.to_3x3() @ travel_world
     c0 = world_to_camera_view(scene, camera, hips_world)
-    c1 = world_to_camera_view(scene, camera, hips_world + rotated_travel)
+    c1 = world_to_camera_view(scene, camera, hips_world + flipped_travel)
     travel_dx_px = float((c1.x - c0.x) * scene.render.resolution_x)
     if travel_dx_px >= 0:
         raise RuntimeError(f"C1 facing contract failed: expected screen-left travel vector, dx={travel_dx_px:.4f}px")
 
-    # Ensure one deterministic key light for the neutral anatomy guide.
     for obj in list(scene.objects):
         if obj.type == "LIGHT":
             bpy.data.objects.remove(obj, do_unlink=True)
@@ -440,7 +429,6 @@ def main():
     region_mats = {k: emission_material("C1_REGION_" + k.upper(), v) for k, v in region_colors.items()}
     depth_mats = []
     for i in range(8):
-        # Near is bright, far is dark after assignment order is known from camera-space depth.
         v = 0.92 - i * (0.72 / 7.0)
         depth_mats.append(emission_material(f"C1_DEPTH_{i}", (v, v, v)))
 
@@ -492,14 +480,15 @@ def main():
         rec["bone"] = bone
         joints[key] = rec
 
-    left_depth = sum(joints[k]["depth"] for k in joints if k.startswith("left_")) / max(1, sum(1 for k in joints if k.startswith("left_")))
-    right_depth = sum(joints[k]["depth"] for k in joints if k.startswith("right_")) / max(1, sum(1 for k in joints if k.startswith("right_")))
+    left_keys = [k for k in joints if k.startswith("left_")]
+    right_keys = [k for k in joints if k.startswith("right_")]
+    left_depth = sum(joints[k]["depth"] for k in left_keys) / max(1, len(left_keys))
+    right_depth = sum(joints[k]["depth"] for k in right_keys) / max(1, len(right_keys))
     near_side = "left" if left_depth < right_depth else "right"
     far_side = "right" if near_side == "left" else "left"
 
     body_bbox = bbox_px(scene, camera, body)
     visible_height = body_bbox[3] - body_bbox[1]
-    contact_side = "left"
 
     pose_data = {
         "gate": "G3S-C1A",
@@ -515,7 +504,7 @@ def main():
         "retarget_method": "DIRECTION_SPACE_FK",
         "direction_family": "screen-left",
         "travel_vector_screen_dx_px": travel_dx_px,
-        "contact_foot": contact_side,
+        "contact_foot": "left",
         "near_anatomical_side": near_side,
         "far_anatomical_side": far_side,
         "left_mean_camera_depth": left_depth,
@@ -541,17 +530,17 @@ def main():
         },
         "production_rule": "all rendered 3D passes are guide/control evidence only; none may be promoted, quantized or repurposed as final sprite RGB/alpha/silhouette",
     }
-    joints_path = output_dir / "g3s_c1_contact_left_pose_guide.json"
-    joints_path.write_text(json.dumps(pose_data, indent=2) + "\n", encoding="utf-8")
+    pose_path = output_dir / "g3s_c1_contact_left_pose_guide.json"
+    pose_path.write_text(json.dumps(pose_data, indent=2) + "\n", encoding="utf-8")
 
     print("G3S_C1A=REVIEW_REQUIRED")
-    print(f"C1_SELECTED_EVENT=left_contact")
+    print("C1_SELECTED_EVENT=left_contact")
     print(f"C1_SELECTED_FRAME={chosen_frame}")
     print(f"C1_NEAR_SIDE={near_side}")
     print(f"C1_FAR_SIDE={far_side}")
     print(f"C1_TRAVEL_DX_PX={travel_dx_px:.4f}")
     print(f"C1_BODY_HEIGHT_PX={visible_height:.3f}")
-    print(f"C1_POSE_JSON={joints_path}")
+    print(f"C1_POSE_JSON={pose_path}")
 
 
 if __name__ == "__main__":
