@@ -16,11 +16,10 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 8. `docs/ANIMATION_PIPELINE.md`
 9. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
 10. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-11. `docs/G3S_B2_LAYER_STACK_PREFLIGHT_LOG.md`
-12. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-13. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-14. `docs/G3S_B4_HAIR_LOG.md`
-15. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+11. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+12. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+13. `docs/G3S_B4_HAIR_LOG.md`
+14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -38,17 +37,11 @@ Final visible language: **true modern pixel art at native gameplay raster**.
 
 ## Exilada identity — LOCKED
 
-Canonical design master:
+Canonical design master: `assets/source/characters/exilada/reference/exilada_master.png`.
 
-`assets/source/characters/exilada/reference/exilada_master.png`
+Adult woman, approximately 162 cm, lean/functional/resilient, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy messy black hair, captivity history, bare feet, weaponless base.
 
-Adult woman, approximately 162 cm, lean/functional/resilient anatomy, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy messy black hair, captivity history, bare feet, weaponless base.
-
-Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references. Mature sensuality, erotic charge and adult nudity are legitimate parts of the visual language and are not automatically sanitized.
-
-## Body-first rule — LOCKED
-
-The production character owns a complete adult body base independent of hair, clothing and restraints.
+Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references.
 
 ## Hard operator constraint
 
@@ -62,14 +55,12 @@ Normal operator loop once a runner is approved:
 
 Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not final visible RGB/alpha/silhouette. Final visible art is owned by persistent native 2D pixel assets.
 
-High-resolution render/reference art may not be mechanically pixelated into production art.
-
 ## Locked gameplay baseline
 
 - native scene: `640×360`;
 - orthographic camera;
 - pitch: `26°`;
-- protagonist visible standing height: approximately `128 px`.
+- protagonist visible standing body height: approximately `128 px`.
 
 ## Gate order — CURRENT
 
@@ -79,113 +70,78 @@ High-resolution render/reference art may not be mechanically pixelated into prod
 - G3 first native translation — TECHNICAL PASS / LOOK NOT APPROVED
 - G3R primitive renderer refinement — FAIL/CLOSED
 - G3V representative continuous human visual proxy — FAIL/CLOSED
-  - G3V-R retarget preflight — PASS/CLOSED using `DIRECTION_SPACE_FK`
 - **G3S structured 2D visible representation** ← ACTIVE
-  - G3S-A source-model search — CLOSED
-  - G3S-A1 facial/anatomy lock attempts — FAIL/CLOSED
-  - G3S-B persistent part decomposition V1 — FAIL/CLOSED
-  - G3S-B2 layer-stack preflight — PASS/CLOSED DIAGNOSTIC
   - G3S-B3 complete body base — **PASS/CLOSED**
-    - B3A V1 — FAIL/CLOSED REVISION
-    - B3A V2 — PASS/CLOSED structural adult-female guide
-    - B3B V1 — FAIL/CLOSED ROUTE
-    - B3B V2 — FAIL/CLOSED VISUAL ROUTE
-    - B3B V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
     - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
   - **G3S-B4 hair** ← CURRENT
     - B4A preflight — **PASS/CLOSED DIAGNOSTIC**
-    - B4B V1 master-extraction route — **FAIL/CLOSED PRE-RUN METHOD**
-    - B4B V2 authored two-layer candidate — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**
-    - **B4B V3 authored two-layer candidate** ← RUNNER READY / REVIEW NEXT
+    - B4B V1 master extraction — **FAIL/CLOSED PRE-RUN METHOD**
+    - B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**
+    - B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**
+    - **B4B V4 pose-anchored authored two-layer** ← RUNNER READY / REVIEW NEXT
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
 ## Canonical production body base — LOCKED
 
-Promotion commit:
-
-`2deb765c3980d586ef9747340bb48852dedca452`
-
-Canonical files:
-
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
-
-Recorded facts:
-
+- promotion commit `2deb765c3980d586ef9747340bb48852dedca452`;
+- dimensions `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- dimensions `37×128`;
-- visible standing height `128 px`;
-- front-three-quarter elevated belt-scroller view;
-- adult nude hairless barefoot body base;
-- persistent 2D visible ownership;
-- excludes hair, clothing, restraints, accessories and weapons.
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+
+The body remains byte/pixel unchanged under B4/B5 composition.
 
 ## G3S-B4 hair — CURRENT
 
-Canonical hair identity: black/nearly black, very long, heavy, voluminous, messy, primary silhouette anchor, deprivation/survival rather than styled glamour.
+Canonical hair direction: black/nearly black, very long, heavy, voluminous, messy, wild, primary silhouette anchor.
 
-Minimum deterministic composition:
+Mandatory composition:
 
 `rear_hair -> body -> front_hair`
 
-- `rear_hair` is the dominant rear mass behind head/shoulders/back;
-- `front_hair` frames/crosses the front only where useful;
-- one flat overlay is invalid;
-- extra sublayers are added only if occlusion/secondary motion later requires them.
+### B4B V3 — FAIL/CLOSED
 
-### B4A preflight — PASS/CLOSED DIAGNOSTIC
+Reviewed contact sheet SHA256:
 
-Reviewed artifact SHA256: `efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`.
-
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
-
-### B4B V1 — FAIL/CLOSED PRE-RUN
+`9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33`
 
 Failure marker:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v3_pose_mismatch_failure.json`
 
-Reason: insufficient rear-hair information exists in the master for extraction.
+Root cause: V3 used fixed master-like canvas coordinates for hair geometry even though the canonical master and promoted B3B body are in different poses. The two-layer architecture was valid, but crown/rear/front placement did not follow the actual production body pose.
 
-### B4B V2 — FAIL/CLOSED VISUAL / STRUCTURAL PASS
+No model/API was used; no cleanup applies.
 
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
-
-SHA256:
-
-`73a9b53d35c158d78079039b4425c94028c8836e82b775ee0ce3e38b8d32a09d`
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v2_visual_failure.json`
-
-V2 proved the two-layer architecture but failed visually: centered curtain/bell silhouette, excessive front coverage, cape-like rear mass, repetitive equal-width lock rhythm, buried face/head and insufficient asymmetry/hierarchy. No model cleanup applies.
-
-### B4B V3 — CURRENT / RUNNER READY
+### B4B V4 — CURRENT / RUNNER READY
 
 Spec:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v3_authored_two_layer_hair_spec.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchored_hair_spec.json`
 
 Helper:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_two_layer_hair_candidate.py`
+`tools/structured-2d-character-pipeline/g3s_b4b_pose_anchored_hair_candidate.py`
 
 Runner:
 
 `tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
 
-V3 keeps the valid structural split but rewrites the art: rear-dominant, asymmetric and irregular mass; sparse lateral front framing; center face/clavicle/chest/abdomen substantially open; repetitive dread/curtain rhythm removed; master remains inspiration only and body remains exact/hash-verified.
+V4 correction:
+
+- the master remains identity/style/material inspiration only;
+- the helper measures head center/bounds, shoulder span, torso center and facing bias directly from the canonical B3B body alpha/silhouette;
+- `rear_hair` and `front_hair` are authored relative to those production-pose anchors;
+- the contact sheet explicitly shows the detected pose anchors on the actual body before the hair layers;
+- body remains exact/hash-verified;
+- no paid external API/model;
+- no automatic promotion.
 
 ## Current exact action
 
-Run exactly:
+Run:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
@@ -198,15 +154,13 @@ Then STOP and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C before B4B V3 review.
+Do not promote hair and do not start B5/G3S-C before V4 review.
 
-## Actual local AI disk/runtime state — LOCKED 2026-09-06
+## Actual local AI state — LOCKED 2026-09-06
 
-- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (historical folder name; Qwen weights removed);
+- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`;
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`;
-- repository-only old spike code does not imply local model installation;
-- PixelLab is historical external paid spike code only and is **not an active/authorized route**;
-- Wan-Animate-2 must not be assumed installed without fresh verification;
+- PixelLab is historical external paid spike only and is not active/authorized;
 - Qwen-native, SD1.5, PixelLock and Alucard remain closed;
-- Blender/MPFB may remain only as hidden structural infrastructure.
+- do not assume Wan-Animate-2 installed without fresh verification.
