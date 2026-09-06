@@ -1,0 +1,43 @@
+{
+  "gate": "G3S-B3B-BODY-REFERENCE",
+  "status": "PASS_APPROVED_REFERENCE_NOT_PRODUCTION_ART",
+  "date": "2026-09-05",
+  "source": {
+    "provenance": "user-provided Grok turnaround in project chat",
+    "sha256": "2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474",
+    "dimensions": [1168, 784],
+    "views": ["front", "back", "profile", "front_three_quarter"]
+  },
+  "approved_role": "PRIMARY_HIGH_RES_BODY_REFERENCE_FOR_EXILADA_B3B",
+  "production_authority": false,
+  "pixel_art_authority": false,
+  "body_direction": {
+    "adult": true,
+    "approx_height_cm": 162,
+    "build": "lean_functional_resilient",
+    "presence": ["mature", "severe", "sensual", "dangerous", "lived_in"],
+    "reference_lineage": ["Heavy Metal", "Conan", "Red Sonja", "Frank Frazetta", "Julie Bell"],
+    "skin": "olive_to_brown",
+    "hair_for_body_reference": "absent_bald",
+    "bare_feet": true
+  },
+  "coverage_note": {
+    "minimal_dark_loincloth_present_in_reference": true,
+    "loincloth_is_body_geometry": false,
+    "loincloth_must_not_be_baked_into_body_base": true,
+    "pelvic_body_pixels_must_be_authored_in_final_B3B": true
+  },
+  "locked_use": [
+    "anatomy and proportion reference",
+    "body-mass and silhouette intent reference",
+    "front/back/profile/three-quarter consistency reference",
+    "high-resolution source for visual translation studies"
+  ],
+  "forbidden_promotion": [
+    "do not treat this render as final pixel art",
+    "do not downsample/quantize it and declare B3B complete",
+    "do not preserve the loincloth as mandatory body coverage",
+    "do not let hidden 3D or this high-res image mechanically own final sprite silhouette"
+  ],
+  "next_gate": "G3S-B3B-PIXEL-TRANSLATION-CANDIDATE"
+}
