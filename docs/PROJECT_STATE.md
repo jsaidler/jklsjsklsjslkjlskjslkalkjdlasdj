@@ -28,7 +28,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 Every state-changing action updates the thematic doc, this file and the active handoff before completion is reported.
 
-Normal operator loop after an approved runner exists:
+Normal operator loop:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
@@ -97,8 +97,9 @@ B4 remains open but paused by user. Do not resume automatically.
 - G3S-C1A hidden-3D full-pose guide:
   - V1 source/evaluated polygon-index assumption — FAIL/CLOSED TECHNICAL
   - V2 evaluated local-object bake — FAIL/CLOSED TECHNICAL
-  - V3 mutate original rigged object after world-space bake — FAIL/CLOSED TECHNICAL
-  - **V4 detached evaluated depth proxy — CURRENT / RUNNER READY / REVIEW NEXT**
+  - V3 world-space bake on original rigged object — FAIL/CLOSED TECHNICAL
+  - V4 detached evaluated proxy — FAIL/CLOSED TECHNICAL
+  - **V5 original-body camera-space depth shader — CURRENT / RUNNER READY / REVIEW NEXT**
 - G3S-C1B native-2D non-rest pose — BLOCKED UNTIL C1A REVIEW
 - B5 clothing/restraints/accessories — DEFERRED
 
@@ -106,7 +107,7 @@ B4 remains open but paused by user. Do not resume automatically.
 
 ### V1
 
-Failed because MPFB source polygons=`18486`, evaluated polygons=`13378`; polygon-index identity was false.
+MPFB source polygons=`18486`, evaluated polygons=`13378`; polygon-index identity was false.
 
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
 
@@ -118,44 +119,48 @@ Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
 
 ### V3
 
-Invariant caught another transform failure before depth render:
+Invariant caught:
 
 - pre=`128.0000 px`;
 - post=`99.0563 px`;
 - delta=`28.9437 px`.
 
-Cause: replacing `G3V_BODY.data` and neutralizing the original rigged object's parent/bind/object state is not geometry-invariant on this MPFB stack.
-
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
 
-### V4 — CURRENT
+### V4
 
-V4 never mutates `G3V_BODY`.
+Detached evaluated mesh proxy also failed geometry equivalence:
 
-Depth pass:
+- original body=`128.0000 px`;
+- detached proxy=`102.4259 px`;
+- delta=`25.5741 px`.
 
-1. evaluate posed `G3V_BODY`;
-2. copy evaluated mesh to a new detached temporary object;
-3. assign exact evaluated `matrix_world` to that object;
-4. require no parent/modifiers/constraints;
-5. compare original evaluated body vs detached proxy projected height; delta must be `<=0.25 px`;
-6. assign depth bands on detached topology;
-7. hide original body only for the depth render;
-8. keep original rigged body intact for bbox/joints/metadata.
+Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
+
+Conclusion: on this retained MPFB stack, **no baked/copied/proxy mesh is trusted as a substitute for the exact evaluated body geometry for C1A depth rendering**.
+
+### V5 — CURRENT
+
+V5 removes topology substitution entirely.
+
+Depth pass now runs on the unchanged original evaluated `G3V_BODY`:
+
+1. keep the exact body that calibrated the 128 px camera;
+2. derive near/far from evaluated world-space body vertices;
+3. assign a guide-only emission shader to the original body;
+4. shader converts shading points WORLD -> CAMERA and maps camera-space depth continuously to grayscale;
+5. do not create a proxy, bake a mesh or map polygon indices;
+6. require projected body height before/after depth material setup to differ by `<=0.01 px`.
 
 Current exporter:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v4.py`
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v5.py`
 
 Runner:
 
 `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`
-
-Required V4 depth mode: `detached_evaluated_object`; `source_body_mutated=false`.
+Required V5 depth mode: `original_body_camera_space_shader` with `source_geometry_mutated=false`, `proxy_object_used=false`, `topology_index_mapping_used=false`.
 
 ## Current exact operator action
 
