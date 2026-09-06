@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V3 REFERENCE-GUIDED PIXEL TRANSLATION SPIKE READY FOR RUN — REVIEW ONLY / NOT PRODUCTION PASS**
+Gate status: **V3 REFERENCE-GUIDED PIXEL TRANSLATION SPIKE — REFERENCE IMPORT FIXED / READY TO RERUN**
 
 ## Canonical ownership rule
 
@@ -70,6 +70,24 @@ Locked consequences:
 - any later loincloth/trap/garment belongs to B5 clothing/equipment layers;
 - no censor garment is structurally required.
 
+## What `128 px` means — LOCKED CLARIFICATION 2026-09-06
+
+`128 px` is the **visible standing height of the protagonist at the locked native gameplay scale**, not a universal sprite-frame or source-canvas dimension.
+
+G1 compared `112 / 128 / 144 px` at native `640×360` and locked `128 px` with the orthographic `26°` camera because it best balanced:
+
+- Exilada identity/equipment/gore readability;
+- lateral combat spacing;
+- walkable belt depth;
+- enough character detail without consuming excessive screen area.
+
+Consequences:
+
+- the standing body is normalized to approximately `128 px` visible height for native-scale visual review;
+- a production animation frame may be wider and/or taller than `128×128` to contain limbs, hair, weapons, attacks and motion bounds;
+- `128×128` must not be treated as a universal frame-size lock;
+- the high-resolution turnaround remains high-resolution reference material and is not reduced merely because the gameplay body height is 128 px.
+
 ## B3B visual approval rule — LOCKED
 
 Required first-glance reading:
@@ -89,7 +107,7 @@ Automatic visual FAIL conditions include:
 - no meaningful Exilada identity;
 - failure to evoke Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
 
-## V3 — reference-guided native-grid translation spike — READY FOR RUN
+## V3 — reference-guided native-grid translation spike
 
 V3 is a **bounded visual spike**, not a production-source promotion.
 
@@ -99,17 +117,26 @@ Tooling:
 - runner: `tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`;
 - ready marker: `tools/structured-2d-character-pipeline/g3s_b3b_v3_spike_ready.json`.
 
-The runner:
+The runner verifies the canonical approved body-reference marker, verifies the exact approved reference by SHA256, then performs the bounded review-only translation study without using hidden-3D RGB/mask/silhouette as visible authority.
 
-1. verifies the canonical approved body-reference marker;
-2. locates the exact approved image by SHA256 in common user image folders;
-3. uses only the approved 2D turnaround, never B3A/3D RGB or mask, for this visible-translation study;
-4. isolates the approved front-three-quarter reference view;
-5. normalizes to the locked `128 px` native body height;
-6. creates a deterministic palette/cluster abstraction at the native grid;
-7. explicitly removes the dark reference loincloth from body ownership by reconstructing the covered pelvic region in skin tones at native pixels;
-8. emits a native guide, visual candidate, silhouette/gameplay preview and machine-readable result;
-9. marks every output **REVIEW REQUIRED / NOT PRODUCTION PASS**.
+### First V3 execution — FAIL / INPUT AVAILABILITY ONLY
+
+The first operator execution reached the V3 helper correctly but stopped before producing a candidate because the approved turnaround existed in the ChatGPT conversation but **was not present on the user's Windows filesystem** in any of the scanned common image folders.
+
+Observed error:
+
+`FileNotFoundError: approved body reference was not found automatically. Expected SHA256=2773c199...`
+
+This is **not a visual-route failure** and does not close V3. No candidate was produced and no model cleanup applies.
+
+Correction:
+
+- automatic broad folder scanning is no longer the normal dependency;
+- the runner now uses a canonical repo-local reference path by default:
+  `assets/source/characters/exilada/reference/exilada_body_turnaround_approved.png`;
+- an explicit `-ReferencePath` may be supplied when necessary;
+- the runner verifies the exact approved SHA256 before processing;
+- the runner explicitly states that `128 px` is visible body height, not final frame-canvas dimensions.
 
 ### Critical boundary
 
@@ -123,11 +150,21 @@ If the answer is yes, the accepted native cluster language must then be frozen/r
 
 ## Current gate
 
-**G3S-B3B V3 visual review is current.**
+**G3S-B3B V3 visual review remains current.**
 
 B4 hair, B5 clothing/accessories and G3S-C animation remain blocked until a replacement B3B production source passes.
 
 ## Exact next operator action
+
+One-time prerequisite: place the exact approved turnaround at:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_body_turnaround_approved.png`
+
+Expected SHA256:
+
+`2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`
+
+Then run:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
