@@ -1,12 +1,15 @@
 {
   "gate": "G3S-B3B-BODY-REFERENCE",
   "status": "PASS_APPROVED_REFERENCE_NOT_PRODUCTION_ART",
-  "date": "2026-09-05",
+  "date": "2026-09-06",
   "source": {
-    "provenance": "user-provided Grok turnaround in project chat",
-    "sha256": "2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474",
-    "dimensions": [1168, 784],
-    "views": ["front", "back", "profile", "front_three_quarter"]
+    "provenance": "user-provided Grok nude turnaround in project chat",
+    "canonical_local_path": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg",
+    "sha256": "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf",
+    "dimensions": [2048, 1401],
+    "views": ["front", "back", "profile", "front_three_quarter"],
+    "fully_nude": true,
+    "supersedes_reference_sha256": "2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474"
   },
   "approved_role": "PRIMARY_HIGH_RES_BODY_REFERENCE_FOR_EXILADA_B3B",
   "production_authority": false,
@@ -22,22 +25,22 @@
     "bare_feet": true
   },
   "coverage_note": {
-    "minimal_dark_loincloth_present_in_reference": true,
-    "loincloth_is_body_geometry": false,
-    "loincloth_must_not_be_baked_into_body_base": true,
-    "pelvic_body_pixels_must_be_authored_in_final_B3B": true
+    "pelvic_body_anatomy_visible_in_reference": true,
+    "reference_occluding_garment_present": false,
+    "pelvic_reconstruction_required_for_translation_spike": false,
+    "body_base_remains_independent_of_future_clothing": true
   },
   "locked_use": [
-    "anatomy and proportion reference",
+    "primary anatomy and proportion reference",
     "body-mass and silhouette intent reference",
     "front/back/profile/three-quarter consistency reference",
-    "high-resolution source for visual translation studies"
+    "complete pelvic/anatomical reference for body-base authoring",
+    "high-resolution source for bounded visual translation studies"
   ],
   "forbidden_promotion": [
     "do not treat this render as final pixel art",
     "do not downsample/quantize it and declare B3B complete",
-    "do not preserve the loincloth as mandatory body coverage",
-    "do not let hidden 3D or this high-res image mechanically own final sprite silhouette"
+    "do not let hidden 3D or this high-res image mechanically own final production sprite silhouette"
   ],
   "next_gate": "G3S-B3B-PIXEL-TRANSLATION-CANDIDATE"
 }
