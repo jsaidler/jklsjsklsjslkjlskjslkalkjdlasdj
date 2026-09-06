@@ -109,6 +109,8 @@ Expected review outputs:
 - `g3s_c1_skeleton_walk_contact_sheet.png`;
 - eight labeled frame PNGs.
 
+The zoom GIF crop is computed directly from the union of projected skeleton joint bounds across the eight states, so diagnostic labels/ground graphics cannot distort the inspection crop.
+
 Blue means anatomical left, red anatomical right, yellow the center chain, and white rings mark the support foot.
 
 ## PASS requirement
