@@ -69,35 +69,50 @@ V2: evaluated local-object bake produced final guide height `102.4258804321289 p
 
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
 
-V3: world-space mesh replacement on the original rigged object still broke projected geometry. Local run measured:
-
-- pre=`128.0000 px`;
-- post=`99.0563 px`;
-- delta=`28.9437 px`.
+V3: world-space mesh replacement on the original rigged object failed geometry invariance: pre=`128.0000`, post=`99.0563`, delta=`28.9437 px`.
 
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
 
-### V4 — CURRENT / RUNNER READY
+V4: detached evaluated proxy also failed geometry equivalence: original=`128.0000`, proxy=`102.4259`, delta=`25.5741 px`.
+
+Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
+
+Closed technical class for C1A depth:
+
+`evaluated MPFB body -> baked/copied/proxy geometry carrier -> depth render`
+
+Do not create another mesh bake/proxy revision.
+
+### V5 — CURRENT / RUNNER READY
 
 Exporter:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v4.py`
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v5.py`
 
 Runner:
 
 `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-V4 does **not** mutate `G3V_BODY`.
+V5 keeps the exact original evaluated `G3V_BODY` that calibrated the locked camera and renders depth by material only:
 
-For the depth pass it creates a detached object from the already evaluated posed mesh, assigns the exact evaluated `matrix_world`, leaves the proxy without parent/modifiers/constraints, compares projected height to the original evaluated body, and requires delta `<=0.25 px`. Only then does it render depth bands from that proxy. The original rigged body remains intact for final bbox/joints/metadata.
+- measure near/far from evaluated world-space vertices;
+- assign a guide-only shader directly to original `G3V_BODY`;
+- shader transforms each shading point WORLD -> CAMERA and maps camera-space depth continuously to grayscale;
+- no mesh copy;
+- no proxy object;
+- no polygon-index mapping;
+- no geometry/parent/armature/bind/object-transform mutation;
+- projected height before/after material setup must differ by `<=0.01 px`.
 
 Required depth metadata:
 
-- `mode = detached_evaluated_object`;
-- `source_body_mutated = false`;
-- projected height delta `<=0.25 px`.
+- `mode = original_body_camera_space_shader`;
+- `source_geometry_mutated = false`;
+- `proxy_object_used = false`;
+- `topology_index_mapping_used = false`;
+- projected height delta `<=0.01 px`.
 
-Runner also requires original-body guide height approximately `128 px` and screen-left travel x < 0.
+Runner also requires approximately `128 px` body height and screen-left travel x < 0.
 
 No model/API/download is used.
 
