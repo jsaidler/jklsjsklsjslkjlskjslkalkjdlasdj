@@ -87,6 +87,8 @@ C1A records full bone matrices, joint world/screen/depth data, chain lengths/dep
 
 Camera: `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` relative to measured root heading, camera side selected so real forward travel projects screen-left. Maximum skeleton height calibrated to about `128 px`. The rig is not transformed for facing.
 
+The review builder draws far chains first, near chains last, marks support feet, and computes the zoom GIF from the union of actual projected joint bounds rather than from rendered labels/background graphics.
+
 Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
