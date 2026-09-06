@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A V1 FAIL/CLOSED TECHNICAL REVISION — C1A V2 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
+Gate status: **C1A V1 FAIL/CLOSED TECHNICAL — C1A V2 FAIL/CLOSED TECHNICAL — C1A V3 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
 
 ## Purpose
 
@@ -27,64 +27,78 @@ It reuses the retained validated infrastructure:
 - `DIRECTION_SPACE_FK` approval from `tools/deterministic-character-pipeline/g3v_retarget_approval.json`;
 - locked G1 camera baseline: `640×360`, orthographic, pitch `26°`, target body height `128 px`.
 
-The four validated gait phase frames are `1568, 1588, 1608, 1628`. C1A chooses the left-contact candidate deterministically by preferring anatomical-left lead in source travel and strongest contact-like foot separation/grounding score. The selected frame is recorded in the output JSON and must be visually reviewed.
+The four validated gait phase frames are `1568, 1588, 1608, 1628`. C1A deterministically selected frame `1588` for the first anatomical-left contact candidate during V2 execution. That event remains subject to visual review after the guide package passes all numeric invariants.
 
 ## Transform-space safeguards — LOCKED
 
-C1A does not repeat the C0 facing/rest-space mistakes.
-
 - `DIRECTION_SPACE_FK` solves the complete hidden pose first;
-- directional-family conversion happens only **after** the full hidden pose is solved;
-- the hidden body mesh and its armature are rotated together by `180°` around world Z for the screen-left family, preserving mesh↔armature bind-space relationships;
-- grounding translation is applied to body mesh and armature together for the same reason;
-- the real G2 travel direction is explicitly flipped into the selected directional family and then projected through the final C1 camera;
-- the runner aborts unless projected travel x is negative for this screen-left family;
-- anatomical left/right remains bone identity from the hidden rig, never screen-x position.
+- directional-family conversion happens only after the full hidden pose is solved;
+- hidden body mesh and armature rotate together by `180°` around world Z for the screen-left family;
+- grounding translation applies to mesh and armature together;
+- travel direction is projected through the final C1 camera and must have negative screen x;
+- anatomical left/right remains hidden-rig bone identity, never screen-x position.
 
 These safeguards control the hidden guide only and do not create final visible pixels.
 
-## C1A V1 — FAIL/CLOSED TECHNICAL REVISION
+## C1A V1 — FAIL/CLOSED TECHNICAL
 
-The first local run successfully produced the neutral, silhouette and anatomical-region guide passes, then failed while preparing the depth-band guide.
-
-Observed error:
+The first local run wrote neutral, silhouette and region passes, then failed preparing depth:
 
 `evaluated body topology changed: eval=13378 source=18486`
 
-Root cause:
-
-- V1 assumed that MPFB `G3V_BODY` source-mesh polygons and the evaluated/deformed render mesh had a 1:1 polygon-index mapping;
-- that assumption is false on the retained MPFB stack because modifiers/helper masking change evaluated topology;
-- therefore depth measured on the evaluated mesh cannot be written back to `body.data.polygons[i]` by the same polygon index.
+Root cause: V1 incorrectly assumed a 1:1 polygon mapping between MPFB source mesh and evaluated/deformed mesh.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`
 
-This is **not** an animation-architecture failure. The complete hidden pose, screen-left direction contract and first three guide passes remained viable.
+This did not invalidate the hidden-3D guide architecture.
 
-## C1A V2 — CURRENT
+## C1A V2 — FAIL/CLOSED TECHNICAL
 
-V2 keeps the same hidden-pose architecture and fixes only the depth-pass topology assumption.
+V2 correctly moved the depth bands onto evaluated topology. The second local run completed all four rendered passes and produced the review package, with:
 
-For the single frozen guide pose:
+- selected frame `1588`;
+- near side `left`;
+- far side `right`;
+- projected travel `-62.7345 px` in screen x;
+- source polygons `18486`;
+- evaluated polygons `13378`.
 
-1. evaluate the already-retargeted MPFB body;
-2. copy that evaluated/deformed mesh in-process;
-3. replace the temporary Blender object's mesh data with that evaluated copy;
-4. remove modifiers from that temporary in-process object so the evaluated geometry is not deformed twice;
-5. assign depth-band materials directly to the evaluated topology;
-6. record both source and evaluated polygon counts in the pose JSON.
+However the final guide height was only `102.4258804321289 px` instead of the locked approximately `128 px`, so the runner correctly failed the camera-scale invariant.
 
-The source `.blend`, canonical B3B sprite and any repository art asset remain untouched. This bake exists only inside the headless guide-export process.
+Root cause: V2 copied evaluated mesh data back into the source object's local mesh while retaining the source object transform. On this retained MPFB stack that did not preserve the exact evaluated world-space geometry used by camera calibration.
 
-V2 exporter:
+Failure marker:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`
+`tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`
 
-The original V1 exporter is retained as historical implementation evidence:
+This also does **not** invalidate the hidden-3D guide architecture.
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`
+## C1A V3 — CURRENT
+
+V3 fixes the scale drift by making the depth bake explicitly world-space invariant:
+
+1. measure the projected evaluated body before baking;
+2. copy the already-posed evaluated mesh;
+3. transform copied vertices into exact evaluated **world coordinates** using the evaluated object's matrix;
+4. remove parenting/modifiers from the temporary in-process guide object;
+5. set its object matrix to identity;
+6. verify projected body height before/after bake differs by no more than `0.25 px`;
+7. assign depth bands directly on this frozen world-space topology.
+
+This guarantees that depth-pass topology freezing cannot silently change the G1 camera scale.
+
+Current exporter:
+
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v3.py`
+
+Historical exporters remain as failure evidence:
+
+- V1: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`;
+- V2: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`.
+
+The source `.blend`, canonical B3B sprite and repository art assets remain untouched. All topology freezing exists only inside the headless guide-export process.
 
 ## Guide outputs
 
@@ -101,36 +115,19 @@ C1A generates:
 - `g3s_c1_contact_left_skeleton_overlay.png` — projected skeleton/laterality overlay;
 - `g3s_c1_contact_left_pose_guide.json` — joints, anatomical sides, near/far, contact, root/camera/selection metadata;
 - `g3s_c1_contact_left_pose_guide_contact_sheet.png` — review sheet including the canonical B3B static body anchor;
-- five `96×160` logical guide crops for later source-authoring control.
+- five `96×160` logical guide crops.
 
 ## Ownership lock
 
-All C1A rendered 3D outputs are **guide/control evidence only**.
+All C1A rendered 3D outputs are **guide/control evidence only**. They may not be promoted as final sprite RGB, alpha or silhouette, nor cropped/recolored/quantized into final pixel art.
 
-They may not be:
-
-- promoted as final sprite RGB;
-- promoted as final alpha;
-- promoted as final sprite silhouette;
-- cropped/recolored/quantized and relabeled as pixel art;
-- used to reopen the rejected direct-visible-G3V route.
-
-The canonical B3B body remains the static identity/body-style anchor for the screen-left family:
+Canonical B3B body remains the static identity/body-style anchor:
 
 `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 
 ## Direction/laterality lock
 
-The C1A target family faces and travels **screen-left**.
-
-The guide JSON explicitly records:
-
-- anatomical left/right for every projected joint;
-- near/far anatomical side from camera-space depth;
-- selected contact foot;
-- screen-space travel vector, which must have negative x displacement.
-
-No screen-x heuristic is allowed to substitute for anatomical laterality.
+The C1A target family faces and travels **screen-left**. Guide JSON explicitly records anatomical side, near/far side, selected contact foot and screen-space travel vector. No screen-x heuristic substitutes for anatomical laterality.
 
 ## Runner
 
@@ -138,8 +135,8 @@ No screen-x heuristic is allowed to substitute for anatomical laterality.
 
 Support:
 
-- `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json` — current revision `HIDDEN_3D_FULL_POSE_GUIDE_V2`;
-- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`;
+- `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v3.py`;
 - `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`.
 
 C1A uses no image-generation model, paid API or new download.
@@ -156,7 +153,8 @@ C1A passes only if the review package visibly and numerically shows:
 - readable pelvis/torso/leg relationship;
 - explicit contact/root metadata;
 - approximately `128 px` body height at the locked G1 camera;
-- depth guide produced from the evaluated mesh topology (`mode = evaluated_mesh_bake`);
+- depth guide `mode = evaluated_worldspace_bake`;
+- projected guide height delta across the depth bake `<= 0.25 px`;
 - no claim that hidden-3D RGB/silhouette is final pixel art.
 
 ## Next gate after C1A review
