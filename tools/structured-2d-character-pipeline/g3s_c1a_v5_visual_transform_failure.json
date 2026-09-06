@@ -1,0 +1,31 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "HIDDEN_3D_FULL_POSE_GUIDE_V5",
+  "status": "FAIL_CLOSED_VISUAL_TRANSFORM_METHOD",
+  "date": "2026-09-06",
+  "reviewed_contact_sheet": "g3s_c1_contact_left_pose_guide_contact_sheet.png",
+  "reviewed_contact_sheet_sha256": "74ee1979afa58b8bbe77a3549fdc6af41e24524287f6329a33425aa7b15f6ba9",
+  "selected_frame": 1588,
+  "numeric_evidence_that_passed": {
+    "body_height_px": 128.0,
+    "travel_dx_px": -62.735,
+    "contact_foot": "left",
+    "near_anatomical_side": "left",
+    "far_anatomical_side": "right"
+  },
+  "visual_failure": [
+    "neutral body guide contains huge triangular/kite-like stretched surfaces projecting from both upper-body sides",
+    "silhouette is not a coherent adult human silhouette",
+    "anatomical-region pass assigns those giant stretched surfaces to left/right limb regions",
+    "skeleton/laterality overlay remains coherent while skinned body geometry is visibly exploded"
+  ],
+  "root_cause": "C1A base directional-family setup rotated and grounded the target rig and skinned G3V_BODY as separate object-space mutations after retarget. The visual review proves that this presentation transform path does not preserve the retained MPFB skin/bind/parent state even though skeleton and numeric camera checks remain valid.",
+  "closed_submethod": "post-retarget rotate/translate hidden rig and skinned body objects to manufacture screen-left facing",
+  "retained": [
+    "DIRECTION_SPACE_FK motion backbone",
+    "frame 1588 contact candidate pending fresh visual review",
+    "original-body camera-space depth shader from V5",
+    "hidden 3D as pose/laterality/depth/contact guide architecture"
+  ],
+  "next_revision": "V6_CAMERA_DIRECTIONAL_FAMILY_NO_RIG_BODY_TRANSFORM"
+}
