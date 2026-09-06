@@ -1,8 +1,8 @@
 # G3S-B3 — Nude Body Base
 
-Status date: **2026-09-05**
+Status date: **2026-09-06**
 
-Gate status: **B3A V2 PASS/CLOSED — B3B V1/V2 CLOSED — BODY REFERENCE APPROVED — PIXEL TRANSLATION NEXT**
+Gate status: **B3A V2 PASS/CLOSED — B3B V1/V2 CLOSED — NUDE BODY REFERENCE APPROVED — V3 REVIEW SPIKE READY**
 
 ## Why this gate exists
 
@@ -49,7 +49,7 @@ Wrong MPFB gender polarity. Failure marker:
 
 ## B3A V2 — PASS/CLOSED
 
-Validated adult-female structural anatomy, complete geometry, zero forbidden layer objects and locked `128 px` gameplay scale.
+Validated adult-female structural anatomy, complete geometry, zero forbidden layer objects and locked ~`128 px` visible gameplay scale.
 
 Approval marker:
 
@@ -75,25 +75,39 @@ Failure marker:
 
 Rejected V2 art/tooling was removed from `main`; no model cleanup applies.
 
-## Approved high-resolution body reference — PASS
+## Approved high-resolution nude body reference — PASS
 
-The current primary body reference is the user-approved Grok four-view turnaround.
+The current primary body reference is the user-approved Grok **fully nude four-view turnaround**.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
+Canonical expected local path:
+
+`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
+
 Source identity:
 
-- SHA256 `2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`;
-- `1168×784`;
+- SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
+- `2048×1401`;
 - front / back / profile / front-three-quarter;
 - adult woman, approximately 162 cm identity;
 - natural feminine proportions, lean/functional/resilient;
 - severe, sensual, dangerous and lived-in;
-- aligned with Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
+- aligned with Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell;
+- full pelvic body anatomy visible;
+- no loincloth/tapa-sexo or other occluding garment.
 
-The minimal dark loincloth/tapa-sexo visible in the reference is only an occluder. It has no body-base ownership and must not become a mandatory coverage layer. Final pelvic pixels belong to B3B; any later garment belongs to B5.
+It supersedes the earlier covered turnaround (`2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`) as the primary anatomy reference.
+
+### Consequence
+
+No synthetic pelvic reconstruction is now required or allowed in the V3 reference-guided review spike. Any later garment remains B5 ownership.
+
+## 128 px clarification — LOCKED
+
+`128 px` is the target **visible standing body height** at native `640×360` gameplay scale with the locked orthographic `26°` camera. It is not a universal `128×128` frame/canvas requirement. Extreme poses, hair and equipment may require larger transparent bounds while preserving the same body scale.
 
 ## B3B visual PASS criteria
 
@@ -112,8 +126,12 @@ Automatic FAIL: generic fitness/character-creator body, superhero exaggeration, 
 
 ## Current exact action
 
-Create and visually review the first **pixel-art translation candidate** from the approved high-resolution body direction.
+Run the bounded **B3B V3 nude-reference pixel-translation review spike**.
 
-The high-resolution turnaround must **not** simply be resized/quantized and declared production art. The candidate is a visual gate. After it passes, establish the replacement B3B native production source and deterministic validation/export tooling.
+The high-resolution turnaround must **not** simply be resized/quantized and declared production art. V3 is only a visual gate. After a useful visual pass, establish the replacement B3B native production source and deterministic validation/export tooling with independent 2D ownership.
 
-No local B3B runner is currently approved. B4/B5/G3S-C remain blocked.
+Runner:
+
+`tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`
+
+B4/B5/G3S-C remain blocked.
