@@ -1,0 +1,29 @@
+{
+  "gate": "G3S-B3B-V3-NUDE-REFERENCE-GUIDED-PIXEL-TRANSLATION-SPIKE",
+  "status": "FAIL_CLOSED_VISUAL_AND_METHOD_ROUTE",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b3b_v3_reference_guided\\g3s_b3b_v3_contact_sheet.png",
+  "reviewed_artifact_sha256": "ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047",
+  "failure_summary": "V3 did not author pixel art. It mechanically isolated the high-resolution three-quarter reference, downscaled it to 128 px visible height, reused the reduced reference silhouette/mask, quantized colors and applied local cleanup. The result therefore reads as a tiny reduced illustration/render rather than intentional modern pixel art.",
+  "method_failures": [
+    "high-resolution reference silhouette mechanically survives into the candidate instead of being independently authored as native 2D character art",
+    "LANCZOS reduction followed by palette quantization is exactly the class of reduced-illustration/pixel-filter approach already forbidden as a production-art method",
+    "palette reduction and majority cleanup do not create intentional pixel clusters or authored anatomy",
+    "the spike therefore cannot meaningfully validate the required authored pixel-art language"
+  ],
+  "visual_failures": [
+    "reads as a miniaturized render rather than character pixel art",
+    "hands, feet and face collapse at native scale",
+    "anatomical masses are inherited from reduction rather than deliberately redesigned for the pixel grid",
+    "value structure remains render-like and noisy rather than grouped into intentional clusters",
+    "no useful production pixel-language decision is proven"
+  ],
+  "production_promotion_allowed": false,
+  "runner_removed_from_main": true,
+  "helper_removed_from_main": true,
+  "ready_marker_removed_from_main": true,
+  "model_cleanup_required": false,
+  "model_cleanup_reason": "V3 downloaded no model weights and used only existing Python/Pillow tooling.",
+  "next_gate": "G3S-B3B-AUTHORED-NATIVE-PIXEL-BODY-CANDIDATE",
+  "next_rule": "The next B3B candidate must begin as actual authored native pixel character art. The approved high-resolution nude turnaround may guide anatomy/proportion/identity but must not be resized, traced mechanically, quantized or used as direct final silhouette authority."
+}
