@@ -54,14 +54,30 @@ def configure_camera(camera, target, heading, pitch_deg, side_sign, azimuth_deg)
     distance = 12.0
     camera.location = Vector(target) + horizontal * (distance * math.cos(pitch)) + Vector((0.0, 0.0, distance * math.sin(pitch)))
     look_at(camera, target)
+    # Blender 5.1 can otherwise expose the previous evaluated camera transform to
+    # world_to_camera_view inside the same headless Python evaluation step.
+    bpy.context.view_layer.update()
     return horizontal
 
 
-def screen_record(scene, camera, world):
+def normalize_screen_x(raw_x, width, screen_x_multiplier):
+    if screen_x_multiplier < 0.0:
+        return float(width) - float(raw_x)
+    return float(raw_x)
+
+
+def projected_screen_x(scene, camera, world, screen_x_multiplier=1.0):
+    co = world_to_camera_view(scene, camera, world)
+    raw_x = float(co.x * scene.render.resolution_x)
+    return normalize_screen_x(raw_x, scene.render.resolution_x, screen_x_multiplier)
+
+
+def screen_record(scene, camera, world, screen_x_multiplier=1.0):
     co = world_to_camera_view(scene, camera, world)
     local = camera.matrix_world.inverted() @ world
+    raw_x = float(co.x * scene.render.resolution_x)
     return {
-        "x": float(co.x * scene.render.resolution_x),
+        "x": normalize_screen_x(raw_x, scene.render.resolution_x, screen_x_multiplier),
         "y": float((1.0 - co.y) * scene.render.resolution_y),
         "depth": float(-local.z),
         "world": [float(world.x), float(world.y), float(world.z)],
@@ -197,20 +213,48 @@ def main():
     pitch = float(spec["camera"]["pitch_deg"])
     azimuth = float(spec["camera"]["azimuth_from_motion_heading_deg"])
     target0 = Vector((root_first.x, root_first.y, baseline_center_z))
-    selected_side = None
-    selected_horizontal = None
+
+    # Evaluate both front-three-quarter lateral sides after forcing a depsgraph
+    # update. Prefer a camera whose raw Blender projection already sends forward
+    # travel screen-left. If Blender's camera basis still reports the opposite
+    # screen handedness, keep the physical camera and normalize only the guide's
+    # screen-X coordinate system. This does not transform the rig or alter depth.
+    camera_candidates = []
     for side_sign in (1, -1):
         camera.data.ortho_scale = 5.0
         horizontal = configure_camera(camera, target0, heading, pitch, side_sign, azimuth)
         a = world_to_camera_view(scene, camera, target0)
         b = world_to_camera_view(scene, camera, target0 + heading)
         dx = float((b.x - a.x) * scene.render.resolution_x)
-        if dx < 0:
-            selected_side = side_sign
-            selected_horizontal = horizontal.copy()
-            break
-    if selected_side is None:
-        raise RuntimeError("could not choose front-three-quarter camera with screen-left forward travel")
+        camera_candidates.append({
+            "side_sign": int(side_sign),
+            "horizontal": horizontal.copy(),
+            "raw_heading_dx_px_at_ortho_5": dx,
+        })
+        print(f"C1_CAMERA_CANDIDATE side={side_sign:+d} raw_heading_dx_px={dx:.6f}")
+
+    negative = [c for c in camera_candidates if c["raw_heading_dx_px_at_ortho_5"] < -1e-6]
+    if negative:
+        chosen = max(negative, key=lambda c: abs(c["raw_heading_dx_px_at_ortho_5"]))
+        screen_x_multiplier = 1.0
+    else:
+        chosen = max(camera_candidates, key=lambda c: abs(c["raw_heading_dx_px_at_ortho_5"]))
+        if abs(chosen["raw_heading_dx_px_at_ortho_5"]) <= 1e-6:
+            raise RuntimeError(
+                "front-three-quarter camera projects the motion heading with effectively zero horizontal component"
+            )
+        screen_x_multiplier = -1.0 if chosen["raw_heading_dx_px_at_ortho_5"] > 0.0 else 1.0
+
+    selected_side = int(chosen["side_sign"])
+    selected_horizontal = chosen["horizontal"].copy()
+    normalized_heading_dx = chosen["raw_heading_dx_px_at_ortho_5"] * screen_x_multiplier
+    if normalized_heading_dx >= -1e-6:
+        raise RuntimeError(
+            f"screen-left guide normalization failed: normalized heading dx={normalized_heading_dx:.6f}px"
+        )
+    print(f"C1_CAMERA_SELECTED side={selected_side:+d}")
+    print(f"C1_SCREEN_X_MULTIPLIER={screen_x_multiplier:+.1f}")
+    print(f"C1_NORMALIZED_HEADING_DX_PX_AT_ORTHO_5={normalized_heading_dx:.6f}")
 
     def frame_target(rec):
         root = rec["joints"]["pelvis"]["world"]
@@ -235,7 +279,7 @@ def main():
 
     configure_camera(camera, target0, heading, pitch, selected_side, azimuth)
     fixed_camera_matrix = camera.matrix_world.copy()
-    fixed_root_x = float(world_to_camera_view(scene, camera, root_first).x * scene.render.resolution_x)
+    fixed_root_x = projected_screen_x(scene, camera, root_first, screen_x_multiplier)
 
     all_ground_z = min(
         rec["joints"][key]["world"].z
@@ -248,9 +292,10 @@ def main():
         target = frame_target(rec)
         configure_camera(camera, target, heading, pitch, selected_side, azimuth)
         camera.data.ortho_scale = locked_ortho
+        bpy.context.view_layer.update()
         joints = {}
         for key, item in rec["joints"].items():
-            sr = screen_record(scene, camera, item["world"])
+            sr = screen_record(scene, camera, item["world"], screen_x_multiplier)
             sr["anatomical_side"] = item["side"]
             sr["bone"] = item["bone"]
             joints[key] = sr
@@ -279,7 +324,10 @@ def main():
 
         camera.matrix_world = fixed_camera_matrix
         camera.data.ortho_scale = locked_ortho
-        root_fixed_x = float(world_to_camera_view(scene, camera, rec["joints"]["pelvis"]["world"]).x * scene.render.resolution_x)
+        bpy.context.view_layer.update()
+        root_fixed_x = projected_screen_x(
+            scene, camera, rec["joints"]["pelvis"]["world"], screen_x_multiplier
+        )
         root_dx = root_fixed_x - fixed_root_x
 
         left_low = min(rec["joints"]["left_ankle"]["world"].z, rec["joints"]["left_toe"]["world"].z)
@@ -344,7 +392,19 @@ def main():
             "ortho_scale": locked_ortho,
             "target_skeleton_height_px": target_height,
             "max_measured_skeleton_height_px": float(max(heights)),
-            "tracking": "follow forward root component only; preserve lateral sway and vertical gait motion"
+            "tracking": "follow forward root component only; preserve lateral sway and vertical gait motion",
+            "screen_x_multiplier": screen_x_multiplier,
+            "screen_x_normalization": (
+                "none" if screen_x_multiplier > 0.0
+                else "horizontal guide-coordinate normalization only; rig/world/depth remain unchanged"
+            ),
+            "selection_candidates": [
+                {
+                    "side_sign": int(c["side_sign"]),
+                    "raw_heading_dx_px_at_ortho_5": float(c["raw_heading_dx_px_at_ortho_5"]),
+                }
+                for c in camera_candidates
+            ],
         },
         "root_travel_total_dx_px": total_dx,
         "ground_reference_z": float(all_ground_z),
