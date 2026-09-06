@@ -51,7 +51,7 @@ The final user-supplied body reference is already pixel-art imagery. One existin
 - high-resolution nude turnaround — supporting anatomy reference only.
 - B3B V3 — FAIL/CLOSED: reduced/quantized high-resolution render.
 - final user-supplied four-view pixel-art visual reference — PASS / LOCKED / no more user generation.
-- **B3B V4 locked pixel-reference candidate — VISUAL PASS / PROMOTION PENDING.**
+- **B3B V4 locked pixel-reference candidate — VISUAL PASS / CORRECTED PROMOTION READY.**
 
 ## Fixed references
 
@@ -77,7 +77,7 @@ Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-SHA256:
+Recorded SHA256:
 
 `2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
 
@@ -85,15 +85,27 @@ Approved native body candidate:
 
 - `37×128` RGBA;
 - `128 px` visible standing height;
-- raw RGBA SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+- **authoritative local raw RGBA SHA256:** `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+
+The older `bd4a78e...` digest was measured from an assistant-side reconstructed candidate and is superseded for promotion.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_visual_approval.json`
 
-This passes the nude/hairless **body-base** visual gate only.
+This passes the nude/hairless body-base visual gate only.
 
-## Promotion implementation
+## First promotion attempt — implementation bug
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json`
+
+The first promotion attempt refused correctly because the promoter expected the wrong raw digest. Observed local candidate: `818f0538...`; hardcoded assistant-side reconstruction: `bd4a78e...`.
+
+No art decision changed. No model cleanup applies.
+
+## Corrected promotion implementation
 
 Promotion helper:
 
@@ -103,11 +115,11 @@ Promotion runner:
 
 `tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
 
-The runner:
+The corrected runner:
 
-- rebuilds the exact reviewed candidate from the locked source;
-- verifies dimensions and approved raw RGBA digest;
-- refuses any pixel mismatch;
+- does **not** rerun V4 generation;
+- uses the existing local candidate already present in `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`;
+- verifies `37×128`, exact authoritative raw RGBA digest and 128 px visible alpha height;
 - copies exact pixels to the canonical asset tree;
 - writes provenance JSON;
 - commits/pushes only the canonical body PNG + metadata JSON.
@@ -128,9 +140,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\15_promote_g3s_b3b_v4_body_base.ps1"
 ```
 
+**Do not run runner 14 first.** The existing candidate from the failed promotion attempt is the artifact to promote.
+
 Then send the final console output.
 
-If promotion/push succeeds, the next documentation action is **G3S-B3B PASS/CLOSED**, then **G3S-B4 hair** opens.
+If promotion/push succeeds, immediately update living docs to **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
 
 ## Actual local AI state
 
