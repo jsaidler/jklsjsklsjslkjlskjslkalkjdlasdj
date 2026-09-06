@@ -2,22 +2,23 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 V2 BODY MOTION CURRENT**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION ROUTE CLOSED / ANIMATION-READY 2D SOURCE REQUIRED**
 
 ## Locked architecture
 
-`real motion -> validated hidden rig -> projected joints/depth/sockets/guides -> persistent 2D pixel assets -> deterministic 2D transform/deformation -> depth-aware composition -> native sprite -> QA`
+`real motion -> validated hidden rig -> pose/contact/depth/sockets/guides -> persistent 2D pixel assets -> pose-specific visible state/deformation within valid limits -> depth-aware composition -> native sprite -> QA`
 
 Hidden 3D may own motion/topology/sockets/contacts/depth/physics/semantic guides only. It does **not** own final visible character RGB, alpha or final sprite silhouette.
 
 ## Production constraints
 
 - final visible character art is owned by persistent native 2D assets;
-- no per-frame diffusion as animation owner;
+- no per-frame diffusion as runtime animation owner;
 - no routine frame-by-frame repainting by the user;
 - no beauty-render shrink/pixel-filter route;
 - body, hair, clothing and accessories have separate ownership;
-- a complete body exists under every removable layer.
+- a complete body exists under every removable layer;
+- animation may not assume one static raster contains every hidden surface needed by every pose.
 
 ## Canonical B3 body — PASS/CLOSED
 
@@ -27,7 +28,22 @@ Hidden 3D may own motion/topology/sockets/contacts/depth/physics/semantic guides
 - `37×128` RGBA;
 - visible standing body height `128 px`;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- authored front-three-quarter view facing **screen-left**.
+
+This B3B asset remains the approved static body master for that view. It is not by itself an animation-ready source for arbitrary gait silhouettes.
+
+## Facing/laterality rule — LOCKED
+
+A 3/4 raster cannot infer anatomical left/right or near/far ownership from screen-x alone. Any animation source family must explicitly register:
+
+- screen facing;
+- anatomical side;
+- near/far limb ownership;
+- occlusion order;
+- pose/rest basis relative to hidden motion guides.
+
+The current B3B family faces screen-left; travel using that family must move screen-left unless another direction family is authored.
 
 ## B4 hair — DEFERRED
 
@@ -35,77 +51,79 @@ Hair remains structurally separate and later must still satisfy:
 
 `rear_hair -> body -> front_hair`
 
-No hair candidate is approved. B4C produced review evidence only; no generated hair pixels were promoted. The user explicitly paused hair on 2026-09-06.
+No hair candidate is approved. No B4C generated pixels were promoted. The user paused hair on 2026-09-06.
 
-See `docs/G3S_B4_HAIR_LOG.md`.
-
-## G3S-C0 — BODY-ONLY MOTION DIAGNOSTIC — CURRENT
+## G3S-C0 — BODY-ONLY MOTION DIAGNOSTIC
 
 The user requested to see the approved doll moving before more layer work.
 
-C0 is an intentional diagnostic exception to the full-layer build order. It asks only whether the persistent B3B body can be driven by the already-approved real-motion infrastructure.
-
-Motion inputs:
+Motion infrastructure retained:
 
 - G2 real-motion/topology = PASS;
 - CMU `105_34 NormalWalk`;
 - `G2_CANONICAL_RIG`;
-- G3V-R `DIRECTION_SPACE_FK` = PASS;
-- validated phase frames `1568, 1588, 1608, 1628`.
-
-The visible source remains the canonical body PNG. Hidden 3D contributes joint/depth data only.
+- G3V-R `DIRECTION_SPACE_FK` = PASS.
 
 ### C0 V1 — FAIL/CLOSED
-
-V1 used hard persistent body-part partitions and independently rotated torso/head/upper-lower limbs/feet.
-
-Reviewed contact sheet SHA256:
-
-`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
 
-The real-motion progression was visible, but the body did not remain visually coherent. Later stride frames expose detached knees/ankles and loop/arc-like assembled limb silhouettes.
+Method: hard body-part cutout + independent rigid rotation from the single B3B still.
 
-Therefore the following deformation route is **closed**:
+Failure: detached joints and broken/loop-like stride silhouettes.
 
-`nearest-segment hard partition -> independent rigid part rotation`
+### C0 V2 — FAIL/CLOSED VISUAL + METHOD
 
-Do not fix this by adding more hand-tuned rigid pivots or overlap.
+Reviewed contact sheet SHA256:
 
-### C0 V2 — CONTINUOUS CHAIN WARP — CURRENT
+`6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
 
-V2 retains the same real-motion inputs and persistent body ownership but replaces hard limb slabs with six continuous regions:
+Failure marker:
 
-- head;
-- torso;
-- left/right arm;
-- left/right leg.
+`tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
 
-Each arm/leg is mapped as one polyline chain. Pixel mapping blends adjacent source-segment transforms near elbows/knees/ankles, so articulation bends through a joint instead of splitting the source image at that joint.
+Method: continuous chain warp of arms/legs from the same single still.
 
-Native source colors are rasterized directly back to the integer grid. No antialiasing, hidden-3D RGB, diffusion, paid API or image-model repainting is introduced.
+Failure: anatomically impossible limb arcs persisted.
 
-Pipeline:
+Root cause is architectural:
 
-`G2 real motion -> projected joints/depth -> direction-space target skeleton -> continuous native-2D chain warp -> per-frame depth ordering -> GIF/contact-sheet review`
+- sprite-facing/laterality/near-far ownership was not registered;
+- sprite rest/camera basis and G2 projected-motion basis were not a validated common coordinate system;
+- real gait depth and foreshortening were collapsed into 2D chain deformation;
+- the still lacks hidden anatomy revealed by changing occlusion;
+- bbox-bottom placement is not true contact/root grounding.
 
-Spec:
+Therefore the entire following class is closed when the **only visible source** is the single B3B still:
 
-`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
+`single still -> cutout / chain warp / cage warp -> manufacture full gait`
 
-Runner:
+A smoother weighted mesh is not a solution to missing visible surfaces or wrong near/far anatomy.
+
+V2 runner is disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-Builder:
+## Animation-ready visible source — CURRENT REQUIREMENT
 
-`tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+The first real walk proof needs a small persistent native-2D pose family tied to actual gait events, such as contact/down/passing/up for both sides.
 
-V2 must at minimum eliminate V1's disconnected/loop-like limb behavior. If it cannot, the next deformation class is a weighted 2D mesh/cage rather than another rigid-cutout revision.
+Each pose state must own complete visible anatomy for that phase, including:
+
+- anatomical left/right;
+- near/far limb ownership;
+- foreshortening;
+- pelvis/torso counter-motion;
+- hip/knee/ankle geometry;
+- foot contact/roll;
+- silhouette and occlusion.
+
+The hidden rig supplies pose guides, timing, root/contact/depth metadata. Persistent 2D art owns final visible pixels.
+
+No new animation runner is approved until one non-rest pose can be authored at production quality without manual frame redraw by the user.
 
 ## Full layered motion remains later
 
-C0 does not waive the eventual production requirement for persistent hair, clothing, restraints and equipment. Full G3S-C layered motion approval still waits until those layer families exist.
+C0 does not waive eventual persistent hair, clothing, restraints and equipment. Full layered G3S-C approval still waits for those layer families after the body animation source architecture is viable.
