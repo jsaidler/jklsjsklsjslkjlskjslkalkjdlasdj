@@ -1,0 +1,24 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "SKELETON_ONLY_WALK_CYCLE_V1",
+  "status": "TECHNICAL_FAILURE_FIXED_PENDING_RERUN",
+  "date": "2026-09-06",
+  "failed_component": "front-three-quarter camera side selection",
+  "observed_error": "RuntimeError: could not choose front-three-quarter camera with screen-left forward travel",
+  "environment": {
+    "blender": "5.1.1",
+    "blend": "Z:\\AI\\RogueliteCharacterPipeline\\g2\\g2_motion_topology.blend",
+    "source_rig": "G2_CANONICAL_RIG",
+    "motion": "CMU 105_34 NormalWalk"
+  },
+  "classification": "technical pre-review failure; skeleton motion method not disproven",
+  "root_cause": "camera transforms were changed and sampled immediately by world_to_camera_view without forcing a Blender dependency-graph update; the selection path also had no deterministic screen-coordinate fallback when Blender camera handedness did not satisfy the screen-left convention",
+  "correction": [
+    "force bpy.context.view_layer.update() after every camera transform",
+    "record both lateral camera candidate heading projections",
+    "prefer a candidate that naturally projects forward travel screen-left",
+    "if neither candidate exposes the desired X handedness, normalize only guide screen-X coordinates while preserving rig/world transforms, camera depth and anatomical laterality",
+    "keep final root-travel screen-left assertion"
+  ],
+  "cleanup": "none; no model, API, download or new runtime was added"
+}
