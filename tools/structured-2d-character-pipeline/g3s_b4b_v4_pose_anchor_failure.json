@@ -1,0 +1,24 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4B_POSE_ANCHORED_HAIR_V4",
+  "status": "FAIL_CLOSED_VISUAL_AND_METHOD",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4b_two_layer_hair\\g3s_b4b_contact_sheet.png",
+  "reviewed_artifact_sha256": "50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5",
+  "structural_split": "rear_hair -> body -> front_hair",
+  "structural_split_result": "PASS",
+  "visual_result": "FAIL",
+  "root_cause": [
+    "the body-pose detector reduced a complex 3/4 pose to a few unreliable scalar anchors",
+    "reported shoulder_span=6.36 px is not a credible shoulder measurement for the canonical 37 px-wide body and demonstrates anchor mis-detection",
+    "head center + shoulder row/span + torso center + binary facing bias do not encode head tilt, shoulder slope, torso rotation, arm occlusion, back contour or local depth",
+    "hard-coded polygon/line hair authoring cannot infer a convincing three-dimensional wrap around the actual body pose",
+    "the resulting hair remains disconnected from the production anatomy and reads as geometric scaffolding rather than authored character hair"
+  ],
+  "route_decision": "close deterministic Pillow polygon/anchor hair authoring as a visual-production route; do not iterate with more hand-tuned anchors or a V5 of the same method",
+  "body_modified": false,
+  "model_or_paid_api_used": false,
+  "cleanup_required": false,
+  "automatic_promotion": false,
+  "next_gate": "B4 remains open; next method must use real visual 2D authoring/adaptation to the canonical B3B pose while preserving rear/front layer ownership"
+}
