@@ -1,0 +1,13 @@
+{
+  "gate": "G3S-C0",
+  "date": "2026-09-06",
+  "status": "IMPLEMENTATION_ERROR_CORRECTED",
+  "issue": "travel preview moved screen-right although the canonical B3B body visibly faces screen-left",
+  "root_cause": "travel x-position was hardcoded as increasing from 250 to 390 independently of sprite facing",
+  "affected_code": "g3s_c0_continuous_warp_v2.py travel presentation and the earlier V1 travel presentation",
+  "canonical_facing_lock": "left",
+  "correct_travel_direction": "left",
+  "correction": "V2 runner now rebuilds the travel GIF from the generated logical frames with x decreasing from 390 to 250; sprite pixels are not mirrored and gait frame order is not reversed",
+  "helper": "tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py",
+  "runner": "tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1"
+}
