@@ -40,54 +40,21 @@ No high-resolution render/reference may be mechanically pixelated into final pro
 3. separate clothing/bindings/restraints/accessories — BLOCKED UNTIL HAIR PASS;
 4. layered sprite animation driven by hidden-rig guides — BLOCKED UNTIL LAYERS READY.
 
-## B3/B3B history
+## B3/B3B status
 
-- B3A V1 — FAIL/CLOSED REVISION.
-- B3A V2 — PASS/CLOSED structural guide.
-- B3B V1 — FAIL/CLOSED 3D-mask-owned silhouette.
-- B3B V2 — FAIL/CLOSED procedural/mannequin visual route.
-- B3B V3 — FAIL/CLOSED reduced/quantized high-resolution render.
-- final user-supplied four-view pixel-art visual reference — PASS / LOCKED / no more user generation.
-- B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**.
+B3B V4 is **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**.
 
-## Canonical production body base
-
-Promotion commit:
-
-`2deb765c3980d586ef9747340bb48852dedca452`
-
-Canonical files:
+Canonical production body base:
 
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
-
-Recorded facts:
-
+- commit `2deb765c3980d586ef9747340bb48852dedca452`;
 - `37×128` RGBA;
 - visible standing height `128 px`;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- adult nude/hairless/barefoot body base;
-- front-three-quarter elevated belt-scroller view;
-- persistent 2D visible ownership.
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
 
-The body base must not be altered when B4/B5 layers are added.
-
-## Fixed body references
-
-Supporting high-resolution anatomy reference:
-
-`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
-
-SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`.
-
-Final user-supplied pixel-art reference marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
-
-SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`.
-
-Hard interaction lock: do not ask the user for another body image, another Grok prompt or another turnaround.
+The body asset must remain pixel/byte unchanged through B4/B5 layering.
 
 ## G3S-B4 — HAIR CURRENT
 
@@ -101,43 +68,57 @@ Canonical hair direction:
 - primary silhouette anchor;
 - deprivation/survival material language rather than groomed fantasy styling.
 
-Hair is a **separate persistent 2D layer family**. It may not modify the canonical body asset or be baked into it.
+Hair is a separate persistent 2D layer family.
 
-### Mandatory front/back split
+### Mandatory depth split — LOCKED
 
-B4 has a locked minimum of **two persistent depth layers**:
-
-1. `rear_hair` — composited behind the body/head/shoulders;
-2. `front_hair` — composited in front where hair crosses face/neck/chest/shoulders.
-
-Minimum composition:
+Minimum valid representation:
 
 `rear_hair -> body -> front_hair`
 
-This split is structural and required for occlusion, long-hair silhouette, later animation, wind and secondary-motion ownership. Optional side/intermediate masses may be added later if needed, but a single flat hair overlay is invalid.
+- `rear_hair` is behind head/body/shoulders;
+- `front_hair` is in front where masses cross face/neck/chest/shoulders;
+- optional side/intermediate pieces may be added only if later occlusion/secondary motion actually requires them;
+- one flat hair overlay is invalid.
 
-First B4 deliverable:
+## B4A preflight — CURRENT / RUNNER READY
 
-- static front-three-quarter `rear_hair` transparent asset;
-- static front-three-quarter `front_hair` transparent asset;
-- body alone;
-- each hair layer alone;
-- deterministic `rear_hair + body + front_hair` composite;
-- enlarged nearest-neighbor review;
-- native `640×360` gameplay preview;
-- stable anchor/depth metadata.
+The canonical identity master `assets/source/characters/exilada/reference/exilada_master.png` is local-only and is not currently tracked in GitHub. Do not pretend its pixels are available from repository history.
 
-Detailed log:
+Preflight helper:
 
-`docs/G3S_B4_HAIR_LOG.md`
+`tools/structured-2d-character-pipeline/g3s_b4_hair_preflight.py`
 
-## Exact next action
+Preflight runner:
 
-**No B4 runner is approved yet.**
+`tools/structured-2d-character-pipeline/16_run_g3s_b4_hair_preflight.ps1`
 
-Before asking the user to run anything, inspect the canonical `exilada_master.png` and promoted `exilada_body_base_b3b_v4.png` together, then implement the smallest valid static B4 review method with the mandatory two-layer minimum (`rear_hair` + `front_hair`).
+Output directory:
 
-Do not use PixelLab or another paid external API without explicit authorization. Do not reopen closed Qwen/SD1.5/PixelLock/Alucard sprite-model search.
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight`
+
+Primary review artifact:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+
+The preflight verifies the canonical body by exact hashes/dimensions, records the local master SHA/dimensions, places the body on a provisional shared `96×160` review canvas and shows the master/body/two-layer depth contract. It creates **no production hair pixels** and performs no automatic promotion.
+
+## Exact next operator action
+
+Run:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\16_run_g3s_b4_hair_preflight.ps1"
+```
+
+Then STOP and share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
+
+After that visual inspection, author the first actual static `rear_hair` + `front_hair` candidate. Do not start B5/G3S-C.
 
 ## Actual local AI state
 
