@@ -136,6 +136,7 @@ The body must exist under removable/damageable clothing and under hair. Hair and
     - G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED
     - G3S-B3B V1 3D-mask-derived authoring route — FAIL/CLOSED ROUTE
     - G3S-B3B V2 authored native-2D body source — **FAIL/CLOSED VISUAL ROUTE**
+    - high-detail Grok Exilada body reference sheet — **APPROVED REFERENCE / NOT B3B**
     - **G3S-B3B replacement native-2D body source** ← CURRENT / NOT YET APPROVED
   - G3S-B4 hair asset — BLOCKED UNTIL B3B PASS
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
@@ -254,11 +255,17 @@ Failure marker:
 
 The rejected V2 source, metadata, validator and runner were removed from `main` so they cannot be rerun or promoted accidentally. No model weights were downloaded by V2.
 
+### Approved high-detail body reference — REFERENCE ONLY
+
+A Grok-generated four-view body sheet is now approved as the current high-detail visual body reference for B3B authoring. It establishes the intended adult-female sword-and-sorcery body language: mature/severe, sensual, physically convincing, lean/functional/resilient, grounded and dangerous, aligned with Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell.
+
+It does **not** pass B3B because it is not native production pixel art. The small pubic covering is reference-only occlusion and must not become permanent body-layer ownership.
+
 ## Current exact action
 
 **No B3B runner is approved.**
 
-The next candidate must be actual character art, not primitive/mannequin construction. B3A remains reference only. B4/B5/C stay blocked until a replacement B3B passes visual review.
+The remaining task is to author a replacement native-pixel B3B body candidate from the approved Exilada body references while preserving final 2D sprite ownership. B3A remains structural sanity-check data only. B4/B5/C stay blocked until the replacement B3B passes visual review.
 
 ## Workspaces
 
