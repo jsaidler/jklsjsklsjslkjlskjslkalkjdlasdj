@@ -27,9 +27,20 @@ B3B V4 is PASS/CLOSED / PROMOTED:
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- **canonical screen-facing: LEFT**.
 
 Do not redraw or replace this asset during C0.
+
+### Facing/travel rule — LOCKED
+
+The canonical B3B source visibly faces screen-left. Therefore any travel preview using the exact unmirrored source must travel screen-left.
+
+Earlier C0 code incorrectly increased x from `250 -> 390`, producing rightward travel. This is recorded as an implementation error:
+
+`tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json`
+
+Current V2 runner rebuilds travel as `390 -> 250`; it does not mirror the sprite and does not reverse gait phases.
 
 ## Hair — DEFERRED
 
@@ -65,7 +76,7 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
 
-V1's real-motion transfer worked, but the visible deformation did not. Hard upper/lower limb pieces visibly detach and create broken loop/arc silhouettes in later gait frames.
+V1's real-motion transfer worked, but the visible deformation did not. Hard upper/lower limb pieces visibly detach and create broken loop/arc silhouettes in later gait frames. Its travel presentation was also directionally wrong because the left-facing sprite was moved right.
 
 Closed method:
 
@@ -88,6 +99,8 @@ An arm/leg is warped as one complete chain, with adjacent-segment mapping blende
 
 No diffusion, hidden-3D RGB, paid API, model download or manual user animation is used.
 
+Travel is now explicitly leftward to match the canonical left-facing body.
+
 Spec:
 
 `tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
@@ -95,6 +108,10 @@ Spec:
 Builder:
 
 `tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+
+Travel builder:
+
+`tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py`
 
 Runner:
 
@@ -125,11 +142,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 Then share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
-
-and
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_travel.gif`
+- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
 
 If the runner fails, share the complete console output.
 
