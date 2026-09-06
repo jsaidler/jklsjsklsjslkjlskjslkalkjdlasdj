@@ -57,11 +57,27 @@ Rejected V2 repo files were removed from `main` so they cannot be promoted or re
 
 No model was downloaded by V2, so there are no model-weight files to remove.
 
+## Image-generation body concept — REJECTED / NON-PRODUCTION 2026-09-05
+
+A subsequent image-generation probe produced a bald nude female body sheet with multiple views and faux technical panels. It is **not** a B3B candidate and has no production authority.
+
+Reason for rejection:
+
+- body reads as a generic polished/fitness-model nude rather than the Exilada;
+- anatomy/body language do not sufficiently reflect the locked Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell lineage;
+- insufficient severe, physical, lived-in sword-and-sorcery character presence;
+- silhouette and proportions do not preserve the Exilada's specific compact/lean/resilient identity;
+- generated sheet is illustrative concept art, not verified native `128x128` authored pixel art;
+- faux masks/landmarks/palette labels are presentation graphics, not trustworthy production metadata;
+- therefore it cannot be promoted to body source, silhouette authority, mask authority or production evidence.
+
+The only useful conclusion from this probe is negative: adult nudity itself is not the blocker; the blocker is obtaining production-quality Exilada-specific character art that satisfies the native-2D pipeline contract.
+
 ## Current gate
 
 **B3B remains current.**
 
-The next candidate must be actual character art, not a primitive/mannequin construction. It may use B3A only as anatomy/proportion/joint/scale reference and may use the canonical Exilada identity master as design reference. Final art still must remain sprite-owned and native-2D.
+The next candidate must be actual character art, not a primitive/mannequin construction and not a generic generated nude sheet. It may use B3A only as anatomy/proportion/joint/scale reference and may use the canonical Exilada identity master as design reference. Final art still must remain sprite-owned and native-2D.
 
 No hair, clothing or animation may begin until a B3B body source passes visual review.
 
