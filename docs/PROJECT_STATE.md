@@ -8,20 +8,21 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-3. `docs/GAME_VISION.md`
-4. `docs/VISUAL_DIRECTION.md`
-5. `docs/CHARACTERS.md`
-6. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-7. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
-8. `docs/PIXEL_ART_PRODUCTION.md`
-9. `docs/ANIMATION_PIPELINE.md`
-10. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
-11. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-12. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-13. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-14. `docs/G3S_B4_HAIR_LOG.md`
-15. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-16. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+3. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+4. `docs/GAME_VISION.md`
+5. `docs/VISUAL_DIRECTION.md`
+6. `docs/CHARACTERS.md`
+7. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+8. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
+9. `docs/PIXEL_ART_PRODUCTION.md`
+10. `docs/ANIMATION_PIPELINE.md`
+11. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
+12. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+13. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+14. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+15. `docs/G3S_B4_HAIR_LOG.md`
+16. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+17. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -137,7 +138,8 @@ No hair pixels were promoted. Hair does not resume automatically.
   - V1 rigid cutout — **FAIL/CLOSED**
   - V2 continuous chain warp — **FAIL/CLOSED**
   - single-still puppet/warp route — **CLOSED**
-- **CURRENT architectural gate: hidden-3D-guided native-2D key-pose source**
+- **G3S-C1A hidden-3D full-pose guide** — **CURRENT / RUNNER READY / REVIEW NEXT**
+- G3S-C1B one native-2D non-rest pose — **BLOCKED UNTIL C1A REVIEW**
 - G3S-B5 clothing/restraints/accessories — DEFERRED
 - full layered G3S-C — later, after visible layer families exist
 
@@ -174,43 +176,68 @@ The V2 runner remains intentionally disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-## Current exact technical task
+## G3S-C1A — CURRENT
 
-The next implementation does **not** animate the rest PNG directly.
+C1A now implements the next locked step: export one **full hidden-3D left-contact pose guide** before authoring any new visible sprite pose.
 
-It exports a **full hidden-3D pose-guide package for one non-rest gait event** using the already-approved G2/G3V-R infrastructure. That guide package must include at least:
+Canonical gate record:
 
-- projected joints;
-- anatomical-side labels;
-- near/far limb labels;
-- depth/body-part ordering;
-- contact foot;
-- root/pelvis transform;
-- projected semantic body-part shapes/guide masks;
-- fixed G1 camera/scale.
+`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
 
-Then the project must prove that one matching **native-2D non-rest pose asset** can be authored at production quality without asking the user to manually redraw it.
+Spec:
 
-For the first complete walk family, target eight event poses:
+`tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`
 
-1. left contact;
-2. left down/loading;
-3. left passing;
-4. left up;
-5. right contact;
-6. right down/loading;
-7. right passing;
-8. right up.
+Runner:
 
-Each accepted event is a persistent native-2D pose asset. Runtime playback is ordinary sprite animation using motion-derived timing/contact/root metadata.
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-No new animation runner is approved yet.
+Support:
 
-## Local state relevant to next step
+- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`
+- `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`
+
+C1A uses the retained `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`, but only as hidden guide geometry. It re-applies the validated `DIRECTION_SPACE_FK` solver to the selected gait event and hides all hair/cloth/metal/ground geometry.
+
+Outputs include:
+
+- neutral continuous-body pose guide;
+- silhouette guide;
+- explicit anatomical-region/laterality guide;
+- camera-space depth-band guide;
+- projected skeleton overlay;
+- JSON with joints, anatomical sides, near/far side, contact foot, root/camera/selection data;
+- `96×160` logical crops;
+- one review contact sheet that also shows the canonical B3B static identity anchor.
+
+**None of these hidden-3D images may become final sprite pixels or silhouette.**
+
+## Current exact operator action
+
+Run exactly:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\21_run_g3s_c1_hidden_pose_guide.ps1"
+```
+
+Then share:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1_hidden_pose_guide\g3s_c1_contact_left_pose_guide_contact_sheet.png`
+
+If the runner fails, share the complete console output.
+
+Do not resume hair and do not create/promote C1B pixels before C1A visual review.
+
+## Local state relevant to C1A
 
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
+- retained G3V hidden body/rig blend: `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`;
 - retained embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
-- G2 hidden rig/real motion remains the guide backbone;
-- retained FLUX.2 workspace exists historically at `Z:\AI\Flux2RefControlSpike`, but using any visual authoring model for pose-source creation requires an explicit gate decision; it is not the runtime animation owner;
-- no new model search is open;
+- Blender remains the headless hidden-pose guide host;
+- C1A requires no AI model, paid API or new download;
+- retained FLUX.2 workspace is not used by C1A;
+- no broad model search is open;
 - PixelLab remains historical paid spike only and is not authorized.
