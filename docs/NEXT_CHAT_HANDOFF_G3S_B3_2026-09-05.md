@@ -40,7 +40,7 @@ Never leave authoritative project state only in chat. Never defer documentation 
 
 Hidden 3D may own motion/topology/joints/sockets/depth/physics/reference guides, but persistent 2D pixel assets own final visible RGB, alpha and silhouette. Runtime/export remains sprite-based.
 
-High-resolution 2D reference art is also reference only: do not mechanically resize/quantize/trace/filter it and call the result production pixel art.
+Reference art is guidance only: do not mechanically resize/quantize/trace/filter it into final production pixel geometry.
 
 Build order:
 
@@ -59,13 +59,16 @@ Nudity is a normal supported state. The project does not impose blanket desexual
 - B3B V1 — FAIL/CLOSED ROUTE: copied B3A projected mask into final silhouette.
 - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin body and poor pixel-art quality.
 - covered Grok body turnaround — PASS historical reference / SUPERSEDED.
-- **fully nude Grok four-view turnaround — PASS / APPROVED PRIMARY BODY REFERENCE / NOT PRODUCTION ART.**
-- B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**: it produced a reduced/quantized render, not authored pixel art.
-- **B3B V4 direct native-pixel authoring — CURRENT / SPEC LOCKED / AWAITING VISUAL CANDIDATE.**
+- fully nude Grok high-resolution turnaround — PASS / SUPPORTING ANATOMY REFERENCE / NOT PRODUCTION ART.
+- B3B V3 reduced-reference native-grid spike — **FAIL/CLOSED VISUAL AND METHOD ROUTE**.
+- final user-supplied four-view visual reference — **PASS / LOCKED / NO FURTHER USER GENERATION.**
+- **B3B V4 native-pixel authoring from fixed references — CURRENT / IMPLEMENTATION NEXT.**
 
-## Approved nude body reference
+## Fixed references
 
-Approval marker:
+### Supporting high-resolution nude anatomy reference
+
+Marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
 
@@ -73,21 +76,31 @@ Canonical local path:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
-Source identity:
+SHA256:
 
-- SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
-- `2048×1401`;
-- four views: front/back/profile/front-three-quarter;
-- adult woman, ~162 cm identity;
-- natural adult feminine proportions, lean/functional/resilient;
-- olive/brown skin, bald/hairless for body-reference purposes, barefoot;
-- mature, severe, sensual, dangerous and lived-in;
-- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
-- fully nude with pelvic anatomy visible and no occluding garment.
+`1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`
+
+Role: anatomy/proportion support only.
+
+### Final user-supplied visual reference — LOCKED
+
+Marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
+
+Source facts:
+
+- SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
+- dimensions `1168×784`;
+- JPEG;
+- front/back/profile/front-three-quarter views;
+- adult nude/hairless body reference.
+
+**Hard interaction lock:** do not ask the user for another body image, turnaround, Grok prompt or reference-generation attempt. The assistant/pipeline must proceed from what already exists.
 
 ## 128 px clarification
 
-`128 px` is the **visible standing body height** in the locked `640×360` gameplay view with orthographic `26°` camera. It is not a universal `128×128` frame limit. Animation frames may have larger transparent bounds while preserving the same body scale.
+`128 px` is the **visible standing body height** in the locked `640×360` gameplay view with orthographic `26°` camera. It is not a universal `128×128` frame limit.
 
 ## V3 closure — DO NOT RERUN
 
@@ -99,80 +112,64 @@ Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
 
-V3 mechanically reduced the high-resolution reference to native scale, inherited its silhouette/value structure and quantized it. The result was a tiny reduced render / photo-like image with large pixels, not pixel art. It is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
+V3 produced a mechanically reduced/quantized render, not authored pixel art. It is closed and must not be promoted or rerun. No model cleanup applies because V3 downloaded no model weights.
 
-## V4 direct native-pixel authoring — CURRENT
+## V4 — current method
 
-Method specification:
+Specification:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
-Core rule: **do not convert the body reference. Author a new pixel image directly on a logical pixel grid while looking at the body reference.**
+Core rule: **author the production body for the native pixel grid from the fixed references; do not convert the references into the sprite.**
 
-Current authoring route uses the already-employed Grok image-generation workflow; no new local sprite-model install/search is authorized by this step.
+The earlier V4 dependency on the user generating another Grok candidate is superseded.
 
-Preferred first-candidate contract:
+Target:
 
-- output `1024×1024` representing a `256×256` logical canvas at exact integer `4×` display zoom;
-- each logical pixel is one uniform `4×4` output block;
-- standing body approximately `128` logical pixels tall, first-candidate tolerance `124–132`;
-- elevated front-three-quarter belt-scroller gameplay view approximating `26°` pitch;
-- fully nude adult hairless Exilada body only;
-- no hair, clothes, restraints, weapons, scenery or cast shadow;
-- transparent background if possible, otherwise one flat chroma color;
-- no antialiasing, dithering, smooth gradients or painterly texture;
-- deliberate connected clusters and controlled value groups.
-
-Grok must use:
-
-- approved nude turnaround for anatomy/proportion/body mass;
-- `exilada_master.png` for Exilada identity/face only;
-- hair/clothing from the identity master must not be copied into the B3B body candidate.
-
-A smooth illustration with fake pixel texture, inconsistent pseudo-pixels or render-like values is FAIL. Do not rescue it by quantizing/filtering.
-
-After a candidate exists, local tooling may validate the integer grid, remove a flat chroma background, strip exact `4×` display zoom without averaging, measure logical body height, run raster QA and generate native-1×/640×360 previews. It may not repair anatomy or redraw silhouette.
+- front-three-quarter elevated gameplay view approximating `26°` pitch;
+- adult nude hairless body;
+- approximately `128 px` visible standing height;
+- intentional native pixel clusters/value groups;
+- no high-res resize/quantize/trace route;
+- no procedural mannequin final art;
+- no routine manual repainting burden on the user.
 
 ## Current exact action
 
-Obtain **one Grok-authored V4 body candidate** under the contract above and review it visually before any new import/QA runner is written.
+**Reference acquisition is closed. No B3B runner is currently approved.**
 
-Do not start B4/B5/G3S-C before B3B passes.
+The assistant/pipeline must now **select/implement a valid native-pixel authoring path from the fixed references and produce the first real B3B body candidate.**
+
+Do not ask the user for another image or prompt. Do not create another mechanical conversion runner. Do not reopen closed local model routes automatically.
+
+B4/B5/G3S-C remain blocked until B3B passes.
 
 ## Actual local AI state — USER-VERIFIED 2026-09-06
 
-The user showed the current `Z:\AI` contents after cleanup. Retained relevant directories:
+Retained relevant `Z:\AI` directories:
 
 - `Z:\AI\QwenImageEditSpike`
 - `Z:\AI\RogueliteCharacterPipeline`
 - `Z:\AI\Flux2RefControlSpike`
 
-Interpretation is locked:
+Interpretation:
 
-1. **Only retained general local AI application/runtime for the current project:**
-   `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
-
-   The folder name is historical. Qwen model weights were removed when the Qwen route closed. Do not say “Qwen is installed” merely because this directory remains; what remains is the shared ComfyUI/embedded-Python runtime.
-
-2. `Z:\AI\RogueliteCharacterPipeline` is **workspace/output/deterministic tooling**, not another AI model/application.
-
-3. `Z:\AI\Flux2RefControlSpike` is **frozen evidence/workspace from the closed RefControl spike**, not the active B3B visual author and not a route to reopen automatically.
-
-4. Git repository folders such as `tools/wan-animate2-spike`, `tools/sprite-animation` and old model-spike code are **repository history/tooling only**. Their existence in Git does not mean those models are installed locally.
-
-5. **Do not assume Wan-Animate-2 is installed locally.** A future chat must verify disk/runtime state before naming it as present.
-
-6. Closed local sprite-model routes remain closed: Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen them or speak of their model weights as still present without fresh evidence.
-
-7. Blender/MPFB may remain as hidden structural infrastructure outside this `Z:\AI` inventory, but that is not a second local pixel-art authoring stack.
+1. **Only retained general local AI application/runtime:** `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`. Folder name is historical; Qwen model weights were removed.
+2. `RogueliteCharacterPipeline` is workspace/output/deterministic tooling, not another AI application.
+3. `Flux2RefControlSpike` is frozen evidence from the closed RefControl spike, not active B3B authoring.
+4. Repository-only historical tool folders do not imply local model installation.
+5. Do not assume Wan-Animate-2 is installed locally without fresh verification.
+6. Qwen-native, SD1.5, PixelLock and Alucard remain closed.
+7. Blender/MPFB may remain only as hidden structural infrastructure.
 
 ## Operator/process rules
 
 - read canonical docs before every project action;
-- **after every action that changes state, update the relevant living document(s), `docs/PROJECT_STATE.md`, and this handoff when applicable before reporting completion**;
+- update living docs before reporting every state-changing action complete;
 - no routine Blender/Aseprite/rigging work for the user;
 - no manual frame-by-frame repainting burden;
-- no new sprite-model search unless the canonical decision is explicitly reopened;
+- no new sprite-model search unless explicitly reopened in canonical state;
+- no additional body-reference requests to the user;
 - no B4/B5/G3S-C before B3B PASS;
-- if a model/route is declared FAIL/CLOSED/REJECTED and no longer active, include exact cleanup commands in the same response;
-- before naming a local tool/model as installed, verify the actual current runtime/disk state instead of inferring from old code or folder names.
+- if a model/route is declared FAIL/CLOSED/REJECTED and no longer active, include exact cleanup commands;
+- verify actual local runtime/disk state before naming a tool/model as installed.
