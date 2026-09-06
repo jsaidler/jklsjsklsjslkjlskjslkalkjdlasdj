@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V4 VISUAL PASS — PROMOTION RUNNER READY**
+Gate status: **V4 VISUAL PASS — CORRECTED PROMOTION RUNNER READY**
 
 ## Canonical ownership rule
 
@@ -103,7 +103,7 @@ No model cleanup applies because V3 downloaded no model weights.
 
 ## V4 — LOCKED PIXEL-REFERENCE NORMALIZATION — VISUAL PASS
 
-Machine-readable specification:
+Specification:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v4_direct_pixel_authoring_spec.json`
 
@@ -119,7 +119,7 @@ Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference\g3s_b3b_v4_contact_sheet.png`
 
-Contact-sheet SHA256:
+Recorded reviewed contact-sheet SHA256:
 
 `2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182`
 
@@ -127,7 +127,9 @@ Native candidate:
 
 - dimensions: `37×128` RGBA;
 - visible standing height: `128 px`;
-- approved raw RGBA SHA256: `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+- **authoritative local raw RGBA SHA256:** `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
+
+The previously recorded `bd4a78e...` digest came from an assistant-side reconstructed candidate and is superseded for promotion purposes.
 
 Visual approval marker:
 
@@ -137,18 +139,26 @@ Visual approval marker:
 
 **VISUAL PASS for the nude/hairless body-base gate.**
 
-The reviewed candidate:
+The reviewed candidate reads as intentional pixel-art imagery at the locked native scale, preserves readable adult-female anatomy, remains compatible with the locked Exilada body direction and is readable in the `640×360` gameplay preview.
 
-- reads as intentional pixel-art imagery at the locked native scale rather than a reduced smooth render;
-- preserves readable adult-female anatomy at `128 px` standing height;
-- keeps face, chest, pelvis, legs, hands and feet distinguishable at gameplay scale;
-- remains compatible with the locked Exilada body direction;
-- provides a usable persistent 2D nude/hairless body layer;
-- remains readable in the `640×360` gameplay preview.
+This approves the **body base only**. Hair, clothing, restraints, accessories and animation remain separate gates.
 
-This is approval of the **body base only**. Hair, clothing, restraints, accessories and animation remain separate gates.
+## First promotion attempt — FAIL/CLOSED IMPLEMENTATION BUG
 
-## Promotion implementation — READY
+The first execution of `15_promote_g3s_b3b_v4_body_base.ps1` refused promotion with:
+
+- observed local raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- incorrectly hardcoded expected SHA256 `bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9`.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json`
+
+The safety check behaved correctly; the bug was the source of the expected digest. It had been measured from an assistant-side reconstructed candidate rather than the user's actual local V4 output.
+
+No art decision changed. V4 remains VISUAL PASS. No model cleanup applies.
+
+## Corrected promotion implementation — READY
 
 Promotion helper:
 
@@ -158,14 +168,15 @@ Promotion runner:
 
 `tools/structured-2d-character-pipeline/15_promote_g3s_b3b_v4_body_base.ps1`
 
-The promotion step is deliberately non-artistic. It:
+Correction:
 
-1. rebuilds the exact reviewed V4 candidate from the locked reference;
-2. verifies `37×128` dimensions and the approved raw-RGBA digest;
-3. refuses any pixel mismatch;
-4. copies the exact approved pixels to the canonical production asset path;
-5. writes provenance metadata;
-6. commits/pushes only the promoted body PNG and metadata JSON.
+1. the authoritative promotion digest is now the actual local V4 candidate digest `818f0538...`;
+2. the promotion runner **does not rerun the V4 review generator**;
+3. it promotes only the already-existing local candidate in `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v4_pixel_reference`;
+4. it verifies exact `37×128` dimensions, exact raw-RGBA digest and full 128 px alpha height;
+5. it copies those exact pixels unchanged to the canonical production asset path;
+6. it writes provenance metadata;
+7. it commits/pushes only the promoted body PNG and metadata JSON.
 
 Canonical target paths:
 
@@ -176,6 +187,8 @@ No anatomy, silhouette, palette or pixel-cluster changes are permitted during pr
 
 ## Current exact action
 
-Run the promotion runner once. After the resulting production asset is confirmed in GitHub, mark **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
+Run the **corrected** promotion runner once. Do not rerun V4 manually first; the existing candidate from the failed promotion attempt is the authoritative local artifact.
+
+After the production asset commit is confirmed in GitHub, mark **G3S-B3B PASS/CLOSED** and open **G3S-B4 hair**.
 
 B5 clothing/accessories and G3S-C animation remain blocked until their preceding gates pass.
