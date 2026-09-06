@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A V1/V2/V3/V4 FAIL/CLOSED TECHNICAL — C1A V5 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
+Gate status: **C1A V1/V2/V3/V4 FAIL/CLOSED TECHNICAL — V5 FAIL/CLOSED VISUAL TRANSFORM METHOD — V6 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
 
 ## Purpose
 
@@ -25,17 +25,9 @@ Retained validated infrastructure:
 - `DIRECTION_SPACE_FK` approval;
 - G1 camera baseline: `640×360`, orthographic, pitch `26°`, target body height `128 px`.
 
-Validated gait phase frames are `1568, 1588, 1608, 1628`. Local executions selected frame `1588` for the first left-contact candidate. Final visual approval still depends on the C1A review sheet.
+Validated gait phase frames are `1568, 1588, 1608, 1628`. Local executions selected frame `1588` for the first left-contact candidate. Final event approval still depends on a coherent C1A visual guide.
 
-## Transform/facing safeguards — LOCKED
-
-- solve complete pose with `DIRECTION_SPACE_FK` first;
-- rotate hidden mesh and rig together for screen-left family;
-- ground mesh and rig together;
-- require projected travel x < 0;
-- anatomical left/right comes from rig bone identity, never screen-x.
-
-## Closed technical revisions
+## Closed technical revisions V1–V4
 
 ### V1 — source/evaluated polygon identity
 
@@ -61,60 +53,104 @@ The invariant caught:
 - post=`99.0563 px`;
 - delta=`28.9437 px`.
 
-Replacing `G3V_BODY.data` and neutralizing the original rigged object's parent/bind/object state is not geometry-invariant on this MPFB stack.
-
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
 
 ### V4 — detached evaluated proxy
 
-V4 stopped mutating `G3V_BODY` and created a detached object from `ev.to_mesh()` with `ev.matrix_world`.
+Detached `ev.to_mesh()` + `ev.matrix_world` still did not reproduce the exact projected retained-MPFB geometry:
 
-The new invariant still caught a mismatch:
-
-- original evaluated body=`128.0000 px`;
-- detached proxy=`102.4259 px`;
+- original=`128.0000 px`;
+- proxy=`102.4259 px`;
 - delta=`25.5741 px`.
-
-Therefore a detached evaluated mesh object is also not a trustworthy substitute for the exact projected geometry of the retained MPFB body.
 
 Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
 
-Closed sub-method class:
+Closed depth sub-method class:
 
-`original evaluated MPFB body -> bake/copy/proxy topology carrier -> depth render`
+`original evaluated MPFB body -> baked/copied/proxy geometry carrier -> depth render`
 
-The depth guide no longer uses a substitute geometry carrier at all.
+No further mesh-bake/proxy depth revisions are allowed.
 
-## C1A V5 — CURRENT
+## C1A V5 — FAIL/CLOSED VISUAL TRANSFORM METHOD
 
-V5 renders depth **directly on the original evaluated `G3V_BODY`**. No bake, proxy object or polygon-index mapping is used.
+V5 successfully removed the depth-topology problem by rendering camera-space depth directly on the unchanged original evaluated `G3V_BODY` with a guide-only shader.
 
-For the depth pass only:
+The reviewed contact sheet:
 
-1. retain the exact rigged/evaluated body that calibrated the locked 128 px camera;
-2. measure camera-space near/far depth range from its evaluated world-space vertices;
-3. assign a guide-only emission shader to `G3V_BODY`;
-4. shader transforms each shading point from WORLD to CAMERA space and maps camera-space depth continuously to grayscale;
-5. keep body geometry, parenting, armature modifiers, bind state and object transform unchanged;
-6. require projected body height before/after the material-only depth setup to differ by no more than `0.01 px`.
+`g3s_c1_contact_left_pose_guide_contact_sheet.png`
 
-This removes the entire source/evaluated topology correspondence problem from C1A.
+SHA256:
+
+`74ee1979afa58b8bbe77a3549fdc6af41e24524287f6329a33425aa7b15f6ba9`
+
+Numeric invariants that passed on that sheet:
+
+- body height `128.0 px`;
+- travel x approximately `-62.735 px`;
+- selected frame `1588`;
+- contact foot `left`;
+- near anatomical side `left`;
+- far anatomical side `right`.
+
+But visual review is an immediate FAIL:
+
+- the neutral guide contains huge triangular/kite-like stretched surfaces projecting from both upper-body sides;
+- the silhouette is not a coherent adult human silhouette;
+- the anatomical-region pass assigns those stretched surfaces to left/right limb regions;
+- the skeleton/laterality overlay itself remains coherent while the skinned body geometry is visibly exploded.
+
+This proves that numeric scale/direction checks were insufficient.
+
+The C1A base setup was still transforming the skinned presentation after retarget by independently rotating both `G3V_CMU_RIG` and `G3V_BODY` by 180° and then translating both for visual grounding. On this retained MPFB bind/parent/armature stack, that object-space directional-family path is not geometry-preserving.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_v5_visual_transform_failure.json`
+
+Closed presentation sub-method:
+
+`retarget complete hidden body -> rotate/translate rig + skinned body objects to manufacture screen-left family`
+
+The V5 **depth shader itself is retained**. The rejected part is the object-transform directional-family setup.
+
+## C1A V6 — CURRENT
+
+V6 leaves the retargeted hidden rig and skinned body object state untouched.
+
+Directional family is now produced by **camera placement relative to the real motion heading**, not by transforming the rig/body:
+
+1. select frame and apply validated `DIRECTION_SPACE_FK`;
+2. snapshot the resulting `G3V_CMU_RIG` and `G3V_BODY` object matrices and parent state;
+3. apply **no** directional rotation and **no** visual grounding translation to either object;
+4. derive heading from the real G2 travel vector;
+5. place the orthographic camera at a `45°` horizontal front-three-quarter azimuth relative to that heading and `26°` elevation;
+6. choose the lateral side so unmodified forward travel projects screen-left;
+7. calibrate the same original evaluated body to approximately `128 px`;
+8. render neutral/silhouette/regions on that intact body;
+9. retain V5 original-body camera-space depth shader;
+10. abort if rig/body parent state changes or either object matrix changes by more than `1e-8`.
 
 Current exporter:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v5.py`
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v6.py`
 
 Runner:
 
 `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-Required depth metadata:
+Required V6 metadata:
 
-- `mode = original_body_camera_space_shader`;
-- `source_geometry_mutated = false`;
-- `proxy_object_used = false`;
-- `topology_index_mapping_used = false`;
-- projected height delta `<= 0.01 px`.
+- `revision = HIDDEN_3D_FULL_POSE_GUIDE_V6_CAMERA_DIRECTIONAL_FAMILY`;
+- `direction_family_method = camera_relative_to_motion_no_rig_or_body_transform`;
+- `camera.horizontal_view = front_three_quarter`;
+- `camera.azimuth_from_motion_heading_deg = 45`;
+- `transform_safeguard.rig_or_body_directional_transform_applied = false`;
+- `transform_safeguard.grounding_transform_applied = false`;
+- parent state preserved;
+- object-matrix delta `<= 1e-8`;
+- travel screen x `< 0`;
+- body height approximately `128 px`;
+- depth mode `original_body_camera_space_shader` with no proxy/topology substitution.
 
 No source `.blend`, B3B sprite or production art is modified. No model/API/download is used.
 
@@ -141,16 +177,17 @@ All rendered 3D outputs are **guide/control evidence only**. They may not become
 
 C1A passes only if the review package visibly and numerically shows:
 
-- coherent non-rest contact pose;
+- coherent adult human non-rest contact pose with no exploded/stretched skin geometry;
 - correct screen-left directional family;
 - explicit anatomical laterality;
 - plausible near/far ownership;
 - coherent whole-body foreshortening/occlusion reference;
 - readable pelvis/torso/leg relationship;
 - explicit contact/root metadata;
-- approximately `128 px` body height at locked G1 camera;
+- approximately `128 px` body height;
+- front-three-quarter camera relative to real motion heading;
+- no directional/grounding transform of the rigged body or target rig;
 - original-body camera-space depth shader with no proxy/topology substitution;
-- projected-height delta `<=0.01 px` across depth material setup;
 - no promotion of hidden-3D pixels.
 
 ## Next gate after C1A review
