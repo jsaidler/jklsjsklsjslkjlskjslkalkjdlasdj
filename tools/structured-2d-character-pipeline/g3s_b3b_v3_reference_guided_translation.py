@@ -3,18 +3,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from collections import deque
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-EXPECTED_SHA256 = "2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474"
-EXPECTED_SIZE = (1168, 784)
+EXPECTED_SHA256 = "1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf"
+EXPECTED_SIZE = (2048, 1401)
 CANVAS = (128, 128)
 GAMEPLAY = (640, 360)
-THREEQ_BOX = (876, 0, 1168, 784)
+THREEQ_BOX = (1536, 0, 2048, 1401)
 
 
 def sha256_file(path: Path) -> str:
@@ -25,57 +24,14 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def candidate_roots() -> list[Path]:
-    home = Path.home()
-    names = ["Downloads", "Desktop", "Pictures", "Documents", "OneDrive", "Google Drive", "GoogleDrive"]
-    roots: list[Path] = []
-    for name in names:
-        p = home / name
-        if p.exists():
-            roots.append(p)
-    userprofile = os.environ.get("USERPROFILE")
-    if userprofile:
-        up = Path(userprofile)
-        for name in names:
-            p = up / name
-            if p.exists() and p not in roots:
-                roots.append(p)
-    return roots
-
-
-def find_reference(explicit: str | None) -> Path:
-    if explicit:
-        p = Path(explicit)
-        if not p.is_file():
-            raise FileNotFoundError(f"reference not found: {p}")
-        got = sha256_file(p)
-        if got != EXPECTED_SHA256:
-            raise RuntimeError(f"reference SHA mismatch: got={got} expected={EXPECTED_SHA256}")
-        return p
-
-    checked = 0
-    for root in candidate_roots():
-        try:
-            paths = root.rglob("*")
-        except OSError:
-            continue
-        for p in paths:
-            if checked >= 5000:
-                break
-            try:
-                if not p.is_file() or p.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
-                    continue
-                if p.stat().st_size > 30 * 1024 * 1024:
-                    continue
-                checked += 1
-                if sha256_file(p) == EXPECTED_SHA256:
-                    return p
-            except (OSError, PermissionError):
-                continue
-    raise FileNotFoundError(
-        "approved body reference was not found automatically. "
-        f"Expected SHA256={EXPECTED_SHA256}. Checked common user image folders."
-    )
+def resolve_reference(explicit: str) -> Path:
+    p = Path(explicit)
+    if not p.is_file():
+        raise FileNotFoundError(f"approved nude body reference not found: {p}")
+    got = sha256_file(p)
+    if got != EXPECTED_SHA256:
+        raise RuntimeError(f"reference SHA mismatch: got={got} expected={EXPECTED_SHA256}")
+    return p
 
 
 def largest_component(mask: np.ndarray) -> np.ndarray:
@@ -137,6 +93,7 @@ def build_native_guide(reference: Image.Image) -> tuple[Image.Image, Image.Image
         "native_body_width": new_w,
         "native_body_height": 128,
         "native_x_offset": xoff,
+        "pelvic_reference_occluded": False,
     }
     return canvas, mask_canvas, meta
 
@@ -158,44 +115,19 @@ def mode_cleanup(indexed: np.ndarray, alpha: np.ndarray) -> np.ndarray:
     return out
 
 
-def repair_pelvis(rgb: np.ndarray, alpha: np.ndarray) -> np.ndarray:
-    out = rgb.copy()
-    # Native coordinates correspond to the approved 3/4 view after 128 px normalization.
-    y0, y1 = 53, 68
-    x0, x1 = 53, 72
-    region = out[y0:y1, x0:x1]
-    reg_a = alpha[y0:y1, x0:x1]
-    lum = region.mean(axis=2)
-    skin_candidates = region[(reg_a) & (lum > 72)]
-    if len(skin_candidates):
-        base = np.median(skin_candidates, axis=0).astype(np.uint8)
-        dark = (reg_a) & (lum < 60)
-        region[dark] = base
-    # Explicit native-pixel anatomical V/central crease in skin tones, not garment ownership.
-    shadow = np.array([82, 57, 38], dtype=np.uint8)
-    deep = np.array([61, 41, 28], dtype=np.uint8)
-    for x, y in [(58, 58), (59, 59), (60, 60), (61, 61), (67, 58), (66, 59), (65, 60), (64, 61)]:
-        if 0 <= y < 128 and 0 <= x < 128 and alpha[y, x]:
-            out[y, x] = shadow
-    for x, y in [(62, 63), (63, 63)]:
-        if alpha[y, x]:
-            out[y, x] = deep
-    return out
-
-
 def build_translation_candidate(guide: Image.Image, mask_img: Image.Image) -> tuple[Image.Image, dict]:
     guide_rgb = guide.convert("RGB")
     alpha = np.asarray(mask_img, dtype=np.uint8) > 0
 
-    # This is a bounded visual-translation spike, not a production-authority conversion.
-    # Native 128x128 is established before palette/cluster decisions; no hidden 3D input is used.
+    # Bounded review spike only. It deliberately produces a native-grid abstraction
+    # for visual inspection; this mechanical reference reduction is NOT production art
+    # and cannot be promoted to B3B without a separate authored-source step.
     q = guide_rgb.quantize(colors=24, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
     indexed = np.asarray(q, dtype=np.uint8)
     indexed = mode_cleanup(indexed, alpha)
 
     pal = np.asarray(q.getpalette(), dtype=np.uint8).reshape(-1, 3)
     rgb = pal[indexed]
-    rgb = repair_pelvis(rgb, alpha)
 
     out = np.zeros((128, 128, 4), dtype=np.uint8)
     out[..., :3] = rgb
@@ -212,9 +144,10 @@ def build_translation_candidate(guide: Image.Image, mask_img: Image.Image) -> tu
         "visible_width": bbox[2] - bbox[0] + 1,
         "opaque_palette_colors": int(len(colors)),
         "binary_alpha": bool(np.all(np.isin(out[..., 3], [0, 255]))),
-        "method": "REFERENCE_GUIDED_NATIVE_2D_ABSTRACTION_SPIKE_V3",
+        "method": "NUDE_REFERENCE_GUIDED_NATIVE_2D_ABSTRACTION_SPIKE_V3",
         "production_authority": False,
-        "warning": "visual candidate only; direct promotion to B3B is forbidden without review and explicit acceptance of the native cluster language",
+        "pelvic_reconstruction_applied": False,
+        "warning": "review-only abstraction; direct promotion to B3B is forbidden",
     }
     return Image.fromarray(out, "RGBA"), meta
 
@@ -240,19 +173,19 @@ def make_contact_sheet(reference: Image.Image, guide: Image.Image, candidate: Im
     ref_panel = reference.crop(THREEQ_BOX).convert("RGB")
     ref_panel.thumbnail((280, 620), Image.Resampling.LANCZOS)
     sheet.paste(ref_panel, (20, 50))
-    label(draw, (20, 20), "A  APPROVED BODY REFERENCE - 3/4 CROP (REFERENCE ONLY)")
+    label(draw, (20, 20), "A  APPROVED NUDE BODY REFERENCE - 3/4 CROP")
 
     guide4 = guide.resize((512, 512), Image.Resampling.NEAREST)
     bg = checker((512, 512), 32).convert("RGBA")
     bg.alpha_composite(guide4)
     sheet.paste(bg.convert("RGB"), (330, 70))
-    label(draw, (330, 20), "B  NATIVE 128px GUIDE x4 - NOT FINAL ART")
+    label(draw, (330, 20), "B  NATIVE 128px MECHANICAL GUIDE x4 - NOT FINAL ART")
 
     cand4 = candidate.resize((384, 384), Image.Resampling.NEAREST)
     bg2 = checker((384, 384), 24).convert("RGBA")
     bg2.alpha_composite(cand4)
     sheet.paste(bg2.convert("RGB"), (870, 70))
-    label(draw, (870, 20), "C  V3 PIXEL TRANSLATION CANDIDATE x3")
+    label(draw, (870, 20), "C  V3 REVIEW ABSTRACTION x3")
 
     gameplay = Image.new("RGB", GAMEPLAY, (22, 22, 25))
     gd = ImageDraw.Draw(gameplay)
@@ -264,9 +197,8 @@ def make_contact_sheet(reference: Image.Image, guide: Image.Image, candidate: Im
     gameplay = gp.convert("RGB")
     gameplay = gameplay.resize((320, 180), Image.Resampling.NEAREST)
     sheet.paste(gameplay, (870, 470))
-    label(draw, (870, 450), "D  640x360 GAMEPLAY PREVIEW - SPRITE AT NATIVE 1x")
+    label(draw, (870, 450), "D  640x360 GAMEPLAY PREVIEW - BODY HEIGHT 128px")
 
-    silhouette = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
     a = np.asarray(candidate)[..., 3] > 0
     s = np.zeros((128, 128, 4), dtype=np.uint8)
     s[a] = (255, 255, 255, 255)
@@ -278,21 +210,21 @@ def make_contact_sheet(reference: Image.Image, guide: Image.Image, candidate: Im
     label(draw, (530, 548), f"bbox: {meta['visible_bbox']}")
     label(draw, (530, 566), f"visible height: {meta['visible_height']} px")
     label(draw, (530, 584), f"palette: {meta['opaque_palette_colors']} opaque colors")
-    label(draw, (530, 602), "NO HAIR / CLOTHING / RESTRAINT OWNERSHIP")
-    label(draw, (530, 620), "SPIKE ONLY - VISUAL PASS REQUIRED BEFORE PRODUCTION SOURCE")
+    label(draw, (530, 602), "NUDE REFERENCE - NO PELVIC RECONSTRUCTION")
+    label(draw, (530, 620), "REVIEW SPIKE ONLY - NOT PRODUCTION B3B")
     return sheet
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--reference", default=None)
+    ap.add_argument("--reference", required=True)
     ap.add_argument("--output-dir", required=True)
     args = ap.parse_args()
 
     outdir = Path(args.output_dir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    ref_path = find_reference(args.reference)
+    ref_path = resolve_reference(args.reference)
     got_sha = sha256_file(ref_path)
     reference = Image.open(ref_path).convert("RGB")
     if reference.size != EXPECTED_SIZE:
@@ -312,12 +244,13 @@ def main() -> int:
     contact.save(contact_path)
 
     result = {
-        "gate": "G3S-B3B-V3-REFERENCE-GUIDED-PIXEL-TRANSLATION-SPIKE",
+        "gate": "G3S-B3B-V3-NUDE-REFERENCE-GUIDED-PIXEL-TRANSLATION-SPIKE",
         "status": "REVIEW_REQUIRED_NOT_PRODUCTION_PASS",
         "reference": {
             "path": str(ref_path),
             "sha256": got_sha,
             "dimensions": list(reference.size),
+            "fully_nude": True,
             "approved_reference_marker": "tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json",
         },
         "guide": guide_meta,
@@ -335,7 +268,7 @@ def main() -> int:
             "candidate": str(cand_path),
             "contact_sheet": str(contact_path),
         },
-        "review_rule": "PASS only if result reads as intentional modern pixel art rather than reduced illustration/filter/mannequin; otherwise close V3 and do not promote.",
+        "review_rule": "Use this only to judge whether the approved body survives 128px abstraction. It cannot be promoted as final B3B merely because the spike looks acceptable.",
     }
     result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
 
