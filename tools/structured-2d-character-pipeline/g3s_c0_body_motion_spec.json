@@ -1,0 +1,49 @@
+{
+  "gate": "G3S-C0",
+  "revision": "BODY_ONLY_DIRECTION_SPACE_PUPPET_V1",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "purpose": "show the promoted Exilada body base actually moving before hair/clothing work resumes",
+  "scope": "diagnostic body-only locomotion proof; not full layered G3S-C approval",
+  "canonical_body": {
+    "path": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+    "size": [37, 128],
+    "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+    "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+    "visible_owner": "persistent native 2D pixels"
+  },
+  "motion": {
+    "source": "G2_CANONICAL_RIG / CMU 105_34 NormalWalk",
+    "g2_approval": "tools/deterministic-character-pipeline/g2_approval.json",
+    "direction_space_approval": "tools/deterministic-character-pipeline/g3v_retarget_approval.json",
+    "validated_phase_frames": [1568, 1588, 1608, 1628],
+    "cycle_rule": "four equal 20-frame phase intervals imply next same-side phase at 1648; sample 8 frames from 1568..1638 at 10-frame intervals",
+    "manual_final_keyposes": false
+  },
+  "representation": {
+    "logical_canvas": [96, 160],
+    "body_anchor": [29, 24],
+    "method": "deterministic 2D cutout/puppet deformation driven by projected real-motion direction deltas",
+    "part_ownership": ["torso", "head", "left_upper_arm", "left_forearm", "right_upper_arm", "right_forearm", "left_thigh", "left_shin", "left_foot", "right_thigh", "right_shin", "right_foot"],
+    "depth_order": "per-frame from hidden G2 camera-space joint depth",
+    "source_pixels_redrawn": false,
+    "hidden_3d_rgb_used": false,
+    "per_frame_diffusion": false
+  },
+  "outputs": [
+    "g3s_c0_body_walk_in_place.gif",
+    "g3s_c0_body_walk_travel.gif",
+    "g3s_c0_body_walk_contact_sheet.png",
+    "g3s_c0_motion_projection.json",
+    "g3s_c0_body_walk_report.json"
+  ],
+  "review_contract": {
+    "must_show_real_left_right_gait_alternation": true,
+    "must_keep_body_identity_readable": true,
+    "must_not_create_extra_limbs": true,
+    "must_not_modify_canonical_body_file": true,
+    "seams_or_cutout_artifacts_are_allowed_only_as_diagnostic_evidence": true,
+    "automatic_production_promotion": false
+  },
+  "runner": "tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1"
+}
