@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-05**
+Status date: **2026-09-06**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
@@ -98,7 +98,7 @@ Final character art is owned by persistent 2D pixel assets. Runtime/export remai
     - B3B V1 — FAIL/CLOSED ROUTE: 3D-mask-owned silhouette
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin look
     - high-resolution Grok body turnaround — **PASS / APPROVED BODY REFERENCE / NOT PRODUCTION ART**
-    - **B3B pixel-art visual translation candidate** ← CURRENT NEXT ARTIFACT
+    - **B3B V3 reference-guided native-grid translation spike** ← CURRENT / READY FOR RUN / REVIEW ONLY
   - B4 hair — BLOCKED UNTIL B3B PASS
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -129,13 +129,52 @@ A candidate must read immediately as the Exilada's adult sword-and-sorcery body:
 
 Automatic FAIL: procedural mannequin, generic fitness/character-creator body, superhero exaggeration, shortened/squat body, weak chest/pelvis/thigh anatomy, bad hands/feet at 1×, pseudo-3D/filtered render, sanitized body language or absent Exilada identity.
 
+## B3B V3 — current bounded visual spike
+
+Ready marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v3_spike_ready.json`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/13_run_g3s_b3b_v3_reference_guided_translation.ps1`
+
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v3_reference_guided_translation.py`
+
+V3 uses the approved **2D** turnaround only. It does not read B3A/hidden-3D RGB or mask for visible translation.
+
+It automatically locates the exact approved image by SHA256 in common user image folders, isolates the three-quarter view, normalizes the visual study to the locked `128 px` body height, produces a deterministic native-grid palette/cluster abstraction, reconstructs the pelvis without assigning garment ownership, and emits a contact sheet plus gameplay preview.
+
+### V3 authority boundary
+
+**V3 output is not automatically a production B3B source.**
+
+The existing rule rejecting simple high-resolution resize/quantize as final Production Pixel Master remains locked. V3 is a bounded test of whether a deterministic **2D-reference-guided** abstraction can cross the visual threshold into intentional modern pixel art.
+
+If the contact sheet still reads as reduced illustration/filtering, procedural art or mannequin anatomy, V3 is FAIL/CLOSED and nothing is promoted. No model cleanup applies because V3 downloads no model weights.
+
+If V3 visually passes, the accepted native cluster language must then be frozen/re-authored as the persistent B3B production source and independently validated.
+
 ## Current exact action
 
-**No B3B local runner is approved.**
+The V3 runner is approved for this bounded **review-only** spike.
 
-Create and review the first **pixel-art visual translation candidate** from the approved high-resolution body direction. This candidate is a visual gate, not automatically a production asset. Do not downsample/quantize the high-resolution turnaround and declare it complete.
+Run exactly:
 
-Only after a pixel-art candidate passes visual review should the replacement native B3B production source and deterministic validation/export tooling be committed.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\13_run_g3s_b3b_v3_reference_guided_translation.ps1"
+```
+
+Then STOP and inspect/share only:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b3b_v3_reference_guided\g3s_b3b_v3_contact_sheet.png`
+
+or the complete console error.
 
 B4/B5/G3S-C remain blocked.
 
