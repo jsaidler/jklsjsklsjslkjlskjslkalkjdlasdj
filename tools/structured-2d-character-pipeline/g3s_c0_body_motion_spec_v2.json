@@ -9,15 +9,19 @@
     "size": [37, 128],
     "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
     "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
-    "must_remain_unchanged": true
+    "must_remain_unchanged": true,
+    "canonical_screen_facing": "left"
   },
   "motion": {
     "source": "G2_CANONICAL_RIG / CMU 105_34 NormalWalk",
     "direction_space_approval": "tools/deterministic-character-pipeline/g3v_retarget_approval.json",
     "samples": [1568, 1578, 1588, 1598, 1608, 1618, 1628, 1638],
-    "manual_final_keyposes": false
+    "manual_final_keyposes": false,
+    "travel_preview_direction": "left",
+    "travel_rule": "canonical left-facing source must move screen-left; do not mirror sprite and do not reverse gait phase order"
   },
   "v1_failure_marker": "tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json",
+  "travel_direction_correction_marker": "tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json",
   "deformation": {
     "method": "continuous polyline/chain warp per persistent body region",
     "regions": ["head", "torso", "left_arm", "right_arm", "left_leg", "right_leg"],
@@ -32,13 +36,15 @@
   },
   "review_contract": {
     "must_read_as_one_connected_articulated_body": true,
-    "must_not_show_loop_like_or_arc_like detached limb fragments": true,
-    "must_preserve real left_right gait progression": true,
-    "must_keep canonical body identity readable": true,
-    "must_not_modify canonical body file": true,
+    "must_not_show_loop_like_or_arc_like_detached_limb_fragments": true,
+    "must_preserve_real_left_right_gait_progression": true,
+    "must_keep_canonical_body_identity_readable": true,
+    "must_not_modify_canonical_body_file": true,
+    "travel_must_match_visible_facing": true,
     "automatic_production_promotion": false
   },
   "runner": "tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1",
+  "travel_builder": "tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py",
   "outputs": [
     "g3s_c0_v2_body_walk_in_place.gif",
     "g3s_c0_v2_body_walk_travel.gif",
