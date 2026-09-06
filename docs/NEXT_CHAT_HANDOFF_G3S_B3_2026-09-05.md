@@ -66,7 +66,7 @@ Current files:
 
 Camera is `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` from actual root travel. Camera side is selected so real forward travel projects screen-left. Rig is not rotated for facing. Maximum projected skeleton height is approximately `128 px`.
 
-The guide records complete bone matrices, projected joints, chain lengths/depths, laterality, near/far, support foot, ground distance and projected root travel.
+The guide records complete bone matrices, projected joints, chain lengths/depths, laterality, near/far, support foot, ground distance and projected root travel. Review drawing orders chains by depth and computes the zoom crop from actual joint bounds, not labels/background graphics.
 
 Workspace:
 
