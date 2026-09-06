@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — NUDE BODY REFERENCE APPROVED / B3B AUTHORED NATIVE-PIXEL BODY CANDIDATE CURRENT**
+Gate status: **ACTIVE — B3 BODY BASE PASS/CLOSED / B4 HAIR CURRENT**
 
 ## Locked architecture
 
@@ -18,9 +18,7 @@ Therefore:
 
 - 3D may guide anatomy, motion, topology, sockets, contacts, depth and occlusion;
 - 3D may not be mechanically promoted into final visible sprite geometry;
-- a 3D render or mask is not a sprite template;
-- cropping/recoloring/quantizing a projected 3D mask/render is rejected;
-- high-resolution 2D reference art likewise may not be mechanically resized/quantized/traced and promoted as production sprite geometry;
+- high-resolution 2D reference art may not be mechanically resized/quantized/traced and promoted as production sprite geometry;
 - final character pixels are owned by persistent structured 2D assets;
 - runtime/export uses sprites.
 
@@ -38,14 +36,14 @@ Therefore:
 
 Whenever a model/route is declared FAIL/CLOSED/REJECTED and no longer required, include exact PowerShell cleanup commands for its model-specific files. Shared runtimes still in use are preserved.
 
-Closed direct sprite-model routes remain Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen model hunting.
+Closed direct sprite-model routes remain Qwen-native, SD1.5, PixelLock and Alucard. Do not reopen model hunting without an explicit project decision.
 
 ## Correct staged character build — LOCKED
 
-1. **B3 — complete body base**: adult female, hairless, complete under future layers, owned as native 2D sprite art.
-2. **B4 — hair**: independent persistent 2D asset/layer family.
-3. **B5 — clothing/restraints/accessories**: chest wrap, hip cloth, bindings, cuffs/shackles, chain segments and other equipment, each with independent ownership/state.
-4. **G3S-C — layered motion proof**: hidden rig drives 2D deformation/ordering guides; exported/runtime result remains sprite-based.
+1. **B3 — complete body base**: adult female, hairless, complete under future layers, owned as native 2D sprite art. **PASS/CLOSED**.
+2. **B4 — hair**: independent persistent 2D asset/layer family. **CURRENT**.
+3. **B5 — clothing/restraints/accessories**: chest wrap, hip cloth, bindings, cuffs/shackles, chain segments and other equipment, each with independent ownership/state. **BLOCKED UNTIL B4 PASS**.
+4. **G3S-C — layered motion proof**: hidden rig drives 2D deformation/ordering guides; exported/runtime result remains sprite-based. **BLOCKED UNTIL B3/B4/B5**.
 
 ## Nudity — LOCKED SYSTEMIC STATE
 
@@ -55,99 +53,61 @@ Nudity is a normal supported state, not a special variant. Runtime composition i
 
 No censor garment is structurally required. Presentation may be neutral, sensual, erotic, heroic, brutal or vulnerable according to scene intent.
 
-## B3A history
+## B3 — PASS/CLOSED
 
-- B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity.
-- B3A V2 — PASS/CLOSED: adult-female structural anatomy, complete geometry, zero forbidden layers, locked `128 px` visible gameplay height.
+B3A V2 remains the validated adult-female hidden structural guide only.
 
-Approval marker:
+B3B history:
 
-`tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
+- V1 — FAIL/CLOSED: hidden 3D mask owned final silhouette;
+- V2 — FAIL/CLOSED: procedural/mannequin visual route;
+- V3 — FAIL/CLOSED: high-resolution render mechanically reduced/quantized;
+- V4 — PASS: user-locked pixel-art source view normalized with nearest-neighbor only and promoted unchanged.
 
-B3A RGB/mask/silhouette remain guide data only.
+Canonical production body base:
 
-## B3B history
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
 
-### V1 — FAIL/CLOSED ROUTE
+Promotion commit:
 
-Copied B3A projected mask into final silhouette; hidden 3D still owned visible geometry.
+`2deb765c3980d586ef9747340bb48852dedca452`
 
-Failure marker:
+Recorded production facts:
 
-`tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
+- `37×128` RGBA;
+- visible standing height `128 px`;
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
+- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
+- front-three-quarter elevated belt-scroller view;
+- adult nude/hairless/barefoot body base;
+- persistent 2D visible ownership.
 
-### V2 — FAIL/CLOSED VISUAL ROUTE
+Detailed body history:
 
-Technically 2D-owned but visually unacceptable: procedural/mannequin anatomy, distorted proportions, poor hands/feet, crude pelvis/thigh transitions, pseudo-3D banding and absent Exilada identity.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
-
-### V3 — FAIL/CLOSED VISUAL AND METHOD ROUTE
-
-V3 isolated the approved high-resolution three-quarter reference, mechanically downscaled it to `128 px`, retained the reduced reference mask/silhouette, quantized colors and applied local cleanup.
-
-Reviewed output reads as a **miniaturized render**, not authored pixel art. It collapses face/hands/feet, retains render-like value noise and proves no intentional native pixel-cluster language.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_v3_visual_failure.json`
-
-Reviewed contact sheet SHA256:
-
-`ded6e53cd5c36b106a7d7729534cd2f12241862a6f3b0e3a27b6e706ded08047`
-
-V3 is closed and must not be rerun or promoted. No model cleanup applies because it downloaded no model weights.
-
-## Approved high-resolution nude body reference — PASS
-
-A user-supplied Grok **fully nude** four-view turnaround is approved as the primary body reference for B3B authoring.
-
-Approval marker:
-
-`tools/structured-2d-character-pipeline/g3s_b3b_body_reference_approval.json`
-
-Source identity:
-
-- SHA256 `1e4b272c39f21cee0087e2aa6a5518fcc7a10c5ef47525ffcaff512ea07e8bbf`;
-- `2048×1401`;
-- front/back/profile/front-three-quarter;
-- adult natural feminine proportions at ~162 cm identity;
-- lean/functional/resilient, olive/brown, bald/hairless for body-reference purposes, barefoot;
-- mature, severe, sensual, dangerous and lived-in;
-- aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell;
-- complete pelvic anatomy visible;
-- no occluding garment.
-
-Canonical expected local path:
-
-`assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
-
-The old covered reference remains historical evidence only.
+- `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+- `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
 
 ## 128 px clarification — LOCKED
 
 `128 px` is the target **visible standing body height** in the native `640×360` gameplay raster with the locked orthographic `26°` camera. It is not a universal source/frame canvas dimension. Hair, weapons and extreme animation bounds may use larger transparent frames while preserving this body scale.
 
-## Current gate — B3B authored native-pixel body candidate
+## Current gate — B4 HAIR
 
-The next artifact must **start as actual pixel art**, not as a transformed copy of the high-resolution reference.
+Hair is now the only current visible-layer gate.
 
-The approved nude turnaround may guide:
+Canonical hair direction:
 
-- adult anatomy and proportions;
-- body mass and silhouette intent;
-- severe/sensual/dangerous sword-and-sorcery presence;
-- consistency of chest, pelvis, hips, thighs, hands and feet.
+- very long;
+- heavy;
+- voluminous;
+- messy black hair;
+- primary silhouette anchor;
+- separate from the body base;
+- persistent across animation rather than regenerated independently per frame;
+- eligible for deterministic secondary-motion/wind guides later;
+- must preserve body visibility/ownership underneath.
 
-It may **not**:
+The first B4 deliverable should establish one static gameplay-view hair layer aligned to the promoted B3B body base before any animation test.
 
-- be resized and called pixel art;
-- be quantized and called pixel art;
-- be mechanically traced into final silhouette ownership;
-- supply final production RGB/alpha through filtering or reduction.
-
-The valid next artifact is one deliberately authored gameplay-view body sprite at approximately `128 px` visible standing height, reviewed at native 1× and in `640×360` context.
-
-No B3B runner is currently approved. B4 hair, B5 clothing/restraints/accessories and G3S-C motion remain blocked until the authored body candidate passes.
+No B5 clothing/restraints/accessories or G3S-C motion begins before B4 passes.
