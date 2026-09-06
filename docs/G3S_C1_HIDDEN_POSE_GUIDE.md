@@ -1,197 +1,89 @@
-# G3S-C1 — Hidden-3D Full Pose Guide
+# G3S-C1 — Hidden Skeleton Pose Guide
 
 Status date: **2026-09-06**
 
-Gate status: **C1A V1/V2/V3/V4 FAIL/CLOSED TECHNICAL — V5 FAIL/CLOSED VISUAL TRANSFORM METHOD — V6 RUNNER READY / REVIEW REQUIRED — C1B BLOCKED UNTIL GUIDE REVIEW**
+Gate status: **C1A V1–V5 CLOSED / V6 SUPERSEDED PRE-RUN / C1A SKELETON-ONLY REDESIGN CURRENT / C1B BLOCKED UNTIL GUIDE REVIEW**
 
 ## Purpose
 
-C1 implements the locked animation architecture:
+C1 follows the canonical animation architecture:
 
-`real motion -> hidden 3D full pose guide -> persistent native-2D pose asset -> sprite playback`
+`real motion -> hidden skeleton/rig -> pose/laterality/depth/contact guide data -> persistent native-2D pose asset -> sprite playback`
 
-The hidden 3D guide is **not** the final visible art owner.
+The hidden guide is not a visible-art owner and does not require a skinned human body mesh.
 
-## C1A target
+## Architectural correction
 
-Export one non-rest gait event first: **anatomical left contact, screen-left directional family**.
+The previous C1A implementation incorrectly interpreted "full pose guide" as "render a full posed MPFB body". That was unnecessary.
 
-Retained validated infrastructure:
+The project only needs the hidden 3D to supply the **full skeletal spatial state**:
 
-- CMU `105_34 NormalWalk`;
-- `G2_CANONICAL_RIG`;
-- MPFB continuous adult female hidden body from retained G3V workspace;
-- `G3V_CMU_RIG`;
-- `DIRECTION_SPACE_FK` approval;
-- G1 camera baseline: `640×360`, orthographic, pitch `26°`, target body height `128 px`.
+- joint/bone transforms;
+- anatomical left/right;
+- near/far identity;
+- camera-space depth/order;
+- foreshortening of chains;
+- foot contact;
+- root/pelvis travel;
+- sockets and secondary-motion drivers.
 
-Validated gait phase frames are `1568, 1588, 1608, 1628`. Local executions selected frame `1588` for the first left-contact candidate. Final event approval still depends on a coherent C1A visual guide.
+Visible anatomy remains entirely owned by the persistent native-2D pose asset.
 
-## Closed technical revisions V1–V4
+Therefore `G3V_BODY` is no longer required by C1A. The retained `G3V_CMU_RIG` may remain as the hidden character-proportioned armature receiving the validated `DIRECTION_SPACE_FK` motion.
 
-### V1 — source/evaluated polygon identity
+## What happened to V1–V6
 
-Observed:
+V1–V4 were technical attempts to obtain depth from the MPFB skinned body and are closed.
 
-`evaluated body topology changed: eval=13378 source=18486`
+V5 finally produced stable numeric depth/camera data, but visual review showed catastrophic stretched triangles in the skinned body. The skeleton itself remained coherent. This demonstrated that the rig data was useful while the skinned mesh was unnecessary and harmful to this gate.
 
-V1 incorrectly assumed source and evaluated MPFB polygon indices were 1:1.
+V6 attempted to preserve the rig/body object state and move directional-family selection to the camera. Its first local run failed immediately with:
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
+`ModuleNotFoundError: No module named 'g3s_c1_export_hidden_pose_guide_v5'`
 
-### V2 — evaluated local-object bake
+V6 is **SUPERSEDED PRE-RUN**, not repaired, because the entire skinned-body dependency it was trying to preserve has now been removed from the canonical guide architecture.
 
-V2 moved depth assignment to evaluated topology but the frozen guide height became `102.4258804321289 px` instead of approximately `128 px`.
+## Current C1A target
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
+Export one **left-contact skeleton-only guide** from the retained real-motion backbone.
 
-### V3 — world-space bake on original rigged object
+The guide must contain:
 
-The invariant caught:
+- selected gait event/frame;
+- projected skeleton at locked `640×360`, pitch `26°`;
+- screen-left travel direction;
+- anatomical left/right labels;
+- per-chain camera-space depth and near/far ordering;
+- contact foot/state;
+- root/pelvis transform;
+- camera metadata;
+- no skinned body mesh;
+- no rendered 3D anatomy/silhouette requirement.
 
-- pre=`128.0000 px`;
-- post=`99.0563 px`;
-- delta=`28.9437 px`.
-
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
-
-### V4 — detached evaluated proxy
-
-Detached `ev.to_mesh()` + `ev.matrix_world` still did not reproduce the exact projected retained-MPFB geometry:
-
-- original=`128.0000 px`;
-- proxy=`102.4259 px`;
-- delta=`25.5741 px`.
-
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
-
-Closed depth sub-method class:
-
-`original evaluated MPFB body -> baked/copied/proxy geometry carrier -> depth render`
-
-No further mesh-bake/proxy depth revisions are allowed.
-
-## C1A V5 — FAIL/CLOSED VISUAL TRANSFORM METHOD
-
-V5 successfully removed the depth-topology problem by rendering camera-space depth directly on the unchanged original evaluated `G3V_BODY` with a guide-only shader.
-
-The reviewed contact sheet:
-
-`g3s_c1_contact_left_pose_guide_contact_sheet.png`
-
-SHA256:
-
-`74ee1979afa58b8bbe77a3549fdc6af41e24524287f6329a33425aa7b15f6ba9`
-
-Numeric invariants that passed on that sheet:
-
-- body height `128.0 px`;
-- travel x approximately `-62.735 px`;
-- selected frame `1588`;
-- contact foot `left`;
-- near anatomical side `left`;
-- far anatomical side `right`.
-
-But visual review is an immediate FAIL:
-
-- the neutral guide contains huge triangular/kite-like stretched surfaces projecting from both upper-body sides;
-- the silhouette is not a coherent adult human silhouette;
-- the anatomical-region pass assigns those stretched surfaces to left/right limb regions;
-- the skeleton/laterality overlay itself remains coherent while the skinned body geometry is visibly exploded.
-
-This proves that numeric scale/direction checks were insufficient.
-
-The C1A base setup was still transforming the skinned presentation after retarget by independently rotating both `G3V_CMU_RIG` and `G3V_BODY` by 180° and then translating both for visual grounding. On this retained MPFB bind/parent/armature stack, that object-space directional-family path is not geometry-preserving.
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_c1a_v5_visual_transform_failure.json`
-
-Closed presentation sub-method:
-
-`retarget complete hidden body -> rotate/translate rig + skinned body objects to manufacture screen-left family`
-
-The V5 **depth shader itself is retained**. The rejected part is the object-transform directional-family setup.
-
-## C1A V6 — CURRENT
-
-V6 leaves the retargeted hidden rig and skinned body object state untouched.
-
-Directional family is now produced by **camera placement relative to the real motion heading**, not by transforming the rig/body:
-
-1. select frame and apply validated `DIRECTION_SPACE_FK`;
-2. snapshot the resulting `G3V_CMU_RIG` and `G3V_BODY` object matrices and parent state;
-3. apply **no** directional rotation and **no** visual grounding translation to either object;
-4. derive heading from the real G2 travel vector;
-5. place the orthographic camera at a `45°` horizontal front-three-quarter azimuth relative to that heading and `26°` elevation;
-6. choose the lateral side so unmodified forward travel projects screen-left;
-7. calibrate the same original evaluated body to approximately `128 px`;
-8. render neutral/silhouette/regions on that intact body;
-9. retain V5 original-body camera-space depth shader;
-10. abort if rig/body parent state changes or either object matrix changes by more than `1e-8`.
-
-Current exporter:
-
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v6.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
-
-Required V6 metadata:
-
-- `revision = HIDDEN_3D_FULL_POSE_GUIDE_V6_CAMERA_DIRECTIONAL_FAMILY`;
-- `direction_family_method = camera_relative_to_motion_no_rig_or_body_transform`;
-- `camera.horizontal_view = front_three_quarter`;
-- `camera.azimuth_from_motion_heading_deg = 45`;
-- `transform_safeguard.rig_or_body_directional_transform_applied = false`;
-- `transform_safeguard.grounding_transform_applied = false`;
-- parent state preserved;
-- object-matrix delta `<= 1e-8`;
-- travel screen x `< 0`;
-- body height approximately `128 px`;
-- depth mode `original_body_camera_space_shader` with no proxy/topology substitution.
-
-No source `.blend`, B3B sprite or production art is modified. No model/API/download is used.
-
-## Guide outputs
-
-Workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1_hidden_pose_guide`
-
-Outputs:
-
-- `g3s_c1_contact_left_hidden3d_neutral.png`;
-- `g3s_c1_contact_left_silhouette_guide.png`;
-- `g3s_c1_contact_left_regions_guide.png`;
-- `g3s_c1_contact_left_depth_guide.png`;
-- `g3s_c1_contact_left_skeleton_overlay.png`;
-- `g3s_c1_contact_left_pose_guide.json`;
-- `g3s_c1_contact_left_pose_guide_contact_sheet.png`;
-- five `96×160` logical guide crops.
-
-All rendered 3D outputs are **guide/control evidence only**. They may not become final sprite RGB, alpha or silhouette and may not be quantized/recolored into final pixel art.
+If useful for review, simple non-skinned debug capsules or line thickness may be generated from bone transforms. They are optional control visualization only.
 
 ## PASS requirement
 
-C1A passes only if the review package visibly and numerically shows:
+C1A passes when the skeleton guide visibly and numerically shows:
 
-- coherent adult human non-rest contact pose with no exploded/stretched skin geometry;
-- correct screen-left directional family;
+- coherent human locomotion pose;
+- correct left-contact event;
+- correct screen-left travel family;
 - explicit anatomical laterality;
-- plausible near/far ownership;
-- coherent whole-body foreshortening/occlusion reference;
-- readable pelvis/torso/leg relationship;
-- explicit contact/root metadata;
-- approximately `128 px` body height;
-- front-three-quarter camera relative to real motion heading;
-- no directional/grounding transform of the rigged body or target rig;
-- original-body camera-space depth shader with no proxy/topology substitution;
-- no promotion of hidden-3D pixels.
+- plausible near/far chain ownership;
+- coherent pelvis/trunk/limb relationship;
+- readable contact/root metadata;
+- stable production camera/view basis.
 
-## Next gate after C1A review
+No hidden 3D mesh needs to resemble the Exilada.
 
-**C1B — one persistent native-2D left-contact pose candidate.**
+## Next gate
 
-C1B must use C1A as pose/anatomy/occlusion control and B3B V4 as identity/body-style anchor. It may not warp the rest still into the gait pose or quantize the hidden-3D guide.
+**C1B — one complete persistent native-2D left-contact body pose.**
+
+C1B uses:
+
+- the approved C1A skeleton/depth/contact guide as spatial control;
+- B3B V4 as identity/body-style anchor.
+
+C1B may not deform the rest still into the gait pose and may not promote a hidden-3D render into final sprite art.
