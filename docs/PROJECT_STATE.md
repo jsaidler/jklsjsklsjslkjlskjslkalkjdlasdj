@@ -54,7 +54,7 @@ B3B is the visible identity/body-style anchor only. It is not warped into arbitr
 - local blend = `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`;
 - G2 already validated topology, left/right alternation, captured-motion basis and sequence continuity.
 
-G3V-R `DIRECTION_SPACE_FK` remains historical validated infrastructure but **current C1A no longer needs MPFB/G3V at all**; it reads G2 directly.
+G3V-R `DIRECTION_SPACE_FK` remains historical validated infrastructure but current C1A reads G2 directly.
 
 ## Closed routes
 
@@ -62,7 +62,7 @@ G3V-R `DIRECTION_SPACE_FK` remains historical validated infrastructure but **cur
 - single B3B still -> projected joints -> cutout/warp/cage -> full walk — CLOSED;
 - MPFB skinned body as mandatory hidden animation guide — CLOSED.
 
-C1A V1–V5 are historical skinned-body failure evidence. V6 was superseded pre-run after the user clarified that the hidden guide should simply be a skeleton.
+C1A V1–V5 are historical skinned-body failure evidence. V6 was superseded pre-run after the architecture was corrected to skeleton-only control.
 
 ## Hair — DEFERRED
 
@@ -70,7 +70,7 @@ B4 remains paused by user. Do not resume automatically.
 
 ## CURRENT gate — G3S-C1A SKELETON-ONLY WALK CYCLE
 
-The current runner now exports the complete first eight-state walk cycle instead of stopping on another isolated pose:
+Eight-state cycle:
 
 `1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
@@ -83,17 +83,35 @@ Current files:
 - review builder: `tools/structured-2d-character-pipeline/g3s_c1_build_skeleton_walk_review.py`;
 - runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
 
-C1A records full bone matrices, joint world/screen/depth data, chain lengths/depths, anatomical left/right, near/far side, support foot, ground distance and real projected root travel.
+### Latest local run
 
-Camera: `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` relative to measured root heading, camera side selected so real forward travel projects screen-left. Maximum skeleton height calibrated to about `128 px`. The rig is not transformed for facing.
+The first skeleton-only run failed technically before producing visual outputs:
 
-The review builder draws far chains first, near chains last, marks support feet, and computes the zoom GIF from the union of actual projected joint bounds rather than from rendered labels/background graphics.
+`RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
+
+Classification: **technical pre-review failure only**. Skeleton motion architecture remains current.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+
+The exporter has now been corrected to:
+
+- force Blender 5.1 dependency-graph updates after camera transforms;
+- inspect both front-three-quarter lateral camera candidates;
+- use a naturally screen-left candidate when available;
+- otherwise normalize only the hidden guide's screen-X coordinate convention, preserving rig/world transforms, camera-space depth and anatomical laterality;
+- keep the final negative root-travel assertion.
+
+No model/API/download/runtime was added. No cleanup applies.
+
+Camera baseline remains `640×360`, orthographic, pitch `26°`, front-three-quarter `45°`, approximately `128 px` maximum skeleton height.
 
 Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
 
-Expected outputs:
+Expected outputs after successful rerun:
 
 - `g3s_c1_skeleton_walk_guide.json`;
 - `g3s_c1_skeleton_walk_in_place.gif`;
@@ -101,8 +119,6 @@ Expected outputs:
 - `g3s_c1_skeleton_walk_zoom.gif`;
 - `g3s_c1_skeleton_walk_contact_sheet.png`;
 - eight frame PNGs.
-
-No model/API/download is used by C1A. No cleanup applies.
 
 ## Current exact operator action
 
