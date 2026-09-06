@@ -57,20 +57,9 @@ Canonical lock document:
 
 `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
-Hidden 3D owns:
+Hidden 3D owns motion/topology, anatomical left/right, near/far identity, full pose/foreshortening reference, contacts/root travel, depth/occlusion, sockets/secondary-motion drivers and semantic/body-part guides.
 
-- motion/topology;
-- anatomical left/right;
-- near/far limb identity;
-- full pose/foreshortening reference;
-- contacts/root travel;
-- depth/occlusion;
-- sockets/secondary-motion drivers;
-- semantic/body-part guides.
-
-Hidden 3D does **not** own final visible RGB, alpha or production silhouette.
-
-A hidden-3D render/mask/silhouette may guide pose/anatomy/occlusion only. It may not be cropped/recolored/quantized/promoted into final sprite geometry.
+Hidden 3D does **not** own final visible RGB, alpha or production silhouette. A hidden-3D render/mask/silhouette may guide pose/anatomy/occlusion only and may not be cropped/recolored/quantized/promoted into final sprite geometry.
 
 The failed C0 experiments incorrectly reduced the hidden-3D role to joint deltas imposed on one static sprite. That is explicitly not the locked architecture.
 
@@ -109,14 +98,9 @@ This infrastructure is the production guide/control backbone. It supplies comple
 
 G3V proved the hidden rig and retargeting but failed the visual kill switch: the output still read as low-resolution 3D rather than intentional modern pixel art.
 
-Therefore:
+Therefore direct hidden-3D RGB as final sprite is CLOSED, while hidden 3D itself is RETAINED as guide/control infrastructure.
 
-- direct hidden-3D RGB as final sprite — CLOSED;
-- hidden 3D itself — RETAINED as guide/control infrastructure.
-
-Canonical record:
-
-`docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
+Canonical record: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
 
 ## Hair — DEFERRED BY USER
 
@@ -138,77 +122,64 @@ No hair pixels were promoted. Hair does not resume automatically.
   - V1 rigid cutout — **FAIL/CLOSED**
   - V2 continuous chain warp — **FAIL/CLOSED**
   - single-still puppet/warp route — **CLOSED**
-- **G3S-C1A hidden-3D full-pose guide** — **CURRENT / RUNNER READY / REVIEW NEXT**
+- G3S-C1A hidden-3D full-pose guide
+  - V1 depth topology implementation — **FAIL/CLOSED TECHNICAL REVISION**
+  - **V2 evaluated-topology depth implementation — CURRENT / RUNNER READY / REVIEW NEXT**
 - G3S-C1B one native-2D non-rest pose — **BLOCKED UNTIL C1A REVIEW**
 - G3S-B5 clothing/restraints/accessories — DEFERRED
 - full layered G3S-C — later, after visible layer families exist
 
 ## G3S-C0 failures — CLOSED METHOD, NOT MOTION BACKBONE
 
-V1 failure marker:
+V1 failure marker: `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`.
 
-`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+V2 reviewed contact sheet: `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`.
 
-V2 reviewed contact sheet:
+V2 SHA256: `6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`
-
-V2 SHA256:
-
-`6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
-
-V2 failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
+V2 failure marker: `tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`.
 
 Closed class:
 
 `single B3B still -> projected joints -> cutout / chain warp / cage warp -> manufacture full gait`
 
-Why closed:
-
-- the still does not contain hidden surfaces revealed by gait;
-- 3/4 laterality/near-far cannot be inferred from screen-x;
-- gait foreshortening/occlusion cannot be reduced to 2D joint-angle warp;
-- bbox grounding is not contact/root grounding.
-
-The V2 runner remains intentionally disabled:
-
-`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
+The V2 runner remains intentionally disabled: `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`.
 
 ## G3S-C1A — CURRENT
 
-C1A now implements the next locked step: export one **full hidden-3D left-contact pose guide** before authoring any new visible sprite pose.
+C1A exports one **full hidden-3D left-contact pose guide** before authoring any new visible sprite pose.
 
-Canonical gate record:
+Canonical gate record: `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`.
 
-`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+Spec: `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`.
 
-Spec:
+Runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
 
-`tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`
+Current exporter: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`.
 
-Runner:
-
-`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
-
-Support:
-
-- `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide.py`
-- `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`
+Review builder: `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`.
 
 C1A uses the retained `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`, but only as hidden guide geometry. It re-applies the validated `DIRECTION_SPACE_FK` solver to the selected gait event and hides all hair/cloth/metal/ground geometry.
 
-Outputs include:
+### C1A V1 technical failure — CLOSED
 
-- neutral continuous-body pose guide;
-- silhouette guide;
-- explicit anatomical-region/laterality guide;
-- camera-space depth-band guide;
-- projected skeleton overlay;
-- JSON with joints, anatomical sides, near/far side, contact foot, root/camera/selection data;
-- `96×160` logical crops;
-- one review contact sheet that also shows the canonical B3B static identity anchor.
+The first local C1A execution rendered neutral, silhouette and regions successfully, then failed in the depth pass with:
+
+`evaluated body topology changed: eval=13378 source=18486`
+
+Cause: V1 assumed source and evaluated MPFB polygon indices were 1:1. They are not because the evaluated/deformed MPFB body has different topology after modifiers/helper masking.
+
+Failure marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
+
+This did not invalidate the hidden-3D guide architecture.
+
+### C1A V2 fix — CURRENT
+
+V2 freezes a copy of the already-retargeted **evaluated** MPFB body for the depth guide, removes modifiers in-process to prevent double deformation, and assigns depth bands directly on evaluated topology. The pose JSON records source/evaluated polygon counts and `depth_guide.mode = evaluated_mesh_bake`.
+
+No source `.blend`, body sprite or production art is modified.
+
+C1A outputs remain neutral guide, silhouette guide, anatomical-region guide, depth-band guide, projected skeleton overlay, machine-readable pose JSON, five `96×160` logical guide crops and a review contact sheet.
 
 **None of these hidden-3D images may become final sprite pixels or silhouette.**
 
