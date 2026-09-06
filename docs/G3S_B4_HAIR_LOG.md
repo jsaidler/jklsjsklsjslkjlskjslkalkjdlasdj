@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **B4A PASS/CLOSED — B4B V1 FAIL/CLOSED PRE-RUN — B4B V2 FAIL/CLOSED VISUAL — B4B V3 FAIL/CLOSED POSE-MISMATCH — B4B V4 POSE-ANCHORED RUNNER READY**
+Gate status: **B4A PASS/CLOSED — B4B V1 FAIL/CLOSED PRE-RUN — B4B V2 FAIL/CLOSED VISUAL — B4B V3 FAIL/CLOSED POSE-MISMATCH — B4B V4 FAIL/CLOSED VISUAL+METHOD — B4 REMAINS OPEN**
 
 ## Immutable entry condition
 
@@ -19,7 +19,7 @@ The body remains byte/pixel unchanged. Hair owns separate visible RGB/alpha/silh
 
 ## Canonical hair identity
 
-The Exilada's hair is black/nearly black, very long, heavy, voluminous, messy, wild and materially lived-in. The canonical `exilada_master.png` is an **identity/style/mass/material reference only**. Its pose is not a placement template for production hair.
+The Exilada's hair is black/nearly black, very long, heavy, voluminous, messy, wild and materially lived-in. `exilada_master.png` is an **identity/style/mass/material reference only**. Its pose is not a placement template for production hair.
 
 ## Hair depth architecture — LOCKED
 
@@ -30,7 +30,7 @@ Minimum deterministic composition:
 - `rear_hair`: persistent transparent mass behind head/neck/shoulders/back/body;
 - `front_hair`: persistent transparent scalp/framing/locks in front where needed;
 - one flat overlay is invalid;
-- later side/intermediate sublayers are allowed only if occlusion/secondary motion requires them.
+- later side/intermediate sublayers are allowed only if real occlusion/secondary motion requires them.
 
 ## B4A — PASS/CLOSED DIAGNOSTIC
 
@@ -50,7 +50,7 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
 
-Reason: the master does not contain enough hidden rear-hair information to recover a valid `rear_hair` layer by extraction.
+Reason: the master does not contain enough hidden rear-hair information to recover a valid `rear_hair` by extraction.
 
 No model/API was used; no cleanup applies.
 
@@ -60,17 +60,13 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v2_visual_failure.json`
 
-Structural split passed, but visual result failed as a centered curtain/bell with excessive front coverage, cape-like rear mass and repetitive lock rhythm.
+The two-layer ownership split passed, but the visual result failed as a centered curtain/bell with excessive front coverage, cape-like rear mass and repetitive lock rhythm.
 
 No model/API was used; no cleanup applies.
 
 ## B4B V3 — FAIL/CLOSED VISUAL AND ALIGNMENT METHOD
 
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
-
-Reviewed SHA256:
+Reviewed contact sheet SHA256:
 
 `9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33`
 
@@ -78,62 +74,62 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v3_pose_mismatch_failure.json`
 
-V3 fixed some V2 massing problems but still authored hair in **fixed master-like canvas coordinates**. This ignored the fact that the canonical production body and the master use different poses. As a result:
-
-- crown placement did not follow the actual production head orientation;
-- rear mass did not follow the production shoulder/back pose;
-- front locks framed an imagined master-like pose instead of the B3B pose;
-- structural ownership remained valid, but visual alignment was fundamentally invalid.
+V3 authored hair in fixed master-like canvas coordinates even though master and production body use different poses. Crown/rear/front placement therefore did not follow the actual B3B pose.
 
 No model/API was used; no cleanup applies.
 
-## B4B V4 — POSE-ANCHORED TWO-LAYER CANDIDATE — CURRENT / RUNNER READY
+## B4B V4 — FAIL/CLOSED VISUAL AND METHOD
 
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchored_hair_spec.json`
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_pose_anchored_hair_candidate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
-
-Workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair`
-
-### V4 correction
-
-V4 no longer uses the master pose for placement. It measures the actual promoted B3B body alpha/silhouette and derives:
-
-- head center/bounds;
-- shoulder row/span;
-- torso center;
-- 3/4 facing bias.
-
-Both new hair layers are then authored relative to those **production-body anchors**.
-
-The master remains visible in the contact sheet only as identity/style/material inspiration.
-
-The contact sheet must explicitly show the immutable body with detected pose anchors before showing `rear_hair`, `front_hair`, composite and native `640×360` preview.
-
-### V4 review contract
-
-- body hashes must remain canonical;
-- rear/front assets must be separate and non-empty;
-- composition must remain `rear_hair -> body -> front_hair`;
-- master pose coordinates must not drive placement;
-- front hair must remain subordinate to rear mass;
-- no external paid API/model;
-- no automatic promotion.
-
-## Current exact action
-
-Run B4B V4 once and share:
+Reviewed artifact:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C before V4 review.
+Reviewed SHA256:
+
+`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
+
+Structural split: **PASS**.
+
+Visual/method result: **FAIL**.
+
+Observed evidence:
+
+- the contact sheet reports `shoulder_span=6.36 px` for a `37 px`-wide body; this is not a credible shoulder measurement and proves the detector is not locating the actual shoulder span;
+- head center, shoulder row/span, torso center and a binary facing flag are far too weak to represent the production body's 3/4 anatomy;
+- the abstraction does not encode head tilt, shoulder slope, torso rotation, arm occlusion, back contour or local depth;
+- hard-coded polygon/line hair geometry therefore does not wrap around the actual body pose;
+- the result remains visibly detached geometric scaffolding rather than convincing Exilada hair.
+
+### Route closure — LOCKED
+
+The deterministic **Pillow polygon + heuristic-anchor hair-authoring route is closed** as a visual-production method.
+
+Do **not** create a V5 by adding more hand-tuned anchor heuristics, polygon coordinates, curves or procedural locks. The repeated V2/V3/V4 failures show that this method is not a viable visual author for the character.
+
+The valid parts are retained:
+
+- canonical immutable B3B body;
+- `rear_hair -> body -> front_hair` ownership;
+- master as hair identity/material reference;
+- native pixel-art target and `128 px` standing body scale.
+
+No model weights or external paid API were used by V4, so no cleanup command applies.
+
+## Current exact state
+
+**B4 remains OPEN / NOT APPROVED.**
+
+There is **no approved B4 runner** now.
+
+The next B4 method must perform real visual 2D authoring/adaptation to the canonical B3B pose and produce separate `rear_hair` and `front_hair` assets. It must not return to:
+
+- master-pixel extraction;
+- fixed master-pose geometry;
+- heuristic body anchors + hard-coded Pillow shapes;
+- primitive procedural hair drawing.
+
+Do not start B5 or G3S-C before B4 passes.
