@@ -1,0 +1,33 @@
+{
+  "asset": "Exilada nude hairless body base",
+  "gate": "G3S-B3B-V4",
+  "status": "PROMOTED_PRODUCTION_BODY_BASE",
+  "date": "2026-09-06",
+  "canonical_png": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+  "png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+  "raw_rgba_sha256": "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c",
+  "dimensions_px": [
+    37,
+    128
+  ],
+  "visible_standing_height_px": 128,
+  "native_scene": [
+    640,
+    360
+  ],
+  "camera_pitch_deg": 26,
+  "view": "front-three-quarter elevated belt-scroller",
+  "body_state": "adult nude hairless barefoot body base",
+  "locked_visual_reference_sha256": "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a",
+  "reviewed_contact_sheet_sha256": "2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182",
+  "promotion_hash_mismatch_marker": "tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json",
+  "visible_ownership": "persistent 2D pixel asset",
+  "not_included": [
+    "hair",
+    "clothing",
+    "restraints",
+    "accessories",
+    "weapons"
+  ],
+  "notes": "Promoted from the user's actual local V4 candidate after correcting an implementation bug that had hardcoded an assistant-side reconstructed raw-RGBA digest. Promotion itself performs no smoothing, palette synthesis, anatomy repair, hidden-3D RGB/mask use, or render-to-pixel conversion."
+}
