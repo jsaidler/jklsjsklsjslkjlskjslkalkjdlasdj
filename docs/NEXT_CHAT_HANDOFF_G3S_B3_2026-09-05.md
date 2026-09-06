@@ -59,60 +59,66 @@ Do not resume B4 automatically.
 
 Purpose: produce one complete hidden-3D anatomical left-contact guide before any new visible pose pixels are authored.
 
-### Closed technical revisions
+### Closed revisions
 
-V1: source/evaluated polygon index assumption failed (`18486` vs `13378`).
+V1–V4 are closed technical depth/export revisions. Do not reopen mesh bake/proxy depth methods.
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
+Markers:
 
-V2: evaluated local-object bake produced final guide height `102.4258804321289 px` instead of ~128 px.
+- `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
+### V5 visual review — FAIL/CLOSED
 
-V3: world-space mesh replacement on the original rigged object failed geometry invariance: pre=`128.0000`, post=`99.0563`, delta=`28.9437 px`.
+Reviewed sheet SHA256:
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
+`74ee1979afa58b8bbe77a3549fdc6af41e24524287f6329a33425aa7b15f6ba9`
 
-V4: detached evaluated proxy also failed geometry equivalence: original=`128.0000`, proxy=`102.4259`, delta=`25.5741 px`.
+Numeric checks passed at frame `1588`: body height `128 px`, travel x about `-62.735 px`, left contact, near=`left`, far=`right`.
 
-Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v4_proxy_scale_failure.json`.
+Visual review failed immediately:
 
-Closed technical class for C1A depth:
+- giant triangular/kite-like stretched surfaces on both upper-body sides;
+- silhouette not human-coherent;
+- region guide confirms stretched geometry belongs to skinned limb regions;
+- skeleton overlay remains coherent.
 
-`evaluated MPFB body -> baked/copied/proxy geometry carrier -> depth render`
+Cause: the base C1 presentation still manufactured facing by independently rotating and grounding the target rig and skinned body after retarget. That object-space directional-family path is not geometry-preserving on retained MPFB.
 
-Do not create another mesh bake/proxy revision.
+Marker:
 
-### V5 — CURRENT / RUNNER READY
+`tools/structured-2d-character-pipeline/g3s_c1a_v5_visual_transform_failure.json`
+
+Closed method:
+
+`retarget -> rotate/translate target rig + skinned body objects for facing/grounding`
+
+V5 original-body camera-space **depth shader remains retained**.
+
+### V6 — CURRENT / RUNNER READY
 
 Exporter:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v5.py`
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v6.py`
 
 Runner:
 
 `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-V5 keeps the exact original evaluated `G3V_BODY` that calibrated the locked camera and renders depth by material only:
+V6 leaves the `DIRECTION_SPACE_FK` result untouched:
 
-- measure near/far from evaluated world-space vertices;
-- assign a guide-only shader directly to original `G3V_BODY`;
-- shader transforms each shading point WORLD -> CAMERA and maps camera-space depth continuously to grayscale;
-- no mesh copy;
-- no proxy object;
-- no polygon-index mapping;
-- no geometry/parent/armature/bind/object-transform mutation;
-- projected height before/after material setup must differ by `<=0.01 px`.
-
-Required depth metadata:
-
-- `mode = original_body_camera_space_shader`;
-- `source_geometry_mutated = false`;
-- `proxy_object_used = false`;
-- `topology_index_mapping_used = false`;
-- projected height delta `<=0.01 px`.
-
-Runner also requires approximately `128 px` body height and screen-left travel x < 0.
+- no target-rig directional rotation;
+- no skinned-body directional rotation;
+- no visual grounding translation;
+- preserve rig/body parent state and object matrices exactly;
+- directional family comes from camera placement relative to real motion heading;
+- camera is front-three-quarter, `45°` azimuth from heading, `26°` elevation;
+- unmodified forward motion must project screen-left;
+- original body must remain about `128 px`;
+- V5 original-body camera-space depth shader remains, with no mesh proxy/bake/index mapping;
+- max rig/body object-matrix delta after render `<=1e-8`.
 
 No model/API/download is used.
 
@@ -128,8 +134,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 If successful, share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_hidden_pose_guide\g3s_c1_contact_left_pose_guide_contact_sheet.png`
-
-If it fails, share the full console output.
 
 Do not start C1B, resume hair or promote any 3D guide pixels before C1A visual review.
 
