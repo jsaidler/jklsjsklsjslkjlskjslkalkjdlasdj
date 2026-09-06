@@ -85,8 +85,6 @@ C0 single-still deformation V1/V2 = FAIL/CLOSED. Closed class:
 
 `single B3B still -> projected joints -> cutout/chain/cage warp -> full walk`
 
-Reason: one still lacks hidden surfaces, foreshortening and correct near/far anatomy for arbitrary gait poses.
-
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1` is disabled.
 
 ## CURRENT gate — G3S-C1A HIDDEN-3D FULL-POSE GUIDE
@@ -103,7 +101,7 @@ Spec:
 
 Current exporter:
 
-`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v3.py`
 
 Review builder:
 
@@ -113,48 +111,48 @@ Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_hidden_pose_guide`
 
-## C1A V1 local execution — FAIL/CLOSED TECHNICAL REVISION
+## C1A V1 — FAIL/CLOSED TECHNICAL
 
-The first run successfully wrote:
-
-- `g3s_c1_contact_left_hidden3d_neutral.png`;
-- `g3s_c1_contact_left_silhouette_guide.png`;
-- `g3s_c1_contact_left_regions_guide.png`.
-
-It then failed before the depth guide with:
-
-`evaluated body topology changed: eval=13378 source=18486`
-
-Root cause: V1 assumed source MPFB polygon indices matched the evaluated/deformed render topology 1:1. They do not after modifiers/helper masking.
+First local run wrote neutral, silhouette and region passes, then failed because MPFB source/evaluated polygon counts differed (`18486` vs `13378`) and V1 incorrectly assumed polygon-index identity.
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`
 
-This failure does **not** invalidate the hidden-3D full-pose architecture.
+## C1A V2 — FAIL/CLOSED TECHNICAL
 
-## C1A V2 — CURRENT / RUNNER READY
+Second local run completed all four rendered passes and the review package. It selected frame `1588`, produced near=`left`, far=`right`, and projected screen travel `-62.7345 px`, but the measured hidden-body guide height became `102.4258804321289 px` instead of approximately `128 px`.
 
-V2 keeps the same pose and direction logic and changes only the depth-pass implementation:
+Cause: V2 copied evaluated mesh data into source local data while retaining source object transforms, so the frozen topology did not preserve the exact world-space geometry used during camera calibration.
 
-- evaluates the already-retargeted hidden MPFB body;
-- copies the evaluated mesh in-process;
-- freezes that copy for the single guide pose;
-- removes modifiers from the temporary guide object so deformation is not applied twice;
-- assigns depth bands directly on evaluated topology;
-- records source and evaluated polygon counts plus `depth_guide.mode = evaluated_mesh_bake` in the pose JSON.
+Failure marker:
 
-No source `.blend`, B3B sprite or production art is modified.
+`tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`
 
-C1A still validates:
+This is a technical export-space failure, not an architecture failure.
 
-- `DIRECTION_SPACE_FK` approval remains PASS;
-- G3V direct visible route remains FAIL/CLOSED;
-- canonical B3B hash remains unchanged;
-- screen-left family has negative projected travel x;
-- hidden-body guide remains approximately `128 px` under G1 camera baseline.
+## C1A V3 — CURRENT / RUNNER READY
 
-All hidden-3D rendered outputs are **non-promotable guide evidence only**.
+V3 keeps the same full-pose/retarget/direction architecture but freezes the evaluated mesh in exact **world coordinates**:
+
+- copy evaluated posed mesh;
+- transform its vertices by the evaluated object matrix;
+- remove modifiers and parenting from the temporary in-process guide object;
+- set object matrix to identity;
+- verify projected body height before/after bake differs by no more than `0.25 px`;
+- assign depth bands directly on this world-space frozen topology.
+
+Runner also still requires:
+
+- `DIRECTION_SPACE_FK` approval PASS;
+- canonical B3B hash unchanged;
+- negative screen-x travel for the screen-left family;
+- approximately `128 px` body height;
+- `depth_guide.mode = evaluated_worldspace_bake`.
+
+No source `.blend`, B3B sprite or production art is modified. No model/API/download is used.
+
+All hidden-3D rendered outputs remain **non-promotable guide evidence only**.
 
 ## Exact next operator action
 
@@ -169,7 +167,7 @@ Then share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_hidden_pose_guide\g3s_c1_contact_left_pose_guide_contact_sheet.png`
 
-If it fails again, share the complete console output.
+If it fails, share the complete console output.
 
 Do **not** start C1B, resume hair or promote any 3D guide pixels before C1A visual review.
 
