@@ -24,7 +24,7 @@ B3B V4 is **PASS/CLOSED / PROMOTED**:
 
 Body remains byte/pixel unchanged through B4/B5.
 
-## G3S-B4 — HAIR CURRENT
+## G3S-B4 — HAIR CURRENT / OPEN
 
 Canonical hair: black/nearly black, very long, heavy, voluminous, messy, wild, lived-in.
 
@@ -37,63 +37,44 @@ Mandatory composition:
 - B4A preflight — **PASS/CLOSED DIAGNOSTIC**.
 - B4B V1 master extraction — **FAIL/CLOSED PRE-RUN**: master lacks hidden rear-hair information.
 - B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**: centered curtain/cape, too much front coverage.
-- B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**.
+- B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**: fixed master-like coordinates ignored the actual production pose.
+- B4B V4 pose-anchored authored two-layer — **FAIL/CLOSED VISUAL AND METHOD**.
 
-### V3 root cause — IMPORTANT
+## B4B V4 failure — IMPORTANT
 
-Reviewed SHA256:
+Reviewed contact sheet SHA256:
 
-`9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33`
+`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
 
 Failure marker:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v3_pose_mismatch_failure.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
 
-V3 authored hair in fixed master-like canvas coordinates. The master and production B3B body are in different poses, so crown, rear mass and front locks could not align correctly even though two-layer ownership was structurally valid.
+The V4 contact sheet itself proves the anchor detector is not reliable: it reports `shoulder_span=6.36 px` for the canonical `37 px`-wide body. More fundamentally, a few scalar anchors cannot encode the 3/4 anatomy needed for hair placement: head tilt, shoulder slope, torso rotation, arm occlusion, back contour and local depth are missing.
 
-Do **not** return to fixed master-pose hair geometry.
+### Closed route — DO NOT REOPEN
 
-## B4B V4 — CURRENT / RUNNER READY
+The **Pillow polygon/line + heuristic body-anchor hair-authoring route is closed**.
 
-Spec:
+Do not create a V5 by adding more manually tuned anchors, polygons, curves or procedural locks. Also do not return to master-pixel extraction or fixed master-pose coordinates.
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchored_hair_spec.json`
+The valid structural contract remains:
 
-Helper:
+`rear_hair -> immutable body -> front_hair`
 
-`tools/structured-2d-character-pipeline/g3s_b4b_pose_anchored_hair_candidate.py`
+The master remains identity/style/material reference only.
 
-Runner:
+Runner `tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled.
 
-`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
+No model/API was used by V4; no cleanup applies.
 
-V4 measures pose anchors directly from the actual canonical B3B body alpha/silhouette:
+## Exact continuation state
 
-- head center/bounds;
-- shoulder row/span;
-- torso center;
-- facing bias.
+**B4 remains OPEN. There is currently NO approved B4 runner.**
 
-Both new hair layers are authored relative to those production-pose anchors. The master is identity/style/material inspiration only and its pose coordinates do not drive placement.
+The next method must use real visual 2D authoring/adaptation to the actual canonical B3B body pose and output separate persistent `rear_hair` and `front_hair` assets.
 
-The V4 contact sheet explicitly includes the body-alone view with detected anchors, then rear layer, front layer, composite and native `640×360` preview.
-
-No paid API/model. No automatic promotion.
-
-## Exact next operator action
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\17_run_g3s_b4b_two_layer_hair_candidate.ps1"
-```
-
-Then share:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
-
-Do not promote hair and do not start B5/G3S-C before V4 visual review.
+Do not start B5 or G3S-C before B4 passes.
 
 ## Actual local AI state
 
