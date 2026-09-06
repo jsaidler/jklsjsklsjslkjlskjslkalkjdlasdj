@@ -11,21 +11,22 @@ from PIL import Image, ImageDraw, ImageFont
 EXPECTED_BODY_SIZE = (37, 128)
 EXPECTED_BODY_RAW_RGBA_SHA256 = "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c"
 EXPECTED_BODY_PNG_SHA256 = "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858"
+
 WORKING_CANVAS = (96, 160)
 BODY_GROUND_Y = 152
 BODY_X = (WORKING_CANVAS[0] - EXPECTED_BODY_SIZE[0]) // 2
 BODY_Y = BODY_GROUND_Y - EXPECTED_BODY_SIZE[1]
 GAMEPLAY_CANVAS = (640, 360)
 
-# Native-pixel palette: deliberately dark, low-chroma, and compact.
-OUTLINE = (4, 5, 7, 255)
-DEEP = (8, 10, 13, 255)
-BASE = (13, 15, 19, 255)
-BASE2 = (18, 20, 24, 255)
-MID = (24, 26, 31, 255)
-MID2 = (31, 33, 38, 255)
-HIGH = (42, 43, 48, 255)
-HIGH2 = (54, 53, 57, 255)
+# Compact black-hair ramp: warm-neutral black, readable at 1x.
+OUTLINE = (3, 4, 6, 255)
+DEEP = (7, 8, 11, 255)
+BASE = (11, 12, 16, 255)
+BASE2 = (16, 17, 21, 255)
+MID = (22, 23, 28, 255)
+MID2 = (29, 30, 35, 255)
+HIGH = (39, 39, 44, 255)
+HIGH2 = (50, 49, 53, 255)
 PALETTE = [OUTLINE, DEEP, BASE, BASE2, MID, MID2, HIGH, HIGH2]
 
 
@@ -54,125 +55,130 @@ def checkerboard(size: tuple[int, int], tile: int = 8) -> Image.Image:
 def fit_inside(im: Image.Image, box: tuple[int, int]) -> Image.Image:
     bw, bh = box
     scale = min(bw / im.width, bh / im.height)
-    nw = max(1, round(im.width * scale))
-    nh = max(1, round(im.height * scale))
-    return im.resize((nw, nh), Image.Resampling.LANCZOS)
+    return im.resize((max(1, round(im.width * scale)), max(1, round(im.height * scale))), Image.Resampling.LANCZOS)
 
 
 def paste_center(dst: Image.Image, src: Image.Image, box: tuple[int, int, int, int]) -> None:
     x0, y0, x1, y1 = box
-    x = x0 + (x1 - x0 - src.width) // 2
-    y = y0 + (y1 - y0 - src.height) // 2
-    dst.alpha_composite(src, (x, y))
+    dst.alpha_composite(src, (x0 + (x1 - x0 - src.width) // 2, y0 + (y1 - y0 - src.height) // 2))
 
 
-def draw_lock(
-    layer: Image.Image,
-    points: list[tuple[int, int]],
-    widths: list[int],
-    fill: tuple[int, int, int, int],
-    highlight: tuple[int, int, int, int] | None = None,
-    highlight_offset: tuple[int, int] = (-1, 0),
-) -> None:
-    if len(points) < 2 or len(points) != len(widths):
-        raise ValueError("lock points/widths mismatch")
-    d = ImageDraw.Draw(layer)
-    for i in range(len(points) - 1):
-        p0, p1 = points[i], points[i + 1]
-        w = max(1, round((widths[i] + widths[i + 1]) / 2))
-        d.line([p0, p1], fill=OUTLINE, width=w + 2)
-        d.line([p0, p1], fill=fill, width=w)
-    for p, w in zip(points, widths):
-        r = max(1, w // 2)
-        d.ellipse((p[0] - r, p[1] - r, p[0] + r, p[1] + r), fill=fill, outline=OUTLINE)
-    if highlight is not None and len(points) >= 3:
-        hx, hy = highlight_offset
-        hp = [(x + hx, y + hy) for x, y in points[1:-1]]
-        if len(hp) >= 2:
-            d.line(hp, fill=highlight, width=1)
+def poly(d: ImageDraw.ImageDraw, pts, fill, outline=OUTLINE) -> None:
+    d.polygon(pts, fill=fill, outline=outline)
 
 
-def authored_rear_hair() -> Image.Image:
+def stroke(d: ImageDraw.ImageDraw, pts, fill, width: int = 1) -> None:
+    d.line(pts, fill=fill, width=width)
+
+
+def authored_rear_hair_v3() -> Image.Image:
+    """New rear geometry. Intentionally asymmetric and dominant."""
     layer = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
 
-    # Main rear mass: authored from the identity language of the master, not copied from it.
+    # Primary silhouette: left-heavy, irregular, long; not a centered bell/cape.
     outer = [
-        (43, 17), (36, 18), (30, 22), (25, 29), (21, 39), (18, 51),
-        (19, 64), (16, 76), (18, 91), (20, 105), (25, 119), (31, 111),
-        (34, 98), (38, 84), (42, 70), (47, 60), (52, 66), (57, 79),
-        (62, 94), (66, 108), (71, 120), (76, 112), (78, 98), (76, 83),
-        (78, 69), (75, 54), (72, 41), (68, 30), (61, 21), (53, 17),
+        (45, 15), (38, 16), (31, 20), (25, 26), (21, 34), (17, 44),
+        (15, 55), (12, 68), (14, 80), (13, 92), (16, 104), (20, 118),
+        (25, 126), (29, 119), (32, 109), (34, 98), (37, 89), (41, 81),
+        (45, 76), (49, 78), (54, 84), (58, 94), (61, 104), (65, 116),
+        (69, 110), (71, 99), (69, 88), (72, 76), (70, 64), (73, 53),
+        (70, 41), (66, 31), (60, 22), (53, 17)
     ]
-    inner = [
-        (43, 20), (36, 22), (30, 28), (27, 37), (25, 50), (25, 67),
-        (24, 83), (27, 99), (31, 104), (35, 92), (39, 76), (44, 62),
-        (49, 55), (54, 63), (59, 78), (63, 94), (68, 105), (71, 96),
-        (70, 82), (72, 67), (68, 51), (65, 37), (59, 27), (51, 21),
-    ]
-    d.polygon(outer, fill=OUTLINE)
-    d.polygon(inner, fill=DEEP)
+    poly(d, outer, DEEP)
 
-    rear_locks = [
-        ([(34, 22), (27, 34), (23, 49), (25, 65), (21, 81), (24, 99), (22, 114)], [7,7,7,6,6,5,3], BASE, MID2),
-        ([(40, 20), (33, 34), (31, 49), (34, 63), (30, 79), (33, 96), (29, 110)], [8,8,7,7,6,5,3], BASE2, HIGH),
-        ([(45, 19), (39, 31), (37, 46), (41, 59), (38, 75), (41, 91), (37, 105)], [8,8,7,6,6,5,3], BASE, MID),
-        ([(50, 19), (45, 31), (44, 43), (48, 55), (46, 70), (49, 84), (46, 99)], [8,8,7,6,6,5,3], BASE2, HIGH),
-        ([(55, 20), (53, 32), (55, 45), (53, 59), (57, 74), (55, 90), (59, 105)], [8,8,7,7,6,5,3], BASE, MID2),
-        ([(60, 22), (61, 35), (59, 49), (63, 63), (61, 79), (66, 94), (66, 111)], [8,8,7,7,6,5,3], BASE2, HIGH),
-        ([(65, 26), (68, 39), (66, 54), (71, 69), (69, 85), (73, 101), (71, 116)], [7,7,7,6,6,5,3], BASE, MID),
-        ([(29, 28), (23, 41), (22, 55), (19, 68), (21, 82), (18, 97), (22, 109)], [6,6,6,5,5,4,2], DEEP, MID),
-        ([(68, 30), (73, 43), (71, 57), (75, 71), (73, 85), (76, 99), (73, 112)], [6,6,6,5,5,4,2], DEEP, MID),
-    ]
-    for pts, widths, fill, hi in rear_locks:
-        draw_lock(layer, pts, widths, fill, hi)
+    # Broad authored rear masses. They overlap to make a hierarchy rather than equal dreads.
+    poly(d, [(34,18),(27,26),(22,38),(19,54),(19,70),(17,85),(20,101),(23,116),
+             (28,111),(31,99),(30,85),(33,71),(31,56),(34,40),(39,27)], BASE)
+    poly(d, [(43,16),(36,23),(33,34),(34,47),(31,62),(34,76),(32,91),(35,106),
+             (39,98),(41,84),(39,69),(43,55),(41,42),(46,29),(49,19)], BASE2)
+    poly(d, [(51,17),(47,25),(48,37),(45,50),(48,64),(46,77),(50,90),(49,103),
+             (54,96),(56,82),(53,69),(57,55),(54,42),(59,29),(58,21)], BASE)
+    poly(d, [(58,20),(61,28),(60,39),(64,50),(62,63),(66,75),(64,88),(68,101),
+             (67,112),(63,104),(60,93),(61,80),(57,68),(59,54),(56,43),(60,31)], BASE2)
 
-    # Coarse value grouping only; no strand-level noise.
-    d.line([(28, 39), (25, 56), (27, 73), (25, 89)], fill=HIGH2, width=1)
-    d.line([(37, 30), (34, 49), (37, 65), (34, 82)], fill=HIGH, width=1)
-    d.line([(48, 27), (47, 43), (50, 59), (48, 75)], fill=MID2, width=1)
-    d.line([(60, 31), (62, 47), (61, 64), (65, 81)], fill=HIGH, width=1)
-    d.line([(69, 41), (70, 57), (72, 72), (70, 89)], fill=MID2, width=1)
+    # Side/back locks with distinct lengths and directions.
+    poly(d, [(26,27),(20,35),(17,47),(16,58),(13,69),(15,78),(18,70),(21,60),(20,49),(24,39),(29,32)], BASE2)
+    poly(d, [(29,47),(23,56),(21,68),(18,78),(19,91),(16,101),(19,113),(23,119),
+             (24,108),(27,98),(25,86),(28,74),(26,62),(32,52)], BASE)
+    poly(d, [(66,31),(70,40),(69,51),(72,61),(69,72),(71,83),(68,93),(70,103),
+             (67,111),(64,102),(65,91),(62,81),(64,69),(61,58),(64,47),(61,39)], BASE)
+
+    # Deliberate negative separations in the lower rear silhouette.
+    for gap in [
+        [(25,79),(28,82),(27,91),(29,97),(27,107),(24,113),(23,105),(25,96),(23,88)],
+        [(38,73),(41,77),(40,85),(42,92),(40,101),(37,106),(37,97),(39,89),(37,81)],
+        [(55,78),(58,82),(57,91),(60,99),(59,107),(56,111),(55,102),(57,94),(54,86)],
+    ]:
+        d.polygon(gap, fill=(0,0,0,0))
+
+    # Coarse value accents: short, broken, non-parallel.
+    stroke(d, [(25,31),(22,43),(23,55),(20,66)], HIGH, 1)
+    stroke(d, [(31,26),(28,39),(30,52),(27,64)], MID2, 1)
+    stroke(d, [(38,24),(36,36),(38,48)], HIGH2, 1)
+    stroke(d, [(48,24),(46,36),(49,49)], MID2, 1)
+    stroke(d, [(57,27),(60,39),(58,51)], HIGH, 1)
+    stroke(d, [(65,38),(67,50),(65,61)], MID2, 1)
+    stroke(d, [(19,83),(21,94),(19,104)], MID, 1)
+    stroke(d, [(64,84),(67,95),(65,104)], MID, 1)
+
+    # Messy edge tufts.
+    poly(d, [(22,29),(17,27),(19,34),(14,36),(21,38)], BASE)
+    poly(d, [(31,20),(27,16),(28,23),(23,22),(29,27)], BASE2)
+    poly(d, [(58,21),(63,18),(61,25),(66,27),(60,29)], BASE)
+    poly(d, [(69,46),(76,43),(72,50),(76,54),(69,55)], BASE2)
     return layer
 
 
-def authored_front_hair() -> Image.Image:
+def authored_front_hair_v3() -> Image.Image:
+    """Sparse front framing: face, clavicle and torso remain readable."""
     layer = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
 
-    # Crown/framing mass. The face remains intentionally open enough for gameplay readability.
-    crown_outer = [(35, 20), (40, 16), (49, 15), (57, 18), (63, 24), (64, 31), (61, 38), (56, 40), (54, 34), (51, 28), (47, 25), (43, 27), (40, 34), (35, 37), (32, 32), (32, 25)]
-    crown_inner = [(38, 21), (42, 18), (49, 18), (55, 20), (60, 24), (61, 29), (58, 34), (55, 35), (53, 30), (49, 23), (44, 23), (41, 29), (38, 33), (35, 31), (35, 25)]
-    d.polygon(crown_outer, fill=OUTLINE)
-    d.polygon(crown_inner, fill=BASE)
+    # Crown/frame around the head, deliberately open in the center/front.
+    poly(d, [(34,22),(38,17),(45,14),(53,16),(59,20),(63,26),(62,32),(58,36),
+             (56,31),(53,26),(49,23),(44,24),(41,29),(38,35),(34,34),(31,29)], BASE)
+    poly(d, [(37,22),(41,18),(47,17),(53,18),(58,22),(60,26),(59,30),(56,32),
+             (54,27),(50,21),(44,21),(41,25),(39,31),(35,31),(34,27)], BASE2)
 
-    front_locks = [
-        ([(38, 23), (35, 34), (33, 46), (36, 58), (34, 71), (37, 84), (34, 96)], [6,6,5,5,4,4,2], BASE2, HIGH),
-        ([(42, 21), (40, 31), (42, 41), (39, 52), (42, 63), (40, 75), (43, 86)], [6,6,5,5,4,4,2], BASE, MID2),
-        ([(55, 20), (58, 31), (57, 42), (60, 53), (58, 65), (62, 76), (60, 90)], [6,6,5,5,4,4,2], BASE2, HIGH),
-        ([(59, 22), (63, 33), (61, 45), (65, 57), (63, 69), (67, 81)], [6,6,5,5,4,3], BASE, MID),
-        ([(45, 20), (44, 29), (46, 37), (44, 46), (46, 55), (45, 65)], [5,5,4,4,3,2], BASE2, HIGH2),
-        ([(50, 19), (52, 28), (50, 36), (53, 45), (51, 54), (54, 64)], [5,5,4,4,3,2], BASE, MID2),
-    ]
-    for pts, widths, fill, hi in front_locks:
-        draw_lock(layer, pts, widths, fill, hi)
+    # Viewer-left face/shoulder framing lock: broad but kept to side.
+    poly(d, [(36,25),(32,34),(31,43),(33,51),(31,61),(33,70),(31,79),(34,86),
+             (37,80),(36,70),(38,61),(36,52),(38,43),(39,34)], BASE2)
+    stroke(d, [(35,31),(34,41),(35,50)], HIGH, 1)
 
-    # A few broken edge tufts so the silhouette reads messy rather than salon-groomed.
-    d.polygon([(31,25),(28,23),(30,29),(27,31),(33,32)], fill=DEEP)
-    d.polygon([(62,22),(66,21),(64,26),(68,28),(62,30)], fill=BASE)
-    d.polygon([(35,38),(31,41),(34,43),(30,47),(36,46)], fill=BASE2)
-    d.polygon([(61,39),(66,42),(63,45),(67,49),(61,48)], fill=BASE)
+    # Short inner lock near cheek/neck; stops above chest.
+    poly(d, [(41,24),(39,31),(40,38),(39,45),(41,52),(43,47),(42,40),(44,33),(44,27)], BASE)
+    stroke(d, [(41,29),(41,37),(41,44)], MID2, 1)
+
+    # Viewer-right dominant side lock, but it stays lateral to the torso.
+    poly(d, [(57,23),(61,31),(60,39),(63,47),(61,56),(64,64),(62,74),(65,82),
+             (68,76),(66,66),(68,57),(65,48),(67,39),(63,31)], BASE2)
+    stroke(d, [(60,29),(62,38),(61,47),(63,56)], HIGH, 1)
+
+    # One long side lock crossing only the shoulder edge, not center chest/abdomen.
+    poly(d, [(60,34),(64,41),(63,50),(66,59),(65,69),(68,77),(67,89),(64,96),
+             (62,89),(63,79),(60,70),(62,60),(59,51),(61,43)], BASE)
+    stroke(d, [(63,44),(64,53),(63,63)], MID2, 1)
+
+    # A few broken tufts for wild silhouette.
+    poly(d, [(32,25),(28,24),(30,29),(26,31),(33,32)], DEEP)
+    poly(d, [(60,22),(65,20),(63,26),(68,27),(62,30)], BASE)
+    poly(d, [(34,39),(30,42),(33,45),(29,49),(35,47)], BASE2)
     return layer
 
 
-def compose(body: Image.Image, rear: Image.Image, front: Image.Image) -> tuple[Image.Image, Image.Image]:
-    body_work = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
-    body_work.alpha_composite(body, (BODY_X, BODY_Y))
-    composite = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
-    composite.alpha_composite(rear)
-    composite.alpha_composite(body_work)
-    composite.alpha_composite(front)
-    return body_work, composite
+def body_work(body: Image.Image) -> Image.Image:
+    out = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
+    out.alpha_composite(body, (BODY_X, BODY_Y))
+    return out
+
+
+def composite_layers(body_layer: Image.Image, rear: Image.Image, front: Image.Image) -> Image.Image:
+    out = Image.new("RGBA", WORKING_CANVAS, (0, 0, 0, 0))
+    out.alpha_composite(rear)
+    out.alpha_composite(body_layer)
+    out.alpha_composite(front)
+    return out
 
 
 def gameplay_preview(composite: Image.Image) -> Image.Image:
@@ -190,45 +196,51 @@ def gameplay_preview(composite: Image.Image) -> Image.Image:
     return scene
 
 
-def make_contact_sheet(master: Image.Image, rear: Image.Image, body_work: Image.Image, front: Image.Image, composite: Image.Image, gameplay: Image.Image, out: Path) -> None:
+def opaque_count(im: Image.Image) -> int:
+    return sum(1 for a in im.getchannel("A").getdata() if a)
+
+
+def make_contact_sheet(master: Image.Image, rear: Image.Image, body_layer: Image.Image,
+                       front: Image.Image, composite: Image.Image,
+                       gameplay: Image.Image, out: Path) -> None:
     sheet = Image.new("RGBA", (1600, 900), (16, 16, 19, 255))
     d = ImageDraw.Draw(sheet)
     font = ImageFont.load_default()
-    d.text((24, 18), "G3S-B4B V2 AUTHORED TWO-LAYER HAIR REVIEW", fill=(238,238,242), font=font)
-    d.text((24, 42), "MASTER = IDENTITY INSPIRATION ONLY; HAIR PIXELS ARE NEW NATIVE-PIXEL AUTHORING", fill=(220,180,90), font=font)
+    d.text((24, 18), "G3S-B4B V3 AUTHORED TWO-LAYER HAIR REVIEW", fill=(238,238,242), font=font)
+    d.text((24, 42), "V2 VISUAL FAIL CORRECTION: REAR-DOMINANT / ASYMMETRIC / SPARSE FRONT", fill=(220,180,90), font=font)
     d.text((24, 64), "COMPOSITION: rear_hair -> immutable body -> front_hair", fill=(220,220,225), font=font)
 
-    d.text((24, 96), "A  CANONICAL MASTER / HAIR IDENTITY", fill=(220,220,225), font=font)
+    d.text((24, 96), "A  MASTER / IDENTITY ONLY", fill=(220,220,225), font=font)
     mp = fit_inside(master, (390, 690))
     paste_center(sheet, mp, (20, 120, 430, 830))
 
-    def layer_panel(layer: Image.Image, title: str, x: int, y: int, scale: int = 3):
-        d.text((x, y - 24), title, fill=(220,220,225), font=font)
+    def panel(layer: Image.Image, title: str, x: int, y: int, scale: int = 3) -> None:
+        d.text((x, y-24), title, fill=(220,220,225), font=font)
         bg = checkerboard(layer.size)
         bg.alpha_composite(layer)
-        big = bg.resize((layer.width * scale, layer.height * scale), Image.Resampling.NEAREST)
+        big = bg.resize((layer.width*scale, layer.height*scale), Image.Resampling.NEAREST)
         sheet.alpha_composite(big, (x, y))
 
-    layer_panel(rear, "B  rear_hair / NEW AUTHORED PIXELS", 470, 140, 3)
-    layer_panel(front, "C  front_hair / NEW AUTHORED PIXELS", 790, 140, 3)
-    layer_panel(composite, "D  COMPOSITE 3x", 1110, 140, 3)
+    panel(rear, "B  rear_hair / V3 NEW", 470, 140)
+    panel(front, "C  front_hair / V3 NEW", 790, 140)
+    panel(composite, "D  COMPOSITE 3x", 1110, 140)
 
     d.text((470, 650), "E  NATIVE 640x360 GAMEPLAY PREVIEW", fill=(220,220,225), font=font)
-    gp = gameplay.resize((640, 360), Image.Resampling.NEAREST)
+    gp = gameplay.resize((640,360), Image.Resampling.NEAREST)
     sheet.alpha_composite(gp, (470, 680))
 
-    d.text((1140, 650), "F  STRUCTURAL CONTRACT", fill=(220,220,225), font=font)
-    notes = [
-        "rear_hair: new geometry behind head/shoulders/back",
-        "body: canonical B3B V4, byte/pixel unchanged",
-        "front_hair: new geometry crossing face/neck/chest",
+    d.text((1140, 650), "F  V3 STRUCTURAL CONTRACT", fill=(220,220,225), font=font)
+    facts = [
+        "rear_hair: dominant asymmetric new geometry",
+        "body: canonical B3B V4 byte/pixel unchanged",
+        "front_hair: sparse framing; center torso intentionally open",
         "master pixels used in hair layers: NO",
         "external paid API/model: NO",
         "automatic promotion: NO",
     ]
-    yy = 682
-    for line in notes:
-        d.text((1140, yy), line, fill=(190,190,196), font=font)
+    yy = 684
+    for fact in facts:
+        d.text((1140, yy), fact, fill=(190,190,196), font=font)
         yy += 24
 
     sheet.convert("RGB").save(out, quality=95)
@@ -252,88 +264,88 @@ def main() -> int:
         if not p.is_file():
             raise FileNotFoundError(p)
 
-    body_file_sha = file_sha256(body_path)
     body = Image.open(body_path).convert("RGBA")
-    body_raw_sha = raw_rgba_sha256(body)
     if body.size != EXPECTED_BODY_SIZE:
         raise RuntimeError(f"body size mismatch: got={body.size} expected={EXPECTED_BODY_SIZE}")
-    if body_file_sha != EXPECTED_BODY_PNG_SHA256:
-        raise RuntimeError(f"body PNG SHA mismatch: got={body_file_sha} expected={EXPECTED_BODY_PNG_SHA256}")
-    if body_raw_sha != EXPECTED_BODY_RAW_RGBA_SHA256:
-        raise RuntimeError(f"body raw RGBA SHA mismatch: got={body_raw_sha} expected={EXPECTED_BODY_RAW_RGBA_SHA256}")
+    if file_sha256(body_path) != EXPECTED_BODY_PNG_SHA256:
+        raise RuntimeError("canonical body PNG SHA mismatch")
+    if raw_rgba_sha256(body) != EXPECTED_BODY_RAW_RGBA_SHA256:
+        raise RuntimeError("canonical body raw-RGBA SHA mismatch")
 
     preflight = json.loads(preflight_meta_path.read_text(encoding="utf-8"))
-    master_sha = file_sha256(master_path)
     expected_master_sha = preflight.get("master_sha256")
-    if expected_master_sha and master_sha != expected_master_sha:
-        raise RuntimeError(f"master changed since B4A preflight: got={master_sha} expected={expected_master_sha}")
+    if not expected_master_sha:
+        raise RuntimeError("preflight metadata has no master_sha256")
+    master_sha = file_sha256(master_path)
+    if master_sha != expected_master_sha:
+        raise RuntimeError(f"canonical master changed since B4A preflight: got={master_sha} expected={expected_master_sha}")
     master = Image.open(master_path).convert("RGBA")
 
-    rear = authored_rear_hair()
-    front = authored_front_hair()
-    body_work, composite = compose(body, rear, front)
-    gameplay = gameplay_preview(composite)
+    rear = authored_rear_hair_v3()
+    front = authored_front_hair_v3()
+    bw = body_work(body)
+    comp = composite_layers(bw, rear, front)
+    gameplay = gameplay_preview(comp)
 
-    if rear.getchannel("A").getbbox() is None or front.getchannel("A").getbbox() is None:
-        raise RuntimeError("authored hair layer is unexpectedly empty")
-    if raw_rgba_sha256(body) != EXPECTED_BODY_RAW_RGBA_SHA256:
-        raise RuntimeError("body changed during B4B")
+    if opaque_count(rear) < 500:
+        raise RuntimeError("rear_hair implausibly small")
+    if opaque_count(front) < 120:
+        raise RuntimeError("front_hair implausibly small")
+    if opaque_count(front) >= opaque_count(rear):
+        raise RuntimeError("V3 contract violated: front hair must not dominate rear hair")
 
     rear_path = workspace / "g3s_b4b_rear_hair_candidate.png"
     front_path = workspace / "g3s_b4b_front_hair_candidate.png"
-    body_path_out = workspace / "g3s_b4b_body_on_canvas.png"
-    composite_path = workspace / "g3s_b4b_body_hair_composite.png"
+    comp_path = workspace / "g3s_b4b_body_hair_composite.png"
     gameplay_path = workspace / "g3s_b4b_gameplay_preview.png"
-    contact_path = workspace / "g3s_b4b_contact_sheet.png"
+    sheet_path = workspace / "g3s_b4b_contact_sheet.png"
+    meta_path = workspace / "g3s_b4b_two_layer_hair_candidate.json"
 
     rear.save(rear_path)
     front.save(front_path)
-    body_work.save(body_path_out)
-    composite.save(composite_path)
+    comp.save(comp_path)
     gameplay.save(gameplay_path)
-    make_contact_sheet(master, rear, body_work, front, composite, gameplay, contact_path)
+    make_contact_sheet(master, rear, bw, front, comp, gameplay, sheet_path)
 
     meta = {
-        "gate": "G3S-B4B",
-        "revision": "B4B_V2_AUTHORED_TWO_LAYER_STATIC",
+        "gate": "G3S-B4",
+        "revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V3",
         "status": "REVIEW_REQUIRED",
-        "date": "2026-09-06",
+        "method": "new native-pixel authored hair geometry; master used only for identity inspiration",
         "working_canvas": list(WORKING_CANVAS),
-        "body_ground_y": BODY_GROUND_Y,
-        "body_png_sha256": body_file_sha,
-        "body_raw_rgba_sha256": body_raw_sha,
+        "body_anchor": {"x": BODY_X, "y": BODY_Y, "ground_y": BODY_GROUND_Y},
+        "body_png_sha256": EXPECTED_BODY_PNG_SHA256,
+        "body_raw_rgba_sha256": EXPECTED_BODY_RAW_RGBA_SHA256,
         "master_sha256": master_sha,
-        "master_role": "identity/mass inspiration only; no master pixels are copied into hair assets",
         "composition_order": ["rear_hair", "body", "front_hair"],
-        "rear_hair": str(rear_path),
-        "rear_hair_raw_rgba_sha256": raw_rgba_sha256(rear),
-        "front_hair": str(front_path),
-        "front_hair_raw_rgba_sha256": raw_rgba_sha256(front),
-        "composite": str(composite_path),
-        "gameplay_preview": str(gameplay_path),
-        "contact_sheet": str(contact_path),
-        "contact_sheet_sha256": file_sha256(contact_path),
-        "palette_rgba": [list(c) for c in PALETTE],
-        "master_pixels_used_for_hair": False,
-        "external_paid_api_used": False,
-        "external_model_used": False,
+        "rear_hair_opaque_pixels": opaque_count(rear),
+        "front_hair_opaque_pixels": opaque_count(front),
+        "palette": [list(c) for c in PALETTE],
+        "v2_visual_correction": [
+            "rear mass is dominant and asymmetric",
+            "front coverage reduced to lateral framing",
+            "face/clavicle/center torso kept substantially open",
+            "equal-width curtain/dread rhythm removed",
+            "rear silhouette uses hierarchy of broad masses and irregular side locks"
+        ],
         "automatic_promotion": False,
-        "body_modified": False,
-        "notes": "Both mandatory hair depth layers are newly authored at the native pixel grid. Rear hair includes new coverage behind head, shoulders and back that is not recoverable from the canonical master."
+        "outputs": {
+            "rear_hair": str(rear_path),
+            "front_hair": str(front_path),
+            "composite": str(comp_path),
+            "gameplay_preview": str(gameplay_path),
+            "contact_sheet": str(sheet_path)
+        },
+        "contact_sheet_sha256": file_sha256(sheet_path)
     }
-    meta_path = workspace / "g3s_b4b_two_layer_hair_candidate.json"
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    print(f"MASTER:       {master_path}")
-    print(f"MASTER SHA:   {master_sha}")
-    print(f"BODY SHA:     {body_file_sha}")
-    print(f"REAR HAIR:    {rear_path}")
-    print(f"FRONT HAIR:   {front_path}")
-    print(f"COMPOSITE:    {composite_path}")
-    print(f"GAMEPLAY:     {gameplay_path}")
-    print(f"CONTACT:      {contact_path}")
-    print(f"META:         {meta_path}")
-    print("STATUS: REVIEW REQUIRED — NEW TWO-LAYER HAIR PIXELS AUTHORED; NOTHING PROMOTED")
+    print("G3S-B4B V3: REVIEW PACKAGE READY")
+    print(f"REAR:    {rear_path}")
+    print(f"FRONT:   {front_path}")
+    print(f"CONTACT: {sheet_path}")
+    print(f"META:    {meta_path}")
+    print("STOP. Share the contact sheet. Do not promote hair and do not start B5/C.")
     return 0
 
 
