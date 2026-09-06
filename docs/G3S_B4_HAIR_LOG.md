@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **B4A PASS/CLOSED DIAGNOSTIC — B4B V1 EXTRACTION FAIL/CLOSED PRE-RUN — B4B V2 AUTHORED TWO-LAYER RUNNER READY**
+Gate status: **B4A PASS/CLOSED DIAGNOSTIC — B4B V1 FAIL/CLOSED PRE-RUN METHOD — B4B V2 FAIL/CLOSED VISUAL — B4B V3 RUNNER READY / REVIEW NEXT**
 
 ## Entry condition
 
@@ -15,21 +15,14 @@ Canonical immutable body base:
 - promotion commit `2deb765c3980d586ef9747340bb48852dedca452`;
 - `37×128` RGBA;
 - visible standing height `128 px`;
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
 
 The body is immutable input to B4. Hair may surround/occlude it through composition but may not overwrite its ownership.
 
 ## Canonical hair identity
 
-The Exilada's hair is:
-
-- black / nearly black;
-- very long;
-- heavy;
-- voluminous;
-- messy;
-- a primary silhouette anchor;
-- materially lived-in and compatible with deprivation/survival rather than salon styling.
+The Exilada's hair is black / nearly black, very long, heavy, voluminous, messy and a primary silhouette anchor. It must read as deprivation/survival material rather than salon styling.
 
 Identity/design authority:
 
@@ -74,14 +67,7 @@ Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
 
-The preflight confirmed:
-
-- the local master is suitable as hair identity/mass inspiration;
-- promoted B3B body remains immutable;
-- shared review frame `96×160` is adequate for the first static test;
-- minimum depth order is `rear_hair -> body -> front_hair`.
-
-B4A created no production hair pixels.
+The preflight confirmed the local master is suitable as hair identity/mass inspiration, the body remains immutable, the shared `96×160` frame is adequate for first static review, and the minimum depth order is `rear_hair -> body -> front_hair`.
 
 ## B4B V1 — MASTER EXTRACTION — FAIL/CLOSED PRE-RUN METHOD
 
@@ -89,24 +75,44 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
 
-The first B4B implementation attempted to isolate visible hair pixels from the master and split them into front/rear ownership according to body overlap.
+Reason: the master does not contain enough information for the hair mass that falls behind the head, shoulders and back. Valid `rear_hair` geometry therefore cannot be recovered by extracting visible master pixels.
 
-That route is invalid because the master **does not contain sufficient visible information for the hair mass that falls behind the head, shoulders and back**. A valid `rear_hair` layer therefore cannot be recovered by extraction from the master.
+V1 was not run by the user. No production art/model was created or downloaded; no cleanup applies.
 
-Consequences:
+## B4B V2 — AUTHORED TWO-LAYER STATIC CANDIDATE — FAIL/CLOSED VISUAL
 
-- visible master hair pixels are not final hair geometry;
-- rear coverage behind the body must be newly authored;
-- front and rear layers must both be designed as new native-pixel assets;
-- the master remains inspiration/reference only.
+Reviewed artifact:
 
-The V1 runner was not executed by the user. No production hair art was created. No model was downloaded; no cleanup command applies.
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-## B4B V2 — AUTHORED TWO-LAYER STATIC CANDIDATE — CURRENT / RUNNER READY
+Reviewed SHA256:
+
+`73a9b53d35c158d78079039b4425c94028c8836e82b775ee0ce3e38b8d32a09d`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_visual_failure.json`
+
+Structural result: **PASS**. The candidate correctly used two persistent transparent layers and preserved the canonical body.
+
+Visual result: **FAIL**.
+
+Observed failures:
+
+- silhouette reads as a centered curtain/bell rather than the Exilada's wild irregular hair mass;
+- `front_hair` hides too much face/neck/chest/body readability;
+- `rear_hair` reads too uniformly and cape-like rather than as a convincing rear mass behind shoulders/back;
+- lock hierarchy is too repetitive/equal-width and approaches a dread/cable rhythm;
+- head/face become buried inside the dark mass;
+- insufficient asymmetry and hierarchy between primary mass, side masses and dominant long falls.
+
+No model weights or paid API were used, so no cleanup command applies.
+
+## B4B V3 — AUTHORED TWO-LAYER STATIC CANDIDATE — CURRENT / RUNNER READY
 
 Machine-readable spec:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v3_authored_two_layer_hair_spec.json`
 
 Helper:
 
@@ -120,27 +126,23 @@ Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair`
 
-### V2 method
+### V3 correction
 
-B4B V2 is a deterministic **native-pixel authoring spike**. It does not extract, trace or copy master hair pixels.
+V3 keeps the valid architecture and rewrites the visual massing:
 
-It:
+- `rear_hair` becomes the dominant mass;
+- rear silhouette is intentionally asymmetric and irregular;
+- front coverage is reduced to sparse lateral framing;
+- center face/clavicle/chest/abdomen remain substantially open;
+- equal-width curtain/dread rhythm is removed;
+- broad primary masses, side masses and distinct long falls replace repetitive locks;
+- rear geometry explicitly represents hair behind head/shoulders/back;
+- master remains inspiration only; no master pixels are extracted/copied/traced;
+- body remains exact hash-verified B3B V4;
+- no external paid API/model;
+- no automatic promotion.
 
-1. verifies the exact promoted B3B body hashes and dimensions;
-2. verifies the local master SHA still matches the B4A preflight source;
-3. uses the master only as visual identity/mass inspiration in the review sheet;
-4. authors a new `rear_hair` mass directly on the native `96×160` pixel grid, including new geometry behind head/neck/shoulders/back that is not visible in the master;
-5. authors a new `front_hair` crown/framing/lock layer directly on the native grid;
-6. uses a compact dark 8-color palette and broad locks/value groups rather than strand noise;
-7. composes deterministically as `rear_hair -> immutable body -> front_hair`;
-8. outputs separate transparent layers, composite, `640×360` gameplay preview, contact sheet and metadata;
-9. performs no automatic promotion.
-
-No external paid API or external generative model is used.
-
-### Review package
-
-Expected outputs:
+Expected outputs remain:
 
 - `g3s_b4b_rear_hair_candidate.png`;
 - `g3s_b4b_front_hair_candidate.png`;
@@ -149,34 +151,10 @@ Expected outputs:
 - `g3s_b4b_contact_sheet.png`;
 - `g3s_b4b_two_layer_hair_candidate.json`.
 
-### Visual PASS requirements
-
-At native scale the candidate must:
-
-- immediately restore the Exilada's large dark silhouette anchor;
-- read as very long, heavy, voluminous and messy;
-- show convincing rear mass behind head/shoulders/back;
-- show front locks/masses framing face/neck/chest without erasing body readability;
-- avoid a featureless black blob;
-- avoid fine-strand noise that collapses at 1×;
-- feel compatible with the canonical master rather than like unrelated generic hair;
-- remain structurally suitable for later secondary-motion segmentation.
-
-### Structural PASS requirements
-
-- `rear_hair` and `front_hair` are separate non-empty transparent assets;
-- composition order is deterministic;
-- body hashes remain canonical;
-- no master pixels are copied into the hair layers;
-- no hidden-3D visible ownership;
-- no external paid API/model;
-- no automatic promotion;
-- no manual user repainting dependency.
-
 ## Current exact action
 
-Run B4B V2 once and share:
+Run B4B V3 once and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C until the B4B V2 visual/structural review is complete.
+Do not promote hair and do not start B5/G3S-C until V3 visual/structural review is complete.
