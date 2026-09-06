@@ -49,7 +49,7 @@ Canonical design master:
 
 Adult woman, approximately 162 cm, lean/functional/resilient anatomy, olive-brown skin, severe mature face, very long heavy black hair, degraded beige cloth in the initial equipped state, scars/wounds, captivity history, bare feet, canonical base weaponless.
 
-The master defines identity/design, not hidden-body pixels and not final gameplay pixels.
+The master defines design/identity, not hidden-body pixels and not final gameplay pixels.
 
 ### Body-first rule — LOCKED
 
@@ -73,15 +73,13 @@ Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit vis
 
 Normal production remains scriptable/headless. The user must not need routine Blender/Aseprite/rigging work, frame-by-frame repainting or a hired specialist.
 
-Normal operator loop:
+Normal operator loop after a runner is approved:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
 ## Model-discard cleanup rule — LOCKED
 
-Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and is no longer active, the same response must include the exact PowerShell command to remove its downloaded model-specific files.
-
-Preserve small evidence outputs and shared runtimes still used elsewhere.
+Whenever a model or model route is declared **FAIL/CLOSED/REJECTED** and is no longer active, the same response must include the exact PowerShell command to remove its downloaded model-specific files. Preserve small evidence outputs and shared runtimes still used elsewhere.
 
 ## Locked gameplay baseline
 
@@ -98,19 +96,11 @@ Preserve small evidence outputs and shared runtimes still used elsewhere.
 
 G3V explicitly rejected hidden 3D as visible-image owner.
 
-Hidden 3D may own only:
-
-- motion;
-- topology/left-right identity;
-- sockets/contacts/root data;
-- physics;
-- depth/occlusion metadata;
-- semantic/anatomical guides;
-- secondary-motion driving data.
+Hidden 3D may own only motion, topology/left-right identity, sockets/contacts/root data, physics, depth/occlusion metadata, semantic/anatomical guides and secondary-motion driving data.
 
 Hidden 3D **must not own final visible RGB or final sprite silhouette**. Final visible character art is owned by persistent 2D pixel assets. Runtime/export remains sprite-based.
 
-This means a 3D render or mask may be inspected as a reference/guide, but it may not simply be cropped, recolored, downsampled, quantized or otherwise promoted into the final sprite geometry.
+A 3D render or mask may be inspected as reference/guide, but may not simply be cropped, recolored, downsampled, quantized or otherwise promoted into final sprite geometry.
 
 ## Canonical character layer stack — LOCKED
 
@@ -145,7 +135,8 @@ The body must exist under removable/damageable clothing and under hair. Hair and
     - G3S-B3A V1 — FAIL/CLOSED REVISION: wrong MPFB gender polarity
     - G3S-B3A V2 corrected adult-female anatomy guide — PASS/CLOSED
     - G3S-B3B V1 3D-mask-derived authoring route — FAIL/CLOSED ROUTE
-    - **G3S-B3B V2 authored native 2D body source** ← READY FOR USER REVIEW
+    - G3S-B3B V2 authored native-2D body source — **FAIL/CLOSED VISUAL ROUTE**
+    - **G3S-B3B replacement native-2D body source** ← CURRENT / NOT YET APPROVED
   - G3S-B4 hair asset — BLOCKED UNTIL B3B PASS
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C four-phase walk proof — BLOCKED UNTIL B3/B4/B5
@@ -183,9 +174,7 @@ Marker:
 
 ### G3V — FAIL / CLOSED
 
-The continuous MPFB human animated coherently after validated retarget, but both conventional 3D and palette/semantic translation still read as low-resolution 3D rather than authored pixel art.
-
-Canonical consequence: hidden 3D is retained as motion/topology infrastructure only and is demoted from visible-image ownership.
+The continuous MPFB human animated coherently after validated retarget, but both conventional 3D and palette/semantic translation still read as low-resolution 3D rather than authored pixel art. Hidden 3D is therefore retained as motion/topology infrastructure only.
 
 Marker:
 
@@ -194,14 +183,6 @@ Marker:
 ## G3S source-model search — CLOSED
 
 Qwen native, SD1.5, PixelLock and Alucard were bounded probes. None produced an acceptable native production sprite. Do not restart source-model search.
-
-Retained Qwen preferred-resolution control is design/scaffold provenance only:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_a_control\g3s_a_control_official_raw.png`
-
-SHA256:
-
-`ce6d86e65b170e57a390e596a0f96d7e0c62d010bd5382835f83f2b3fc9fe08e`
 
 ## G3S-B2 — PASS/CLOSED DIAGNOSTIC
 
@@ -236,15 +217,13 @@ Required production order:
 
 ### B3-A V2 — PASS/CLOSED
 
-B3A is a structural guide only. It validated adult-female anatomy, complete body geometry, zero forbidden layer objects and the locked `128 px` gameplay scale.
-
-The MPFB render/mask is **not** a production sprite source.
+B3A is a structural guide only. It validated adult-female anatomy, complete body geometry, zero forbidden layer objects and the locked `128 px` gameplay scale. The MPFB render/mask is not a production sprite source.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3a_approval.json`
 
-### B3-B V1 route — FAIL/CLOSED
+### B3-B V1 — FAIL/CLOSED ROUTE
 
 V1 copied the B3A projected mask into final alpha/silhouette and procedurally colored it. This left hidden 3D as visible silhouette owner and violated the G3V kill switch.
 
@@ -252,51 +231,34 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b3b_v1_route_failure.json`
 
-### B3-B V2 — READY FOR REVIEW
+### B3-B V2 — FAIL/CLOSED VISUAL ROUTE
 
-V2 fixes visible ownership by committing the actual native 2D art source itself:
-
-`assets/source/characters/exilada/body/g3s_b3b_body_base_source_v2.png`
-
-SHA256:
-
-`0fc90ca6a86e3adceba4d8fe100eb0d8e8e06337d6820585c6e535515fdfab53`
-
-The V2 source is independently authored at `128×128`. It owns visible RGB, alpha and silhouette. The validator does not load or sample B3A RGB, B3A mask or B3A projected silhouette. B3A remains a gate prerequisite/reference only.
-
-Measured source facts before visual review:
-
-- native canvas `128×128`;
-- visible height `128 px`;
-- visible bbox `[17, 0, 120, 127]`;
-- 8 opaque palette colors;
-- binary alpha;
-- zero hair/clothing/binding/restraint/chain ownership.
-
-Tooling:
-
-- `tools/structured-2d-character-pipeline/g3s_b3b_body_base_source_v2.json`
-- `tools/structured-2d-character-pipeline/g3s_b3b_validate_authored_body_v2.py`
-- `tools/structured-2d-character-pipeline/12_run_g3s_b3b_authored_body_v2.ps1`
-
-This is **not PASS yet**. The contact sheet must be reviewed at native 1×. If the art fails, revise the committed 2D source directly rather than returning to 3D-mask authoring.
-
-## Exact next action — ONLY THIS
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\12_run_g3s_b3b_authored_body_v2.ps1"
-```
-
-Then STOP and share:
+Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b3b_authored_body_v2\g3s_b3b_contact_sheet_v2.png`
 
-or the complete console error if the runner fails.
+V2 technically corrected visible ownership, but the art itself fails badly:
 
-Do not start G3S-B4/B5/C before B3B visual PASS.
+- oversized torso relative to head/legs;
+- primitive/generic mannequin anatomy;
+- blocky hands/feet and poor 1x anatomy;
+- crude pelvis/thigh transitions;
+- pseudo-3D value banding;
+- stiff silhouette;
+- absent Exilada identity;
+- not acceptable modern pixel-art character art.
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b3b_v2_visual_failure.json`
+
+The rejected V2 source, metadata, validator and runner were removed from `main` so they cannot be rerun or promoted accidentally. No model weights were downloaded by V2.
+
+## Current exact action
+
+**No B3B runner is approved.**
+
+The next candidate must be actual character art, not primitive/mannequin construction. B3A remains reference only. B4/B5/C stay blocked until a replacement B3B passes visual review.
 
 ## Workspaces
 
