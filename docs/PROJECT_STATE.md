@@ -53,9 +53,7 @@ Canonical architecture:
 
 `real/captured motion -> hidden 3D rig -> full pose-specific 3D guide package -> selected gait/action events -> persistent native-2D pose assets -> deterministic timing/depth/composition -> sprite/runtime export -> QA`
 
-Canonical lock document:
-
-`docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+Canonical lock document: `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`.
 
 Hidden 3D owns motion/topology, anatomical left/right, near/far identity, full pose/foreshortening reference, contacts/root travel, depth/occlusion, sockets/secondary-motion drivers and semantic/body-part guides.
 
@@ -123,8 +121,9 @@ No hair pixels were promoted. Hair does not resume automatically.
   - V2 continuous chain warp — **FAIL/CLOSED**
   - single-still puppet/warp route — **CLOSED**
 - G3S-C1A hidden-3D full-pose guide
-  - V1 depth topology implementation — **FAIL/CLOSED TECHNICAL REVISION**
-  - **V2 evaluated-topology depth implementation — CURRENT / RUNNER READY / REVIEW NEXT**
+  - V1 source/evaluated topology-index assumption — **FAIL/CLOSED TECHNICAL**
+  - V2 evaluated-topology local-space bake — **FAIL/CLOSED TECHNICAL**
+  - **V3 evaluated world-space bake — CURRENT / RUNNER READY / REVIEW NEXT**
 - G3S-C1B one native-2D non-rest pose — **BLOCKED UNTIL C1A REVIEW**
 - G3S-B5 clothing/restraints/accessories — DEFERRED
 - full layered G3S-C — later, after visible layer families exist
@@ -155,29 +154,41 @@ Spec: `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`.
 
 Runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
 
-Current exporter: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v2.py`.
+Current exporter: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v3.py`.
 
 Review builder: `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`.
 
-C1A uses the retained `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`, but only as hidden guide geometry. It re-applies the validated `DIRECTION_SPACE_FK` solver to the selected gait event and hides all hair/cloth/metal/ground geometry.
+C1A uses the retained `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend` only as hidden guide geometry and re-applies the validated `DIRECTION_SPACE_FK` solver.
 
 ### C1A V1 technical failure — CLOSED
 
-The first local C1A execution rendered neutral, silhouette and regions successfully, then failed in the depth pass with:
-
-`evaluated body topology changed: eval=13378 source=18486`
-
-Cause: V1 assumed source and evaluated MPFB polygon indices were 1:1. They are not because the evaluated/deformed MPFB body has different topology after modifiers/helper masking.
+First local execution rendered neutral, silhouette and regions, then failed because evaluated topology had `13378` polygons while the source mesh had `18486`. V1 incorrectly assumed polygon-index identity.
 
 Failure marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
 
-This did not invalidate the hidden-3D guide architecture.
+### C1A V2 technical failure — CLOSED
 
-### C1A V2 fix — CURRENT
+Second local execution completed the rendered passes and review package. Numeric results included:
 
-V2 freezes a copy of the already-retargeted **evaluated** MPFB body for the depth guide, removes modifiers in-process to prevent double deformation, and assigns depth bands directly on evaluated topology. The pose JSON records source/evaluated polygon counts and `depth_guide.mode = evaluated_mesh_bake`.
+- selected event/frame: `left_contact`, frame `1588`;
+- near side `left`, far side `right`;
+- screen travel dx `-62.7345 px`;
+- evaluated topology `13378` polygons;
+- final measured body height `102.4258804321289 px` vs locked approximately `128 px`.
 
-No source `.blend`, body sprite or production art is modified.
+The runner correctly rejected this scale drift.
+
+Cause: V2 froze evaluated mesh data in the source object's local data space while retaining source object transforms; that did not preserve the exact evaluated world geometry used during camera calibration.
+
+Failure marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
+
+### C1A V3 fix — CURRENT
+
+V3 freezes the evaluated guide mesh in exact **world coordinates**, removes parenting/modifiers, sets the temporary object's matrix to identity, and asserts that projected body height changes by no more than `0.25 px` across the depth-topology bake.
+
+The runner still separately enforces approximately `128 px` total guide height, negative screen-x travel for the left-facing family, and `depth_guide.mode = evaluated_worldspace_bake`.
+
+No source `.blend`, B3B body sprite or production art is modified.
 
 C1A outputs remain neutral guide, silhouette guide, anatomical-region guide, depth-band guide, projected skeleton overlay, machine-readable pose JSON, five `96×160` logical guide crops and a review contact sheet.
 
