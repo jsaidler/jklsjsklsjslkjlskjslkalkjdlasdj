@@ -183,10 +183,30 @@ Only after that authored candidate visually passes should deterministic import/v
 
 B4/B5/G3S-C remain blocked.
 
+## Actual local AI disk/runtime state — LOCKED 2026-09-06
+
+User visually verified the contents of `Z:\AI` after the cleanup work. The relevant retained directories are:
+
+- `Z:\AI\QwenImageEditSpike`
+- `Z:\AI\RogueliteCharacterPipeline`
+- `Z:\AI\Flux2RefControlSpike`
+
+Interpret them correctly:
+
+- **`QwenImageEditSpike\ComfyUI_windows_portable` is the only retained general local AI application/runtime currently used by this project.** The directory name is historical. The Qwen image-edit model weights themselves were removed when that route was closed. Do not infer that Qwen is still installed merely from the directory name.
+- **`RogueliteCharacterPipeline` is the deterministic project workspace/output area**, not a generative model or a second AI application.
+- **`Flux2RefControlSpike` is frozen spike evidence/workspace from the closed RefControl investigation**, not the current B3B authoring tool and not a reason to reopen that route.
+- Repository directories such as `tools/wan-animate2-spike`, `tools/sprite-animation`, `tools/qwen-image-edit-2509-spike`, etc. are historical/experimental code in Git. Their presence in the repository **does not prove corresponding models/runtimes are installed on `Z:\AI`**.
+- **Wan-Animate-2 is not to be assumed installed locally.** Do not tell the user it is the current local tool unless a fresh local inspection proves it.
+- Closed model routes Qwen-native, SD1.5, PixelLock and Alucard remain closed and their model-specific weights must not be treated as present merely because code/logs remain in Git.
+- Blender/MPFB may remain installed as hidden structural infrastructure outside this `Z:\AI` inventory, but they are not a competing local pixel-art authoring stack.
+
+Cross-chat rule: before naming any local model/tool as installed or active, read this section and distinguish **runtime**, **workspace/evidence**, and **repository-only historical tooling**.
+
 ## Workspaces
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
+- only retained general local AI runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
 - deterministic backbone + G3S outputs: `Z:\AI\RogueliteCharacterPipeline`
-- shared embedded Python runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable`
 - retarget preflight: `Z:\AI\RogueliteCharacterPipeline\g3v_retarget`
 - frozen RefControl evidence: `Z:\AI\Flux2RefControlSpike`
