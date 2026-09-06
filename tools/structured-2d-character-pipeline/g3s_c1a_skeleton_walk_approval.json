@@ -1,0 +1,31 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "SKELETON_ONLY_WALK_CYCLE_V1",
+  "status": "PASS",
+  "approved_on": "2026-09-06",
+  "source_motion": "CMU 105_34 NormalWalk",
+  "source_rig": "G2_CANONICAL_RIG",
+  "cycle_frames": [1588, 1598, 1608, 1618, 1628, 1638, 1648, 1658],
+  "reviewed_outputs": {
+    "contact_sheet_sha256": "672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd",
+    "zoom_gif_sha256": "9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970"
+  },
+  "visual_review": {
+    "coherent_eight_state_gait": "PASS",
+    "left_right_progression": "PASS",
+    "limb_chain_integrity": "PASS",
+    "support_foot_progression": "PASS",
+    "pelvis_trunk_leg_relationship": "PASS",
+    "screen_left_travel": "PASS",
+    "laterality_readability": "PASS",
+    "near_far_readability": "PASS"
+  },
+  "observed_root_travel_px": -43.77,
+  "architecture": {
+    "skinned_human_mesh_used": false,
+    "mpfb_body_used": false,
+    "single_still_warp_used": false,
+    "hidden_3d_visible_art_owner": false
+  },
+  "scope_note": "C1A approves the hidden skeletal motion/control cycle only. It does not approve final visible anatomy, pixel-art consistency, Exilada identity retention, hair, clothing, restraints, equipment, combat motion or runtime sprite assets."
+}
