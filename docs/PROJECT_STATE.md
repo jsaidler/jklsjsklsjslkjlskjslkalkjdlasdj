@@ -28,175 +28,136 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 Every state-changing action updates the thematic doc, this file and the active handoff before completion is reported.
 
-Normal operator loop only after an approved runner exists:
+Normal operator loop after an approved runner exists:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
 ## Game / presentation — LOCKED
 
-Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
-
-Presentation baseline: **elevated 2D belt-scroller / false 3D**.
-
-Final visible language: **true modern pixel art at native gameplay raster**.
-
-Native gameplay baseline:
-
-- `640×360`;
-- orthographic camera;
-- pitch `26°`;
-- protagonist standing body height approximately `128 px`.
+- systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and causal living world;
+- elevated 2D belt-scroller / false 3D;
+- true modern pixel art at native gameplay raster;
+- `640×360`, orthographic, pitch `26°`, protagonist standing body height approximately `128 px`.
 
 ## Final animation architecture — LOCKED
 
-Canonical architecture:
-
 `real/captured motion -> hidden 3D rig -> full pose-specific 3D guide package -> selected gait/action events -> persistent native-2D pose assets -> deterministic timing/depth/composition -> sprite/runtime export -> QA`
 
-Canonical lock document: `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`.
+Hidden 3D owns motion/topology, anatomical side, near/far identity, complete pose, foreshortening reference, contacts/root travel, depth/occlusion, sockets and semantic guides.
 
-Hidden 3D owns motion/topology, anatomical left/right, near/far identity, full pose/foreshortening reference, contacts/root travel, depth/occlusion, sockets/secondary-motion drivers and semantic/body-part guides.
-
-Hidden 3D does **not** own final visible RGB, alpha or production silhouette. A hidden-3D render/mask/silhouette may guide pose/anatomy/occlusion only and may not be cropped/recolored/quantized/promoted into final sprite geometry.
-
-The failed C0 experiments incorrectly reduced the hidden-3D role to joint deltas imposed on one static sprite. That is explicitly not the locked architecture.
+Hidden 3D does **not** own final visible RGB, alpha or production silhouette. Rendered 3D may guide only; it may not be promoted/quantized/recolored into final sprite geometry.
 
 ## Canonical Exilada body — PASS/CLOSED / LOCKED
 
-Production body:
-
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
-- promotion commit `2deb765c3980d586ef9747340bb48852dedca452`;
-- dimensions `37×128` RGBA;
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
+- `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- canonical screen-facing for this asset: **LEFT**.
+- canonical facing **screen-left**.
 
-The body remains byte/pixel unchanged as source art. It is a valid static left-facing 3/4 body anchor, not the sole pixel source for all animated poses.
+The body remains a static identity/style anchor, not the sole animation pixel source.
 
-## Facing/laterality invariant — LOCKED
+## Facing/laterality — LOCKED
 
-The current body is an authored **front-three-quarter, screen-left-facing** sprite. Screen-left/screen-right positions in this raster are not automatically anatomical left/right or near/far limb ownership.
+- current family faces/travels screen-left;
+- do not mirror silently;
+- screen-x is not anatomical left/right or near/far;
+- laterality and near/far come from hidden rig data.
 
-Any travel preview using this exact directional family must move screen-left unless a separately authored right-facing family is selected. Do not mirror silently and do not infer anatomical laterality from x-position alone.
+## Motion infrastructure — RETAINED / ACTIVE
 
-## Motion infrastructure — RETAINED / ACTIVE AS GUIDE BACKBONE
+- G2 = PASS/CLOSED;
+- CMU `105_34 NormalWalk`;
+- source rig `G2_CANONICAL_RIG`;
+- G3V-R = PASS/CLOSED;
+- retarget method `DIRECTION_SPACE_FK`;
+- validated phase frames `1568, 1588, 1608, 1628`.
 
-- G2 real motion/topology — **PASS/CLOSED**;
-- motion source: CMU `105_34 NormalWalk`;
-- source rig: `G2_CANONICAL_RIG`;
-- G3V-R retarget preflight — **PASS/CLOSED**;
-- method: `DIRECTION_SPACE_FK`;
-- validated phase frames: `1568, 1588, 1608, 1628`.
+This is guide/control infrastructure only.
 
-This infrastructure is the production guide/control backbone. It supplies complete pose guides, contacts, timing, root travel, laterality, near/far ownership, sockets and depth. It does not directly produce final visible pixels.
+## Closed visible routes
 
-## Direct visible 3D route — CLOSED
+- direct visible G3V 3D translation — CLOSED/REJECTED;
+- C0 V1/V2 single-still cutout/warp — CLOSED/REJECTED;
+- no weighted/cage revision using only the single B3B still.
 
-G3V proved the hidden rig and retargeting but failed the visual kill switch: the output still read as low-resolution 3D rather than intentional modern pixel art.
+## Hair — DEFERRED
 
-Therefore direct hidden-3D RGB as final sprite is CLOSED, while hidden 3D itself is RETAINED as guide/control infrastructure.
-
-Canonical record: `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`.
-
-## Hair — DEFERRED BY USER
-
-B4 remains open and unapproved. Eventual minimum structure remains:
-
-`rear_hair -> body -> front_hair`
-
-No hair pixels were promoted. Hair does not resume automatically.
+B4 remains open but paused by user. Do not resume automatically.
 
 ## Gate order — CURRENT
 
 - G0 automation — PASS/CLOSED
 - G1 camera/native scale — PASS/CLOSED
 - G2 real motion/topology — PASS/CLOSED
-- G3/G3R/G3V direct visible 3D translation routes — CLOSED/REJECTED
-- G3S-B3 production body — **PASS/CLOSED**
-- G3S-B4 hair — **DEFERRED / OPEN**
-- G3S-C0 body-only motion proof
-  - V1 rigid cutout — **FAIL/CLOSED**
-  - V2 continuous chain warp — **FAIL/CLOSED**
-  - single-still puppet/warp route — **CLOSED**
-- G3S-C1A hidden-3D full-pose guide
-  - V1 source/evaluated topology-index assumption — **FAIL/CLOSED TECHNICAL**
-  - V2 evaluated-topology local-space bake — **FAIL/CLOSED TECHNICAL**
-  - **V3 evaluated world-space bake — CURRENT / RUNNER READY / REVIEW NEXT**
-- G3S-C1B one native-2D non-rest pose — **BLOCKED UNTIL C1A REVIEW**
-- G3S-B5 clothing/restraints/accessories — DEFERRED
-- full layered G3S-C — later, after visible layer families exist
+- G3/G3R/G3V direct visible 3D routes — CLOSED/REJECTED
+- G3S-B3 production body — PASS/CLOSED
+- G3S-B4 hair — DEFERRED/OPEN
+- G3S-C0 single-still motion — FAIL/CLOSED
+- G3S-C1A hidden-3D full-pose guide:
+  - V1 source/evaluated polygon-index assumption — FAIL/CLOSED TECHNICAL
+  - V2 evaluated local-object bake — FAIL/CLOSED TECHNICAL
+  - V3 mutate original rigged object after world-space bake — FAIL/CLOSED TECHNICAL
+  - **V4 detached evaluated depth proxy — CURRENT / RUNNER READY / REVIEW NEXT**
+- G3S-C1B native-2D non-rest pose — BLOCKED UNTIL C1A REVIEW
+- B5 clothing/restraints/accessories — DEFERRED
 
-## G3S-C0 failures — CLOSED METHOD, NOT MOTION BACKBONE
+## C1A technical history
 
-V1 failure marker: `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`.
+### V1
 
-V2 reviewed contact sheet: `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`.
+Failed because MPFB source polygons=`18486`, evaluated polygons=`13378`; polygon-index identity was false.
 
-V2 SHA256: `6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`.
+Marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
 
-V2 failure marker: `tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`.
+### V2
 
-Closed class:
+Produced frame `1588`, near=`left`, far=`right`, travel x=`-62.7345 px`, but guide height drifted to `102.4258804321289 px`.
 
-`single B3B still -> projected joints -> cutout / chain warp / cage warp -> manufacture full gait`
+Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
 
-The V2 runner remains intentionally disabled: `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`.
+### V3
 
-## G3S-C1A — CURRENT
+Invariant caught another transform failure before depth render:
 
-C1A exports one **full hidden-3D left-contact pose guide** before authoring any new visible sprite pose.
+- pre=`128.0000 px`;
+- post=`99.0563 px`;
+- delta=`28.9437 px`.
 
-Canonical gate record: `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`.
+Cause: replacing `G3V_BODY.data` and neutralizing the original rigged object's parent/bind/object state is not geometry-invariant on this MPFB stack.
 
-Spec: `tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`.
+Marker: `tools/structured-2d-character-pipeline/g3s_c1a_v3_worldspace_bake_failure.json`.
 
-Runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
+### V4 — CURRENT
 
-Current exporter: `tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v3.py`.
+V4 never mutates `G3V_BODY`.
 
-Review builder: `tools/structured-2d-character-pipeline/g3s_c1_build_pose_guide_review.py`.
+Depth pass:
 
-C1A uses the retained `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend` only as hidden guide geometry and re-applies the validated `DIRECTION_SPACE_FK` solver.
+1. evaluate posed `G3V_BODY`;
+2. copy evaluated mesh to a new detached temporary object;
+3. assign exact evaluated `matrix_world` to that object;
+4. require no parent/modifiers/constraints;
+5. compare original evaluated body vs detached proxy projected height; delta must be `<=0.25 px`;
+6. assign depth bands on detached topology;
+7. hide original body only for the depth render;
+8. keep original rigged body intact for bbox/joints/metadata.
 
-### C1A V1 technical failure — CLOSED
+Current exporter:
 
-First local execution rendered neutral, silhouette and regions, then failed because evaluated topology had `13378` polygons while the source mesh had `18486`. V1 incorrectly assumed polygon-index identity.
+`tools/structured-2d-character-pipeline/g3s_c1_export_hidden_pose_guide_v4.py`
 
-Failure marker: `tools/structured-2d-character-pipeline/g3s_c1a_depth_topology_failure.json`.
+Runner:
 
-### C1A V2 technical failure — CLOSED
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-Second local execution completed the rendered passes and review package. Numeric results included:
+Spec:
 
-- selected event/frame: `left_contact`, frame `1588`;
-- near side `left`, far side `right`;
-- screen travel dx `-62.7345 px`;
-- evaluated topology `13378` polygons;
-- final measured body height `102.4258804321289 px` vs locked approximately `128 px`.
+`tools/structured-2d-character-pipeline/g3s_c1_pose_guide_spec.json`
 
-The runner correctly rejected this scale drift.
-
-Cause: V2 froze evaluated mesh data in the source object's local data space while retaining source object transforms; that did not preserve the exact evaluated world geometry used during camera calibration.
-
-Failure marker: `tools/structured-2d-character-pipeline/g3s_c1a_v2_scale_failure.json`.
-
-### C1A V3 fix — CURRENT
-
-V3 freezes the evaluated guide mesh in exact **world coordinates**, removes parenting/modifiers, sets the temporary object's matrix to identity, and asserts that projected body height changes by no more than `0.25 px` across the depth-topology bake.
-
-The runner still separately enforces approximately `128 px` total guide height, negative screen-x travel for the left-facing family, and `depth_guide.mode = evaluated_worldspace_bake`.
-
-No source `.blend`, B3B body sprite or production art is modified.
-
-C1A outputs remain neutral guide, silhouette guide, anatomical-region guide, depth-band guide, projected skeleton overlay, machine-readable pose JSON, five `96×160` logical guide crops and a review contact sheet.
-
-**None of these hidden-3D images may become final sprite pixels or silhouette.**
+Required V4 depth mode: `detached_evaluated_object`; `source_body_mutated=false`.
 
 ## Current exact operator action
-
-Run exactly:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
@@ -211,15 +172,14 @@ Then share:
 
 If the runner fails, share the complete console output.
 
-Do not resume hair and do not create/promote C1B pixels before C1A visual review.
+Do not resume hair and do not start/promote C1B before C1A visual review.
 
 ## Local state relevant to C1A
 
-- deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
-- retained G3V hidden body/rig blend: `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`;
-- retained embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
-- Blender remains the headless hidden-pose guide host;
-- C1A requires no AI model, paid API or new download;
-- retained FLUX.2 workspace is not used by C1A;
-- no broad model search is open;
-- PixelLab remains historical paid spike only and is not authorized.
+- workspace: `Z:\AI\RogueliteCharacterPipeline`;
+- hidden guide blend: `Z:\AI\RogueliteCharacterPipeline\g3v\g3v_representative_proxy.blend`;
+- embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
+- Blender is headless guide host;
+- no image model, paid API or new download in C1A;
+- FLUX.2 not used by C1A;
+- PixelLab not authorized.
