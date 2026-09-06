@@ -4,9 +4,7 @@ Status date: **2026-09-06**
 
 Purpose: exact continuation state. GitHub living documents are canonical.
 
-## Mandatory source of truth
-
-Read first:
+## Read first
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/G3S_C0_BODY_MOTION_PROOF.md`
@@ -28,129 +26,101 @@ B3B V4 is PASS/CLOSED / PROMOTED:
 - `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- **canonical screen-facing: LEFT**.
+- canonical screen-facing: **LEFT**.
 
-Do not redraw or replace this asset during C0.
+This is a front-three-quarter authored still, not an animation-ready full body source by itself.
 
-### Facing/travel rule — LOCKED
+## Facing/laterality — LOCKED
 
-The canonical B3B source visibly faces screen-left. Therefore any travel preview using the exact unmirrored source must travel screen-left.
-
-Earlier C0 code incorrectly increased x from `250 -> 390`, producing rightward travel. This is recorded as an implementation error:
-
-`tools/structured-2d-character-pipeline/g3s_c0_travel_direction_correction.json`
-
-Current V2 runner rebuilds travel as `390 -> 250`; it does not mirror the sprite and does not reverse gait phases.
+- left-facing source travels screen-left unless a separately authored right-facing family is selected;
+- do not mirror silently;
+- screen-x position is not anatomical left/right or near/far ownership in a 3/4 sprite.
 
 ## Hair — DEFERRED
 
-B4 remains open and unapproved. Required eventual structure remains:
+B4 remains open and unapproved. Eventual minimum structure remains:
 
 `rear_hair -> body -> front_hair`
 
-The user explicitly instructed on 2026-09-06 to forget hair for now and show the doll moving. Do not resume B4 automatically.
+Do not resume B4 automatically.
 
-## Motion backbone already validated
+## Motion backbone — RETAINED
 
 - G2 = PASS using CMU `105_34 NormalWalk`;
-- hidden source rig = `G2_CANONICAL_RIG`;
-- G3V-R = PASS;
-- retarget/direction method = `DIRECTION_SPACE_FK`;
+- source rig = `G2_CANONICAL_RIG`;
+- G3V-R = PASS using `DIRECTION_SPACE_FK`;
 - validated phase frames = `1568, 1588, 1608, 1628`.
 
-## CURRENT GATE — G3S-C0 BODY-ONLY MOTION PROOF
+Use this infrastructure for pose guides, timing, foot contacts, root travel, sockets and depth. It does not own final visible RGB/silhouette.
 
-C0 is a diagnostic exception to the full layered order because the user wants to inspect the approved body in motion before more visual-layer work.
-
-### C0 V1 — FAIL/CLOSED
-
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_contact_sheet.png`
-
-SHA256:
-
-`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
+## C0 V1 — FAIL/CLOSED
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
 
-V1's real-motion transfer worked, but the visible deformation did not. Hard upper/lower limb pieces visibly detach and create broken loop/arc silhouettes in later gait frames. Its travel presentation was also directionally wrong because the left-facing sprite was moved right.
-
 Closed method:
 
-`nearest-segment body partition + independent rigid per-part rotation`
+`single monolithic still -> hard body-part cutout -> independent rigid rotations`
 
-Do not patch V1 with more overlap or more rigid pivot tuning.
+Reason: detached joints and broken/loop-like leg-foot silhouettes.
 
-### C0 V2 — CURRENT / RUNNER READY
+## C0 V2 — FAIL/CLOSED VISUAL + METHOD
 
-V2 keeps the approved real-motion projection but replaces hard limb slabs with continuous chain deformation.
+Reviewed contact sheet:
 
-Visible regions:
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`
 
-- head;
-- torso;
-- left/right arm;
-- left/right leg.
+SHA256:
 
-An arm/leg is warped as one complete chain, with adjacent-segment mapping blended around elbows/knees/ankles. Source pixel colors remain the visible art; hidden 3D contributes joints/depth only.
+`6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
 
-No diffusion, hidden-3D RGB, paid API, model download or manual user animation is used.
+Failure marker:
 
-Travel is now explicitly leftward to match the canonical left-facing body.
+`tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
 
-Spec:
+V2 used continuous arm/leg chain warping and still produced anatomically impossible stride shapes.
 
-`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
+Root causes are architectural:
 
-Builder:
+- facing/laterality/near-far ownership of the authored 3/4 sprite was not registered correctly;
+- sprite rest/camera basis and G2 screen-space motion basis were not validated as the same coordinate system;
+- real gait depth/foreshortening cannot be represented by 2D chain-angle warp alone;
+- one 3/4 still lacks hidden visible surfaces that appear when occlusion changes;
+- alpha-bbox-bottom placement is not true contact-foot/root grounding.
 
-`tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+Closed route:
 
-Travel builder:
+`single B3B still -> any cutout/chain/cage warp intended to manufacture the full walk`
 
-`tools/structured-2d-character-pipeline/g3s_c0_build_left_facing_travel.py`
+Do not create another pivot/anchor/overlap/mesh tuning revision using the same single still as the only visible source. A smoother mesh does not solve missing anatomy.
 
-Runner:
+The V2 runner is intentionally disabled:
 
 `tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
-Workspace:
+## CURRENT architectural task
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2`
+Create an **animation-ready persistent native-2D source family** rather than trying to extract a whole gait from the one rest sprite.
 
-Expected outputs:
+For the first left-facing walk proof, use real gait events to define a small pose family (e.g. contact/down/passing/up across both sides). Each key state must contain complete visible anatomy with correct:
 
-- `g3s_c0_v2_body_walk_in_place.gif`
-- `g3s_c0_v2_body_walk_travel.gif`
-- `g3s_c0_v2_contact_sheet.png`
-- `g3s_c0_v2_zoom_contact_sheet.png`
-- `g3s_c0_v2_report.json`
+- anatomical left/right and near/far ownership;
+- foreshortening;
+- pelvis/torso relationship;
+- hip/knee/ankle geometry;
+- foot contact and roll;
+- silhouette and occlusion.
 
-If V2 still cannot keep the body visually continuous, move to an actual weighted 2D mesh/cage deformation representation. Do not return to rigid cutout parts.
+G2 supplies pose/timing/contact/root/depth guides. Persistent 2D art owns final visible pixels.
 
-## Exact next operator action
+No new runner is approved yet. First prove a method that can author **one non-rest gait pose** at production quality without asking the user to manually redraw it. Do not resume hair while solving this.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+## Local state
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\20_run_g3s_c0_body_walk_v2.ps1"
-```
-
-Then share:
-
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_in_place.gif`
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_body_walk_travel.gif`
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_zoom_contact_sheet.png`
-
-If the runner fails, share the complete console output.
-
-## Local requirements for C0
-
-- `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend` must still exist from approved G2;
-- Blender must remain installed/discoverable;
+- deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
-- no AI model is required.
+- G2 blend remains required for motion guides;
+- retained FLUX.2 workspace exists historically but is not automatically selected as the next animation source-authoring method;
+- no broad model search is open;
+- PixelLab remains historical paid spike only and is not authorized.
