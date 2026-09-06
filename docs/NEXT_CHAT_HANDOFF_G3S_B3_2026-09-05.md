@@ -54,56 +54,55 @@ The body must remain byte/pixel unchanged through B4/B5 composition.
 
 ## G3S-B4 — HAIR CURRENT
 
-Canonical hair direction:
+Canonical direction: black/nearly black, very long, heavy, voluminous, messy, wild and materially lived-in.
 
-- black / nearly black;
-- very long;
-- heavy;
-- voluminous;
-- messy;
-- primary silhouette anchor;
-- deprivation/survival rather than groomed fantasy styling.
-
-### Mandatory depth split — LOCKED
-
-Minimum representation:
+Mandatory composition:
 
 `rear_hair -> body -> front_hair`
 
-- `rear_hair`: behind head/neck/shoulders/back/body;
-- `front_hair`: in front where hair crosses face/neck/chest/shoulders;
-- one flat overlay is invalid;
-- extra sublayers may be added later only if needed for occlusion/secondary motion.
+- `rear_hair` owns the dominant mass behind head/shoulders/back;
+- `front_hair` is a smaller framing/crossing layer;
+- one flat hair overlay is invalid.
 
 ## B4A preflight — PASS/CLOSED DIAGNOSTIC
 
-Reviewed artifact:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4_hair_preflight\g3s_b4_hair_preflight_contact_sheet.png`
-
-SHA256 `efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`.
+Reviewed SHA256: `efd8866a38be1ad54aa60f4f05249813b5abf1754ee0a318fcf92a45ff262d4f`.
 
 Approval marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4a_preflight_approval.json`
 
-The local master is suitable as hair identity/mass inspiration and the shared `96×160` frame is adequate for the first static review.
-
-## B4B V1 master extraction — FAIL/CLOSED PRE-RUN
+## B4B V1 — FAIL/CLOSED PRE-RUN METHOD
 
 Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_b4b_v1_extraction_route_failure.json`
 
-The master does not show enough of the rear hair over/behind the back. Therefore a correct `rear_hair` owner cannot be recovered by isolating visible master pixels and splitting by body overlap.
+Reason: the master lacks sufficient hidden rear-hair information; valid rear geometry cannot be extracted from visible master pixels.
 
-V1 was not run by the user. No production art/model was created or downloaded; no cleanup applies.
+## B4B V2 — FAIL/CLOSED VISUAL / STRUCTURAL PASS
 
-## B4B V2 authored two-layer static candidate — CURRENT / RUNNER READY
+Reviewed contact sheet:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
+
+SHA256:
+
+`73a9b53d35c158d78079039b4425c94028c8836e82b775ee0ce3e38b8d32a09d`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v2_visual_failure.json`
+
+V2 proved the depth architecture but failed visually: centered curtain/bell silhouette, excessive front coverage, cape-like rear mass, repetitive equal-width lock/dread rhythm, buried face/head and insufficient asymmetry/hierarchy.
+
+No model weights or paid API were used; no cleanup applies.
+
+## B4B V3 — CURRENT / RUNNER READY
 
 Spec:
 
-`tools/structured-2d-character-pipeline/g3s_b4b_v2_authored_two_layer_hair_spec.json`
+`tools/structured-2d-character-pipeline/g3s_b4b_v3_authored_two_layer_hair_spec.json`
 
 Helper:
 
@@ -117,14 +116,16 @@ Workspace:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair`
 
-V2 rules:
+V3 rules:
 
-- master is inspiration/identity reference only;
-- no master hair pixels are extracted, traced, copied or split into final layers;
-- `rear_hair` and `front_hair` are newly authored at native pixel resolution;
-- rear layer includes new coverage behind head/shoulders/back absent from the master;
-- body is exact hash-verified immutable B3B V4;
-- no paid external API or external model;
+- master is identity/mass inspiration only;
+- no master hair pixels are extracted, traced or copied;
+- rear hair is dominant, asymmetric and irregular;
+- front hair is sparse and lateral;
+- center face/clavicle/chest/abdomen remain substantially readable;
+- equal-width curtain/dread rhythm is removed;
+- body remains exact/hash-verified B3B V4;
+- no paid external API/model;
 - no automatic promotion.
 
 ## Exact next operator action
@@ -142,7 +143,7 @@ Then STOP and share:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C before B4B V2 review.
+Do not promote hair and do not start B5/G3S-C before V3 review.
 
 ## Actual local AI state
 
