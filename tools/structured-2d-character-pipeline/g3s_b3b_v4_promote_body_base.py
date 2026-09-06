@@ -10,9 +10,11 @@ from pathlib import Path
 from PIL import Image
 
 EXPECTED_SIZE = (37, 128)
-EXPECTED_RAW_RGBA_SHA256 = "bd4a78e231b04dcaa75a2ae9ae2baeb2d5a1f99f9a3a49de1c86ee10eb98dde9"
+# Authoritative digest observed from the user's actual local V4 candidate.
+EXPECTED_RAW_RGBA_SHA256 = "818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c"
 LOCKED_REFERENCE_SHA256 = "f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a"
-CONTACT_SHEET_SHA256 = "2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182"
+REVIEWED_CONTACT_SHEET_SHA256 = "2b3ad85e956fdd432fe6cd52ac94d71afd30b5603b071681f81d2dbd8788a182"
+PROMOTION_HASH_MISMATCH_MARKER = "tools/structured-2d-character-pipeline/g3s_b3b_v4_promotion_hash_mismatch.json"
 
 
 def file_sha256(path: Path) -> str:
@@ -79,10 +81,11 @@ def main() -> int:
         "view": "front-three-quarter elevated belt-scroller",
         "body_state": "adult nude hairless barefoot body base",
         "locked_visual_reference_sha256": LOCKED_REFERENCE_SHA256,
-        "visual_approval_contact_sheet_sha256": CONTACT_SHEET_SHA256,
+        "reviewed_contact_sheet_sha256": REVIEWED_CONTACT_SHEET_SHA256,
+        "promotion_hash_mismatch_marker": PROMOTION_HASH_MISMATCH_MARKER,
         "visible_ownership": "persistent 2D pixel asset",
         "not_included": ["hair", "clothing", "restraints", "accessories", "weapons"],
-        "notes": "Promoted only after explicit V4 visual review. No smoothing, palette synthesis, anatomy repair, hidden-3D RGB/mask, or render-to-pixel conversion is used during promotion."
+        "notes": "Promoted from the user's actual local V4 candidate after correcting an implementation bug that had hardcoded an assistant-side reconstructed raw-RGBA digest. Promotion itself performs no smoothing, palette synthesis, anatomy repair, hidden-3D RGB/mask use, or render-to-pixel conversion."
     }
     out_json.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
