@@ -1,0 +1,25 @@
+{
+  "gate": "G3S-B4",
+  "revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V3",
+  "status": "FAIL_CLOSED_VISUAL_AND_ALIGNMENT_METHOD",
+  "date": "2026-09-06",
+  "reviewed_artifact": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_b4b_two_layer_hair\\g3s_b4b_contact_sheet.png",
+  "reviewed_artifact_sha256": "9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33",
+  "structural_result": "PASS_TWO_LAYER_OWNERSHIP",
+  "visual_result": "FAIL",
+  "root_cause": "V3 authored hair geometry in fixed canvas coordinates derived from the master-like pose instead of deriving head/shoulder/torso anchors from the canonical promoted B3B body pose. The master and production body are not in the same pose, so even improved hair massing cannot align correctly.",
+  "observed_failures": [
+    "hair crown and fall geometry do not follow the actual B3B head/shoulder orientation",
+    "rear mass is positioned as if the body shared the master pose",
+    "front locks frame an imagined master-like pose rather than the production sprite pose",
+    "visual mismatch remains obvious even though rear/front ownership is structurally correct"
+  ],
+  "route_correction": [
+    "master remains identity/style inspiration only",
+    "all hair geometry must be authored from pose anchors measured from the actual canonical B3B body alpha/silhouette",
+    "contact sheet must expose detected body pose anchors before visual promotion can be considered"
+  ],
+  "model_or_paid_api_used": false,
+  "cleanup_required": false,
+  "next_revision": "B4B_AUTHORED_TWO_LAYER_HAIR_V4_POSE_ANCHORED"
+}
