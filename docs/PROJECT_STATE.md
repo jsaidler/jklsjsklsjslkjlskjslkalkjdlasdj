@@ -14,20 +14,22 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 6. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
 7. `docs/PIXEL_ART_PRODUCTION.md`
 8. `docs/ANIMATION_PIPELINE.md`
-9. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
-10. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-11. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
-12. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-13. `docs/G3S_B4_HAIR_LOG.md`
+9. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+10. `docs/G3S_B3_NUDE_BODY_BASE_LOG.md`
+11. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+12. `docs/G3S_B4_HAIR_LOG.md`
+13. `docs/G3S_C0_BODY_MOTION_PROOF.md`
 14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
-Every project action that changes state must update the living documents before that action is reported complete.
+Every project action that changes state updates the thematic docs, this file and the active handoff before completion is reported.
 
-Required sequence: perform/inspect -> update thematic docs -> update `PROJECT_STATE` -> update active handoff when applicable -> commit -> only then report completion/next action.
+Normal operator loop once a runner is approved:
 
-## Game identity — LOCKED
+`git pull -> one documented PowerShell command -> inspect/share output`
+
+## Game / presentation — LOCKED
 
 Systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and a causal living world.
 
@@ -35,56 +37,22 @@ Presentation baseline: **elevated 2D belt-scroller / false 3D**.
 
 Final visible language: **true modern pixel art at native gameplay raster**.
 
-## Exilada identity — LOCKED
+Native gameplay baseline:
 
-Canonical design master: `assets/source/characters/exilada/reference/exilada_master.png`.
-
-Adult woman, approximately 162 cm, lean/functional/resilient, natural adult feminine proportions, olive-brown skin, severe mature face, very long heavy messy black hair, captivity history, bare feet, weaponless base.
-
-Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell remain explicit visual references.
-
-## Hard operator constraint
-
-The user does not perform routine Blender/Aseprite/rigging work and does not repaint frames manually. Normal production remains scriptable/headless.
-
-Normal operator loop once a runner is approved:
-
-`git pull -> one documented PowerShell command -> inspect/share output`
+- `640×360`;
+- orthographic camera;
+- pitch `26°`;
+- protagonist standing body height approximately `128 px`.
 
 ## Visible-ownership invariant — CRITICAL
 
-Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not final visible RGB/alpha/silhouette. Final visible art is owned by persistent native 2D pixel assets.
+Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but **not** final visible RGB/alpha/silhouette. Final visible art is owned by persistent native 2D pixel assets.
 
-## Locked gameplay baseline
+No recurring Blender/Aseprite/rigging/manual frame repainting burden is placed on the user.
 
-- native scene: `640×360`;
-- orthographic camera;
-- pitch: `26°`;
-- protagonist visible standing body height: approximately `128 px`.
+## Canonical Exilada body — PASS/CLOSED / LOCKED
 
-## Gate order — CURRENT
-
-- G0 automation — PASS/CLOSED
-- G1 camera/native scale — PASS/CLOSED
-- G2 real motion/topology — PASS/CLOSED
-- G3 first native translation — TECHNICAL PASS / LOOK NOT APPROVED
-- G3R primitive renderer refinement — FAIL/CLOSED
-- G3V representative continuous human visual proxy — FAIL/CLOSED
-- **G3S structured 2D visible representation** ← ACTIVE
-  - G3S-B3 complete body base — **PASS/CLOSED**
-    - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
-  - **G3S-B4 hair** ← CURRENT / OPEN
-    - B4A preflight — **PASS/CLOSED DIAGNOSTIC**
-    - B4B V1 master extraction — **FAIL/CLOSED PRE-RUN METHOD**
-    - B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**
-    - B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**
-    - B4B V4 pose-anchored authored two-layer — **FAIL/CLOSED VISUAL AND METHOD**
-    - procedural Pillow/heuristic-anchor hair authoring — **CLOSED**
-    - **B4C FLUX.2 real visual hair adapter** ← RUNNER READY / REVIEW NEXT
-  - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
-  - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
-
-## Canonical production body base — LOCKED
+Production body:
 
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
@@ -93,63 +61,89 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`.
 
-The body remains byte/pixel unchanged under B4/B5 composition.
+The body remains byte/pixel unchanged as the source asset. Hair, clothes, restraints and accessories are separate future owners.
 
-## G3S-B4 hair — CURRENT / OPEN
+## Motion infrastructure already approved
 
-Canonical hair direction: black/nearly black, very long, heavy, voluminous, messy, wild, primary silhouette anchor.
+- G2 real motion/topology — **PASS/CLOSED**;
+- motion source: CMU `105_34 NormalWalk`;
+- source rig: `G2_CANONICAL_RIG`;
+- G3V-R retarget preflight — **PASS/CLOSED**;
+- validated method: `DIRECTION_SPACE_FK`;
+- validated gait phase frames: `1568, 1588, 1608, 1628`.
 
-Mandatory composition:
+## Hair — DEFERRED BY USER
+
+B4 is **not approved** and is no longer the current gate.
+
+The structural rule remains locked for later:
 
 `rear_hair -> body -> front_hair`
 
-### Closed B4B method
-
-B4B V4 reviewed contact sheet SHA256:
-
-`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
-
-Root cause: the pose detector itself was invalid (`shoulder_span=6.36 px` for a `37 px` body), and a few scalar anchors cannot represent the actual 3/4 anatomy/occlusion required for hair placement. Hard-coded Pillow polygons/lines are therefore closed as a visual-production route. Runner `17_run_g3s_b4b_two_layer_hair_candidate.ps1` remains disabled.
-
-### B4C FLUX.2 real visual adapter — CURRENT / RUNNER READY
-
-User instruction `faça` authorizes a **narrow static B4 visual-adaptation reuse** of the already-retained local FLUX.2 workspace. This is not a reopening of the old animation/refcontrol production route and is not a broad model search.
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_b4c_flux2_visual_adapter_spec.json`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/18_run_g3s_b4c_flux2_visual_hair_adapter.ps1`
-
-Supporting tools:
-
-- `tools/structured-2d-character-pipeline/g3s_b4c_prepare_flux2_visual_adapter.py`
-- `tools/structured-2d-character-pipeline/g3s_b4c_build_flux2_visual_review.py`
-
-Expected contact sheet:
+B4 history includes failed extraction/procedural routes and the B4C FLUX.2 visual-adaptation review. The B4C contact sheet was generated at:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
 
-B4C:
+Reviewed-file SHA256 from the user-provided artifact:
 
-- uses the exact canonical B3B body as the authoritative pose/proportion/scale/camera/placement visual reference;
-- uses the master only for hair identity/style/material;
-- explicitly forbids transfer of master clothing/restraints/accessories/pose;
-- asks a real local visual model to adapt the hair to the actual B3B pose;
-- uses one artistic submission only;
-- performs no automatic retry or promotion;
-- generates review evidence only, not final production hair layers;
-- downloads nothing and uses no paid API.
+`ac95bf9e3fae2df1e25cc91bcbda69be061526c163ce61cbe0d065cfc7be1c1c`
 
-If the retained FLUX.2 model files are absent, the runner stops and reports exact missing paths. It does not download them.
+No B4C pixels were promoted. On 2026-09-06 the user explicitly instructed: **forget hair for now and show the doll moving**. Hair work is therefore paused, not silently approved or closed.
 
-If B4C visually passes, the next step is controlled visual authoring of separate `rear_hair` and `front_hair` passes using the same adapter, followed by persistent native-2D validation/promotion.
+## Gate order — CURRENT
+
+- G0 automation — PASS/CLOSED
+- G1 camera/native scale — PASS/CLOSED
+- G2 real motion/topology — PASS/CLOSED
+- G3/G3R/G3V visible 3D translation routes — CLOSED/REJECTED as final visible ownership
+- G3S-B3 production body — **PASS/CLOSED**
+- G3S-B4 hair — **DEFERRED / OPEN**
+- **G3S-C0 body-only motion proof** ← **CURRENT / RUNNER READY / REVIEW NEXT**
+- G3S-B5 clothing/restraints/accessories — DEFERRED
+- full G3S-C layered motion proof — still requires B4/B5 later
+
+## G3S-C0 — CURRENT
+
+Purpose: show the exact promoted body moving now, without waiting for hair/clothing.
+
+C0 is a diagnostic exception to the full layered gate order. It does **not** claim final production animation quality.
+
+Pipeline:
+
+`CMU real walk / G2 -> projected joints + depth -> direction-space deltas -> persistent B3B pixel regions -> deterministic nearest-neighbor 2D transforms -> depth-aware composition -> animated review`
+
+C0 does not use:
+
+- diffusion/per-frame image generation;
+- hidden-3D RGB;
+- paid API;
+- new model downloads;
+- manual user animation.
+
+Spec:
+
+`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec.json`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1`
+
+Supporting tools:
+
+- `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`
+- `tools/structured-2d-character-pipeline/g3s_c0_body_puppet_walk.py`
+
+Workspace:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk`
+
+Expected outputs:
+
+- `g3s_c0_body_walk_in_place.gif`
+- `g3s_c0_body_walk_travel.gif`
+- `g3s_c0_body_walk_contact_sheet.png`
+- `g3s_c0_motion_projection.json`
+- `g3s_c0_body_walk_report.json`
 
 ## Current exact action
 
@@ -159,20 +153,17 @@ Run exactly:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\18_run_g3s_b4c_flux2_visual_hair_adapter.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\19_run_g3s_c0_body_walk_proof.ps1"
 ```
 
-Then share:
+Then review/share the **in-place GIF** first. If the runner fails, share the complete console output.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_b4c_flux2_visual_adapter\g3s_b4c_flux2_contact_sheet.png`
+Do not resume hair automatically.
 
-If it fails, share the console output. Do not start B5 or G3S-C before B4 passes.
+## Actual local state relevant to C0
 
-## Actual local AI state — LOCKED 2026-09-06
-
-- retained shared/general runtime: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable` (historical folder name; Qwen route itself remains closed);
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
-- `Z:\AI\Flux2RefControlSpike` is retained local historical visual-model workspace. For B4C only, it is conditionally reused if its already-existing FLUX.2 Klein files are still present; the runner does not download missing files;
-- PixelLab is historical external paid spike only and is not active/authorized;
-- Qwen-native, SD1.5, PixelLock and Alucard remain closed;
-- do not assume Wan-Animate-2 installed without fresh verification.
+- retained embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
+- Blender was already used successfully by G0/G1/G2;
+- C0 requires the existing `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend` and G2 result;
+- no AI model is required by C0.
