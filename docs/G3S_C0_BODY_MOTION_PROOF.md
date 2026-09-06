@@ -2,17 +2,17 @@
 
 Status date: **2026-09-06**
 
-Gate status: **CURRENT / RUNNER READY / REVIEW REQUIRED**
+Gate status: **V1 FAIL/CLOSED VISUAL DEFORMATION METHOD — V2 CONTINUOUS CHAIN WARP RUNNER READY / REVIEW NEXT**
 
 ## Why this gate exists
 
 The user explicitly paused hair work and requested to see the already-approved Exilada body implemented in motion now.
 
-G3S-C0 is therefore a **diagnostic exception to the full layered gate order**. It does not claim that B4 hair or B5 clothing/restraints are complete, and it does not approve the final layered G3S-C animation architecture.
+G3S-C0 is a **diagnostic exception to the full layered gate order**. It does not claim that B4 hair or B5 clothing/restraints are complete, and it does not approve the final layered G3S-C animation architecture.
 
-Its only question is:
+Its question remains:
 
-> Can the promoted native 2D Exilada body be driven by the already-approved real-motion infrastructure and visibly walk as the same persistent sprite asset?
+> Can the promoted native 2D Exilada body be driven by the already-approved real-motion infrastructure and visibly walk as one coherent persistent sprite asset?
 
 ## Inputs — LOCKED
 
@@ -31,76 +31,107 @@ Motion evidence:
 - source rig = `G2_CANONICAL_RIG`;
 - G3V-R = PASS with `DIRECTION_SPACE_FK`;
 - validated phase frames = `1568, 1588, 1608, 1628`;
-- eight review samples use `1568, 1578, 1588, 1598, 1608, 1618, 1628, 1638`, preserving the real captured sequence between validated phases.
+- eight review samples use `1568, 1578, 1588, 1598, 1608, 1618, 1628, 1638`.
 
-## C0 representation
+The real motion projection itself is retained. C0 failures concern only the visible 2D deformation method unless explicitly stated otherwise.
 
-The C0 body is a deterministic **2D articulated cutout/deformation diagnostic**.
+## V1 — FAIL/CLOSED VISUAL DEFORMATION METHOD
 
-Pipeline:
-
-`real G2 motion -> projected joints/depth -> direction deltas -> persistent body-part pixel ownership -> deterministic nearest-neighbor 2D transforms -> depth-aware composition -> GIF/contact-sheet review`
-
-The native body is partitioned once into persistent regions:
-
-- torso;
-- head;
-- left/right upper arm;
-- left/right forearm;
-- left/right thigh;
-- left/right shin;
-- left/right foot.
-
-The source image is not redrawn. A one-pixel source overlap is allowed at region boundaries only to reduce visible cutout seams; the overlap copies existing canonical body pixels and creates no new painted anatomy.
-
-Per-frame ordering comes from G2 camera-space joint depth.
-
-## Important scope limit
-
-C0 is intentionally **not final skinning quality**.
-
-The first review is allowed to expose:
-
-- rigid-part/cutout seams;
-- imperfect joint continuity;
-- inadequate source-rig pivot calibration;
-- depth-order problems;
-- cadence/grounding problems.
-
-Those are precisely the next deformation problems to solve if the basic motion mapping is viable.
-
-C0 may not:
-
-- invent extra limbs;
-- use per-frame diffusion;
-- use hidden-3D RGB/masks as visible output;
-- modify the canonical B3B PNG;
-- silently promote its GIF frames as final production animation.
-
-## Runner
+V1 runner:
 
 `tools/structured-2d-character-pipeline/19_run_g3s_c0_body_walk_proof.ps1`
 
-Supporting tools:
+Reviewed contact sheet:
 
-- `tools/structured-2d-character-pipeline/g3s_c0_extract_g2_motion.py`;
-- `tools/structured-2d-character-pipeline/g3s_c0_body_puppet_walk.py`;
-- `tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec.json`.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk\g3s_c0_body_walk_contact_sheet.png`
+
+Reviewed SHA256:
+
+`730afda6a541db4524671931892685bee7317d8324efe6c9b3eb0c62fbdd5cc4`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+
+### What V1 proved
+
+- the approved CMU/G2 motion reaches the 2D body pipeline;
+- clear gait-phase progression is visible;
+- the canonical B3B body remains the source art and is not modified;
+- no hidden-3D RGB, diffusion or paid API is involved.
+
+### Why V1 failed
+
+V1 partitioned the sprite into many hard pieces — upper/lower arms, thighs, shins and feet — and rotated each region independently around estimated pivots.
+
+The reviewed frames expose the method directly:
+
+- joints visibly detach;
+- later stride frames create loop-like / arc-like disconnected leg-foot silhouettes;
+- knees and ankles do not remain welded;
+- extreme poses read as assembled rotating slabs rather than one body;
+- the failure is therefore not just polish or seam cleanup.
+
+**Decision:** close `nearest-segment hard partition + independent rigid part rotation` as the C0 body-deformation method. Do not make a V1.1 by adding more overlap or hand-tuning more rigid piece pivots.
+
+No model/runtime was added by V1, so no cleanup command applies.
+
+## V2 — CONTINUOUS CHAIN WARP — CURRENT
+
+V2 preserves the same approved source body and real-motion projection but changes the deformation model.
+
+Instead of rotating separate upper/lower limb slabs, V2 owns six continuous visible regions:
+
+- head;
+- torso;
+- left arm;
+- right arm;
+- left leg;
+- right leg.
+
+Each arm/leg is warped as one continuous polyline chain. Pixels around elbow/knee/ankle joints blend the mappings of adjacent chain segments, so a limb bends through the joint rather than splitting there.
+
+Source pixel colors remain the visible material. Source pixels are rasterized back to the integer grid as hard nearest-grid quads; no antialiasing, image-model repainting or hidden-3D RGB is used. A one-pixel enclosed raster pinhole may be filled only by copying an immediately adjacent existing source color.
+
+Depth ordering remains derived from hidden G2 camera-space joint depth.
+
+V2 spec:
+
+`tools/structured-2d-character-pipeline/g3s_c0_body_motion_spec_v2.json`
+
+V2 builder:
+
+`tools/structured-2d-character-pipeline/g3s_c0_continuous_warp_v2.py`
+
+V2 runner:
+
+`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
 
 Workspace:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2`
 
 Expected review artifacts:
 
-- `g3s_c0_body_walk_in_place.gif`;
-- `g3s_c0_body_walk_travel.gif`;
-- `g3s_c0_body_walk_contact_sheet.png`;
-- `g3s_c0_motion_projection.json`;
-- `g3s_c0_body_walk_report.json`.
+- `g3s_c0_v2_body_walk_in_place.gif`;
+- `g3s_c0_v2_body_walk_travel.gif`;
+- `g3s_c0_v2_contact_sheet.png`;
+- `g3s_c0_v2_zoom_contact_sheet.png`;
+- `g3s_c0_v2_report.json`.
 
-No model download, paid API or visual generation model is used in C0.
+## V2 PASS requirement
+
+V2 is not required to be final production animation, but it must clear the V1 structural visual failure:
+
+- the body must read as one articulated figure;
+- arms/legs must remain visually continuous through elbows/knees/ankles;
+- no loop-like detached limb arcs;
+- gait alternation must remain recognizable;
+- canonical body identity/proportions must remain readable at gameplay scale;
+- no automatic promotion.
+
+If continuous chain warping still cannot keep the sprite coherent under the real walk, C0 must move to an actual weighted 2D mesh/cage representation rather than returning to rigid cutout parts.
 
 ## Current exact action
 
-Run the C0 runner once and review the animated GIFs/contact sheet. Hair remains deferred until the user explicitly resumes it.
+Run V2 once and review the **in-place GIF plus zoom contact sheet**. Hair remains deferred until the user explicitly resumes it.
