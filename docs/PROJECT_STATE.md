@@ -73,10 +73,18 @@ Final character art is owned by persistent 2D pixel assets. Runtime/export remai
 
 ## Locked gameplay baseline
 
-- canvas `640×360`;
+- scene canvas: `640×360`;
 - orthographic camera;
-- pitch `26°`;
-- protagonist reference height `128 px`.
+- pitch: `26°`;
+- protagonist **visible standing height**: approximately `128 px`.
+
+### 128 px clarification — LOCKED 2026-09-06
+
+`128 px` is the target **on-screen standing height** of the protagonist at the native `640×360` gameplay scale. It is **not** a universal sprite-frame dimension and does not require production frames to be `128×128`.
+
+G1 compared `112 / 128 / 144 px`; `128 px` was selected as the best current compromise between character identity/equipment/gore readability and combat/walkable-screen composition.
+
+Animation frames, hair, weapons and extreme actions may require a larger transparent bounding canvas while preserving the same native body scale.
 
 ## Gate order — CURRENT
 
@@ -98,7 +106,7 @@ Final character art is owned by persistent 2D pixel assets. Runtime/export remai
     - B3B V1 — FAIL/CLOSED ROUTE: 3D-mask-owned silhouette
     - B3B V2 — FAIL/CLOSED VISUAL ROUTE: procedural/mannequin look
     - high-resolution Grok body turnaround — **PASS / APPROVED BODY REFERENCE / NOT PRODUCTION ART**
-    - **B3B V3 reference-guided native-grid translation spike** ← CURRENT / READY FOR RUN / REVIEW ONLY
+    - **B3B V3 reference-guided native-grid translation spike** ← CURRENT / INPUT-PATH FIXED / READY TO RERUN
   - B4 hair — BLOCKED UNTIL B3B PASS
   - B5 clothing/restraints/accessories — BLOCKED UNTIL B3B PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
@@ -145,7 +153,21 @@ Helper:
 
 V3 uses the approved **2D** turnaround only. It does not read B3A/hidden-3D RGB or mask for visible translation.
 
-It automatically locates the exact approved image by SHA256 in common user image folders, isolates the three-quarter view, normalizes the visual study to the locked `128 px` body height, produces a deterministic native-grid palette/cluster abstraction, reconstructs the pelvis without assigning garment ownership, and emits a contact sheet plus gameplay preview.
+### First execution result — INPUT FAILURE ONLY
+
+The first V3 execution failed before producing any candidate because the approved turnaround existed in chat but not on the user's Windows filesystem in the folders scanned by the helper.
+
+This does **not** count as a visual failure and does not close V3.
+
+The runner has been corrected to use/verify a canonical repo-local file by default:
+
+`assets/source/characters/exilada/reference/exilada_body_turnaround_approved.png`
+
+Expected SHA256:
+
+`2773c199b3ff28ad5a72e33feb97201a9567a633f8466620084362fd9aae7474`
+
+An explicit `-ReferencePath` remains available if needed. The runner now states explicitly that `128 px` means visible standing height, not final frame-canvas dimensions.
 
 ### V3 authority boundary
 
@@ -159,9 +181,11 @@ If V3 visually passes, the accepted native cluster language must then be frozen/
 
 ## Current exact action
 
-The V3 runner is approved for this bounded **review-only** spike.
+One-time prerequisite: place the exact approved turnaround at:
 
-Run exactly:
+`D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_body_turnaround_approved.png`
+
+Then run exactly:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
