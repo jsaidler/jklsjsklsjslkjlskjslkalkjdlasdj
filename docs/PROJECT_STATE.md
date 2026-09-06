@@ -73,12 +73,14 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 - **G3S structured 2D visible representation** ← ACTIVE
   - G3S-B3 complete body base — **PASS/CLOSED**
     - B3B V4 — **PASS/CLOSED / PRODUCTION BODY BASE PROMOTED**
-  - **G3S-B4 hair** ← CURRENT
+  - **G3S-B4 hair** ← CURRENT / OPEN
     - B4A preflight — **PASS/CLOSED DIAGNOSTIC**
     - B4B V1 master extraction — **FAIL/CLOSED PRE-RUN METHOD**
     - B4B V2 authored two-layer — **FAIL/CLOSED VISUAL / STRUCTURAL PASS**
     - B4B V3 authored two-layer — **FAIL/CLOSED VISUAL AND ALIGNMENT METHOD**
-    - **B4B V4 pose-anchored authored two-layer** ← RUNNER READY / REVIEW NEXT
+    - B4B V4 pose-anchored authored two-layer — **FAIL/CLOSED VISUAL AND METHOD**
+    - **procedural Pillow/heuristic-anchor hair authoring route — CLOSED**
+    - **no approved B4 runner currently exists**
   - G3S-B5 clothing/restraints/accessories — BLOCKED UNTIL B4 PASS
   - G3S-C layered walk proof — BLOCKED UNTIL B3/B4/B5
 
@@ -93,7 +95,7 @@ Hidden 3D may own motion/topology/joints/sockets/depth/physics/guides but not fi
 
 The body remains byte/pixel unchanged under B4/B5 composition.
 
-## G3S-B4 hair — CURRENT
+## G3S-B4 hair — CURRENT / OPEN
 
 Canonical hair direction: black/nearly black, very long, heavy, voluminous, messy, wild, primary silhouette anchor.
 
@@ -101,60 +103,45 @@ Mandatory composition:
 
 `rear_hair -> body -> front_hair`
 
-### B4B V3 — FAIL/CLOSED
+### B4B V4 — FAIL/CLOSED VISUAL AND METHOD
 
-Reviewed contact sheet SHA256:
-
-`9d922756f8815ea55cf55bed26d2bc0d24f51f93f89b3f47392126e027573f33`
-
-Failure marker:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v3_pose_mismatch_failure.json`
-
-Root cause: V3 used fixed master-like canvas coordinates for hair geometry even though the canonical master and promoted B3B body are in different poses. The two-layer architecture was valid, but crown/rear/front placement did not follow the actual production body pose.
-
-No model/API was used; no cleanup applies.
-
-### B4B V4 — CURRENT / RUNNER READY
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchored_hair_spec.json`
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_b4b_pose_anchored_hair_candidate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1`
-
-V4 correction:
-
-- the master remains identity/style/material inspiration only;
-- the helper measures head center/bounds, shoulder span, torso center and facing bias directly from the canonical B3B body alpha/silhouette;
-- `rear_hair` and `front_hair` are authored relative to those production-pose anchors;
-- the contact sheet explicitly shows the detected pose anchors on the actual body before the hair layers;
-- body remains exact/hash-verified;
-- no paid external API/model;
-- no automatic promotion.
-
-## Current exact action
-
-Run:
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\17_run_g3s_b4b_two_layer_hair_candidate.ps1"
-```
-
-Then STOP and share:
+Reviewed contact sheet:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_b4b_two_layer_hair\g3s_b4b_contact_sheet.png`
 
-Do not promote hair and do not start B5/G3S-C before V4 review.
+SHA256:
+
+`50dd663cbbeb0bb1a9865f2ac95daedc7990ceaf7a98ae6a968c8b7eacb4a8a5`
+
+Failure marker:
+
+`tools/structured-2d-character-pipeline/g3s_b4b_v4_pose_anchor_failure.json`
+
+Root cause:
+
+- the pose detector itself is invalid for this task; the reviewed sheet reports `shoulder_span=6.36 px` for a `37 px`-wide body, proving it is not measuring the real shoulder span;
+- head center + shoulder row/span + torso center + binary facing bias do not encode enough of the actual 3/4 pose;
+- they omit head tilt, shoulder slope, torso rotation, arm occlusion, back contour and local depth;
+- hard-coded Pillow polygons/lines therefore cannot visually wrap the hair around the actual body pose.
+
+### Route closure — LOCKED
+
+Do not create another B4 hair candidate by:
+
+- extracting master pixels;
+- fixed master-pose coordinates;
+- heuristic body anchors plus hard-coded Pillow polygons/lines;
+- primitive procedural lock generation.
+
+`tools/structured-2d-character-pipeline/17_run_g3s_b4b_two_layer_hair_candidate.ps1` is intentionally disabled to prevent accidental reruns of the closed route.
+
+No model/API was used by V4; no cleanup command applies.
+
+## Current exact action
+
+**No B4 runner is approved.**
+
+The next B4 solution must be **real visual 2D authoring/adaptation to the actual canonical B3B pose**, while preserving separate `rear_hair` and `front_hair` ownership. Do not start B5 or G3S-C before B4 passes.
 
 ## Actual local AI state — LOCKED 2026-09-06
 
