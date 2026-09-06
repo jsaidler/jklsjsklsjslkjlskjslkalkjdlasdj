@@ -22,6 +22,20 @@ Before acting, read:
 
 Do not reconstruct state from chat memory if documents disagree.
 
+## Living-document invariant — MANDATORY
+
+**Every project action that changes project state must be documented before it is reported complete.**
+
+For every decision, approval/rejection, artifact review, PASS/FAIL/CLOSED result, runner/tool change, install/cleanup/runtime change, architecture change, visual-direction change, gate change or next-action change:
+
+1. update the relevant thematic living document(s);
+2. update `docs/PROJECT_STATE.md` whenever the current state/gate/next action is affected;
+3. update this active handoff whenever continuation instructions or local runtime/tool state changes;
+4. commit those updates;
+5. only then report completion or give the next operator command.
+
+Never leave authoritative project state only in chat. Never defer documentation to a later batch.
+
 ## Locked architecture
 
 Hidden 3D may own motion/topology/joints/sockets/depth/physics/reference guides, but persistent 2D pixel assets own final visible RGB, alpha and silhouette. Runtime/export remains sprite-based.
@@ -128,11 +142,11 @@ This section exists specifically to prevent cross-chat confusion between **insta
 
 ## Operator/process rules
 
-- read canonical docs before every material action;
+- read canonical docs before every project action;
+- **after every action that changes state, update the relevant living document(s), `docs/PROJECT_STATE.md`, and this handoff when applicable before reporting completion**;
 - no routine Blender/Aseprite/rigging work for the user;
 - no manual frame-by-frame repainting burden;
 - no new sprite-model search unless the canonical decision is explicitly reopened;
 - no B4/B5/G3S-C before B3B PASS;
 - if a model/route is declared FAIL/CLOSED/REJECTED and no longer active, include exact cleanup commands in the same response;
-- update relevant living docs + `docs/PROJECT_STATE.md` after each material step;
 - before naming a local tool/model as installed, verify the actual current runtime/disk state instead of inferring from old code or folder names.
