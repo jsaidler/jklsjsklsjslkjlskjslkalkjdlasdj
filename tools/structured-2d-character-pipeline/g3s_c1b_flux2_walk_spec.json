@@ -1,0 +1,56 @@
+{
+  "gate": "G3S-C1B",
+  "revision": "FLUX2_EIGHT_POSE_VISUAL_PROOF_V1",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "purpose": "produce one complete eight-state visible body walk proof from the approved hidden skeleton cycle and canonical B3B identity/style anchor without warping the static sprite",
+  "inputs": {
+    "c1a_approval": "tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json",
+    "local_c1a_guide": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_c1_skeleton_walk\\g3s_c1_skeleton_walk_guide.json",
+    "canonical_body": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+    "canonical_body_png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858"
+  },
+  "existing_local_visual_stack": {
+    "workspace": "Z:\\AI\\Flux2RefControlSpike",
+    "unet": "flux-2-klein-base-4b-fp8.safetensors",
+    "text_encoder": "qwen_3_4b.safetensors",
+    "vae": "flux2-vae.safetensors",
+    "download_allowed": false,
+    "paid_api": false
+  },
+  "cycle": [
+    {"index": 0, "frame": 1588, "event": "left_contact", "support_foot": "left"},
+    {"index": 1, "frame": 1598, "event": "left_down", "support_foot": "left"},
+    {"index": 2, "frame": 1608, "event": "left_passing", "support_foot": "left"},
+    {"index": 3, "frame": 1618, "event": "left_up", "support_foot": "left"},
+    {"index": 4, "frame": 1628, "event": "right_contact", "support_foot": "right"},
+    {"index": 5, "frame": 1638, "event": "right_down", "support_foot": "right"},
+    {"index": 6, "frame": 1648, "event": "right_passing", "support_foot": "right"},
+    {"index": 7, "frame": 1658, "event": "right_up", "support_foot": "right"}
+  ],
+  "authoring_canvas": {
+    "logical": [96, 160],
+    "model": [576, 960],
+    "integer_scale": 6,
+    "ground_y_logical": 152
+  },
+  "generation": {
+    "steps": 20,
+    "cfg": 4.5,
+    "sampler": "euler",
+    "base_seed": 2026090601,
+    "frame_duration_ms": 83
+  },
+  "hard_locks": {
+    "hair": false,
+    "clothing": false,
+    "accessories": false,
+    "weapons": false,
+    "static_body_warp": false,
+    "hidden_3d_render_promoted": false,
+    "automatic_production_promotion": false,
+    "user_manual_frame_repair_required": false
+  },
+  "scope": "visual animation proof only; generated pixels are review candidates and are not production assets until separately approved and promoted",
+  "pass_requirement": "the eight generated frames must read as the same adult bald Exilada body, preserve the left-facing elevated three-quarter family, follow the approved gait sequence without broken anatomy, and play as one coherent walk cycle"
+}
