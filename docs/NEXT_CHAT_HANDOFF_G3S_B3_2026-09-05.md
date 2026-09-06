@@ -9,84 +9,91 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 1. `docs/PROJECT_STATE.md`
 2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 3. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-4. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-5. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-6. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
-7. `docs/G3S_B4_HAIR_LOG.md`
-
-## Living-document invariant
-
-Every state-changing project action updates thematic docs, `PROJECT_STATE`, this handoff and commits before reporting completion.
+4. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+5. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+6. `docs/G3S_B4_HAIR_LOG.md`
 
 ## Canonical animation architecture — LOCKED
 
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact guide data -> persistent native-2D pose assets -> deterministic timing/depth/composition -> sprite/runtime export -> QA`
+`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root control -> persistent native-2D pose assets -> sprite playback -> QA`
 
-**Critical correction:** hidden 3D is the rig/skeleton. A skinned human body mesh is not required for the animation guide.
+The hidden 3D is the **skeleton/armature**. Do not reintroduce a skinned human mesh as a prerequisite for animation guidance.
 
-Hidden rig owns joint transforms, skeletal topology, anatomical side identity, near/far/depth ordering, foreshortening, contact/root travel, sockets and secondary-motion drivers.
-
-Visible anatomy, RGB, alpha and silhouette belong to persistent native-2D assets.
+Hidden rig owns joint/bone transforms, anatomical side, chain depth/near-far, foreshortening, contacts, root travel and sockets. Visible anatomy/RGB/alpha/silhouette belong to persistent native-2D assets.
 
 ## Canonical body — LOCKED
 
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
-- `37×128` RGBA;
+`assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+
+- 37×128 RGBA;
 - faces screen-left;
-- remains identity/body-style anchor only.
+- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
+- identity/body-style anchor only; never warp it into the full gait.
 
 ## Hair — DEFERRED
 
 Do not resume B4 automatically.
 
-## Motion backbone — RETAINED
+## Motion source — ACTIVE
 
-- G2 PASS, CMU `105_34 NormalWalk`;
+- G2 PASS;
 - `G2_CANONICAL_RIG`;
-- G3V-R PASS using `DIRECTION_SPACE_FK`;
-- phase frames `1568, 1588, 1608, 1628`;
-- `G3V_CMU_RIG` may be retained as the hidden character-proportioned armature.
+- CMU `105_34 NormalWalk`;
+- local blend `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`.
 
-`G3V_BODY` is historical G3V evidence only and is no longer required for C1A.
+Current C1A reads G2 directly. MPFB/G3V body is no longer involved.
 
 ## Closed routes
 
-- direct visible 3D -> final pixel art;
+- visible 3D -> final pixel art;
 - single-still cutout/warp/cage -> full gait;
-- skinned MPFB body render as mandatory animation pose/anatomy/silhouette/depth guide.
+- skinned MPFB body as mandatory hidden pose/anatomy/silhouette/depth guide.
 
-## C1A history
+V1–V5 remain historical C1A failure evidence. V6 is superseded pre-run and should not be repaired.
 
-V1–V4: skinned-body depth/export failures — closed.
+## CURRENT — C1A SKELETON-ONLY EIGHT-STATE WALK
 
-V5: numeric guide succeeded but skinned body visually exploded into large triangular surfaces; skeleton overlay remained coherent — closed.
+The runner now exports an entire motion cycle in one pass:
 
-V6: first run failed before execution with:
+`1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
-`ModuleNotFoundError: No module named 'g3s_c1_export_hidden_pose_guide_v5'`
+Current files:
 
-Do **not** repair V6. It is **SUPERSEDED PRE-RUN** because the skinned-body dependency itself has been removed from the architecture.
+- `tools/structured-2d-character-pipeline/g3s_c1_skeleton_walk_spec.json`;
+- `tools/structured-2d-character-pipeline/g3s_c1_export_skeleton_walk.py`;
+- `tools/structured-2d-character-pipeline/g3s_c1_build_skeleton_walk_review.py`;
+- `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`.
 
-## CURRENT — C1A skeleton-only redesign
+Camera is `640×360`, orthographic, pitch `26°`, front-three-quarter `45°` from actual root travel. Camera side is selected so real forward travel projects screen-left. Rig is not rotated for facing. Maximum projected skeleton height is approximately `128 px`.
 
-Next implementation must export one left-contact guide containing only control data derived from the rig:
+The guide records complete bone matrices, projected joints, chain lengths/depths, laterality, near/far, support foot, ground distance and projected root travel.
 
-- projected skeleton;
-- complete bone-chain pose;
-- anatomical left/right;
-- per-chain camera-space depth and near/far ordering;
-- contact foot/state;
-- pelvis/root travel;
-- screen-left travel/facing camera metadata.
+Workspace:
 
-No detailed 3D body mesh or 3D anatomy silhouette is required.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`
 
-Optional debug capsules/line thickness may be generated directly from bones if useful, but must remain non-skinned control visualization.
+Primary outputs:
 
-## Operator state
+- `g3s_c1_skeleton_walk_zoom.gif`;
+- `g3s_c1_skeleton_walk_travel.gif`;
+- `g3s_c1_skeleton_walk_contact_sheet.png`;
+- `g3s_c1_skeleton_walk_guide.json`.
 
-**Do not rerun runner 21 yet.** A new skeleton-only C1A runner must be implemented and committed first.
+No model/API/download. No cleanup applies.
 
-After C1A skeleton guide PASS, C1B authors one complete persistent native-2D left-contact pose using the skeleton guide as spatial control and B3B V4 as identity/body-style anchor.
+## Exact next operator action
 
-No model/API/download was added by V6; no cleanup applies.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\21_run_g3s_c1_hidden_pose_guide.ps1"
+```
+
+If successful, share `g3s_c1_skeleton_walk_zoom.gif` and `g3s_c1_skeleton_walk_contact_sheet.png`. If it fails, share the complete console output.
+
+## Immediately after C1A PASS
+
+C1B authors the **eight complete persistent native-2D body poses** for the first left-facing walk family, using the skeleton guide as motion/spatial control and B3B V4 as visible identity/body-style anchor.
+
+Do not make the user draw/repair frames manually. Do not revive static-body warp. Do not promote hidden-3D pixels. Any offline visual authoring tool must be explicitly approved for C1B before use.
