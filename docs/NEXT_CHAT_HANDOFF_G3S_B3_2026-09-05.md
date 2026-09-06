@@ -7,16 +7,32 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-3. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-4. `docs/G3S_B4_HAIR_LOG.md`
-5. `docs/ANIMATION_PIPELINE.md`
+2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+3. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+4. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+5. `docs/G3V_REPRESENTATIVE_VISUAL_PROXY_LOG.md`
+6. `docs/G3S_B4_HAIR_LOG.md`
+7. `docs/ANIMATION_PIPELINE.md`
 
 Do not reconstruct state from chat memory if documents disagree.
 
 ## Living-document invariant
 
 Every state-changing project action updates thematic docs, `PROJECT_STATE`, this handoff and commits before reporting completion.
+
+## Canonical animation architecture — LOCKED
+
+`real/captured motion -> hidden 3D rig -> full pose-specific 3D guide package -> selected gait/action events -> persistent native-2D pose assets -> deterministic timing/depth/composition -> sprite/runtime export -> QA`
+
+Canonical lock:
+
+`docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+
+Hidden 3D owns motion/topology, anatomical side identity, near/far identity, full pose, foreshortening reference, contacts, root travel, depth/occlusion, sockets and semantic/body-part guides.
+
+Hidden 3D does **not** own final visible RGB/alpha/silhouette. Hidden-3D render/mask/silhouette is guide/control data only.
+
+Critical correction: C0 V1/V2 incorrectly reduced the hidden rig to projected joint deltas applied to one static sprite. Do not repeat that.
 
 ## Canonical body — LOCKED
 
@@ -28,13 +44,14 @@ B3B V4 is PASS/CLOSED / PROMOTED:
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
 - canonical screen-facing: **LEFT**.
 
-This is a front-three-quarter authored still, not an animation-ready full body source by itself.
+This is a static body identity/style anchor, not the sole source to be warped into every gait pose.
 
 ## Facing/laterality — LOCKED
 
-- left-facing source travels screen-left unless a separately authored right-facing family is selected;
+- left-facing source family travels screen-left;
 - do not mirror silently;
-- screen-x position is not anatomical left/right or near/far ownership in a 3/4 sprite.
+- screen-x is not anatomical left/right or near/far ownership in a 3/4 sprite;
+- anatomical side and near/far identity come from the hidden 3D guide package.
 
 ## Hair — DEFERRED
 
@@ -44,34 +61,28 @@ B4 remains open and unapproved. Eventual minimum structure remains:
 
 Do not resume B4 automatically.
 
-## Motion backbone — RETAINED
+## Motion backbone — RETAINED / ACTIVE
 
 - G2 = PASS using CMU `105_34 NormalWalk`;
 - source rig = `G2_CANONICAL_RIG`;
 - G3V-R = PASS using `DIRECTION_SPACE_FK`;
 - validated phase frames = `1568, 1588, 1608, 1628`.
 
-Use this infrastructure for pose guides, timing, foot contacts, root travel, sockets and depth. It does not own final visible RGB/silhouette.
+This backbone is correct and retained. G3V direct visible 3D rendering failed only as final visible art.
 
-## C0 V1 — FAIL/CLOSED
+## Closed visible routes
 
-Failure marker:
+### Direct visible 3D
 
-`tools/structured-2d-character-pipeline/g3s_c0_v1_visual_failure.json`
+G3V direct visible translation = FAIL/CLOSED because output read as low-resolution 3D, not intentional pixel art.
 
-Closed method:
+Keep hidden 3D as guide/control infrastructure.
 
-`single monolithic still -> hard body-part cutout -> independent rigid rotations`
+### C0 single-still deformation
 
-Reason: detached joints and broken/loop-like leg-foot silhouettes.
+V1 and V2 are FAIL/CLOSED.
 
-## C0 V2 — FAIL/CLOSED VISUAL + METHOD
-
-Reviewed contact sheet:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c0_body_walk_v2\g3s_c0_v2_contact_sheet.png`
-
-SHA256:
+V2 reviewed SHA256:
 
 `6d6199aa7bc159cad344c8dbc31b52577f2c70bb70f674ab5216ea40db67fba3`
 
@@ -79,48 +90,55 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c0_v2_visual_failure.json`
 
-V2 used continuous arm/leg chain warping and still produced anatomically impossible stride shapes.
+Closed class:
 
-Root causes are architectural:
+`single B3B still -> projected joints -> cutout/chain/cage warp -> full walk`
 
-- facing/laterality/near-far ownership of the authored 3/4 sprite was not registered correctly;
-- sprite rest/camera basis and G2 screen-space motion basis were not validated as the same coordinate system;
-- real gait depth/foreshortening cannot be represented by 2D chain-angle warp alone;
-- one 3/4 still lacks hidden visible surfaces that appear when occlusion changes;
-- alpha-bbox-bottom placement is not true contact-foot/root grounding.
+Reason: one still lacks hidden surfaces, foreshortening and correct near/far anatomy for arbitrary gait poses.
 
-Closed route:
+`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1` is disabled.
 
-`single B3B still -> any cutout/chain/cage warp intended to manufacture the full walk`
+## CURRENT task
 
-Do not create another pivot/anchor/overlap/mesh tuning revision using the same single still as the only visible source. A smoother mesh does not solve missing anatomy.
+Return to the intended hidden-3D-guided architecture correctly.
 
-The V2 runner is intentionally disabled:
+### First implementation
 
-`tools/structured-2d-character-pipeline/20_run_g3s_c0_body_walk_v2.ps1`
+Export a **full hidden-3D guide package for one non-rest gait event**, including:
 
-## CURRENT architectural task
+- projected joints;
+- anatomical-side labels;
+- near/far limb identity;
+- depth/body-part order;
+- contact foot / foot roll;
+- root/pelvis transform;
+- semantic body-part shapes/guide masks;
+- fixed G1 camera/scale.
 
-Create an **animation-ready persistent native-2D source family** rather than trying to extract a whole gait from the one rest sprite.
+Then prove that one matching persistent native-2D pose can be authored at production quality without manual redraw by the user.
 
-For the first left-facing walk proof, use real gait events to define a small pose family (e.g. contact/down/passing/up across both sides). Each key state must contain complete visible anatomy with correct:
+### First complete walk family
 
-- anatomical left/right and near/far ownership;
-- foreshortening;
-- pelvis/torso relationship;
-- hip/knee/ankle geometry;
-- foot contact and roll;
-- silhouette and occlusion.
+Target eight persistent native-2D event poses:
 
-G2 supplies pose/timing/contact/root/depth guides. Persistent 2D art owns final visible pixels.
+1. left contact;
+2. left down/loading;
+3. left passing;
+4. left up;
+5. right contact;
+6. right down/loading;
+7. right passing;
+8. right up.
 
-No new runner is approved yet. First prove a method that can author **one non-rest gait pose** at production quality without asking the user to manually redraw it. Do not resume hair while solving this.
+Runtime playback is standard sprite animation driven by motion-derived timing/contact/root metadata.
+
+No new animation runner is approved yet. Do not create another single-still warp revision.
 
 ## Local state
 
 - deterministic workspace: `Z:\AI\RogueliteCharacterPipeline`;
 - embedded Python: `Z:\AI\QwenImageEditSpike\ComfyUI_windows_portable\python_embeded\python.exe`;
-- G2 blend remains required for motion guides;
-- retained FLUX.2 workspace exists historically but is not automatically selected as the next animation source-authoring method;
+- G2 blend/rig remains the hidden pose-guide backbone;
+- retained FLUX.2 workspace exists historically, but a visual authoring model is not automatically the next runtime method; if used, it is an offline source-authoring gate only;
 - no broad model search is open;
 - PixelLab remains historical paid spike only and is not authorized.
