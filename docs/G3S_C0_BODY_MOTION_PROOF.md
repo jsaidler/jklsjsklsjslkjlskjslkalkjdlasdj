@@ -2,15 +2,19 @@
 
 Status date: **2026-09-06**
 
-Gate status: **V1 FAIL/CLOSED — V2 FAIL/CLOSED — SINGLE-STILL PUPPET/WARP ROUTE CLOSED — NEXT: FULL HIDDEN-3D-GUIDED NATIVE-2D POSE SOURCE**
+Gate status: **V1 FAIL/CLOSED — V2 FAIL/CLOSED — SINGLE-STILL PUPPET/WARP ROUTE CLOSED — SUCCESSOR C1A IMPLEMENTED / REVIEW REQUIRED**
 
 Canonical architecture lock:
 
 `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
+Successor gate:
+
+`docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+
 ## Purpose
 
-The user paused hair and asked to see the approved Exilada body moving. C0 is a diagnostic exception to the full layered build order.
+The user paused hair and asked to see the approved Exilada body moving. C0 was a diagnostic exception to the full layered build order.
 
 Canonical body remains:
 
@@ -49,7 +53,7 @@ The intended role of hidden 3D is to guide the **full pose state**:
 - body-part semantic shapes;
 - fixed camera/scale.
 
-Hidden-3D RGB/alpha/final silhouette still remain forbidden as final visible art.
+Hidden-3D RGB/alpha/final silhouette remain forbidden as final visible art.
 
 ## C0 V1 — FAIL/CLOSED
 
@@ -126,46 +130,16 @@ Rejected:
 
 - deriving a convincing full walk by deforming the single B3B still from joint deltas.
 
-## Next architecture — CURRENT
+## Successor: C1A — IMPLEMENTED / REVIEW REQUIRED
 
-The first walk proof now follows the already-decided hidden-3D-guided architecture correctly.
+The first hidden-3D full-pose guide runner now exists:
 
-### Step 1 — hidden 3D exports a full guide package
+`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
 
-For one selected non-rest gait event first, export:
+C1A exports one anatomical left-contact event from the retained hidden body/rig using the validated `DIRECTION_SPACE_FK` motion backbone. It includes projected joints, anatomical laterality, near/far identity, depth guide, contact/root metadata, semantic region guide, silhouette reference and the locked G1 camera/scale.
 
-- projected joints;
-- anatomical-side labels;
-- near/far limb identity;
-- depth/body-part order;
-- contact foot and foot-roll state;
-- root/pelvis transform;
-- projected semantic body-part shapes/guide masks;
-- fixed G1 camera/scale.
+These outputs are pose/anatomy/occlusion controls only. They cannot be promoted or transformed into final visible pixel art.
 
-These are pose/anatomy/occlusion controls only.
-
-### Step 2 — author one matching persistent native-2D pose
-
-The resulting 2D pose must own its own final RGB, alpha, silhouette, foreshortening and occlusion. It must preserve the Exilada body identity from B3B without being a warped copy of the rest pose.
-
-The user is not expected to redraw it manually.
-
-### Step 3 — expand to the first walk family
-
-Target eight persistent native-2D gait states:
-
-1. left contact;
-2. left down/loading;
-3. left passing;
-4. left up;
-5. right contact;
-6. right down/loading;
-7. right passing;
-8. right up.
-
-Runtime playback is normal sprite animation using motion-derived timing/contact/root metadata. No interpolation is required for the first proof.
-
-No new runner is approved until Step 1 is implemented correctly and the source-authoring method for Step 2 is selected/proven.
+After C1A visual review, C1B may attempt one complete persistent native-2D left-contact pose. The user is not expected to redraw it manually.
 
 Hair remains deferred until the user resumes it.
