@@ -1,0 +1,50 @@
+{
+  "gate": "G3S-C1A",
+  "revision": "SKELETON_ONLY_WALK_CYCLE_V1",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-06",
+  "purpose": "export one complete eight-state left-facing walk cycle from the validated real-motion skeleton without any skinned human mesh",
+  "source": {
+    "motion": "CMU 105_34 NormalWalk",
+    "rig": "G2_CANONICAL_RIG",
+    "blend": "Z:\\AI\\RogueliteCharacterPipeline\\g2\\g2_motion_topology.blend",
+    "approval": "tools/deterministic-character-pipeline/g2_approval.json"
+  },
+  "camera": {
+    "native_raster": [640, 360],
+    "pitch_deg": 26,
+    "type": "ORTHO",
+    "horizontal_view": "front_three_quarter_motion_relative",
+    "azimuth_from_motion_heading_deg": 45,
+    "target_skeleton_height_px": 128,
+    "direction_contract": "real forward root travel projects screen-left"
+  },
+  "cycle": [
+    {"frame": 1588, "event": "left_contact", "support_foot": "left"},
+    {"frame": 1598, "event": "left_down", "support_foot": "left"},
+    {"frame": 1608, "event": "left_passing", "support_foot": "left"},
+    {"frame": 1618, "event": "left_up", "support_foot": "left"},
+    {"frame": 1628, "event": "right_contact", "support_foot": "right"},
+    {"frame": 1638, "event": "right_down", "support_foot": "right"},
+    {"frame": 1648, "event": "right_passing", "support_foot": "right"},
+    {"frame": 1658, "event": "right_up", "support_foot": "right"}
+  ],
+  "frame_duration_ms": 83,
+  "hard_locks": {
+    "skinned_human_mesh_used": false,
+    "mpfb_body_used": false,
+    "hidden_3d_visible_art_owner": false,
+    "single_still_warp": false,
+    "body_reference_deformed": false,
+    "image_generation_model_used": false,
+    "paid_api_used": false
+  },
+  "outputs": [
+    "g3s_c1_skeleton_walk_guide.json",
+    "g3s_c1_skeleton_walk_in_place.gif",
+    "g3s_c1_skeleton_walk_travel.gif",
+    "g3s_c1_skeleton_walk_zoom.gif",
+    "g3s_c1_skeleton_walk_contact_sheet.png"
+  ],
+  "review_requirement": "the eight-state skeleton cycle must show coherent gait progression, left/right alternation, screen-left root travel, explicit anatomical laterality, plausible near/far chain depth, and support-foot metadata before native-2D body pose authoring"
+}
