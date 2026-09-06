@@ -1,0 +1,17 @@
+{
+  "gate": "G3S-B4B",
+  "revision": "B4B_V1_MASTER_EXTRACTION",
+  "status": "FAIL_CLOSED_PRE_RUN_METHOD",
+  "date": "2026-09-06",
+  "reason": "The canonical master does not contain sufficient visible information for the hair mass that falls behind the head, shoulders and back. Extracting/splitting only visible master pixels cannot produce a valid rear_hair owner.",
+  "invalid_method": [
+    "extract visible dark hair pixels from exilada_master.png",
+    "infer rear_hair only by whether extracted pixels overlap the body",
+    "treat missing back-hair coverage as a later detail"
+  ],
+  "replacement_method": "Author two new native-pixel layers, rear_hair and front_hair, inspired by the canonical master but not extracted from it.",
+  "production_art_created": false,
+  "runner_executed_by_user": false,
+  "model_downloaded": false,
+  "model_cleanup_required": false
+}
