@@ -1,6 +1,7 @@
 param(
     [string]$ProjectRepoRoot = 'D:\GOOGLE DRIVE\DEV\Roguelite',
-    [string]$SsdRoot = 'Z:\AI\SpriteSheetDiffusionSpike'
+    [string]$SsdRoot = 'Z:\AI\SpriteSheetDiffusionSpike',
+    [switch]$AcceptAnacondaTos
 )
 
 Set-StrictMode -Version Latest
@@ -31,6 +32,11 @@ $UpstreamRepo = Join-Path $SsdRoot 'repo'
 $Inference = Join-Path $UpstreamRepo 'ModelTraining\inference.py'
 $InferenceConfig = Join-Path $UpstreamRepo 'ModelTraining\configs\prompts\inference.yaml'
 $Marker = Join-Path $SsdRoot 'ssd_environment_bootstrap.json'
+$AnacondaChannels = @(
+    'https://repo.anaconda.com/pkgs/main',
+    'https://repo.anaconda.com/pkgs/r',
+    'https://repo.anaconda.com/pkgs/msys2'
+)
 
 Write-Host ''
 Write-Host 'Roguelite - Sprite Sheet Diffusion environment bootstrap' -ForegroundColor Cyan
@@ -85,7 +91,31 @@ try {
     $envExists = $false
 }
 
+$tosAcceptedThisRun = $false
 if (-not $envExists) {
+    if (-not $AcceptAnacondaTos) {
+        Write-Host ''
+        Write-Host '[ACTION REQUIRED] Miniconda is installed, but Anaconda now requires Terms of Service acceptance for its default channels before package creation.' -ForegroundColor Yellow
+        Write-Host '[LEGAL] The runner will not accept these terms silently.' -ForegroundColor Yellow
+        Write-Host '[LEGAL] If you agree to Anaconda Terms of Service for the following channels, rerun this runner with -AcceptAnacondaTos:' -ForegroundColor Yellow
+        foreach ($channel in $AnacondaChannels) {
+            Write-Host "  $channel" -ForegroundColor DarkYellow
+        }
+        Write-Host ''
+        Write-Host 'Example:' -ForegroundColor Cyan
+        Write-Host 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" -AcceptAnacondaTos' -ForegroundColor Cyan
+        Fail 'Anaconda Terms of Service acceptance is required before conda create; explicit user opt-in was not supplied.'
+    }
+
+    Write-Host '[TOS] Explicit -AcceptAnacondaTos supplied. Accepting Anaconda Terms of Service for required default channels...' -ForegroundColor Yellow
+    foreach ($channel in $AnacondaChannels) {
+        & $Conda tos accept --override-channels --channel $channel
+        if ($LASTEXITCODE -ne 0) {
+            Fail "Anaconda ToS acceptance failed for channel $channel with code $LASTEXITCODE"
+        }
+    }
+    $tosAcceptedThisRun = $true
+
     Write-Host '[CREATE] Creating isolated conda env ssd with Python 3.10 + pip...' -ForegroundColor Yellow
     & $Conda create -n ssd python=3.10 pip -y
     if ($LASTEXITCODE -ne 0) {
@@ -120,6 +150,9 @@ $markerData = [ordered]@{
     environment = 'ssd'
     python = $pythonVersion
     pip = $pipVersion
+    anaconda_tos_explicit_opt_in_switch = [bool]$AcceptAnacondaTos
+    anaconda_tos_accepted_by_runner_this_run = $tosAcceptedThisRun
+    anaconda_channels = $AnacondaChannels
     models_downloaded_by_this_gate = $false
     large_dependencies_installed_by_this_gate = $false
 }
