@@ -8,10 +8,11 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-3. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
-4. `docs/G1_CAMERA_SCALE_LOG.md`
-5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-6. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+3. `docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
+4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+5. `docs/G1_CAMERA_SCALE_LOG.md`
+6. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+7. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -28,13 +29,15 @@ Normal operator loop after an approved runner exists:
 - native raster `640×360`;
 - pitch `26 deg`;
 - protagonist about `128 px` tall;
-- first visible family screen-left/front-three-quarter;
+- first visible family remains screen-left / mostly lateral-three-quarter;
 - gameplay depth movement does not require north/south/isometric sprite families;
 - true isometric multi-directional character production remains closed unless explicitly reopened.
 
+The exact horizontal facing angle inside that mostly-lateral family is **reopened for locomotion art-direction review**. The previous `45 deg` azimuth from motion heading was sufficient for a mechanical C1A sanity proof but is not automatically the production gameplay angle.
+
 ## Runtime animation representation — LOCKED
 
-`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
+`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary sprite playback`
 
 Runtime does not require a 3D skeleton, segmented puppet or diffusion model. World-space locomotion/root translation is a runtime concern and does not require baked root travel in the sprite frames.
 
@@ -42,15 +45,16 @@ Runtime does not require a 3D skeleton, segmented puppet or diffusion model. Wor
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-## Retained motion control
+## Retained motion control — C1A MECHANICAL PASS, NOT PRODUCTION LOCOMOTION MASTER
 
-C1A skeleton-only walk: PASS/CLOSED.
+C1A skeleton-only walk remains a valid mechanical motion/control proof:
 
 - motion: CMU `105_34 NormalWalk`;
 - rig: `G2_CANONICAL_RIG`;
 - guide: `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`;
-- approved states: `1588,1598,1608,1618,1628,1638,1648,1658`;
-- first visible family: screen-left/front-three-quarter.
+- approved states: `1588,1598,1608,1618,1628,1638,1648,1658`.
+
+It still proves real gait timing, left/right alternation, support-foot sequencing and intact joint chains. It does **not** by itself approve the final gameplay locomotion pose language.
 
 The user is not expected to supply eight manual pose images.
 
@@ -94,59 +98,83 @@ Runner:
 
 `tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
 
-Technical execution passed:
+Technical execution passed, but visual QA failed:
 
-- 8 frames generated at `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16;
-- SSD denoising checkpoint produced 0 unexpected Moore keys;
-- the 588 missing denoising keys are covered by the SD1.5 + motion-module initialization before the partial SSD overlay;
-- reference UNet and baseline Moore pose guider loaded successfully;
-- PNGs, contact sheet, GIF and result marker were written.
-
-Visual QA of the supplied contact sheet/GIF **failed for production use**:
-
-- Exilada identity/hair silhouette remained partly stable;
-- the eight C1A gait phases were insufficiently differentiated;
+- the eight C1A phases were insufficiently differentiated;
 - pose obedience was weak;
 - lower legs, ankles and feet became unstable/deformed;
 - detached dark accessory/foot-like artifacts appeared near the ground;
 - temporal stability came partly from insufficient motion rather than a convincing walk.
 
-Therefore runner 29 is **not** approved for new actions, sheet packing or production expansion.
+## Runner 30 pose registration — CLEAR DIAGNOSTIC IMPROVEMENT / STILL VISUAL FAIL FOR PRODUCTION
 
-## Concrete input defect discovered after runner 29 QA
-
-`g3s_ssd_prepare_walk8.py` converts C1A coordinates from the locked `640×360` projection to a `512×512` pose canvas by normalizing X and Y independently:
-
-- X scale = `512/640 = 0.8`;
-- Y scale = `512/360 = 1.4222...`;
-- relative vertical stretch = `1.7778×` compared with horizontal geometry.
-
-The target skeleton is therefore spatially distorted before it reaches the pose guider and is not explicitly registered to the DWPose body footprint extracted from the Exilada master.
-
-This is now the single bounded hypothesis to test before closing the Moore-compatible salvage route.
-
-## CURRENT GATE — runner 30 pose-scale registration discriminant
-
-New helper:
-
-`tools/structured-2d-character-pipeline/g3s_ssd_align_walk8_poses.py`
-
-New runner:
+Runner:
 
 `tools/structured-2d-character-pipeline/30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1`
 
-Runner 30 changes **only target-pose spatial registration**:
+Runner 30 corrected the concrete runner-29 input defect:
 
-- rebuilds the same canonical Exilada + C1A package;
-- measures the DWPose body footprint from the master reference pose;
-- reconstructs the eight C1A OpenPose maps directly from original `640×360` joint coordinates using one uniform geometry scale;
-- registers pelvis X to the reference-body center and the lowest ankle Y to the reference-body bottom;
-- removes per-frame root travel for this in-place sprite-authoring test; runtime locomotion remains separate;
-- hard-fails on clipping, non-unique pose maps or poor reference-height registration;
-- emits a 3×3 pose-alignment review before inference;
-- then uses the **same** Moore graph, weights, `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16 as runner 29.
+- old pose conversion mapped `640×360` to `512×512` with independent X/Y scaling;
+- old relative vertical stretch was `1.7778×`;
+- runner 30 rebuilt the eight poses using uniform geometry scale and registered them to the master DWPose body footprint;
+- inference parameters/model stack otherwise remained unchanged.
 
-No master crop, FILM, CFG/seed sweep, resolution change, model change or new action is allowed in this A/B test.
+Supplied runner-30 output showed a **clear A/B improvement**:
+
+- body/leg articulation responded much more visibly to the target poses;
+- left/right phase differentiation improved;
+- feet/legs were materially more coherent than runner 29;
+- the correction therefore validated pose-scale registration as a real defect.
+
+However the user correctly rejected the result as still far below the intended game quality:
+
+- walking lacks convincing naturality;
+- the body presentation/pose language is not yet authored for the elevated belt-scroller gameplay style;
+- several phases still read awkwardly rather than as a polished locomotion cycle;
+- accessory/restraint artifacts remain, reinforcing that complete-master secondary masses should not define the base gait.
+
+Therefore runner 30 is **not a production PASS**. It is retained as a successful diagnostic correction only.
+
+## Key diagnosis after runner 30
+
+The project was conflating two independent questions:
+
+1. can a visible authoring model obey a pose sequence?;
+2. is the pose sequence itself the correct production locomotion for this game?
+
+Runner 30 improved #1 enough to expose #2. The original C1A source uses generic CMU `NormalWalk` viewed at `45 deg` from travel heading. That was acceptable for mechanical gait sanity, but it has never been art-directed as a contemporary arcade belt-scroller locomotion master.
+
+Do not ask diffusion to invent the missing animation art direction.
+
+## CURRENT GATE — G3S-C1C GAMEPLAY LOCOMOTION MASTER
+
+Canonical document:
+
+`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
+
+First bounded test:
+
+`tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
+
+Runner 31 performs **no diffusion inference**. It reprojects the same validated real gait at three increasingly lateral camera azimuths while keeping all other camera/motion controls fixed:
+
+- `60 deg` — 30 deg off pure side profile;
+- `72 deg` — 18 deg off pure side profile;
+- `84 deg` — 6 deg off pure side profile.
+
+Purpose: determine whether the old `45 deg` projection is the major reason the locomotion reads too frontal/awkward for the belt-scroller, before authoring additive gait changes.
+
+Review criteria:
+
+- natural gait readability;
+- screen-left travel clarity;
+- near/far leg separation;
+- body/face readability;
+- fit with the elevated arcade belt-scroller presentation.
+
+If one facing is selected but the gait remains too neutral, the next gate will author a deterministic gameplay-locomotion overlay on the retained real gait timing: stride compression, root bob, torso inclination, shoulder orientation, arm swing/elbow flexion, head stabilization and foot-lift amplitude.
+
+No SSD rerun is authorized before the locomotion pose master itself passes skeleton-only review.
 
 ## Exact current operator action
 
@@ -154,29 +182,20 @@ No master crop, FILM, CFG/seed sweep, resolution change, model change or new act
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\31_run_g3s_c1c_gameplay_facing_audit.ps1"
 ```
 
-Expected technical terminal marker:
+Then share the three `g3s_c1_skeleton_walk_contact_sheet.png` files and, preferably, the three `g3s_c1_skeleton_walk_zoom.gif` files from:
 
-`SSD-MOORE-POSE-ALIGNED: OUTPUT READY FOR A/B VISUAL QA`
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az60`
 
-Then share:
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az72`
 
-1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_pose_aligned_inputs\exilada_walk8_pose_alignment_review.png`;
-2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat_pose_aligned\exilada_walk8_moore_compat_contact_sheet.png`;
-3. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat_pose_aligned\exilada_walk8_moore_compat.gif`.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az84`
 
-## Runner 30 decision rule — LOCKED
+## Layering consequence
 
-PASS requires a **clear A/B improvement over runner 29** in both:
-
-1. readable C1A contact/down/passing/up pose progression and left/right alternation;
-2. lower-leg/ankle/foot topology and ground contact;
-
-while not materially degrading Exilada identity/proportions.
-
-If runner 30 does **not** clearly improve those two failure classes, close the Moore-compatible SSD salvage route instead of beginning parameter sweeps.
+The visible runner-30 accessory/restraint failures reinforce the body-first production principle. The locomotion master is therefore defined on the body motion first. Hair, clothing, bindings, shackles/chains and other secondary masses remain downstream layer/authoring problems rather than part of gait definition.
 
 ## Historical/closed visible routes
 
@@ -190,4 +209,4 @@ If runner 30 does **not** clearly improve those two failure classes, close the M
 
 ## No cleanup
 
-The SSD workspace and released fine-tuned models remain useful for the current bounded runner-30 investigation. No cleanup applies yet.
+SSD assets remain retained because runner 30 proved useful pose response after correct registration. The Moore-compatible visible route is paused while gameplay locomotion is authored; no cleanup applies yet.
