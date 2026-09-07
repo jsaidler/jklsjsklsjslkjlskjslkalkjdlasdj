@@ -2,33 +2,23 @@
 
 Status date: **2026-09-07**
 
-Status: **ACTIVE — runner 30 improved transfer geometry but visible walk remains below production quality; locomotion art direction must be solved before more diffusion.**
+Status: **ACTIVE — 72 DEG FACING BASELINE SELECTED / RUNNER 32 GAMEPLAY WALK OVERLAY V1 READY**
 
 ## Why this gate exists
 
 C1A proved that the retained CMU motion and hidden rig can produce a coherent eight-state human gait. That approval was a **mechanical motion/control proof**, not a final gameplay-animation art-direction approval.
 
-Runner 29 then failed visibly because its pose maps were distorted/misregistered. Runner 30 corrected that defect and produced a clear A/B improvement: leg separation, phase response and lower-limb reconstruction improved. However the resulting visible walk remains substantially below the target for the game:
+Runner 29 failed visibly because its pose maps were distorted/misregistered. Runner 30 corrected that defect and clearly improved leg separation, phase response and lower-limb reconstruction, but the visible walk remained substantially below the target for the game:
 
-- locomotion reads too generic / insufficiently game-authored;
-- body presentation remains too frontal for the intended arcade belt-scroller language;
-- the walk lacks the grounded, readable lateral physicality required for combat spaces;
-- pose transitions still do not read as a convincing production walk cycle;
-- the complete-master generation continues to show accessory/restraint instability.
+- locomotion read too generic / insufficiently game-authored;
+- body presentation remained too frontal for the intended arcade belt-scroller language;
+- the walk lacked grounded, readable lateral physicality;
+- pose transitions still did not read as a convincing production walk cycle;
+- complete-master generation continued to show accessory/restraint instability.
 
-Therefore the next step is **not** CFG/seed/resolution tuning and not another image-model run.
+The project therefore stopped asking diffusion to invent animation art direction and moved locomotion back to skeleton-only authoring.
 
-## Correct separation of concerns
-
-The project must first answer:
-
-> What should the Exilada's base gameplay locomotion actually look like in the locked elevated belt-scroller camera?
-
-Only after that hidden pose family is approved should an image-generation/authoring method be judged on whether it reproduces it.
-
-This avoids asking diffusion to invent animation art direction.
-
-## C1A status after runner 30
+## C1A status
 
 C1A remains valid for:
 
@@ -38,9 +28,7 @@ C1A remains valid for:
 - anatomical joint-chain sanity;
 - source-rig/mocap infrastructure.
 
-C1A is **no longer treated as the production gameplay locomotion master** merely because it passed the skeleton sanity gate.
-
-The original `45 deg` camera azimuth from motion heading is specifically reopened for gameplay locomotion review. In this convention `90 deg` is a pure side view; therefore `45 deg` places the character halfway between frontal and lateral and can make a belt-scroller walk read too frontal.
+C1A is **not** the production gameplay locomotion master merely because it passed the skeleton sanity gate.
 
 ## Target locomotion principles
 
@@ -55,73 +43,124 @@ The production walk should prioritize:
 - torso and head stable enough for combat readability;
 - arms physically natural but not exaggerated pendulums;
 - compatibility with later weapon/equipment states;
-- silhouette readability at the locked approximately `128 px` gameplay body height;
+- silhouette readability at approximately `128 px` gameplay body height;
 - mature, physical, severe body language rather than cartoon exaggeration.
 
 These are animation-design constraints, not diffusion parameters.
 
-## First discriminant — runner 31 facing audit
+## Runner 31 facing audit — CLOSED / 72 DEG SELECTED
 
 Runner:
 
 `tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
 
+Runner 31 used the same `G2_CANONICAL_RIG`, CMU `105_34 NormalWalk`, eight C1A phases, `640x360` orthographic projection, pitch `26 deg` and approximately `128 px` skeleton height while varying only horizontal camera azimuth:
+
+- `60 deg`;
+- `72 deg`;
+- `84 deg`.
+
+Visual review result:
+
+- `60 deg` rejected: still too frontal / depth-oriented for the intended belt-scroller locomotion read;
+- `84 deg` rejected as baseline: lateral readability is strong but projected body mass becomes too profile-thin and sacrifices too much useful torso/face/asymmetry exposure;
+- `72 deg` selected: best current compromise between lateral locomotion readability, near/far leg separation, body mass, identity exposure and compatibility with the elevated belt-scroller presentation.
+
+### Facing lock
+
+**Gameplay locomotion facing baseline = `72 deg` azimuth from travel heading.**
+
+In the current convention `90 deg` is pure side profile. The selected baseline therefore remains slightly three-quarter while being materially more lateral than the old `45 deg` C1A sanity projection.
+
+This lock applies to the first canonical screen-left locomotion family. It does not imply that every combat action must use an identical torso yaw if later gameplay readability requires action-specific pose staging.
+
+## Current gate — runner 32 gameplay walk overlay V1
+
+Runner:
+
+`tools/structured-2d-character-pipeline/32_run_g3s_c1c_gameplay_walk_overlay_v1.ps1`
+
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_c1c_apply_gameplay_walk_overlay.py`
+
 Purpose:
 
-Before changing the gait itself, isolate how much of the wrong gameplay read comes from the original `45 deg` front-three-quarter projection.
+> Keep the real C1A timing/support structure, but author the projected walk into a grounded gameplay locomotion cycle before any more visible generation.
 
-The runner uses the same:
+Runner 32 is a **skeleton-only A/B test**. It rebuilds a fresh `72 deg` baseline and then applies one bounded deterministic overlay.
 
-- `G2_CANONICAL_RIG`;
-- CMU `105_34 NormalWalk`;
-- eight C1A phases;
-- `640x360` orthographic projection;
-- pitch `26 deg`;
-- approximately `128 px` skeleton height;
-- skeleton-only review tooling.
+### Overlay V1 controls
 
-It changes **only horizontal camera azimuth** and produces three review packages:
+- projected stride compression, progressively stronger from hip to foot;
+- pelvis/root vertical-bob reduction to `55%` of the raw projected amplitude;
+- mild screen-left upper-body forward shear, reaching about `4.5 px` at the head;
+- reduced civilian arm pendulum amplitude;
+- head-offset stabilization relative to the neck;
+- retained real gait phase timing and support-foot sequencing.
 
-- `60 deg` — 30 deg off pure profile;
-- `72 deg` — 18 deg off pure profile;
-- `84 deg` — 6 deg off pure profile.
+Current fixed parameter set:
 
-No diffusion/model execution occurs.
+- hip X scale `0.97`;
+- knee X scale `0.90`;
+- ankle/toe X scale `0.84`;
+- elbow swing X scale `0.74`;
+- wrist swing X scale `0.62`;
+- elbow swing Y scale `0.92`;
+- wrist swing Y scale `0.88`;
+- head-offset stabilization blend `0.50`.
 
-## Runner 31 decision rule
+### What runner 32 does not change
 
-Review the three skeleton cycles for:
+- CMU source timing;
+- eight canonical gait events;
+- left/right support order;
+- camera pitch;
+- native raster;
+- character scale target;
+- diffusion/model parameters — because no diffusion runs at this gate;
+- hair, clothing, bindings or restraints.
 
-1. natural gait readability;
-2. screen-left travel clarity;
-3. near/far leg separation;
-4. body/face readability;
-5. fit with the elevated arcade belt-scroller presentation.
+## Runner 32 decision rule
 
-One of three outcomes is valid:
+PASS requires the overlay to be clearly better than the fresh `72 deg` raw baseline in the following combined sense:
 
-- choose one facing as the gameplay baseline;
-- decide that an intermediate angle is needed;
-- reject all three, proving that camera/facing is not enough and the gait itself must receive an authored additive gameplay pose treatment.
+1. more natural and intentional locomotion;
+2. more appropriate to a contemporary belt-scroller combat space;
+3. compact but still human stride;
+4. grounded support contacts and clear phase progression;
+5. reduced casual-walk bob/arm pendulum;
+6. no obvious anatomical break or cartoon exaggeration;
+7. preserved left/right gait readability.
 
-Do **not** rerun SSD before this is closed.
+If V1 is directionally right but visibly over/under-corrected in one specific control, only that identified control may be revised in the next bounded skeleton-only pass. Do not reopen broad parameter sweeps.
 
-## Expected follow-up after facing selection
+## Expected runner 32 outputs
 
-If a facing is approved but the gait remains too neutral, the next gate will author a deterministic gameplay locomotion overlay on top of the retained real gait timing. Likely controlled variables include:
+Workspace:
 
-- stride compression;
-- pelvis/root vertical amplitude;
-- torso forward inclination;
-- shoulder orientation;
-- elbow flexion / reduced arm swing;
-- head/gaze stabilization;
-- foot-lift amplitude.
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1`
 
-Those adjustments must be reviewed first as skeleton motion, then fed to a visible body-only authoring test.
+Baseline:
+
+- `baseline_az72\g3s_c1_skeleton_walk_contact_sheet.png`;
+- `baseline_az72\g3s_c1_skeleton_walk_zoom.gif`.
+
+Overlay:
+
+- `overlay_v1\g3s_c1_skeleton_walk_contact_sheet.png`;
+- `overlay_v1\g3s_c1_skeleton_walk_zoom.gif`.
+
+Summary:
+
+`g3s_c1c_gameplay_walk_overlay_v1_review.json`
 
 ## Layering implication
 
-The runner-30 complete-master output also reinforces the broader body-first production rule: dangling chains/restraints and complex secondary masses should not be expected to survive as one monolithic generative body image during locomotion.
+Runner-30 complete-master output reinforced the body-first production rule: dangling chains/restraints and complex secondary masses should not define or validate the base gait.
 
-The current locomotion-design gate therefore concerns **body motion first**. Hair, clothing and restraints remain separate downstream animation/authoring problems rather than criteria for defining the gait itself.
+The locomotion master therefore concerns **body motion first**. Hair, clothing, bindings, shackles/chains and other secondary masses remain separate downstream animation/authoring problems.
+
+## Visible-authoring rule
+
+Do **not** run SSD again until the skeleton locomotion itself passes this gate. Once the walk master is approved, the next visible proof must prioritize body-only transfer before secondary layers are reintroduced.
