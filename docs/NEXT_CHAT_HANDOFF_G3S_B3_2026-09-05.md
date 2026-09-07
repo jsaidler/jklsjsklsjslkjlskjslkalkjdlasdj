@@ -7,146 +7,112 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G1_CAMERA_SCALE_LOG.md`
-3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+3. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+4. `docs/G1_CAMERA_SCALE_LOG.md`
 5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-6. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-7. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-8. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-9. `docs/G3S_B4_HAIR_LOG.md`
+6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
 
-## Presentation simplification — LOCKED
-
-The project is not pursuing true isometric multi-directional character production.
-
-Locked presentation:
+## Locked production direction
 
 - elevated arcade beat'em-up / belt-scroller false 3D;
-- fixed orthographic `640×360` camera;
-- pitch `26 deg`;
+- fixed `640×360` orthographic camera, pitch `26 deg`;
 - protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
-- gameplay depth movement does not require north/south/isometric sprite sets.
+- no north/south/isometric sprite-family multiplication;
+- final runtime = conventional deterministic spritesheet playback.
 
-## Runtime animation representation — LOCKED
+Runtime does not require 3D, a segmented puppet or diffusion.
 
-Use conventional sprite animation:
+## Current source-authoring route
 
-`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
-
-Actions are stored as deterministic frame sequences in rows/blocks/atlas regions. Runtime does not require 3D, a segmented puppet or diffusion.
-
-## Current source-authoring route — SSD SPIKE
-
-Current active validation:
-
-**Sprite Sheet Diffusion (SSD)**
+**Sprite Sheet Diffusion (SSD)** validation spike.
 
 Canonical doc:
 
 `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-Purpose:
+Purpose: test whether SSD can produce a coherent Exilada action sequence from the complete master plus pose/motion guidance, after which accepted frames are frozen into ordinary spritesheets.
 
-Test whether SSD can generate a coherent Exilada action sequence from the complete master plus pose/motion guidance, so approved frames can be frozen into conventional spritesheets.
-
-## Upstream repository facts — VERIFIED
+## Verified upstream facts
 
 Repo:
 
 `chenganhsieh/Sprite-Sheet-Diffusion`
 
-Actual code layout:
-
 - inference: `ModelTraining/inference.py`;
-- config: `ModelTraining/configs/prompts/inference.yaml`.
+- config: `ModelTraining/configs/prompts/inference.yaml`;
+- actual dependency file: `ModelTraining/requirements.txt`;
+- no root requirements file despite README command;
+- model paths required later: SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
 
-Upstream README says to use a Python 3.10 conda environment and `pip install -r requirements.txt`, but the repository does **not** contain the referenced root `requirements.txt`.
-
-The actual config additionally requires:
-
-- Stable Diffusion v1.5 base model;
-- SD VAE;
-- CLIP image encoder;
-- SSD denoising UNet;
-- SSD reference UNet;
-- AnimateAnyone pose guider;
-- AnimateAnyone motion module.
-
-## Actual local state
+## Actual local state — environment PASS
 
 Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
-Upstream clone: **SUCCESS**
+- upstream clone: SUCCESS;
+- Miniconda: SUCCESS;
+- conda: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
+- env `ssd`: PASS;
+- Python: `3.10.21`;
+- pip: `26.2.1`;
+- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
 
-Miniconda: **SUCCESS**
+No model weights downloaded yet.
 
-Resolved executable:
+## Current dependency decisions
 
-`C:\Users\jsaid\miniconda3\Scripts\conda.exe`
+Project Windows inference lock:
 
-Environment `ssd`: **NOT CREATED YET**
+`tools/structured-2d-character-pipeline/ssd_windows_inference_requirements.txt`
 
-Latest console result:
-
-`conda create -n ssd python=3.10 pip -y` was blocked by `CondaToSNonInteractiveError` because Anaconda Terms of Service have not been accepted for:
-
-- `https://repo.anaconda.com/pkgs/main`;
-- `https://repo.anaconda.com/pkgs/r`;
-- `https://repo.anaconda.com/pkgs/msys2`.
-
-No package transaction/model download occurred. This is not an SSD inference/model failure.
-
-## Superseded route
-
-The segmented-puppet runner 23 is no longer the current production route. It remains historical and must not be continued unless explicitly reopened.
-
-Flux2 per-frame full-body redraw remains FAIL/CLOSED.
+- torch `2.0.1` + torchvision `0.15.2` installed from official CUDA 11.8 wheels;
+- `xformers` deferred because it is optional for inference and the upstream `0.0.22` pin is not a clean CPython 3.10 Windows-wheel path;
+- upstream `av==11.0.0` replaced for this Windows spike by `av==12.0.0`, which has a CPython 3.10 Windows wheel and supports the APIs SSD uses;
+- training/UI-only packages are omitted;
+- `matplotlib` and `scikit-image` are included because the real local OpenPose import graph needs them.
 
 ## CURRENT RUNNER
 
-`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
+`tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
 
-Runner 24 now requires explicit user opt-in before accepting Anaconda channel terms. Switch:
+It installs the inference stack, checks dependency consistency, verifies CUDA and imports the real upstream `inference.py` graph without loading model weights.
 
-`-AcceptAnacondaTos`
+Local outputs on PASS:
 
-Without the switch, the runner will not accept terms on the user's behalf.
-
-With the switch, it:
-
-1. accepts Anaconda ToS for the three channels listed above;
-2. creates `ssd` with Python 3.10 + pip;
-3. verifies via `conda run`;
-4. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
-5. downloads no model weights;
-6. installs no large SSD dependency stack.
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`.
 
 ## Exact next operator action
-
-Only if the user agrees to the Anaconda Terms of Service for those channels:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
-  -AcceptAnacondaTos
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\25_bootstrap_ssd_dependencies.ps1"
 ```
 
-Supplying `-AcceptAnacondaTos` is explicit authorization to perform the ToS acceptance commands.
+PASS target:
 
-PASS requires:
+- `SSD-DEPS: PASS`;
+- CUDA available;
+- torch 2.0.1 / CUDA build 11.8;
+- NVIDIA GPU reported;
+- `SSD_INFERENCE_IMPORT=PASS`.
 
-- console `SSD-ENV: PASS`;
-- Python 3.10.x inside env `ssd`;
-- local bootstrap marker written.
+If it fails, use the complete console and correct only the concrete dependency/Windows compatibility issue. Do not download models first.
 
-After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, followed later by model downloads in a documented order.
+## After PASS
 
-## Do not clean SSD workspace
+Prepare a separate model/checkpoint download runner with exact source, path, size/hash verification. No model download has been authorized or completed yet.
 
-SSD route is active. No cleanup applies now.
+## Historical routes
+
+- segmented-puppet runner 23: historical/paused;
+- Flux2 independent full-body frame redraw: FAIL/CLOSED;
+- isometric multi-directional character production: CLOSED unless explicitly reopened.
+
+SSD route is ACTIVE. No cleanup applies.
