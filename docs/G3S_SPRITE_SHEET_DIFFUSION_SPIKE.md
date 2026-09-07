@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **RUNNER 34 COMPLETE-CHARACTER EXPORT PASS / POSE-ONLY TEMPORAL QUALITY FAIL / WAN-ANIMATE-2 ALREADY REJECTED / NEXT ROUTE UNSELECTED**
+Gate status: **RUNNER 34 EXPORT PASS / CURRENT MOORE+SSD CONFIGURATION QUALITY FAIL / EXACT SSD BLOCKED / MOORE+SSD EXHAUSTION AUDIT ACTIVE**
 
 ## Runtime target — LOCKED
 
@@ -10,15 +10,15 @@ The runtime target is conventional playback of **complete-character spritesheets
 
 `complete authored frames -> complete-character spritesheet/atlas + metadata -> ordinary runtime playback`
 
-Runtime construction of the visible character from body/hair/clothing/equipment layers is abolished. Offline authoring may internally use layers/rigs, but export is a fully composed character frame sequence.
+Runtime construction of the visible character from body/hair/clothing/equipment layers is abolished. Offline authoring may internally use rigs/layers/controls, but export is a fully composed character frame sequence.
 
 ## Initial Exilada reference
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-For current work this master defines the entire initial visible character state. Hair, base clothing/bindings, restraints/shackles/chains and visible accessories are part of the animation requirement.
+For current work this master defines the entire initial visible character state.
 
-## Local SSD environment — PASS
+## Local SSD environment — PASS / RETAIN
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -32,45 +32,58 @@ Validated:
 - released SSD denoising/reference UNets;
 - baseline AnimateAnyone pose guider + motion module.
 
-## Exact upstream SSD — BLOCKED
+Do not clean this workspace while the exhaustion audit is active.
 
-The current upstream SSD graph requires a custom multi-scale `pose_guider.pth` that was not publicly released. The available baseline Moore/AnimateAnyone pose-guider checkpoint has a different architecture.
+## Exact upstream SSD — BLOCKED, NOT VISUALLY REJECTED
 
-Do not rerun exact-upstream SSD unless a trustworthy compatible custom checkpoint becomes available or the project deliberately chooses to retrain it.
+The SSD method is an AnimateAnyone adaptation using ReferenceNet, Pose Guider and Motion Module. The released public fine-tuned weights available to us contain the SSD reference and denoising UNets, but not the custom SSD pose-guider checkpoint required by the exact published graph.
+
+Therefore exact upstream SSD has **not been reproduced locally**.
+
+Correct classification:
+
+- **BLOCKED** as an exact public-weight reproduction;
+- **not** “SSD model failed our task.”
+
+A Moore baseline pose guider can be used as a compatibility workaround, but that creates a different graph/weight combination whose behavior must be judged separately.
 
 ## Moore-compatible fallback
 
-Working fallback:
+Current runnable reconstruction:
 
-`Moore-AnimateAnyone graph + baseline Moore pose guider/motion module + released SSD fine-tuned denoising/reference UNets`
+`Moore-AnimateAnyone graph + Moore baseline pose guider/motion module + released SSD fine-tuned denoising/reference UNets`
 
 Pinned Moore commit:
 
 `a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
-This is explicitly not exact published SSD.
+This is explicitly **not exact published SSD**.
 
 ## Runner history
 
 ### Runner 29
 
-Technical PASS / visual FAIL:
+Technical PASS / configuration quality FAIL:
 
 - weak phase differentiation;
 - unstable lower legs/feet;
 - detached accessory artifacts;
 - insufficient locomotion.
 
-### Runner 30
+### Runner 30 — critical integration evidence
 
-Fixed a concrete target-pose registration defect: the prior `640×360 -> 512×512` mapping introduced `1.7778×` relative vertical stretch. Uniform scaling and registration to the reference footprint materially improved body pose response and lower-limb reconstruction.
+Runner 30 fixed a concrete target-pose registration defect: the earlier `640×360 -> 512×512` mapping introduced `1.7778×` relative vertical stretch.
+
+Uniform scaling/registration to the reference footprint materially improved pose response and lower-limb reconstruction.
+
+This is important evidence that **our integration/preprocessing can materially determine the visible result**. It is therefore invalid to promote every poor render directly to a model-level failure.
 
 ### Runner 31–33
 
 - runner 31 locked gameplay facing at `72 deg`;
 - runner 32 V1 remained too generic;
-- runner 33 V2 added restrained feminine projected body treatment but was still not final locomotion approval;
-- V2 was retained as a provisional driver so a real full-character spritesheet could be produced immediately.
+- runner 33 V2 added restrained feminine projected body treatment but was not final locomotion approval;
+- V2 remains a provisional motion/control input for diagnostics, not proof of final gait quality.
 
 ## Runner 34 complete-character playable proof — RESULT
 
@@ -96,90 +109,108 @@ Configuration:
 
 ### Technical/export result — PASS
 
-Runner 34 successfully generated and packaged:
+Runner 34 generated/package-tested:
 
 - eight complete-character frames;
-- connected neutral-background removal;
-- transparent RGBA outputs;
-- a `4×2`, `2048×1024` spritesheet with `512×512` cells;
+- RGBA transparency;
+- `4×2`, `2048×1024` spritesheet;
 - playback GIF;
 - metadata for ordinary complete-frame playback.
 
-The spritesheet format itself is therefore no longer an unknown. The toolchain can generate a baked complete-character animation artifact.
+The complete-character spritesheet export architecture is proven workable.
 
-### Visual/temporal result — FAIL for production motion
+### Current configuration quality — FAIL
 
-Useful positives:
+Observed:
 
-- Exilada identity persists reasonably well;
-- torso/face/hair design remains recognizable;
-- broad body pose changes respond to the driver;
-- complete-frame packing/alignment is stable enough to demonstrate runtime playback.
-
-Failures:
-
-- hair mass mostly frozen or locally warped; convincing lag/inertia absent;
-- base cloth changes shape but does not read as controlled physical cloth motion;
-- intentional jiggle/soft-tissue motion not reliably readable;
-- wrist chain comparatively persistent but mostly static;
-- ankle restraint/chain unstable, detaching/mutating into dark stepped shapes;
-- lower legs/feet degrade under larger pose displacement;
+- hair mostly frozen or locally warped;
+- cloth changes shape without controlled physical lag;
+- intentional jiggle not reliably readable;
+- wrist chain mostly static;
+- ankle restraint/chain detaches/mutates;
+- lower legs/feet degrade under larger displacement;
 - later phases become too similar and loop closure is weak.
 
-This is a **temporal authoring failure**, not a failure of complete-character spritesheet architecture.
+Correct verdict:
 
-## Key diagnosis
+> **Runner 34 configuration FAIL; Moore+SSD/SSD model capability unresolved.**
 
-The Moore-compatible route is controlled by body OpenPose geometry. That signal does not specify desired trajectories for hair, cloth, chains, soft tissue or other secondary masses.
+Do not use this one configuration as evidence that SSD “cannot do it.”
 
-The temporal prior alone is not reliable enough to invent those systems while preserving attachment ownership and physical continuity.
+## Model exhaustion protocol as applied to SSD
 
-Do not spend the next iteration on broad CFG/seed/step/resolution tuning.
+Before switching models, the retained SSD/Moore environment must answer the following controlled questions.
 
-## Wan-Animate-2 — TESTED BEFORE THIS GATE / REJECTED / CLOSED
+### A — Moore reference baseline
 
-Wan-Animate-2 was already tested locally on 2026-09-04 with the official Base INT8 ConvRot checkpoint.
+Run the **pure Moore baseline** with its own reference UNet, denoising UNet, pose guider and motion module, using exactly the same validated reference/pose preprocessing.
 
-The run completed and was visually rejectable on its merits. It preserved Exilada identity and coarse anatomy better than some earlier direct-diffusion experiments, but failed the production gate because:
+Purpose: prove that our local Moore graph and pose-domain contract behave correctly before judging the hybrid.
 
-1. raw driving-video locomotion adherence was too weak;
-2. output lost the required modern-pixel-art language and read as smooth painted/video diffusion.
+### B — SSD-weight substitution A/B
 
-Therefore direct raw-video conditioning is **not an untested solution** to runner 34's missing secondary-motion signal. The exact Wan route is already closed.
+With the same seed, inputs, scheduler, frame count and preprocessing, replace only Moore reference/denoising UNets with the released SSD fine-tuned UNets.
 
-Do not revive it with a synthetic richer driver, seed/CFG tuning, reference-strength changes, prompt cosmetics or post-generation pixel filtering.
+Purpose: isolate what the SSD fine-tuning actually changes instead of comparing multiple moving variables.
 
-The isolated Wan model/runtime workspace was deleted after rejection. `tools/wan-animate2-spike/` remains source-level research history only.
+### C — pose-domain audit
 
-## Erroneous runner-35 retry — WITHDRAWN
+Verify that target pose images are not merely visually plausible skeletons but match the representation, scale, registration, colors/channels and spatial footprint expected by the actual pose guider.
 
-A 2026-09-07 proposed Wan retry ignored the prior rejection/cleanup record. The newly-created runner/helper files were deleted from `main`. There is no active runner 35.
+Runner 30 proved this is a first-order issue.
 
-## Next experiment class — OPEN, constrained
+### D — pose-guider bottleneck test
 
-The next route must preserve the complete-character runtime architecture but be materially different from both:
+Determine whether the Moore baseline pose guider is the ceiling when paired with SSD-finetuned UNets.
 
-- body-pose-only Moore+SSD;
-- generic/raw-video Wan-Animate-2.
+If body pose adherence remains poor in both Moore baseline and SSD substitution, fix integration/pose domain first. If Moore behaves correctly while SSD substitution degrades specifically, investigate weight-graph compatibility.
 
-Required properties:
+### E — complete-character complexity ladder
 
-- explicit or inspectable motion control;
-- coherent body/hair/cloth/jiggle/restraint motion;
-- stable attachment ownership/topology;
-- complete-frame output;
-- native/discrete pixel/game-art preservation;
-- scalability without routine manual frame-by-frame repair.
+Do not ask the model to solve every secondary system before its body control is validated. Test in this order with the same master where possible:
 
-Historical post-Wan research found pixel-native skeleton/keyframe animation services and other explicit-control pixel-domain approaches more relevant than another generic video model, but no candidate is currently production-approved.
+1. body/major locomotion adherence;
+2. identity/topology stability;
+3. hair/cloth response;
+4. restraints/chains;
+5. soft-tissue/jiggle;
+6. loop coherence.
 
-## Role of Moore-compatible SSD after runner 34
+The final accepted output must contain all of them, but staged diagnostics identify the failing component.
 
-Do not classify the route as useless: it preserves the master identity better than several earlier visible routes and follows body pose to some degree.
+### F — exact-SSD decision
 
-Classify it correctly:
+If the Moore-compatible reconstruction reaches a repeatable ceiling, decide explicitly whether recovering/retraining/building a compatible SSD pose guider is practical.
 
-> **useful appearance/pose transfer evidence; insufficient as the sole complete-motion author when driven only by OpenPose body maps.**
+If not practical, the conclusion is:
+
+> **exact SSD remains BLOCKED and the public compatibility reconstruction is exhausted for our production constraints.**
+
+That is materially different from claiming that the published SSD method itself was proven incapable.
+
+## Parameter sweeps — allowed only as controlled diagnostics
+
+The earlier blanket instruction “do not tune CFG/steps/resolution” is superseded.
+
+Controlled sweeps are allowed when they test a real hypothesis:
+
+- fixed seed;
+- fixed inputs;
+- one variable at a time;
+- small predefined range;
+- outputs and metrics recorded side-by-side.
+
+Random seed hunting or cosmetic rerolls remain prohibited as a production strategy.
+
+## Wan-Animate-2 historical comparison
+
+Wan's previous local configuration also failed, but under the same exhaustion protocol it should be classified as **a failed tested configuration, not exhaustive proof against the whole model family**.
+
+Its workspace was already deleted under the earlier premature cleanup decision. Do not rebuild it while the retained SSD/Moore branch still has unresolved integration questions.
+
+## Current next action
+
+Stay on the retained Moore/SSD branch and build the controlled **Moore baseline vs SSD-weight substitution integration audit** before any new model installation.
 
 ## Variation strategy — later
 
@@ -187,4 +218,4 @@ Armor, equipment, accessories, damage and exposure still need scalable offline v
 
 ## Cleanup
 
-Retain runner-34 outputs and current SSD evidence while this branch is still diagnostically useful. Do not recreate deleted Wan assets/workspace without an explicit new model-level gate and materially different justification.
+Retain runner-34 outputs, current SSD assets/environment and motion evidence until the exhaustion audit is explicitly closed.
