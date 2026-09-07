@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-06**
+Status date: **2026-09-07**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
@@ -102,7 +102,7 @@ Canonical doc:
 
 Goal:
 
-Determine whether **Sprite Sheet Diffusion (SSD)** can locally generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that the accepted frames can be frozen into conventional spritesheets.
+Determine whether **Sprite Sheet Diffusion (SSD)** can locally generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that accepted frames can be frozen into conventional spritesheets.
 
 ### Upstream verified facts
 
@@ -118,26 +118,33 @@ Actual implementation facts:
 - actual config: `ModelTraining/configs/prompts/inference.yaml`;
 - config requires SD1.5 base model in addition to SSD/AnimateAnyone/VAE/CLIP components.
 
-### Actual local result so far
+### Actual local state
 
 Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
-Clone result:
+Clone:
 
 - upstream clone completed successfully;
 - 887/887 objects received;
 - approximately 289.63 MiB transferred.
 
-Environment bootstrap failures already observed:
+Miniconda:
 
-- `conda` unavailable;
-- `conda create` / `conda activate` failed;
-- prior `cd /d` instruction was invalid PowerShell syntax;
-- upstream README references a root `requirements.txt` that is absent.
+- installation **SUCCESS**;
+- `conda.exe` resolved at `C:\Users\jsaid\miniconda3\Scripts\conda.exe`.
 
-These are installation-procedure defects, not an SSD model-quality failure.
+Environment `ssd`:
+
+- **NOT CREATED YET**;
+- `conda create -n ssd python=3.10 pip -y` was blocked by `CondaToSNonInteractiveError` before package transaction;
+- Anaconda Terms of Service have not yet been accepted for:
+  - `https://repo.anaconda.com/pkgs/main`;
+  - `https://repo.anaconda.com/pkgs/r`;
+  - `https://repo.anaconda.com/pkgs/msys2`.
+
+This is an environment bootstrap/legal-opt-in blocker, not an SSD model-quality failure.
 
 ## CURRENT RUNNER — SSD environment bootstrap
 
@@ -145,29 +152,31 @@ Runner:
 
 `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-Scope is deliberately limited to:
+The runner now has an explicit legal opt-in switch:
 
-- verify clone + actual inference/config paths;
-- install Miniconda through WinGet only if missing;
-- locate `conda.exe` without relying on PATH refresh;
-- create env `ssd` with Python 3.10 + pip;
-- verify through `conda run`;
-- write `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
+`-AcceptAnacondaTos`
 
-This runner does **not** download models and does **not** install the large SSD dependency stack.
+It does **not** accept Anaconda terms silently. When this switch is supplied, it executes the exact `conda tos accept --override-channels --channel ...` commands for the three required channels, then creates and verifies the `ssd` Python 3.10 environment.
+
+The runner still downloads no models and installs no large SSD dependency stack.
 
 ## Current exact operator action
+
+Only if the user agrees to those Anaconda Terms of Service:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
+  -AcceptAnacondaTos
 ```
 
-PASS requires console `SSD-ENV: PASS`, Python 3.10.x and the local marker file.
+Using `-AcceptAnacondaTos` constitutes explicit authorization for the runner to accept those channel terms.
 
-If it fails, share the complete console output. Do not manually improvise dependency/model installation before this gate passes.
+PASS requires console `SSD-ENV: PASS`, Python 3.10.x and local marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
+
+After PASS, next gate is the controlled Windows dependency bootstrap. No model download before that gate is documented and prepared.
 
 ## No cleanup yet
 
