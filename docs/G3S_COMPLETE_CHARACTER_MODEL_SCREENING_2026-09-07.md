@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN-ANIMATE-2 W0 PASS_BASELINE / W1 EXILADA ACTIVE / SCAIL-2 NEXT OPEN LOCAL CANDIDATE**
+Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN W0 PASS_BASELINE / W1 APPEARANCE CONFIGURATION FAIL WITH POSITIVE MOTION EVIDENCE / W1A ACTIVE / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
 
 ## Purpose
 
@@ -24,7 +24,7 @@ Pose-only Moore/AnimateAnyone and current Moore+released-SSD-UNet compatibility 
 
 ## Model exhaustion protocol — LOCKED
 
-A model reaches `EXHAUSTED_FAIL` only after finite controlled tests. Runtime/loader failures are infrastructure failures, not model-quality evidence. No seed fishing and no manual rescue.
+A model reaches `EXHAUSTED_FAIL` only after finite controlled tests. Runtime/loader failures are infrastructure failures, not model-quality evidence. A valid but insufficient visual result is a configuration failure until meaningful native controls are exhausted. No seed fishing and no manual rescue.
 
 ## Wan Base-BF16 route
 
@@ -41,74 +41,96 @@ Total ~45.7 GB. Lower-precision/Distilled variants are not retained in advance.
 
 Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `hostbuf_file_reader_read failed`; this was infrastructure only.
+Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `hostbuf_file_reader_read failed`; infrastructure only.
 
-Attempt 2 added only `--disable-pinned-memory` and completed successfully with the official demo1 reference + driver at:
+Attempt 2 added only `--disable-pinned-memory` and completed successfully with the official demo1 reference + driver at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0 and conditioning strengths 1.0.
 
-- `640×800`;
-- 37 frames;
-- 16 fps;
-- 20 steps;
-- CFG 1.0;
-- Euler/simple;
-- shift 5.0;
-- seed 0;
-- conditioning strengths 1.0.
+Inference time ~1896.94 s (~31m37s).
 
-Inference time was about 1896.94 seconds (~31m37s).
+Visual result: substantial motion transfer, stable cat/species identity and costume, no catastrophic topology collapse. Some blur/framing movement exists. Conclusion: **local direct-driving Base-BF16 integration works.**
 
-Visual diagnosis of the uploaded W0 output:
-
-- complete subject remains coherent across the 37-frame sequence;
-- substantial arm/body motion is transferred;
-- cat face/species identity remains recognizable;
-- uniform, red bow and pleated skirt remain materially persistent;
-- no catastrophic extra-limb/topology collapse;
-- some motion blur and framing/crop change are present but do not invalidate the baseline.
-
-Conclusion: **the local direct-driving Base-BF16 integration works.**
-
-Important limit: W0 does not establish project fitness because it does not stress Exilada identity, pixel-art preservation, very long hair, ragged cloth, body jiggle or restraints/chains.
-
-## W1 — CURRENT: EXILADA CROSS-IDENTITY / OFFICIAL DRIVER
+## W1 Exilada + official driver — COMPLETE
 
 Runner: `tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
 
 Executor: `tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
 
-W1 is mechanically derived from the exact successful W0 API prompt.
+W1 kept movement/execution identical to W0 and changed the target appearance package to Exilada reference + matching appearance prompt.
 
-The official W0 positive text literally describes the official cat character, so the target appearance must change as a coherent package. W1 changes only:
+Observed run facts:
 
-1. reference image -> `exilada_master.png`;
-2. positive target-appearance description -> matching canonical Exilada description;
-3. output prefix.
+- `INFERENCE_COMPLETE`;
+- reference SHA256 `e8422ec9c7125eec8bf534e13cf0ceac9c2ade5e6e2f18cf26cd8f22e59755ab`;
+- same official driver;
+- Base BF16 stack unchanged;
+- `640×800`, 37 frames, 16 fps, 20 steps;
+- CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- pose/reference strengths 1.0;
+- elapsed 1746.69 s (~29m07s);
+- output SHA256 `2bbbf3bd0c5b0db46bc1e9d33abd003b7f3627c8fba7880f45d62724f6ab233f`.
 
-Everything that owns movement/execution remains identical: official driver, model files, resolution, 37-frame window, fps, steps, CFG, sampler, scheduler, shift, seed, conditioning strengths and W0 negative prompt.
+### W1 positive evidence
 
-### W1 decisive QA
+- substantial cross-identity motion transfer survives;
+- no visible cat identity/costume leakage;
+- long black hair mass changes silhouette and trails through motion rather than staying rigid, demonstrating non-rigid inference beyond body skeleton alone;
+- ragged hip cloth changes drape with pose/motion;
+- coarse Exilada package remains recognizable: adult woman, olive/brown skin, very long dark hair, minimal beige wraps, barefoot state, wounds/wear and at least one ankle restraint/chain.
 
-Judge:
+### W1 failures
 
-1. Exilada face/body proportions and adult identity;
-2. complete initial-state preservation from the master;
-3. long black hair mass persistence and temporal inertia;
-4. ragged chest/hip cloth topology and lag;
-5. soft-body/jiggle response where motion warrants it;
-6. shackles/chains staying attached and temporally plausible;
-7. motion adherence to the official driver;
-8. hands/feet/limb topology;
-9. no leakage of the cat/driver appearance;
-10. preservation of discrete modern pixel/game-art language rather than smooth painterly reinterpretation;
-11. zero routine manual cleanup.
+- art language is smooth/painterly, not the required discrete modern pixel/game-art appearance, despite explicit prompt wording;
+- face/body details drift and become more generic/muscular/illustrative than the approved target;
+- wrist restraint/chain information is largely lost and surviving ankle chain morphology is unstable;
+- some hand/foot blur/stretch and a transient detached artifact occur;
+- later head/upper-body crop follows the same framing tendency already visible in W0, so treat it as driver/framing behavior rather than Exilada-specific identity failure;
+- this driver does not decisively test target locomotion, strong jiggle or stress-level cloth/wind dynamics.
 
-W1 does not yet decide walking suitability because the official driver is not the target locomotion clip. If W1 establishes identity/style/complete-state viability, advance to W2 with Internet walking footage.
+Classification:
+
+**W1 = motion/raw-video-class positive evidence + production-appearance `CONFIGURATION FAIL`.**
+
+Do not reject Wan.
+
+## Native reference-strength control — decisive next variable
+
+Current native ComfyUI `WanAnimate2ToVideo` documents `reference_image_strength` with default `1.0` and states that values above `1.0` tighten generated-frame attention to the reference image latent. `pose_strength` is a separate control for driving-motion influence.
+
+This directly targets W1's identity/style/accessory drift without changing motion source, model, seed or sampler.
+
+## W1A — CURRENT: reference strength 1.5
+
+Runner:
+
+`tools/structured-2d-character-pipeline/38_run_wan_animate2_bf16_w1a_refstrength15.ps1`
+
+Executor:
+
+`tools/wan-animate2-spike/run_w1a_reference_strength.py`
+
+Exact one-variable change from completed W1:
+
+`reference_image_strength 1.0 -> 1.5`
+
+Everything else remains fixed, including Exilada reference/prompt, official driver, Base BF16 stack, `640×800`, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, negative prompt and `--disable-pinned-memory`.
+
+Judge W1A against W1 on:
+
+1. face/body/reference identity;
+2. pixel/game-art preservation;
+3. hair mass and clothing-layout persistence;
+4. shackles/chains/accessory retention;
+5. topology/artifact rate;
+6. whether motion adherence materially degrades.
+
+If 1.5 materially improves appearance without unacceptable motion loss, continue reference-strength calibration inside Wan before W2. If it does not, choose the next native conditioning variable from evidence; do not switch models automatically.
 
 ## Wan exhaustion sequence
 
 - W0 official baseline — **PASS_BASELINE**.
-- W1 Exilada + official driver — **CURRENT**.
-- W2 target Internet walking driver.
+- W1 Exilada + official driver, reference strength 1.0 — **CONFIGURATION FAIL for production appearance; motion evidence positive**.
+- W1A reference strength 1.5 — **CURRENT**.
+- W2 target Internet walking driver — after appearance conditioning is understood.
 - W3 secondary-motion stress video.
 - W4 finite hypothesis-driven variants only if needed.
 
