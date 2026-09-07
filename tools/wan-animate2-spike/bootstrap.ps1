@@ -57,7 +57,7 @@ Require-Command 'git.exe' 'Git for Windows is required.'
 
 $qualifier = Split-Path -Qualifier $Workspace
 if (-not $qualifier) { throw "Workspace must be on an absolute Windows drive path: $Workspace" }
-$driveName = $qualifier.TrimEnd(':','\')
+$driveName = $qualifier.TrimEnd(':')
 $drive = Get-PSDrive -Name $driveName -ErrorAction Stop
 $freeGB = [math]::Round($drive.Free / 1GB, 1)
 
