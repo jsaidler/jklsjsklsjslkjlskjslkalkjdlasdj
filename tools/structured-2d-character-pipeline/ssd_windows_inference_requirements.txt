@@ -1,0 +1,31 @@
+# Sprite Sheet Diffusion — Windows inference-only dependency lock
+# Python 3.10 / Windows 11 / RTX 3060 validation spike.
+#
+# Torch/torchvision are installed separately from the official PyTorch CUDA 11.8 index
+# by 25_bootstrap_ssd_dependencies.ps1 and therefore are intentionally omitted here.
+#
+# This lock is deliberately smaller than upstream ModelTraining/requirements.txt:
+# training/UI-only packages are omitted; xformers is deferred because upstream pins
+# xformers==0.0.22, which has no CPython 3.10 Windows wheel on PyPI and is optional
+# in SSD inference code. If VRAM later proves insufficient, xformers is a separate gate.
+#
+# Windows compatibility adjustment: upstream pins av==11.0.0, but that release is
+# source-only on PyPI; av==12.0.0 provides a CPython 3.10 Windows wheel and preserves
+# the av.open / VideoFrame APIs used by SSD inference utilities.
+
+accelerate==0.21.0
+av==12.0.0
+diffusers==0.24.0
+einops==0.4.1
+ffmpeg-python==0.2.0
+huggingface_hub==0.24.0
+matplotlib==3.7.5
+mediapipe==0.10.11
+numpy==1.24.4
+omegaconf==2.2.3
+opencv-contrib-python==4.8.1.78
+Pillow==9.5.0
+scikit-image==0.21.0
+scipy==1.11.4
+tqdm==4.66.1
+transformers==4.30.2
