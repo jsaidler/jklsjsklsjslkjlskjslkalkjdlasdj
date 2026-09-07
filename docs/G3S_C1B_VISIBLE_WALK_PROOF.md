@@ -2,21 +2,23 @@
 
 Status date: **2026-09-06**
 
-Gate status: **C1A PASS/CLOSED / C1B EIGHT-FRAME FLUX2 VISUAL PROOF RUNNER READY / REVIEW REQUIRED**
+Gate status: **C1A PASS/CLOSED / C1B FLUX2 PER-FRAME REDRAW FAIL/CLOSED / SEGMENTED 2D SKELETAL PUPPET CURRENT**
 
 ## Purpose
 
-C1B is the first step that should finally show the Exilada herself moving rather than only hidden-control data.
+C1B exists to show the Exilada herself moving while preserving one persistent visible character.
 
-Architecture remains:
+Approved hidden motion remains:
 
-`real mocap -> approved hidden skeleton cycle -> complete visible 2D redraw per gait state -> sprite playback`
+`real mocap -> approved hidden skeleton cycle`
 
-C1B does **not** warp the static B3B body and does not expose/render a hidden human 3D body.
+The visible side has now been corrected to:
+
+`persistent native-2D body parts -> bind to hidden skeleton -> project/transform/depth-sort -> composite sprite`
 
 ## C1A input — PASS
 
-Approved hidden motion cycle:
+Approved cycle:
 
 `1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
@@ -28,13 +30,11 @@ Reviewed evidence:
 
 - contact sheet SHA256 `672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd`;
 - zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
-- observed projected root travel approximately `-43.77 px` screen-left.
+- projected root travel approximately `-43.77 px` screen-left.
 
-C1A passed coherent gait, left/right progression, support-foot progression, limb-chain integrity, pelvis/trunk/leg readability and directional-family sanity.
+C1A remains valid.
 
-## Visible identity anchor
-
-Canonical body remains unchanged:
+## Canonical visible identity
 
 `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 
@@ -43,82 +43,85 @@ Canonical body remains unchanged:
 - screen-left front-three-quarter family;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`.
 
-It is used only as identity/body-style conditioning. It is not deformed into the gait.
+The canonical file remains unchanged.
 
-## Current C1B implementation
+## Flux2 per-frame redraw — FAIL/CLOSED
 
-This is a bounded **visual animation proof**, not automatic production promotion.
+The reviewed visual proof generated a complete new body independently for every gait state.
 
-It reuses the already-retained local FLUX.2 Klein stack at:
+Reviewed output:
 
-`Z:\AI\Flux2RefControlSpike`
+- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
+- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
 
-Required existing model files:
+Observed failure:
 
-- `flux-2-klein-base-4b-fp8.safetensors`;
-- `qwen_3_4b.safetensors`;
-- `flux2-vae.safetensors`.
+- face/identity changed across frames;
+- skin tone and shading changed;
+- breast/waist/shoulder/body proportions changed;
+- camera/silhouette family drifted;
+- pixel-art treatment drifted;
+- playback reads as several different women rather than one persistent Exilada.
 
-No download and no paid API are permitted by this runner.
+Failure marker:
 
-Each of the eight gait states receives two visual references:
+`tools/structured-2d-character-pipeline/g3s_c1b_flux2_visual_failure.json`
 
-1. exact B3B body identity/style reference on a `96×160` logical neutral canvas, integer-enlarged to `576×960` for model conditioning;
-2. one clean skeleton-derived pose-control image generated from the approved C1A joint data.
+Closed method:
 
-The model must redraw a complete bald nude barefoot adult body for every state. It is explicitly forbidden to output hair, clothing, restraints, accessories or weapons at this gate.
+`approved skeleton pose -> independent generative full-body redraw per frame`
 
-## Current files
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_c1b_flux2_walk_spec.json`
-
-Input preparation:
-
-`tools/structured-2d-character-pipeline/g3s_c1b_prepare_flux2_walk_inputs.py`
-
-Review builder:
-
-`tools/structured-2d-character-pipeline/g3s_c1b_build_flux2_walk_review.py`
-
-Runner:
+The old runner is intentionally disabled:
 
 `tools/structured-2d-character-pipeline/22_run_g3s_c1b_flux2_walk_visual_proof.ps1`
 
-Workspace:
+No new model/runtime was installed by this gate. The pre-existing FLUX2 stack remains retained for unrelated bounded experiments; no cleanup applies.
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof`
+## CURRENT — segmented persistent 2D skeletal puppet
 
-## Expected outputs
+Canonical architecture:
 
-Primary review artifacts:
+`approved C1A skeleton -> persistent 2D body-part atlas -> anatomical pivots/bindings -> projected bone position/rotation/length -> camera-space depth order -> composited native-2D body frame`
 
-- `g3s_c1b_exilada_walk_visual_proof.gif`;
-- `g3s_c1b_exilada_walk_contact_sheet.png`;
-- `g3s_c1b_review.json`;
-- eight generated full-resolution candidate frames;
-- eight `96×160` nearest-neighbor inspection reductions.
+Detailed document:
 
-The reductions are review-only. They are **not** mechanically promoted into final native production art.
+`docs/G3S_C1B_SEGMENTED_PUPPET.md`
 
-## PASS requirement
+Spec:
 
-C1B visual proof passes only if the animation reads as one coherent woman across all eight states:
+`tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`
 
-- recognizable continuity with B3B body proportions/style;
-- adult bald nude body throughout;
-- exactly two arms/two legs with connected plausible anatomy;
-- no detached/duplicate/melted limbs;
-- same screen-left elevated front-three-quarter family;
-- gait progression follows the approved C1A skeleton;
-- no frame catastrophically changes body type, view or identity;
-- playback reads as a walk rather than eight unrelated poses.
+Initial persistent parts:
 
-## Promotion rule
+- head/neck;
+- torso;
+- pelvis;
+- left/right upper arm;
+- left/right forearm;
+- left/right hand;
+- left/right thigh;
+- left/right shin;
+- left/right foot.
 
-Nothing produced by C1B is automatically a production sprite.
+### Critical difference from C0 V1
 
-If the visual proof succeeds, the next action is to freeze/author the accepted eight-state native-2D body family without violating the existing rule against mechanically shrinking/quantizing arbitrary high-resolution art into final production assets.
+The current method may not repeat `nearest-segment hard partition + independent rigid rotation`.
 
-Hair remains deferred and must not return during this body locomotion proof.
+It requires explicit pivots, deliberate hidden overlap under joints, continuous torso/pelvis connection, skeleton-driven depth order, and small reusable orientation/foreshortening variants only where one flat part is insufficient.
+
+Those variants are frozen persistent assets, never independent full-body frame redraws.
+
+## Next implementation
+
+The next runner must produce:
+
+- segmented native-2D body-part atlas;
+- pivot/binding manifest;
+- eight body-only walk frames driven by C1A;
+- in-place GIF;
+- travel GIF;
+- contact sheet with optional skeleton overlay.
+
+PASS requires one recognizable persistent Exilada body through the entire cycle with intact joints, stable proportions/identity and correct screen-left locomotion.
+
+Hair remains deferred.
