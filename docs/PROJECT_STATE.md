@@ -7,15 +7,16 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-3. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-4. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-5. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-6. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-7. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-8. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-9. `docs/G3S_B4_HAIR_LOG.md`
-10. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+2. `docs/G1_CAMERA_SCALE_LOG.md`
+3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+4. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+5. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
+6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
+7. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+8. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+9. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+10. `docs/G3S_B4_HAIR_LOG.md`
+11. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -25,12 +26,22 @@ Normal operator loop after an approved runner exists:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
-## Game / presentation — LOCKED
+## Game / presentation — LOCKED FOR FEASIBILITY
 
-- systemic sword-and-sorcery action RPG with roguelite expedition structure, persistent fortress growth, protagonist meta-progression and causal living world;
-- elevated 2D belt-scroller / false 3D;
-- true modern pixel art at native gameplay raster;
-- `640×360`, orthographic, pitch `26°`, protagonist standing body height approximately `128 px`.
+The project originally considered true isometric 2D presentation. That direction was deliberately abandoned because it multiplied view families, pose coverage, occlusion cases and animation production cost.
+
+The locked gameplay presentation is an **elevated 2D arcade beat'em-up / belt-scroller / false 3D**:
+
+- fixed orthographic camera;
+- `640×360` native raster;
+- pitch `26 deg`;
+- protagonist standing body height about `128 px`;
+- walkable gameplay depth band retained;
+- first visible character family is screen-left front-three-quarter;
+- movement through gameplay depth does not require north/south/isometric sprite families;
+- screen-right is deferred until the left family is proven.
+
+This simplification is part of the production architecture. Any route that silently recreates isometric/multi-directional complexity is drift.
 
 ## Canonical Exilada body — PASS/CLOSED
 
@@ -60,10 +71,11 @@ C1A approval:
 ## Closed visible routes
 
 - direct visible 3D -> final pixel art — CLOSED;
-- single B3B still -> nearest-segment hard partition / independent rigid parts -> full walk — CLOSED in its C0 V1 form;
+- single B3B still -> nearest-segment hard partition / independent rigid parts -> full walk — CLOSED in C0 V1 form;
 - single B3B still -> continuous full-body chain/cage warp -> full walk — CLOSED;
 - MPFB skinned body as mandatory hidden animation guide — CLOSED;
-- independent full-body generative redraw for each walk frame — CLOSED after C1B Flux2 visual review.
+- independent full-body generative redraw for each walk frame — CLOSED after C1B Flux2 review;
+- implicit return to isometric/multi-directional character coverage — CLOSED unless presentation is explicitly reopened.
 
 ## C1B Flux2 per-frame redraw — FAIL/CLOSED
 
@@ -80,20 +92,20 @@ Failure marker:
 
 Runner 22 is intentionally disabled. No new model/runtime was installed by this gate; no cleanup applies.
 
-## CURRENT — C1B SEGMENTED 2D SKELETAL PUPPET
+## CURRENT — C1B MINIMAL SEGMENTED 2D SKELETAL PUPPET
 
 The corrected visible animation architecture is:
 
-`real mocap -> approved hidden 3D skeleton -> persistent native-2D body-part atlas -> explicit anatomical pivots/bindings -> projected bone transforms -> camera-space depth sort -> composited sprite -> QA`
+`real mocap -> approved hidden 3D skeleton -> persistent native-2D body-part atlas -> explicit pivots/overlap -> projected bone transforms -> camera-space depth sort -> composited sprite -> QA`
 
 The hidden 3D owns motion/spatial control only. Final visible pixels are persistent 2D parts.
 
 Current design docs/spec:
 
 - `docs/G3S_C1B_SEGMENTED_PUPPET.md`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`.
+- `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json` revision `SEGMENTED_2D_SKELETAL_PUPPET_V2_BELT_SCROLLER_MINIMAL`.
 
-Initial parts:
+Initial persistent parts:
 
 - head/neck;
 - torso;
@@ -110,12 +122,20 @@ The current puppet requires:
 - explicit anatomical pivots;
 - deliberate overlap under joints;
 - continuous torso/pelvis connection;
-- optional joint cover/cap sprites;
-- position/rotation/projected length from the hidden skeleton;
-- depth draw order from camera-space skeleton depth;
-- small persistent foreshortening/orientation variants only where one flat part cannot represent the projection.
+- skeleton-driven position/rotation/projected length;
+- draw order from camera-space skeleton depth.
 
-Variants are reusable source assets, not frame-specific redraws.
+### Non-negotiable simplification
+
+The first proof must not pre-emptively add art families that the belt-scroller decision was meant to eliminate:
+
+- one screen-left family only;
+- same persistent part set across all eight walk states;
+- no north/south/isometric directions;
+- no frame-specific redraw;
+- no generative model;
+- no foreshortening/orientation variants unless the first composed walk demonstrates a specific unavoidable failure;
+- no manual frame repair required from the user.
 
 ## Next implementation
 
