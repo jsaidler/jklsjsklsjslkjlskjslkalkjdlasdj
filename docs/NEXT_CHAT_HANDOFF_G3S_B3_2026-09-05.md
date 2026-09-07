@@ -70,9 +70,7 @@ For walk8:
 
 `master + reference pose + targets --SSD--> 8 visible frames`
 
-This avoids both manual pose authoring and unnecessary AI re-detection of exact motion data.
-
-## Current runner — READY
+## Runner 28 first execution — SCRIPT FAIL / CLOSED
 
 Helper:
 
@@ -82,7 +80,33 @@ Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-It automatically prepares the inputs, runs DWPose on the master, creates the eight target control maps, handles the upstream reference-pose assumption via a generated local inference copy, runs SSD at 512×512 / 8 frames / 25 steps / CFG 3.5 / fp16, and builds a contact sheet + GIF.
+Actual first error:
+
+`C:\Users\jsaid\miniconda3\envs\ssd\python.exe: can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
+
+Root cause: Windows PowerShell 5.1 `Start-Process -ArgumentList` flattened a raw string array and split the helper path under `D:\GOOGLE DRIVE\...` at the first space.
+
+This was a runner bug only. No SSD/DWPose/model gate was invalidated.
+
+## Windows native argument rule — LOCKED
+
+- never pass raw string arrays containing whitespace-bearing paths to Windows PowerShell 5.1 `Start-Process -ArgumentList`;
+- explicitly quote the constructed native argument line, or use an argv-preserving transport;
+- runners using paths with spaces must preflight argument transport before expensive/model work;
+- actual project-root and Exilada master paths are regression-test cases.
+
+## Current runner — FIXED / RETRY READY
+
+Runner 28 now:
+
+- uses one controlled Python invocation function;
+- explicitly quotes whitespace-bearing arguments;
+- uses PowerShell splatting, not fragile continuation syntax;
+- performs a Python argv transport preflight before DWPose/model work;
+- verifies the complete project-root and master paths arrive intact;
+- applies the same controlled quoting to preparation, inference and review.
+
+After the preflight it automatically runs DWPose on the master, creates the eight target control maps, handles the upstream reference-pose assumption via a generated local inference copy, runs SSD at 512×512 / 8 frames / 25 steps / CFG 3.5 / fp16, and builds a contact sheet + GIF.
 
 FILM remains disabled for this first proof.
 
@@ -95,6 +119,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
 ```
 
+Expected early output:
+
+- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
+- `[OK] Native argument quoting preflight PASS.`
+- `[PREP] ...`
+
 Successful technical end state:
 
 - `SSD-WALK8: OUTPUT READY FOR VISUAL QA`;
@@ -105,8 +135,8 @@ Successful technical end state:
 
 Do not declare visual PASS until the user reviews identity, anatomy/proportions, hair, cloth/shackles/chains, pose obedience and temporal coherence.
 
-## PowerShell rule
+## PowerShell rules
 
-Expected native failures cannot be raw control flow under `$ErrorActionPreference='Stop'`. Use controlled child processes, structured diagnostics and explicit exit-code handling.
+Expected native failures cannot be raw control flow under `$ErrorActionPreference='Stop'`. Use controlled child processes, structured diagnostics and explicit exit-code handling. Space-bearing paths additionally require argv transport preflight.
 
 SSD route remains ACTIVE. No cleanup applies.
