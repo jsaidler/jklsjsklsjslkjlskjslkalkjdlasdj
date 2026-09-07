@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN-ANIMATE-2 BASE BF16 W0 INFERENCE ACTIVE / SCAIL-2 NEXT OPEN LOCAL CANDIDATE**
+Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN-ANIMATE-2 BASE BF16 W0 RETRY ACTIVE / SCAIL-2 NEXT OPEN LOCAL CANDIDATE**
 
 ## Purpose
 
@@ -25,21 +25,9 @@ Active Wan workspace: `Z:\AI\WanAnimate2`
 
 ## Hard production contract — LOCKED
 
-A production candidate must:
+A production candidate must accept a complete reference image plus a separate driving video, consume richer motion information than a body skeleton, preserve target appearance strongly, automatically infer locomotion/weight transfer, jiggle/soft response, long-hair inertia, cloth/material/wind response and restraint/accessory behavior, and require no routine manual animation cleanup or repair.
 
-- accept a complete reference image plus a separate driving video;
-- consume richer motion information than a body skeleton;
-- preserve the target character appearance as strongly as possible;
-- infer locomotion/weight transfer automatically;
-- infer body jiggle/soft response automatically;
-- infer long-hair inertia/follow-through automatically;
-- infer cloth deformation/lag/material response automatically;
-- infer wind response where appropriate;
-- keep shackles/chains/accessories attached and temporally coherent;
-- require no routine manual keyframing, rigging, cloth simulation, hair bones, repainting, per-frame cleanup, hand compositing or manual mask repair;
-- permit automatic preprocessing;
-- output the whole visible character per frame for automatic spritesheet packing;
-- remain recognizable as the approved Exilada/game-art language at gameplay scale.
+Automatic preprocessing is allowed. Runtime output remains complete precomposed character frames suitable for automatic spritesheet packing.
 
 ## Pose-only methods
 
@@ -83,7 +71,7 @@ A candidate reaches `EXHAUSTED_FAIL` only after a finite controlled sequence:
 6. no manual rescue;
 7. no seed fishing.
 
-A bad single run is `CONFIGURATION FAIL` or `INTEGRATION FAIL`, not automatic model death.
+A runtime/loader failure is `INFRASTRUCTURE FAIL`, not evidence about model quality.
 
 ## W0 checkpoint-quality decision — LOCKED 2026-09-07
 
@@ -102,122 +90,74 @@ If the exact BF16 set cannot execute on 12 GB VRAM + 48 GB RAM, reduce execution
 
 ## Upstream W0 semantics
 
-Repository Base config documents:
+Repository Base config documents `640×800`, 37 frames, 16 fps, 20 steps, seed `0`, Base BF16, flow/model shift `5.0` and no CFG in the normal Base route.
 
-- `640×800`;
-- `37` frames;
-- `16 fps`;
-- `20` steps;
-- base seed `0`;
-- Base BF16;
-- flow/model sampling shift `5.0`;
-- no CFG in the normal Base route.
-
-The separate upstream Diffusers example demonstrates Base BF16 at `640×800` with 40 steps. The project W0 deliberately follows the repository-YAML/20-step route first rather than mixing both paths.
-
-## W0 official inputs
-
-Use upstream `examples/demo1/reference.png` and `examples/demo1/template.mp4`.
-
-Do not begin W1 with Exilada until W0 establishes credible local motion transfer.
+W0 uses upstream `examples/demo1/reference.png` and `examples/demo1/template.mp4`.
 
 ## Runner 35 preparation — PASS 2026-09-07
 
 `tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
 
-Result: **PASS**.
+Result: **PASS**. Canonical BF16 assets and native ComfyUI schemas are present.
 
-Confirmed terminal markers:
+## Runner 36 — W0 OFFICIAL BF16 INFERENCE
 
-- `WAN BF16 SCHEMA PREFLIGHT: PASS`
-- `RUNNER35-WAN-BF16-PREP: PASS — READY TO AUTHOR W0 WORKFLOW`
+Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-Proof files:
+Builder/executor: `tools/wan-animate2-spike/build_and_run_w0.py`
 
-- `Z:\AI\WanAnimate2\wan_bf16_route.json`
-- `Z:\AI\WanAnimate2\object_info_wan_bf16.json`
+The graph and all model/inference settings remain locked at the official W0 values.
 
-This proves the canonical BF16 assets and installed native ComfyUI node contract are present. It does **not** prove model quality.
+### Attempt 1 — INFRASTRUCTURE FAIL
 
-## Runner 36 — W0 OFFICIAL BF16 INFERENCE ACTIVE
+Observed failure after approximately 74 seconds:
 
-Runner:
+`RuntimeError: hostbuf_file_reader_read failed`
 
-`tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
+Location: `comfy_aimdo/host_buffer.py`, during ComfyUI host-buffer/dynamic weight streaming.
 
-Builder/executor:
+This is **not** a visual/model failure and does not count against Wan exhaustion. It happened before meaningful denoising/output evaluation.
 
-`tools/wan-animate2-spike/build_and_run_w0.py`
+Current ComfyUI exposes `--disable-pinned-memory`, and contemporary ComfyUI/Wan reports document this same host-buffer failure being resolved by disabling pinned memory while keeping the workflow unchanged.
 
-The builder queries live `/object_info`, validates the exact installed node contract and creates the API graph dynamically. It uses the raw official driving-video frames directly in the native `WanAnimate2ToVideo` driving/`pose_video` branch and the first driving frame in the dedicated driving CLIP-vision branch. No DWPose/custom preprocessing is installed or inserted into this W0 graph.
+### Attempt 2 — ACTIVE
 
-Locked W0 inference settings:
+Change exactly one variable: launch ComfyUI with:
 
-- Base BF16 main model;
-- UMT5 XXL FP16;
+`--disable-pinned-memory`
+
+Unchanged:
+
+- Base BF16;
+- UMT5 FP16;
 - CLIP Vision H;
-- Wan VAE BF16;
+- VAE BF16;
+- official reference/driver;
 - `640×800`;
 - 37 frames;
-- 16 fps;
 - 20 steps;
-- CFG `1.0` / no CFG;
-- Euler;
-- simple scheduler;
-- shift `5.0`;
-- seed `0`;
-- driving/pose strength `1.0`;
-- reference-image strength `1.0`.
+- seed 0;
+- Euler/simple;
+- shift 5.0;
+- all conditioning strengths.
 
-Expected evidence:
+The runner restarts only its own managed ComfyUI server so the new launch flag is definitely applied.
 
-- `Z:\AI\WanAnimate2\object_info_w0_live.json`
-- `Z:\AI\WanAnimate2\w0_api_prompt.json`
-- `Z:\AI\WanAnimate2\w0_run_manifest.json`
-- `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
-
-Only after visual W0 acceptance may W1 replace the reference with `exilada_master.png`.
+Do not disable Dynamic VRAM, reduce resolution/frame count or quantize unless this narrower retry fails. Those would be subsequent one-variable tests.
 
 ## Wan exhaustion order
 
-### W0 — official baseline
-
-Official reference + official driver, Base BF16.
-
-### W1 — Exilada cross-identity
-
-Same known-good driver/settings; replace only reference with `exilada_master.png`.
-
-### W2 — target walking driver
-
-Clean full-body Internet walking clip.
-
-### W3 — secondary-motion stress
-
-Real footage with visible body bounce and non-rigid dynamics such as long hair, loose cloth or wind.
-
-### W4 — finite variants only
-
-Examples: Base vs Distilled, hardware-safe temporal/spatial execution changes, one justified quantization tier, documented viewpoint/reference controls.
+- W0 official baseline;
+- W1 Exilada cross-identity;
+- W2 target walking driver;
+- W3 secondary-motion stress;
+- W4 finite high-leverage variants only.
 
 After W4 classify Wan as `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
 ## Complete-character QA
 
-Judge the whole sequence on:
-
-1. Exilada identity/face/body proportions;
-2. motion adherence and grounding;
-3. hands/feet/limb topology;
-4. hair mass persistence + inertia;
-5. cloth topology + lag/folding;
-6. body soft motion/jiggle where expected;
-7. restraint/chain/accessory attachment and temporal behavior;
-8. no leakage of driver identity/clothing/body shape;
-9. camera/background compatibility with automatic spritesheet extraction;
-10. game-art readability around `128 px` height;
-11. automatic frame extraction/packing suitability;
-12. zero routine manual cleanup.
+Judge identity/body proportions, motion adherence, hands/feet topology, hair persistence/inertia, cloth lag/folding, body soft motion, restraint/accessory temporal coherence, driver leakage, camera/background extraction suitability, ~128 px game readability, automatic packing suitability and zero routine manual cleanup.
 
 ## Cleanup discipline
 
