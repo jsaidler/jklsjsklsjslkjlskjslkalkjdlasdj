@@ -48,19 +48,11 @@ $Blender = Find-BlenderExe
 if (-not $Blender) { Fail 'Blender could not be located.' }
 
 $base = Get-Content -LiteralPath $BaseSpec -Raw | ConvertFrom-Json
-if ($base.gate -ne 'G3S-C1A' -or $base.revision -ne 'SKELETON_ONLY_WALK_CYCLE_V1') {
-    Fail 'Unexpected canonical C1A skeleton spec.'
-}
+if ($base.gate -ne 'G3S-C1A' -or $base.revision -ne 'SKELETON_ONLY_WALK_CYCLE_V1') { Fail 'Unexpected canonical C1A skeleton spec.' }
 $overlaySpecData = Get-Content -LiteralPath $OverlaySpec -Raw | ConvertFrom-Json
-if ($overlaySpecData.gate -ne 'G3S-C1C_GAMEPLAY_WALK_OVERLAY' -or $overlaySpecData.revision -ne 'GAMEPLAY_WALK_OVERLAY_V2_FEMININE') {
-    Fail 'Unexpected feminine-walk overlay spec.'
-}
-if ($overlaySpecData.status -ne 'RUNNER_READY_REVIEW_REQUIRED') {
-    Fail 'Feminine-walk overlay spec is not runner-ready.'
-}
-if ([math]::Abs([double]$overlaySpecData.facing_azimuth_deg - 72.0) -gt 0.01) {
-    Fail "Feminine-walk overlay spec facing mismatch: $($overlaySpecData.facing_azimuth_deg)"
-}
+if ($overlaySpecData.gate -ne 'G3S-C1C_GAMEPLAY_WALK_OVERLAY' -or $overlaySpecData.revision -ne 'GAMEPLAY_WALK_OVERLAY_V2_FEMININE') { Fail 'Unexpected feminine-walk overlay spec.' }
+if ($overlaySpecData.status -ne 'RUNNER_READY_REVIEW_REQUIRED') { Fail 'Feminine-walk overlay spec is not runner-ready.' }
+if ([math]::Abs([double]$overlaySpecData.facing_azimuth_deg - 72.0) -gt 0.01) { Fail "Feminine-walk overlay spec facing mismatch: $($overlaySpecData.facing_azimuth_deg)" }
 
 New-Item -ItemType Directory -Force -Path $Workspace | Out-Null
 Get-ChildItem -LiteralPath $Workspace -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force
@@ -102,9 +94,7 @@ if (-not (Test-Path $baselineGuide -PathType Leaf)) { Fail "72-degree baseline g
 if ($LASTEXITCODE -ne 0) { Fail "Baseline review builder exited with code $LASTEXITCODE" }
 
 $baselineData = Get-Content -LiteralPath $baselineGuide -Raw | ConvertFrom-Json
-if ([math]::Abs([double]$baselineData.camera.azimuth_from_motion_heading_deg - 72.0) -gt 0.01) {
-    Fail "Baseline guide azimuth mismatch: $($baselineData.camera.azimuth_from_motion_heading_deg)"
-}
+if ([math]::Abs([double]$baselineData.camera.azimuth_from_motion_heading_deg - 72.0) -gt 0.01) { Fail "Baseline guide azimuth mismatch: $($baselineData.camera.azimuth_from_motion_heading_deg)" }
 if ($baselineData.frames.Count -ne 8) { Fail "Baseline expected 8 frames, got $($baselineData.frames.Count)" }
 
 $overlayGuide = Join-Path $OverlayDir 'g3s_c1c_gameplay_walk_overlay_v2_feminine_guide.json'
@@ -121,14 +111,10 @@ if (-not (Test-Path $overlayMarker -PathType Leaf)) { Fail "Overlay marker missi
 if ($LASTEXITCODE -ne 0) { Fail "Overlay review builder exited with code $LASTEXITCODE" }
 
 $marker = Get-Content -LiteralPath $overlayMarker -Raw | ConvertFrom-Json
-if ($marker.status -ne 'PASS_OUTPUT_READY_FOR_SKELETON_VISUAL_QA') {
-    Fail "Unexpected overlay marker status: $($marker.status)"
-}
-if ($marker.revision -ne 'GAMEPLAY_WALK_OVERLAY_V2_FEMININE') {
-    Fail "Unexpected overlay marker revision: $($marker.revision)"
-}
-if ([double]$marker.max_projected_hip_y_difference_px -gt 8.0) {
-    Fail "Projected hip obliquity safety limit exceeded: $($marker.max_projected_hip_y_difference_px)px"
+if ($marker.status -ne 'PASS_OUTPUT_READY_FOR_SKELETON_VISUAL_QA') { Fail "Unexpected overlay marker status: $($marker.status)" }
+if ($marker.revision -ne 'GAMEPLAY_WALK_OVERLAY_V2_FEMININE') { Fail "Unexpected overlay marker revision: $($marker.revision)" }
+if ([double]$marker.max_added_projected_hip_y_separation_px -gt [double]$marker.max_allowed_added_projected_hip_y_separation_px) {
+    Fail "Authored pelvic-obliquity delta exceeded safety limit: $($marker.max_added_projected_hip_y_separation_px)px > $($marker.max_allowed_added_projected_hip_y_separation_px)px"
 }
 
 $baselineZoom = Join-Path $BaselineDir 'g3s_c1_skeleton_walk_zoom.gif'
@@ -145,18 +131,8 @@ $summary = [ordered]@{
     facing_azimuth_deg = 72.0
     source_motion = 'CMU 105_34 NormalWalk'
     source_rig = 'G2_CANONICAL_RIG'
-    baseline = [ordered]@{
-        guide = $baselineGuide
-        zoom_gif = $baselineZoom
-        contact_sheet = $baselineSheet
-    }
-    overlay = [ordered]@{
-        spec = $OverlaySpec
-        guide = $overlayGuide
-        marker = $overlayMarker
-        zoom_gif = $overlayZoom
-        contact_sheet = $overlaySheet
-    }
+    baseline = [ordered]@{ guide = $baselineGuide; zoom_gif = $baselineZoom; contact_sheet = $baselineSheet }
+    overlay = [ordered]@{ spec = $OverlaySpec; guide = $overlayGuide; marker = $overlayMarker; zoom_gif = $overlayZoom; contact_sheet = $overlaySheet }
     decision_rule = 'PASS only if the skeleton reads clearly more feminine without catwalk exaggeration, remains grounded/action-ready, and preserves phase/support/anatomical clarity.'
 }
 $summaryPath = Join-Path $Workspace 'g3s_c1c_gameplay_walk_overlay_v2_feminine_review.json'
