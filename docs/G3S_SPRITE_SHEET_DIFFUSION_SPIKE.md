@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — WINDOWS INFERENCE DEPENDENCY BOOTSTRAP RUNNER READY**
+Gate status: **ACTIVE — ENVIRONMENT PASS / WINDOWS DEPENDENCY RUNNER FIXED / RETRY REQUIRED**
 
 ## Decision
 
@@ -31,19 +31,10 @@ Verified implementation facts:
 
 - README requests a Python 3.10 conda environment;
 - README says `pip install -r requirements.txt`, but there is **no root** `requirements.txt`;
-- there **is** an actual dependency file at `ModelTraining/requirements.txt`;
+- actual dependency file: `ModelTraining/requirements.txt`;
 - inference entry point: `ModelTraining/inference.py`;
 - prompt config: `ModelTraining/configs/prompts/inference.yaml`;
-- inference config requires:
-  - `stable-diffusion-v1-5`;
-  - `sd-vae-ft-mse`;
-  - `image_encoder`;
-  - `denoising_unet.pth`;
-  - `reference_unet.pth`;
-  - `pose_guider.pth`;
-  - `motion_module.pth`.
-
-The earlier install plan was corrected twice: first to stop assuming a root requirements file, then after inspection to use the real `ModelTraining/requirements.txt` as the upstream reference rather than the Moore repo alone.
+- inference config later requires SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
 
 ## Environment bootstrap — PASS
 
@@ -51,78 +42,87 @@ Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
-Upstream clone:
-
-`Z:\AI\SpriteSheetDiffusionSpike\repo`
-
 Runner:
 
 `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
 Actual result supplied by the user on 2026-09-07:
 
-- Miniconda: **installed successfully**;
+- upstream clone: PASS;
+- Miniconda: PASS;
 - `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
-- Anaconda default-channel ToS: explicitly accepted through runner opt-in;
-- env `ssd`: **PASS**;
-- Python: **3.10.21**;
-- pip: **26.2.1**;
+- env `ssd`: PASS;
+- Python: `3.10.21`;
+- pip: `26.2.1`;
 - marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
-- no model weights downloaded by this gate.
+- no model weights downloaded.
 
-The earlier `CondaToSNonInteractiveError` is resolved and closed as an environment-bootstrap issue.
+## Windows dependency strategy
 
-## Windows dependency strategy — LOCKED FOR THIS SPIKE
-
-Do **not** blindly install all of `ModelTraining/requirements.txt` on Windows.
-
-A project-specific inference-only lock is committed at:
+Project inference lock:
 
 `tools/structured-2d-character-pipeline/ssd_windows_inference_requirements.txt`
 
-Reasons:
+Decisions for this spike:
 
-1. upstream mixes inference, training, UI and evaluation dependencies;
-2. `xformers==0.0.22` is optional in SSD inference code and has no CPython 3.10 Windows wheel on PyPI; it is deferred rather than compiled from source or silently substituted;
-3. upstream `av==11.0.0` is source-only on PyPI, while SSD only uses stable `av.open` / `VideoFrame` APIs; the Windows lock uses `av==12.0.0`, which has a CPython 3.10 Windows wheel;
-4. training/UI-only packages such as `bitsandbytes`, `wandb`, Gradio and related packages are not installed in this gate;
-5. local OpenPose imports require `matplotlib` and `scikit-image`, so they are included even though the upstream requirements are not fully self-consistent for this import graph.
+- install `torch==2.0.1` + `torchvision==0.15.2` from official CUDA 11.8 wheels;
+- do not blindly install the mixed training/UI upstream requirements;
+- defer optional `xformers`;
+- use `av==12.0.0` on Windows instead of upstream `av==11.0.0` because the latter is source-only for this Python/Windows target while the APIs SSD uses remain available;
+- include import-time dependencies actually needed by the real local graph, including `matplotlib` and `scikit-image`.
 
-## CUDA/PyTorch decision
-
-Install exactly:
-
-- `torch==2.0.1`;
-- `torchvision==0.15.2`;
-- from the official **CUDA 11.8** PyTorch wheel index.
-
-This matches the SSD-era dependency family while giving a deterministic Windows CUDA build for the RTX 3060.
-
-`xformers` is intentionally absent from the first inference dependency proof. If 12 GB VRAM later proves insufficient, xformers/offload becomes a separate measured optimization gate rather than an installation prerequisite.
-
-## Current runner — dependency gate
+## Dependency runner — first execution FAIL / SCRIPT BUG
 
 Runner:
 
 `tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
 
-It:
+The first execution failed at the old Torch preflight probe around line 98 with PowerShell reporting:
 
-1. requires the environment PASS marker;
-2. validates Python 3.10 in env `ssd`;
-3. validates the real upstream `ModelTraining/requirements.txt` and the project Windows inference lock;
-4. installs PyTorch 2.0.1 + torchvision 0.15.2 CUDA 11.8 from the official PyTorch index;
-5. installs the inference-only Windows lock;
-6. runs `pip check`;
-7. performs a CUDA probe;
-8. imports the real upstream `ModelTraining/inference.py` and its local model/OpenPose/pipeline import graph without loading checkpoints;
-9. writes:
-   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`;
-   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`;
-   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
-10. downloads **no model weights**.
+`NativeCommandError / RemoteException`
+
+The user correctly identified this as the same recurring class of script error seen in earlier work.
+
+### Root cause
+
+The runner combined:
+
+- `$ErrorActionPreference = 'Stop'`;
+- a native command expected to fail when Torch was not yet installed;
+- native STDERR redirected through `2>&1`.
+
+Windows PowerShell promoted native STDERR into a terminating PowerShell error before the runner could inspect `$LASTEXITCODE` and decide that the preflight simply meant "Torch is not installed yet".
+
+This was a **PowerShell control-flow defect in our runner**, not a Torch, CUDA, SSD or model-quality failure.
+
+## Native-process scripting rule — LOCKED
+
+For new project PowerShell runners:
+
+1. do not execute expected-failure native probes directly under `$ErrorActionPreference='Stop'`;
+2. do not depend on raw `2>&1` native tracebacks as control flow;
+3. native calls must temporarily isolate themselves from the global Stop policy, then explicitly inspect `$LASTEXITCODE`;
+4. expected Python probes should catch their own exceptions and emit structured JSON while exiting cleanly;
+5. a probe failure must be reported as a project `FAIL` with a preserved diagnostic file, not as an unhandled PowerShell `NativeCommandError`.
+
+This rule is intended to prevent this exact recurring failure class from appearing again in subsequent SSD runners.
+
+## Runner 25 — FIXED
+
+Runner 25 was rewritten after the failure.
+
+Changes:
+
+- dependency work now resolves the environment interpreter directly (`...\miniconda3\envs\ssd\python.exe`) instead of relying on `conda run` for every Python action;
+- all native calls use wrappers that temporarily set `ErrorActionPreference=Continue`, record the exit code, then restore the project-wide Stop policy;
+- Torch preflight now catches import failure inside Python and writes `ssd_torch_probe.json`; missing Torch is data, not a process error;
+- incompatible existing Torch triggers deterministic reinstall from the official CUDA 11.8 wheel index;
+- the real `ModelTraining/inference.py` import probe catches Python exceptions and writes a structured `ssd_dependency_probe.json` instead of throwing a raw traceback into PowerShell;
+- no model/checkpoint download occurs in this gate.
 
 ## Current exact operator action
+
+Pull the fixed runner and rerun the dependency gate:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
@@ -133,18 +133,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 ## Dependency gate PASS
 
-PASS requires all of the following:
+PASS requires:
 
 - `SSD-DEPS: PASS`;
-- CUDA available in torch;
-- RTX/NVIDIA GPU name reported;
-- torch `2.0.1` with CUDA build `11.8`;
+- CUDA available;
+- torch 2.0.1 / torchvision 0.15.2 with CUDA build 11.8;
+- RTX/NVIDIA GPU reported;
+- `pip check` passes;
 - real SSD `inference.py` import graph passes;
-- dependency marker and freeze snapshot are written.
+- marker/freeze files written.
 
-## Dependency gate FAIL
+Primary local outputs:
 
-Any package-resolution, Windows-wheel, CUDA or real-import failure is a dependency-gate failure only. It is not evidence about SSD image quality. Fix the smallest concrete compatibility defect and rerun this gate before downloading models.
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_torch_probe.json`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`.
+
+If the import graph fails, the runner must now end with a clean `SSD-DEPS: FAIL` and preserve the Python traceback in `ssd_dependency_probe.json`.
 
 ## Model assets — NOT YET DOWNLOADED
 
@@ -156,22 +162,13 @@ Only after dependency PASS, prepare a separate controlled model-bootstrap gate f
 - AnimateAnyone `pose_guider.pth`;
 - AnimateAnyone `motion_module.pth`;
 - `stabilityai/sd-vae-ft-mse`;
-- CLIP vision `image_encoder/` from the SD image-variations model.
-
-No checkpoint/model download is considered complete until exact path, provenance, size/hash when available and local verification are recorded here.
+- CLIP vision `image_encoder/`.
 
 ## Cleanup if SSD is explicitly discarded
 
-Workspace:
-
 ```powershell
 Remove-Item -LiteralPath "Z:\AI\SpriteSheetDiffusionSpike" -Recurse -Force -ErrorAction SilentlyContinue
-```
-
-Environment:
-
-```powershell
 & "C:\Users\jsaid\miniconda3\Scripts\conda.exe" env remove -n ssd -y
 ```
 
-SSD is currently ACTIVE, so no cleanup applies now.
+SSD is ACTIVE, so no cleanup applies now.
