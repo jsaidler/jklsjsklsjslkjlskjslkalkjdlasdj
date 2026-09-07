@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **RUNNER 34 COMPLETE-CHARACTER EXPORT PASS / POSE-ONLY TEMPORAL QUALITY FAIL / EXACT UPSTREAM SSD BLOCKED / RICHER COMPLETE-MOTION CONTROL REQUIRED**
+Gate status: **RUNNER 34 COMPLETE-CHARACTER EXPORT PASS / POSE-ONLY TEMPORAL QUALITY FAIL / RUNNER 35 WAN COMPLETE-MOTION PROOF ACTIVE**
 
 ## Runtime target — LOCKED
 
@@ -18,7 +18,7 @@ Runtime construction of the visible character from body/hair/clothing/equipment 
 
 For the current work this master defines the entire initial visible character state. Hair, base clothing/bindings, restraints/shackles/chains and visible accessories are part of the animation requirement.
 
-## Local environment — PASS
+## Local SSD environment — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -136,20 +136,89 @@ The temporal prior alone is not reliable enough to invent those systems while pr
 
 Therefore the project should not spend the next iteration on broad CFG/seed/step/resolution tuning. The missing information class is **whole-character motion control**.
 
-## Next experiment class — richer complete-motion driver
+## Runner 35 — Wan-Animate-2 complete-motion proof — ACTIVE
 
-The next route must continue using `exilada_master.png` as the appearance reference but supply a driving/control representation that includes or constrains more than the body skeleton.
+Runner:
 
-Required motion information includes:
+`tools/structured-2d-character-pipeline/35_run_exilada_wan_animate2_complete_motion_proof.ps1`
 
-- body locomotion/weight transfer;
-- hair mass movement and lag;
-- cloth movement and lag;
-- chain/restraint trajectories;
-- soft-tissue/jiggle where required;
-- full moving silhouette and occlusion relationships.
+Driver builder:
 
-Potential offline control sources may include a hidden rig/proxy with deterministic secondary systems, a simulated proxy video, or another full driving-video representation. These are authoring controls only; final runtime remains complete spritesheet playback.
+`tools/structured-2d-character-pipeline/g3s_build_complete_motion_driver_v1.py`
+
+Wan workflow builder:
+
+`tools/wan-animate2-spike/build_workflow_complete_motion.py`
+
+Wan spritesheet packer:
+
+`tools/structured-2d-character-pipeline/g3s_pack_wan_complete_character_spritesheet.py`
+
+### Why Wan-Animate-2 is the discriminant
+
+Unlike the runner-34 Moore/OpenPose route, Wan-Animate-2 directly consumes a **driving video**. The purpose of runner 35 is not to declare Wan a production solution in advance; it is to test whether a richer video control signal can materially improve complete-character temporal behavior.
+
+### Complete-motion driver V1
+
+The runner creates a deterministic synthetic driver at `384×576`, `16 fps`, `17` frames:
+
+- frames 1–16: one in-place loop sampled from runner-33 V2 body motion at locked `72 deg`;
+- frame 17: explicit duplicate of frame 1 for closure conditioning;
+- body motion and weight transfer;
+- delayed rear/front heavy-hair masses;
+- delayed base hip-wrap/cloth strips;
+- subtle soft-body/chest lag signal;
+- left-wrist shackle + broken-chain trajectory;
+- left-ankle shackle + broken-chain trajectory.
+
+The driver is **control-only** and is never visible game art. Its modular construction does not reopen runtime layer assembly.
+
+### Wan environment / model route
+
+Existing isolated workspace:
+
+`D:\AI\WanAnimate2`
+
+Runner 35 requires the existing official Base route:
+
+- `wan_animate_2_int8_convrot.safetensors`;
+- `umt5_xxl_fp8_e4m3fn_scaled.safetensors`;
+- `clip_vision_h.safetensors`;
+- `Wan2_1_VAE_bf16.safetensors`;
+- no distillation LoRA;
+- `384×576`;
+- 17 frames;
+- seed `42`;
+- Euler sampler;
+- shift `5`;
+- `20` steps;
+- CPU model cache for the 12 GB VRAM target.
+
+No automatic model download occurs in runner 35. Missing files are treated as infrastructure failure and must not be confused with a visual rejection of Wan.
+
+### Output contract
+
+Wan generates 17 frames. The final closure frame is retained as evidence but dropped from runtime playback. The first 16 are packed into:
+
+- complete RGBA frames;
+- `4×4` complete-character spritesheet;
+- full-resolution preview GIF;
+- approximate `128 px` gameplay preview GIF;
+- metadata with runtime character-layer assembly explicitly disabled.
+
+### Decision rule
+
+Runner 35 only earns continuation if it materially improves runner 34 in the specific missing classes:
+
+- hair inertia;
+- cloth lag;
+- subtle soft-body response;
+- chain/restraint ownership and trajectory;
+- lower-leg/foot stability;
+- Exilada identity;
+- loop coherence.
+
+A strong failure closes this branch without seed fishing, CFG sweeps or cosmetic prompt rescue.
 
 ## Role of Moore-compatible SSD after runner 34
 
@@ -159,16 +228,10 @@ But classify it correctly:
 
 > **useful appearance/pose transfer evidence; insufficient as the sole complete-motion author when driven only by OpenPose body maps.**
 
-A later test may still reuse its identity-preservation value if richer control can be injected, but pure pose-only reruns are not the priority.
-
-## Gameplay-scale review
-
-Runner-34 output must also be viewed at the locked approximate `128 px` gameplay character height. Some 512px defects may disappear while others remain structurally visible. This review is a presentation check, not a substitute for fixing attachment/secondary-motion failures.
-
 ## Variation strategy — later
 
 Armor, equipment, accessories, damage and exposure still need scalable offline variation. Final runtime frames remain complete/precomposed.
 
 ## Cleanup
 
-No cleanup. Retain runner-34 outputs, SSD assets and environment as evidence for the next complete-motion-driver experiment.
+No cleanup. Retain runner-34 outputs, SSD assets/environment, Wan workspace/models and all runner-35 outputs until the route decision is closed.
