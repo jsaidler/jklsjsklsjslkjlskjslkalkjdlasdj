@@ -1,8 +1,8 @@
 # G3S-C1 — Hidden Skeleton Walk Guide
 
-Status date: **2026-09-06**
+Status date: **2026-09-07**
 
-Gate status: **C1A SKELETON-ONLY EIGHT-STATE WALK PASS/CLOSED / C1B VISIBLE WALK PROOF CURRENT**
+Gate status: **C1A MECHANICAL SKELETON GAIT PASS/CLOSED / C1C GAMEPLAY LOCOMOTION MASTER ACTIVE**
 
 ## Purpose
 
@@ -20,13 +20,13 @@ The first skeleton-only run then hit a technical camera-selection bug:
 
 `RuntimeError: could not choose front-three-quarter camera with screen-left forward travel`
 
-That failure is now **CLOSED/RESOLVED**. Marker:
+That failure is CLOSED/RESOLVED. Marker:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
 
 No model/API/download/runtime was added by C1A; no cleanup applies.
 
-## Approved source
+## Approved C1A source
 
 - motion: `CMU 105_34 NormalWalk`;
 - armature: `G2_CANONICAL_RIG`;
@@ -35,7 +35,7 @@ No model/API/download/runtime was added by C1A; no cleanup applies.
 
 No MPFB body or G3V body is used by current C1A.
 
-## Approved eight-state cycle
+## Approved C1A eight-state cycle
 
 | Index | Source frame | Event | Support foot |
 |---:|---:|---|---|
@@ -50,17 +50,17 @@ No MPFB body or G3V body is used by current C1A.
 
 Review playback uses `83 ms` per state.
 
-Camera/control baseline:
+Original C1A camera/control baseline:
 
 - `640×360`;
 - orthographic;
 - pitch `26°`;
-- front-three-quarter at `45°` from measured travel heading;
+- horizontal camera azimuth `45°` from measured travel heading;
 - rig is not rotated to manufacture facing;
 - maximum projected skeleton height approximately `128 px`;
 - real forward travel normalized to the canonical screen-left family.
 
-## C1A approval
+## What C1A actually approved
 
 Approval file:
 
@@ -72,9 +72,9 @@ Reviewed artifacts supplied by the user:
 - zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
 - projected root travel approximately `-43.77 px` screen-left.
 
-Visual review PASS:
+C1A proved:
 
-- coherent eight-state gait;
+- coherent eight-state human gait;
 - left/right progression;
 - intact limb chains;
 - support-foot progression;
@@ -82,7 +82,20 @@ Visual review PASS:
 - laterality and near/far readability;
 - screen-left directional family.
 
-C1A is therefore **PASS/CLOSED**. It approves only the hidden motion/control cycle, not final visible body art.
+### Scope correction after visible runner 30
+
+The approval was **mechanical**, not an animation-art-direction lock.
+
+Runner 30 demonstrated that once pose registration is corrected, the visible authoring model responds much more strongly to the C1A phases, yet the resulting walk still lacks the naturality and gameplay-specific posture expected for the project.
+
+Therefore:
+
+- C1A remains PASS/CLOSED as a hidden human-gait sanity/control source;
+- C1A is **not** the final production gameplay locomotion master;
+- generic CMU `NormalWalk` is retained as phase/timing material, not sacred final pose language;
+- the original `45°` horizontal camera azimuth is reopened for gameplay locomotion review because the belt-scroller needs a more lateral read.
+
+This distinction supersedes any earlier wording implying C1A itself was the final visible-walk pose source.
 
 ## C1A implementation retained
 
@@ -92,16 +105,30 @@ C1A is therefore **PASS/CLOSED**. It approves only the hidden motion/control cyc
 - runner: `tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`;
 - workspace: `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk`.
 
-## Current next gate — C1B
+Do not rerun runner 21 as though it were the current production gate.
 
-C1B now goes directly to a visible eight-frame Exilada walk proof using:
+## Current gate — C1C gameplay locomotion master
 
-- the approved C1A skeleton cycle as pose/spatial control;
-- canonical B3B V4 as visible identity/body-style anchor;
-- no static-body warp;
-- no hidden-3D RGB promotion;
-- no hair/clothing/accessories yet.
+Canonical document:
 
-Current C1B document:
+`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
 
-`docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
+The immediate question is now:
+
+> Which mostly-lateral presentation makes the retained real gait read correctly for the elevated arcade belt-scroller before we author additional pose style?
+
+Runner:
+
+`tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
+
+Runner 31 uses the exact same real gait and samples but generates skeleton-only review packages at:
+
+- `60°` azimuth from travel heading;
+- `72°`;
+- `84°`.
+
+`90°` is pure side view in the current camera convention. The old C1A used `45°`.
+
+This is deliberately skeleton-only. No SSD/diffusion run is authorized until the gameplay-facing choice is reviewed.
+
+If a facing is selected but the motion remains too neutral, C1C will then author an additive gameplay locomotion treatment while retaining real gait timing/support phases.
