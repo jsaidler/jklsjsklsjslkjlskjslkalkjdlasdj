@@ -1,12 +1,14 @@
 # Characters — Living Document
 
-Status: **Exilada core identity and initial condition locked; canonical complete initial-state master approved; runtime complete-character spritesheet architecture locked; offline source modularity retained only for authoring/variation**
+Status date: **2026-09-07**
 
-This document stores canonical character decisions. It distinguishes fixed identity, initial state, gameplay-variable appearance, canonical reference material and exploratory production techniques so temporary implementation details do not become canon accidentally.
+Status: **Exilada core identity and initial condition locked; canonical complete initial-state master retained; runtime complete-character spritesheet architecture locked; W1 painterly/1980s visual direction approved for continued validation; exact initial cloth-tear/exposure pattern still open.**
+
+This document stores canonical character decisions and distinguishes fixed identity, narrative state, gameplay-variable appearance, reference material and temporary generation artifacts.
 
 ## Process rule — living documentation
 
-All material character decisions and changes must be recorded here as they occur. This document is canonical across chats. When a decision changes, edit this document instead of creating a parallel version or relying on conversation history.
+All material character decisions and changes must be recorded here as they occur. When a decision changes, edit this document instead of creating a parallel version or relying on chat history.
 
 ## Exilada — protagonist
 
@@ -16,101 +18,114 @@ The protagonist is an **adult woman**, currently designated **Exilada**.
 
 Locked traits:
 
-- height: approximately **162 cm**;
+- height approximately **162 cm**;
 - origin: **Ilhas do Sul**;
 - adult, mature and severe presence;
 - lean, functional and resilient body rather than exaggerated heroic musculature;
-- natural adult feminine proportions — **not shortened, squat or deliberately “compact”**;
+- natural adult feminine proportions;
 - olive-to-brown skin;
 - hard, mature face;
 - very long, heavy, voluminous, messy black hair;
 - hair mass is a primary silhouette anchor;
-- posture should communicate alertness, contained violence and survival rather than glamour alone;
-- character identity must remain recognizable without relying on a particular weapon or complete outfit.
+- posture communicates alertness, contained violence and survival;
+- identity must remain recognizable without relying on a particular weapon or complete outfit.
 
-The body should look materially lived-in: fatigue, dirt, wounds and scars may be visible when causally justified by state/history.
+The body should look materially lived-in: fatigue, dirt, wounds and scars may be visible when causally justified.
 
 ### Narrative initial condition
 
-Locked interpretation:
-
 The Exilada was **enslaved and abandoned to die**.
 
-Her initial visual state therefore represents extreme deprivation rather than a designed warrior costume.
+Her initial state therefore represents deprivation rather than a designed warrior costume.
 
 This supports:
 
 - almost no possessions;
 - minimal clothing;
-- torn and degraded cloth;
+- severely torn and degraded cloth;
 - improvised bindings;
 - visible evidence of captivity;
 - partial or complete nudity when appropriate to material/narrative state;
-- vulnerability, danger, sensuality and physical presence being allowed to coexist;
-- the visual contrast of an exposed, precarious body that remains dangerous.
+- vulnerability, danger, sensuality and physical presence coexisting;
+- an exposed, precarious body that remains dangerous.
 
-### Erotic charge — LOCKED 2026-09-05
+## 1980s / inspiration lineage — LOCKED 2026-09-07
+
+The Exilada must continue to be read through the project's principal visual lineage:
+
+- **Heavy Metal**;
+- **Conan**;
+- **Red Sonja**;
+- **Frank Frazetta**;
+- **Julie Bell**.
+
+The user explicitly wants an **1980s sword-and-sorcery charge**, consistent with the golden period of these inspirations.
+
+For the Exilada this means adult sensuality, danger, grime, heroic physical presence, damaged materials and erotic charge may coexist without turning her into a clean decorative fantasy costume.
+
+The 1980s influence is tonal and pictorial, not a requirement for VHS/CRT gimmicks.
+
+## Erotic charge — LOCKED
 
 The Exilada does **not** need to be visually desexualized in order to be treated seriously.
 
-The project's reference lineage — **Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell** — carries an explicit adult erotic/sensual charge. That vocabulary is relevant and must not be automatically removed.
-
-For the Exilada:
-
 - erotic charge is allowed and may be intentional;
-- adult nudity or minimal clothing may read as sensual, erotic, heroic, vulnerable, brutal or matter-of-fact depending on scene/state;
+- adult nudity or minimal clothing may read as sensual, erotic, heroic, vulnerable, brutal or matter-of-fact depending on state/scene;
 - physical attractiveness and sexual presence do not invalidate severity, danger, agency or suffering;
-- the body may remain aesthetically charged even when dirty, wounded, exhausted or deprived;
-- no blanket rule requires neutral, clinical or anti-erotic framing;
-- framing should be intentional to the scene rather than automatically sanitized or automatically sexualized.
+- the body may remain aesthetically charged when dirty, wounded, exhausted or deprived;
+- framing should be intentional rather than automatically sanitized or automatically sexualized.
+
+Captivity may be depicted directly, but the body/character's erotic charge should not be confused with making coercion itself the only erotic subject unless explicitly chosen for a scene.
 
 ## Body / nudity source rule — LOCKED
 
-The offline production character owns a **complete adult body source independent of hair, clothing and equipment**.
+Offline authoring owns a **complete adult body source independent of hair, clothing and equipment**.
 
-Locked consequences:
+Consequences:
 
-- the same body identity exists under every garment, binding, hair mass, cuff and chain in authoring;
-- removing all clothing/equipment must reveal that same body rather than reconstructing hidden anatomy from a dressed composite;
-- nudity is a normal supported world/gameplay state;
-- chest and pelvic anatomy must be coherent at native gameplay scale;
-- there is no structurally mandatory censor garment;
-- permanent scars/body marks belong to body/state authoring, not to a specific garment;
-- wounds, blood, wetness, dirt and gore remain attached to the correct body regions.
+- the same body identity exists under every garment/binding/cuff;
+- nudity is a normal supported gameplay/world state;
+- chest and pelvic anatomy must remain coherent;
+- there is no mandatory censor garment;
+- scars/body marks belong to body/state authoring, not a garment;
+- wounds/blood/wetness/dirt remain attached to correct body regions.
 
-**Important runtime distinction:** this body-source independence is an offline authoring/state rule. It does **not** mean the runtime assembles a visible body layer under visible clothing. Runtime character frames are complete/precomposed sprites.
+This is an offline authoring/state rule only. Runtime frames are complete/precomposed.
 
-## Initial clothing
+## Initial clothing — UPDATED 2026-09-07
 
-The approved visual direction uses:
+The current approved direction uses:
 
 - minimal asymmetrical cloth coverage;
-- dirty ragged chest wrap/bandeau;
-- torn asymmetrical hip cloth/loincloth;
-- occasional cloth bindings on arm or leg;
+- dirty, ragged and **more severely torn** chest cloth rather than a neat intact bandeau;
+- irregular tears/holes/edge loss that may expose substantially more torso skin;
+- **partial breast exposure is allowed and desirable as a candidate initial-state treatment** when it follows the torn-cloth logic;
+- torn asymmetrical hip cloth/loincloth with similarly degraded edges;
+- occasional worn cloth bindings on arm or leg;
 - bare feet;
-- worn, dirty and frayed materials;
-- no decorative fantasy-costume logic.
+- dirty, frayed, materially exhausted fabric;
+- no clean decorative fantasy-costume logic.
 
-These may remain separate **offline authoring sources** so motion, damage and future variants can be controlled. When the initial state is exported to the game, however, the clothing is already baked into each complete-character animation frame.
+Exact tear geometry and exact amount of breast exposure are **not yet canonized** by a temporary prompt. They will be visually approved in a controlled appearance test after the current framing gate.
+
+When exported to the game, all visible clothing is already baked into complete-character animation frames.
 
 ## Captivity markers
 
 The **history of captivity is canonical**.
 
-Locked rule:
-
-- cuffs/shackles and broken chain segments may exist as separate offline authoring/state sources;
-- chain/restraint state may later be removed, damaged, detached or replaced through offline variant production;
+- cuffs/shackles and broken chain segments may exist as separate offline state sources;
+- restraint state may later be removed/damaged/detached/replaced through offline variant production;
 - wrist/ankle attachment relationships must remain coherent across motion;
-- the exact anatomical side ownership of every visible initial broken segment is **not independently canonized by temporary proxy scripts**; the approved visual master is the initial-state reference until a semantic equipment/state definition explicitly locks side ownership;
-- in the exported initial-state spritesheet, visible shackles/chains are already baked into the complete character frame.
+- exact anatomical side ownership of every visible initial broken segment is not canonized by temporary proxy scripts;
+- the approved visual master remains the initial-state reference until a semantic equipment/state definition locks details;
+- exported sprites bake visible restraints/chains into the complete frame.
 
 ## Weapon rule
 
 **No weapon is part of the Exilada's permanent identity.** Weapons are gameplay-variable equipment.
 
-## Runtime character representation — LOCKED 2026-09-07
+## Runtime character representation — LOCKED
 
 The game does **not** construct the visible Exilada from body/hair/clothing/equipment layers at runtime.
 
@@ -125,21 +140,15 @@ Every frame already includes, where present:
 - hair motion;
 - clothing/binding motion;
 - restraints/chains/accessories;
-- final occlusion among all parts.
+- final occlusion.
 
-Runtime visible-character layer assembly is **ABOLISHED/CLOSED**.
-
-Offline modular sources are still allowed and likely useful for producing variants efficiently. They are production controls, not runtime rendering components.
+Runtime visible-character layer assembly is abolished.
 
 ## Gameplay-variable appearance
 
 Expected variable systems include weapons, armor, added clothing, restraint/chain state, ornaments/trophies, complete or partial nudity, blood, dirt, wounds, scars, fatigue/injury posture, material wear and other causal state consequences.
 
-The exact scalable production strategy remains open. Current lock:
-
-- variation is solved **offline**;
-- exported runtime animation remains complete/precomposed;
-- no future design may silently assume that arbitrary body/armor/accessory layers will be assembled visually at runtime.
+Variation is solved **offline**; exported runtime animation remains complete/precomposed.
 
 ## Canonical initial-state reference asset
 
@@ -147,18 +156,18 @@ Canonical file:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-For current animation work this is the approved **complete initial-state appearance reference**, not merely an identity/body anchor. It establishes:
+For current animation work this remains the approved **complete initial-state appearance reference**. It establishes:
 
 - adult lean anatomy/proportions;
 - severe mature face;
 - olive/brown skin;
 - long black hair mass;
 - minimal degraded clothing;
-- captivity evidence including visible restraints/chain details;
+- captivity evidence;
 - bare feet;
 - weaponless initial identity.
 
-It is not itself the final gameplay sprite, but current complete-character animation generation must preserve this whole initial state.
+The new 2026-09-07 art-direction decision allows the eventual final state to push the clothing damage/exposure further than the present master, but that change must be explicitly approved rather than inferred silently.
 
 ## Supporting high-resolution nude anatomy reference
 
@@ -177,111 +186,79 @@ Recorded source identity:
 - full pelvic anatomy visible;
 - no occluding garment.
 
-This is anatomy/proportion reference only and is not visible sprite source.
+This remains anatomy/proportion reference only.
 
-## Locked pixel-art body reference
+## Historical pixel-art body reference / production body source
 
-Marker:
+Historical structured-2D work remains useful evidence/reference but no longer forces the final visible language to be pixel art.
 
-`tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`
+Recorded artifacts include:
 
-Recorded source:
+- `tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`;
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
+- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`.
 
-- SHA256 `f2ba82dbcd759c55cbc1c70cf1100bd85a0319cf5fe53258e461406ba55cd08a`;
-- `1168×784` JPEG;
-- front/back/profile/front-three-quarter;
-- adult nude/hairless body;
-- pixel-art imagery on flat dark background.
+The production body source recorded `37×128` RGBA and visible standing height `128 px`. It remains valid offline anatomy/scale research, not the final visible-art mandate.
 
-This reference loop is closed. Do not ask for another body turnaround or Grok body reference.
+## W1 visual result — APPROVED DIRECTIONAL EVIDENCE 2026-09-07
 
-## Canonical production nude/hairless body source — PASS
+Wan-Animate-2 W1 generated the Exilada from the master plus the official raw driving video.
 
-Canonical production files:
+The user explicitly approved the resulting **painterly illustrated 2D look** as highly desirable for the whole game.
 
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`
+Directional conclusions:
 
-Recorded facts:
+- smooth/painterly rendering is no longer a defect by itself;
+- localized, restrained motion blur is acceptable and may improve temporal vitality;
+- long black hair moving as a heavy non-rigid mass is strongly desirable;
+- the game may look like high-quality animated dark-fantasy illustration rather than deliberate pixel art;
+- exact identity, restraints/accessories and framing still require technical improvement.
 
-- `37×128` RGBA;
-- visible standing height `128 px`;
-- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- front-three-quarter elevated belt-scroller view;
-- adult nude/hairless/barefoot state.
-
-This remains a valid **offline body-source/reference artifact**. It is no longer evidence for runtime layered body composition.
+W1A increased `reference_image_strength` from 1.0 to 1.5. It did not provide a meaningful identity/accessory gain and introduced more blur/ghosting in several phases. Current preferred Wan conditioning balance therefore remains **reference strength 1.0** pending contrary evidence.
 
 ## Gameplay-scale identity anchors
 
 These anchors must survive:
 
-1. large dark hair mass when hair is present;
-2. adult natural feminine body proportions at ~162 cm identity, lean/functional/resilient — never deliberately shortened or squat;
-3. asymmetry of minimal initial clothing;
+1. large dark hair mass;
+2. adult natural feminine body proportions;
+3. asymmetry/minimality of initial clothing;
 4. severe posture;
 5. readable body/limb separation;
 6. captivity evidence in the initial state;
-7. strong light/dark grouping between skin, hair and cloth.
+7. strong grouping between skin, hair and cloth.
 
-Facial microdetail is secondary to silhouette at gameplay scale, but gross facial/anatomical errors are not acceptable.
+Facial microdetail is secondary at gameplay scale, but gross facial/anatomical errors are unacceptable.
 
 ## Current production architecture
 
-Current runtime/export direction:
+`complete-state appearance reference + raw driving video + automatic preprocessing -> complete visible animation frames -> automatic spritesheet/atlas + metadata -> runtime playback`
 
-`real/captured body motion + offline complete-motion controls + complete-state appearance reference -> complete visible animation frames -> spritesheet/atlas + metadata -> runtime playback`
-
-Offline controls may internally use:
-
-- body rigs/references;
-- hair masses;
-- clothing sources;
-- restraints/chains/equipment sources;
-- secondary-motion solvers;
-- simulations;
-- image/video generation models.
-
-All of those must resolve into **one complete visible character frame before export**.
-
-### Historical staged-layer exploration
-
-The earlier `body -> hair -> clothing/restraints -> layered animation` plan remains useful as a history of source-asset experiments and may inform future offline variant authoring. It is **superseded as a runtime/composition architecture**.
-
-Current route-level animation status is documented in:
-
-- `docs/PROJECT_STATE.md`
-- `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-- `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
-
-## Masculine counterpart — exploratory human-family variant
-
-Exploratory only, not canonical as playable character or alternate protagonist.
+Automatic preprocessing/postprocessing is allowed. Routine manual rigging, keyframing, simulation repair, mask repair, repainting and hand compositing are not.
 
 ## Character-design rules
 
 ### Do
 
 - preserve strong silhouettes and mature anatomy;
-- distinguish permanent identity/state semantics from temporary generation artifacts;
+- remember the 1980s / Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell lineage;
+- allow deliberate erotic/sensual body language;
+- allow torn cloth to expose more body when materially/narratively coherent;
 - let history/simulation affect visual state;
-- preserve the approved Exilada body and complete initial-state direction at gameplay scale;
 - test production art at gameplay scale and in motion;
-- keep offline state sources coherent enough to generate future complete variants;
-- allow deliberate erotic/sensual body language where it belongs.
+- keep restraints and attachments temporally coherent.
 
 ### Do not
 
-- shorten/flatten the body because of the word “compact”;
-- make a particular weapon permanent by default;
+- shorten/flatten the body for convenience;
+- make a weapon permanent by default;
 - reconstruct hidden anatomy by subtracting clothes/hair from a composite;
-- turn minimal clothing into generic fantasy-barbarian costume;
+- turn deprivation clothing into a clean generic fantasy-warrior costume;
 - sanitize adult nudity merely because it is erotic;
 - accept gross facial/anatomical artifacts;
-- accept filtered 3D or superficial pixelation as final production art;
-- treat generated exploratory details as canon without approval;
-- reintroduce runtime visible-character layer assembly without an explicit architectural decision.
+- treat temporary generated details as canon without approval;
+- reintroduce runtime visible-character layer assembly.
 
 ## Open character decisions
 
-Not yet fixed: proper name beyond `Exilada`, exact age, detailed family history, exact enslavement/abandonment circumstances, detailed personality/voice, faction relationships, religion/culture beyond Ilhas do Sul, long-term clothing progression, armor/equipment variant production strategy, final approved gameplay head/face detail treatment, and the role of the masculine counterpart.
+Not yet fixed: proper name beyond `Exilada`, exact age, detailed family history, exact enslavement/abandonment circumstances, detailed personality/voice, faction relationships, religion/culture beyond Ilhas do Sul, long-term clothing progression, armor/equipment variant production strategy, exact initial tear/exposure geometry, final gameplay head/face treatment, and role of the masculine counterpart.
