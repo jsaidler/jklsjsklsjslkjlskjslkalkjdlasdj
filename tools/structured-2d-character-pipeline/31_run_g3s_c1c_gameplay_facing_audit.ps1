@@ -103,7 +103,7 @@ foreach ($variant in $variants) {
         if (Test-Path $stderr) { Get-Content $stderr | Out-Host }
         Fail "Blender exporter failed for $name with code $($proc.ExitCode)."
     }
-    if (-not (Test-Path $guide -PathType Leaf)) { Fail "Guide missing for $name: $guide" }
+    if (-not (Test-Path $guide -PathType Leaf)) { Fail "Guide missing for ${name}: $guide" }
 
     & $Python $Review --guide $guide --workspace $variantDir --body-reference $CanonicalBody
     if ($LASTEXITCODE -ne 0) { Fail "Review builder failed for $name with code $LASTEXITCODE" }
