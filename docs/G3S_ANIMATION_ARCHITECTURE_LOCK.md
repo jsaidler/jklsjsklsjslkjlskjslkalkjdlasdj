@@ -2,13 +2,34 @@
 
 Status date: **2026-09-06**
 
-Status: **CANONICAL / LOCKED — SKELETON-ONLY C1A EIGHT-STATE WALK RUNNER READY**
+Status: **CANONICAL / LOCKED — BELT-SCROLLER SEGMENTED 2D PUPPET**
+
+## Presentation constraint that makes the animation feasible
+
+The project is **not** targeting true isometric multi-directional character animation.
+
+That option was deliberately abandoned in favor of an elevated arcade beat'em-up / belt-scroller presentation because it radically reduces the visible character problem while preserving a walkable depth band.
+
+Locked presentation consequences:
+
+- fixed orthographic gameplay camera;
+- native raster `640×360`;
+- pitch `26 deg`;
+- protagonist standing body height about `128 px`;
+- first canonical visible family: screen-left front-three-quarter;
+- gameplay depth movement does not require north/south/isometric sprite families;
+- runtime world-depth movement and z-order are separate from visible facing;
+- do not multiply view families unless a later explicit gate proves one is necessary.
+
+This simplification is a production contract, not a temporary test convenience.
 
 ## Final production architecture
 
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root guide data -> persistent native-2D pose assets -> deterministic sprite playback -> QA`
+`real/captured motion -> hidden skeleton/rig -> persistent segmented native-2D body parts -> anatomical pivots/bindings -> projected bone transforms -> camera-space depth ordering -> deterministic 2D composition -> sprite playback -> QA`
 
 The hidden 3D is a **skeleton/armature**, not a hidden character render.
+
+The visible character is a constrained **2D skeletal puppet** assembled from persistent authored parts. The same visible pixels persist through motion; the body is not regenerated independently per frame.
 
 ### Hidden skeleton owns
 
@@ -16,7 +37,7 @@ The hidden 3D is a **skeleton/armature**, not a hidden character render.
 - complete bone/joint transforms for each sampled state;
 - anatomical left/right identity;
 - near/far chain identity from camera-space depth;
-- bone-chain foreshortening;
+- projected segment direction and length;
 - contact/support-foot timing;
 - pelvis/root travel;
 - sockets and attachment transforms;
@@ -32,21 +53,48 @@ The hidden 3D is a **skeleton/armature**, not a hidden character render.
 
 Simple lines/capsules may be rendered only as debug visualization of bone data.
 
+### Visible 2D puppet owns
+
+- Exilada's persistent identity and anatomy;
+- head/neck, torso, pelvis and bilateral limb-part pixels;
+- joint overlap/cover pixels required to prevent visible gaps;
+- any small reusable orientation/foreshortening variant that later proves necessary;
+- hair/clothing/restraints/equipment as later separate persistent layers.
+
+## Simplification rule for the first walk proof
+
+Do not pre-emptively rebuild complexity that the belt-scroller decision removed.
+
+The first segmented-body walk proof must use the smallest viable asset set:
+
+- one screen-left body family;
+- one persistent part per major anatomical segment;
+- explicit pivots;
+- deliberate hidden overlap at shoulders, elbows, hips, knees and ankles;
+- skeleton-driven translation/rotation/projected length;
+- depth sorting from camera-space skeleton depth;
+- no generative redraw;
+- no extra direction families;
+- no foreshortening variants unless the first composed walk demonstrates a specific unavoidable failure.
+
+If a reusable part variant becomes necessary, it is added only for the failing projection case and then reused across frames/actions. Variants are not frame-specific redraws.
+
 ## Closed routes
 
 The following remain closed:
 
 - hidden 3D render -> final visible pixel art;
-- single B3B still -> projected joints -> cutout/warp/cage -> full gait;
-- MPFB skinned body as mandatory pose/anatomy/silhouette/depth guide.
+- independent full-body generative redraw for each animation frame;
+- single B3B still -> nearest-segment hard partition + exposed rigid joints -> full gait;
+- single B3B still -> continuous whole-body chain/cage warp -> full gait;
+- MPFB skinned body as mandatory pose/anatomy/silhouette/depth guide;
+- reopening isometric/multi-directional animation complexity without an explicit presentation decision.
 
-The B3B V4 body remains the approved visible identity/body-style anchor. It is not stretched into new gait poses.
+The B3B V4 body remains the approved visible identity/body-style source. Its original file remains unchanged.
 
-## C1A — eight-state skeleton walk cycle
+## C1A — skeleton walk cycle — PASS/CLOSED
 
-The user explicitly prioritized seeing motion rather than stopping at another single-pose proof. C1A therefore exports the complete first walk cycle in one pass from the already-approved `G2_CANONICAL_RIG` and CMU `105_34 NormalWalk` motion.
-
-States:
+Approved states:
 
 1. `1588` — left contact;
 2. `1598` — left down;
@@ -57,31 +105,20 @@ States:
 7. `1648` — right passing;
 8. `1658` — right up.
 
-The guide camera is orthographic `640×360`, pitch `26°`, front-three-quarter at `45°` relative to the actual root-travel heading. The rig is not rotated to manufacture facing; the camera side is chosen so real forward root travel projects screen-left. Maximum projected skeleton height is calibrated to approximately `128 px`.
+C1A uses `G2_CANONICAL_RIG` and CMU `105_34 NormalWalk`. It supplies motion/spatial control only.
 
-C1A records full bone matrices, projected joints, per-chain depths/lengths, anatomical laterality, near/far ownership, support foot, ground distance and real projected root travel for all eight states.
+## C1B — current visible body animation source
 
-Current runner:
+C1B is now the segmented native-2D puppet proof.
 
-`tools/structured-2d-character-pipeline/21_run_g3s_c1_hidden_pose_guide.ps1`
+Current architecture:
 
-Current spec:
+`C1A approved skeleton -> B3B-derived persistent body-part atlas -> binding manifest -> eight composed walk states -> GIF/contact-sheet review`
 
-`tools/structured-2d-character-pipeline/g3s_c1_skeleton_walk_spec.json`
+The user is not expected to draw or repair frames manually.
 
-No MPFB body, image-generation model, paid API or new download is used.
-
-## C1B — visible body animation source
-
-After the eight-state skeleton motion is visually confirmed, C1B authors the **eight persistent native-2D body poses** needed for the first left-facing walk family, using:
-
-- the C1A skeleton cycle as spatial/motion control;
-- B3B V4 as identity/body-style anchor.
-
-The user is not expected to draw or repair frames manually. C1B may use an explicitly approved offline source-authoring tool, but accepted outputs become frozen native-2D assets; no per-frame generation occurs at runtime.
-
-C1B may not revive the static-still warp route and may not promote a hidden-3D render as final sprite art.
+Hair remains deferred until the body locomotion puppet is proven.
 
 ## Runtime
 
-Once the eight native-2D body states exist, gameplay playback is ordinary sprite animation using motion-derived timing/contact/root metadata. Hair, clothing, restraints and equipment remain separate persistent layers and are added after the body walk source is viable.
+Gameplay playback uses ordinary deterministic sprite/part animation plus root/contact metadata. Because the presentation is a belt-scroller rather than true isometric, movement through the gameplay depth band does not imply new directional character art. Screen-right handling is deferred until the left-facing family is viable.
