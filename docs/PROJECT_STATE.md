@@ -120,7 +120,7 @@ Actual implementation facts:
 
 ### Actual local result so far
 
-Workspace intended:
+Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -130,27 +130,44 @@ Clone result:
 - 887/887 objects received;
 - approximately 289.63 MiB transferred.
 
-Environment bootstrap failures:
+Environment bootstrap failures already observed:
 
-- `conda` is not installed / not on PATH;
-- `conda create -n ssd python=3.10 -y` failed because command was not found;
-- `conda activate ssd` failed for the same reason;
-- prior instruction `cd /d ...` was wrong for PowerShell (`/d` is CMD syntax);
-- `pip install -r requirements.txt` failed from `C:\Users\jsaid` and the upstream repo independently lacks the referenced root requirements file.
+- `conda` unavailable;
+- `conda create` / `conda activate` failed;
+- prior `cd /d` instruction was invalid PowerShell syntax;
+- upstream README references a root `requirements.txt` that is absent.
 
 These are installation-procedure defects, not an SSD model-quality failure.
 
-## Current exact next gate
+## CURRENT RUNNER — SSD environment bootstrap
 
-**Install Miniconda and create only the isolated Python 3.10 environment.**
+Runner:
 
-Do not install the large Python stack or download model weights until this passes.
+`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-PASS requires:
+Scope is deliberately limited to:
 
-- `conda.exe` located;
-- env `ssd` created;
-- `conda run -n ssd python --version` reports Python 3.10.x.
+- verify clone + actual inference/config paths;
+- install Miniconda through WinGet only if missing;
+- locate `conda.exe` without relying on PATH refresh;
+- create env `ssd` with Python 3.10 + pip;
+- verify through `conda run`;
+- write `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
+
+This runner does **not** download models and does **not** install the large SSD dependency stack.
+
+## Current exact operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1"
+```
+
+PASS requires console `SSD-ENV: PASS`, Python 3.10.x and the local marker file.
+
+If it fails, share the complete console output. Do not manually improvise dependency/model installation before this gate passes.
 
 ## No cleanup yet
 
