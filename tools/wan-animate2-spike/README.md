@@ -1,6 +1,6 @@
 # Wan-Animate-2 validation / exhaustion tooling
 
-Status: **ACTIVE — W0 PASS_BASELINE / W1 COMPLETE WITH APPEARANCE CONFIGURATION FAIL / W1A REFERENCE-STRENGTH 1.5 ACTIVE.**
+Status: **ACTIVE — W0 PASS_BASELINE / W1 CURRENT PREFERRED VISUAL-MOTION BASELINE / W1A 1.5 NOT PREFERRED / W1F SAFE FRAMING ACTIVE.**
 
 ## Active local paths
 
@@ -39,83 +39,100 @@ Validates BF16 assets/native nodes and captures `object_info_wan_bf16.json`.
 
 Runner 35 completed this successfully.
 
-## `build_and_run_w0.py`
+## W0
 
-Builds the official W0 graph from live ComfyUI schema and runs official demo1 reference + raw official driver at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0.
+`build_and_run_w0.py` + Runner 36 reproduced the official Base-BF16 demo path at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0.
 
-W0 attempt 1 failed in AIMDO host-buffer streaming. Runner 36 relaunched with only `--disable-pinned-memory`; attempt 2 completed and is accepted as `PASS_BASELINE`.
+First attempt failed in AIMDO host-buffer streaming. Relaunching with only `--disable-pinned-memory` fixed the infrastructure issue. W0 is accepted as `PASS_BASELINE`.
 
-## `run_w1_from_w0_prompt.py`
+## W1
 
-Completed W1 executor.
+`run_w1_from_w0_prompt.py` + Runner 37 used the exact successful W0 graph but changed the target package to Exilada.
 
-It loaded the exact successful `w0_api_prompt.json`, then changed only the target appearance package:
+Observed positives:
 
-- official cat reference -> `exilada_master.png`;
-- official cat-positive prompt -> canonical Exilada appearance/style description;
-- output prefix -> W1.
+- substantial cross-identity raw-video motion transfer;
+- no cat/costume leakage;
+- long hair visibly moves as a non-rigid mass;
+- ragged hip cloth changes drape;
+- coarse Exilada package survives.
 
-All motion/execution settings and the W0 negative prompt stayed fixed.
+Technical issues:
 
-Observed W1:
+- wrist restraint/chain largely lost;
+- ankle chain unstable;
+- some hand/foot blur/stretch and transient artifacting;
+- later crop inherited from driver framing.
+
+### Visual direction note
+
+The W1 painterly illustrated look was explicitly approved by the user as the preferred whole-game visual direction. Smooth/painterly rendering is therefore **not** a failure by itself anymore. Localized/restrained motion blur may be aesthetically positive.
+
+The preferred art direction now includes an explicit 1980s sword-and-sorcery charge. See `docs/VISUAL_DIRECTION.md`.
+
+## W1A — `reference_image_strength=1.5`
+
+`run_w1a_reference_strength.py` + Runner 38 changed exactly one variable from W1: reference strength 1.0 -> 1.5.
+
+Uploaded result:
 
 - `INFERENCE_COMPLETE`;
-- elapsed 1746.69 s (~29m07s);
-- reference strength 1.0 / pose strength 1.0;
-- substantial cross-identity motion transfer;
-- no cat/costume leakage;
-- long hair visibly moves non-rigidly;
-- ragged hip cloth changes drape;
-- coarse Exilada package survives;
-- smooth/painterly output instead of required pixel/game-art;
-- face/body detail drift;
-- wrist restraint/chain largely lost and ankle chain unstable;
-- some hand/foot blur/stretch and a transient detached artifact.
+- elapsed 1912.32 s;
+- output SHA256 `2661d339f332a28ca25a3a03aa6a59ccd93a572751fb488de04540a764315bef`.
 
-Classification: **production-appearance CONFIGURATION FAIL, not Wan model failure.**
+Direct comparison against W1:
 
-## Native `reference_image_strength`
+- no material identity/clothing/restraint gain;
+- more blur/ghosting in several phases;
+- weaker limb definition in those phases;
+- crop unchanged;
+- no better overall tradeoff.
 
-Current native ComfyUI `WanAnimate2ToVideo` exposes `reference_image_strength`, default 1.0, and documents values above 1.0 as tighter reference/appearance adherence. `pose_strength` remains separate.
+Conclusion: **reference strength 1.5 is not preferred. Return to W1 reference strength 1.0.**
 
-This is the next controlled variable because it targets the exact W1 failure without changing driver/model/seed/sampler.
+## `run_w1f_safe_framing.py` — CURRENT
 
-## `run_w1a_reference_strength.py`
+W1F safe-framing executor.
 
-Active W1A executor.
+It loads the exact W1 prompt and changes only the raw-driver framing:
 
-It loads the exact completed `w1_api_prompt.json` and changes only:
+1. read the original official driver;
+2. estimate a fixed pad colour from source-frame corners;
+3. preserve the whole original frame;
+4. fit it inside a fixed centered 80% safe box on a `640×800` canvas;
+5. write a new deterministic safe-framed driver;
+6. replace only the `LoadVideo` path in the W1 prompt;
+7. keep reference strength 1.0 and every Wan/sampler/seed/model setting unchanged;
+8. run inference and emit driver/run manifests.
 
-`reference_image_strength: 1.0 -> 1.5`
+No destructive crop, no temporal tracking/camera breathing, no manual alignment.
 
-Outputs:
+Expected evidence:
 
-- `Z:\AI\WanAnimate2\w1a_exilada_refstrength15.mp4`
-- `Z:\AI\WanAnimate2\w1a_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1a_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1f_exilada_safe_framing80.mp4`
+- `Z:\AI\WanAnimate2\w1f_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1f_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1f_safe_driver_manifest.json`
 
 ## Current operator runner
 
-`tools/structured-2d-character-pipeline/38_run_wan_animate2_bf16_w1a_refstrength15.ps1`
+`tools/structured-2d-character-pipeline/39_run_wan_animate2_bf16_w1f_safe_framing80.ps1`
 
-It restarts only the managed ComfyUI process, keeps the proven `--disable-pinned-memory` workaround and runs W1A.
+It restarts only the managed ComfyUI process, keeps `--disable-pinned-memory`, prepares the safe-framed raw driver and runs W1F.
 
-Everything except reference strength remains exact W1: Exilada reference/prompt, official driver, Base BF16 stack, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0 and negative prompt.
+Success criterion: full head/hair/body stay safely inside generated frame without unacceptable shrinkage, motion weakening or new topology drift.
 
-## W1A QA
+## After W1F
 
-Compare directly against W1 on:
-
-- identity/body/face fidelity;
-- pixel/game-art preservation;
-- long-hair mass and clothing layout persistence;
-- shackles/chains/accessories;
-- topology/artifacts;
-- motion adherence loss, if any.
+- lock framing policy;
+- run separate 1980s/torn-clothing/body-exposure prompt test;
+- W2 Internet walking driver;
+- W3 secondary-motion stress driver;
+- W4 finite variants only if justified.
 
 ## Historical scripts
 
-`make_driver.ps1`, `build_workflow.py`, and `run_spike.ps1` document the earlier 384×576 / 17-frame INT8 experiment. Do not use them for current W0/W1/W1A.
+`make_driver.ps1`, `build_workflow.py`, and `run_spike.ps1` document the earlier 384×576 / 17-frame INT8 experiment. Do not use them for current W0/W1/W1A/W1F.
 
 ## Cleanup discipline
 
