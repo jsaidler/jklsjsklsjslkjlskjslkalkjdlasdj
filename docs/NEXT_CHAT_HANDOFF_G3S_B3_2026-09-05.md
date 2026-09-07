@@ -7,29 +7,46 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+2. `docs/VISUAL_DIRECTION.md`
+3. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
+4. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 5. `docs/ANIMATION_PIPELINE.md`
 6. `docs/CHARACTERS.md`
 
 ## Local paths — LOCKED
 
-Project repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
+Project repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 
-AI/model root: `Z:\AI`
+AI root: `Z:\AI`
 
 Current workspaces:
 
 - `Z:\AI\RogueliteCharacterPipeline`
 - `Z:\AI\SpriteSheetDiffusionSpike`
-- Wan: `Z:\AI\WanAnimate2`
+- `Z:\AI\WanAnimate2`
 
 `D:\AI` is stale/historical.
 
-## Runtime / character contract — LOCKED
+## Runtime / production contract — LOCKED
 
-Final runtime uses complete-character spritesheets. The production model receives Exilada appearance/state separately from arbitrary raw driving video and must automatically infer body dynamics, jiggle, long-hair inertia, cloth/material/wind response and restraints/accessories. Routine manual repair is forbidden.
+Final runtime uses complete-character spritesheets. Appearance comes from the Exilada master, movement comes from raw driving video, and production must automatically infer body dynamics, long-hair inertia, cloth/material response and restraints/accessories without routine manual repair.
+
+## Visual direction — UPDATED 2026-09-07
+
+The earlier hard final-art pixel-art requirement is superseded.
+
+The user explicitly approved the Wan W1 **painterly illustrated 2D** result as a highly desirable whole-game look.
+
+Current direction:
+
+- painterly dark-fantasy 2D;
+- deliberate **1980s sword-and-sorcery charge**;
+- inspirations: **Heavy Metal, Conan, Red Sonja, Frank Frazetta, Julie Bell**;
+- localized/restrained motion blur may be positive;
+- adult sensuality/nudity must not be sanitized by default;
+- Exilada initial state should later test more severely torn cloth, more body exposure and possible partial breast exposure consistent with clothing damage.
+
+Exact tear/exposure geometry is not yet canonized.
 
 ## Candidate order
 
@@ -45,101 +62,103 @@ Final runtime uses complete-character spritesheets. The production model receive
 
 Lower precision/Distilled variants are not retained in advance.
 
-## Runner 35 — PASS
+## W0 — PASS_BASELINE
 
-BF16 assets and native ComfyUI schemas are present under `Z:\AI\WanAnimate2`.
+Runner 36 completed official demo1 Base BF16 at `640×800`, 37 frames, 16 fps, 20 steps, seed 0. First attempt hit AIMDO `hostbuf_file_reader_read failed`; `--disable-pinned-memory` fixed the infrastructure issue.
 
-## Runner 36 / W0 — PASS_BASELINE
+## W1 — COMPLETE / CURRENT PREFERRED VISUAL-MOTION BASELINE
 
-Official demo1 reference + raw driver completed at `640×800`, 37 frames, 16 fps, 20 steps, seed 0 using Base BF16. The first attempt hit `hostbuf_file_reader_read failed`; relaunching ComfyUI with only `--disable-pinned-memory` fixed the infrastructure issue.
+Runner 37, Exilada + official driver, `reference_image_strength=1.0`.
 
-Visual W0: meaningful raw-video motion transfer, stable official-character identity/costume, no catastrophic topology collapse.
+Observed positives:
 
-## Runner 37 / W1 — COMPLETE
+- strong raw-video motion transfer;
+- no cat leakage;
+- long hair and hip cloth show non-rigid secondary motion;
+- coarse Exilada identity survives;
+- user explicitly approved the painterly look.
 
-Evidence:
+Technical issues still open:
 
-- `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
-- `Z:\AI\WanAnimate2\w1_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1_api_prompt.json`
-
-Diagnosis:
-
-- strong cross-identity/raw-video motion transfer;
-- long hair and hip cloth show inferred non-rigid motion;
-- no cat appearance leakage;
-- smooth/painterly art-language drift;
-- face/body/reference-detail drift;
 - restraint/chain loss/morphing;
-- some hand/foot blur/stretch and a transient artifact;
-- later head/upper-body crop follows the same tendency in W0, therefore treat it primarily as driver/framing behavior;
-- official driver does not decide final walking/jiggle/wind performance.
+- some limb blur/stretch/artifacts;
+- later head/upper-body crop inherited from driver framing;
+- official driver cannot decide target walking/jiggle/wind quality.
 
-Classification: **production-appearance CONFIGURATION FAIL with strong positive raw-video motion evidence. Wan remains active.**
+Localized, measured blur is not automatically a defect anymore.
 
-## CURRENT GATE — RUNNER 38 / W1A REFERENCE STRENGTH 1.5
+## W1A — COMPLETE / 1.5 NOT PREFERRED
 
-Runner:
-
-`tools/structured-2d-character-pipeline/38_run_wan_animate2_bf16_w1a_refstrength15.ps1`
-
-Executor:
-
-`tools/wan-animate2-spike/run_w1a_reference_strength.py`
-
-One changed variable only:
+Runner 38 changed only:
 
 `reference_image_strength: 1.0 -> 1.5`
 
-Everything else remains exact W1: Exilada reference/prompt, official driver, Base BF16 stack, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, negative prompt and `--disable-pinned-memory`.
+Uploaded result/manifest:
 
-Expected output:
+- `INFERENCE_COMPLETE`;
+- elapsed `1912.32 s` (~31m52s);
+- output SHA256 `2661d339f332a28ca25a3a03aa6a59ccd93a572751fb488de04540a764315bef`.
 
-- `Z:\AI\WanAnimate2\w1a_exilada_refstrength15.mp4`
-- `Z:\AI\WanAnimate2\w1a_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1a_api_prompt.json`
+Direct comparison against W1:
 
-## NEXT GATE AFTER W1A — AUTOMATIC FRAMING/CROP NORMALIZATION
+- no material identity/clothing/restraint improvement;
+- several phases have more blur/ghosting and weaker limb definition;
+- crop remains;
+- no better overall tradeoff.
 
-The crop must be solved before W2. Do not repair generated output after the fact.
+Conclusion: **return to W1 `reference_image_strength=1.0` as current preferred balance.**
 
-Use the winning W1/W1A appearance setting, keep Wan/model/seed/settings unchanged, and change only the driving-video geometry through automatic preprocessing:
+## CURRENT GATE — RUNNER 39 / W1F AUTOMATIC SAFE FRAMING
 
-1. detect/track performer automatically;
-2. derive a stable/smoothed full-clip subject box;
-3. fit the whole visible body plus safety margin inside a fixed `640×800` canvas;
-4. preserve aspect ratio;
-5. pad/letterbox rather than destructive center-crop;
-6. use constant or smoothly varying subject scale/center;
-7. no manual masks, keyframes or per-frame crop corrections.
+Runner:
 
-Success criterion: head and feet remain visible throughout while motion transfer remains materially intact.
+`tools/structured-2d-character-pipeline/39_run_wan_animate2_bf16_w1f_safe_framing80.ps1`
 
-If validated, this normalization becomes mandatory preprocessing for Internet driving clips.
+Executor:
 
-## AFTER FRAMING — ART-DIRECTION PROMPT TEST
+`tools/wan-animate2-spike/run_w1f_safe_framing.py`
 
-Only after the crop is controlled, test the approved visual refinement separately: stronger 1980s barbarian/sword-and-sorcery influence, more torn fabric and more body exposure. Do not mix this with the framing experiment.
+W1F branches from W1, not W1A.
 
-## Exact operator action now
+Only changed axis: driver framing.
+
+The preprocessor:
+
+- preserves the entire original raw driver frame;
+- contains it inside a fixed centered **80% safe box** on `640×800`;
+- adds stable margins;
+- does not crop the subject;
+- does not use temporal tracking/camera breathing;
+- requires no manual alignment.
+
+Everything else remains exact W1: Exilada reference/prompt, Base BF16 stack, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.0, negative prompt and `--disable-pinned-memory`.
+
+Expected outputs:
+
+- `Z:\AI\WanAnimate2\w1f_exilada_safe_framing80.mp4`
+- `Z:\AI\WanAnimate2\w1f_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1f_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1f_safe_driver_manifest.json`
+
+Success criterion: complete head/hair/body stay safely inside frame without unacceptable subject shrinkage, motion weakening or new topology drift.
+
+## AFTER W1F
+
+1. lock framing policy;
+2. run a separate art-direction prompt test for **1980s sword-and-sorcery + more torn/exposing cloth**;
+3. W2 Internet walking driver;
+4. W3 secondary-motion stress footage;
+5. W4 finite high-leverage variants only if still justified;
+6. validate the approved painterly language at actual ~128 px gameplay occupancy in the belt-scroller scene.
+
+## Exact operator action
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\38_run_wan_animate2_bf16_w1a_refstrength15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\39_run_wan_animate2_bf16_w1f_safe_framing80.ps1"
 ```
-
-## Wan sequence
-
-- W0: PASS_BASELINE.
-- W1: appearance CONFIGURATION FAIL, motion evidence positive.
-- W1A: CURRENT.
-- framing/crop normalization: NEXT.
-- art-direction prompt gate.
-- W2: Internet walking driver.
-- W3: secondary-motion stress footage.
-- W4: finite high-leverage variants only.
 
 ## Cleanup discipline
 
