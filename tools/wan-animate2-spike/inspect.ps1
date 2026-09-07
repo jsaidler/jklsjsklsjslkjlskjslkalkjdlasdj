@@ -1,5 +1,5 @@
 param(
-    [string]$Workspace = 'D:\AI\WanAnimate2',
+    [string]$Workspace = 'Z:\AI\WanAnimate2',
     [int]$Port = 8188
 )
 
@@ -14,10 +14,7 @@ function Find-ComfyRoot([string]$Base) {
 }
 
 function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
-    foreach ($candidate in @(
-        (Join-Path $ComfyRoot '.venv\Scripts\python.exe'),
-        (Join-Path $Base '.venv\Scripts\python.exe')
-    ) | Select-Object -Unique) {
+    foreach ($candidate in @((Join-Path $ComfyRoot '.venv\Scripts\python.exe'),(Join-Path $Base '.venv\Scripts\python.exe')) | Select-Object -Unique) {
         if (Test-Path $candidate) { return $candidate }
     }
     return $null
@@ -61,20 +58,13 @@ $Forbidden = @(
 Write-Host ''
 Write-Host 'Obsolete/superseded Wan assets (must be absent):' -ForegroundColor Cyan
 foreach ($f in $Forbidden) {
-    if (Test-Path $f -PathType Leaf) {
-        Write-Host "[FOUND] $f" -ForegroundColor Red
-        $failed = $true
-    } else {
-        Write-Host "[CLEAN] $f" -ForegroundColor Green
-    }
+    if (Test-Path $f -PathType Leaf) { Write-Host "[FOUND] $f" -ForegroundColor Red; $failed = $true }
+    else { Write-Host "[CLEAN] $f" -ForegroundColor Green }
 }
 
 $Base = "http://127.0.0.1:$Port"
 $serverAlreadyRunning = $false
-try {
-    $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
-    $serverAlreadyRunning = $true
-} catch {}
+try { $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2; $serverAlreadyRunning = $true } catch {}
 
 $UserDir = Join-Path $ComfyRoot 'user'
 New-Item -ItemType Directory -Force -Path $UserDir | Out-Null
@@ -97,11 +87,8 @@ if ($serverAlreadyRunning) {
 
 $ok = $false
 for ($i=0; $i -lt 120; $i++) {
-    try {
-        $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
-        $ok = $true
-        break
-    } catch {
+    try { $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2; $ok = $true; break }
+    catch {
         if ($process -and $process.HasExited) {
             if (Test-Path $StderrLog) { Get-Content $StderrLog -Tail 100 }
             throw "ComfyUI exited early with code $($process.ExitCode)."
@@ -119,19 +106,11 @@ $Required = @('WanAnimate2ToVideo','LoadImage','LoadVideo','UNETLoader','CLIPLoa
 Write-Host ''
 Write-Host 'Required node classes:' -ForegroundColor Cyan
 foreach ($name in $Required) {
-    if ($ObjectInfo.PSObject.Properties.Name -contains $name) {
-        Write-Host "[OK]   $name" -ForegroundColor Green
-    } else {
-        Write-Host "[MISS] $name" -ForegroundColor Red
-        $failed = $true
-    }
+    if ($ObjectInfo.PSObject.Properties.Name -contains $name) { Write-Host "[OK]   $name" -ForegroundColor Green }
+    else { Write-Host "[MISS] $name" -ForegroundColor Red; $failed = $true }
 }
 
-$Probe = [ordered]@{
-    gate = 'WAN_ANIMATE2_W0_BF16_SCHEMA_PREFLIGHT'
-    route = 'base_bf16_reference'
-    comfy_root = $ComfyRoot
-}
+$Probe = [ordered]@{ gate='WAN_ANIMATE2_W0_BF16_SCHEMA_PREFLIGHT'; route='base_bf16_reference'; workspace=$Workspace; comfy_root=$ComfyRoot }
 foreach ($name in @('UNETLoader','WanAnimate2ToVideo','LoadVideo','CLIPLoader','CLIPVisionLoader','CLIPVisionEncode','VAELoader','BasicScheduler','KSamplerSelect','ModelSamplingSD3')) {
     if ($ObjectInfo.PSObject.Properties.Name -contains $name) { $Probe[$name] = $ObjectInfo.$name }
 }
