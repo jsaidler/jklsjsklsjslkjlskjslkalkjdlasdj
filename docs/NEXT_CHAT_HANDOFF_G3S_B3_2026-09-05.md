@@ -7,13 +7,30 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-3. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-4. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-5. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-6. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-7. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-8. `docs/G3S_B4_HAIR_LOG.md`
+2. `docs/G1_CAMERA_SCALE_LOG.md`
+3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+4. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+5. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
+6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
+7. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+8. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+9. `docs/G3S_B4_HAIR_LOG.md`
+
+## Presentation simplification — LOCKED
+
+The project is no longer pursuing true isometric character production.
+
+Locked presentation is elevated arcade beat'em-up / belt-scroller false 3D:
+
+- fixed orthographic `640×360` camera;
+- pitch `26 deg`;
+- protagonist about `128 px` tall;
+- walkable depth band retained;
+- first visible body family screen-left front-three-quarter;
+- gameplay depth movement does not require north/south/isometric sprite sets;
+- do not silently recreate multi-directional/isometric art complexity.
+
+This decision exists specifically to make 2D character production feasible.
 
 ## Canonical body
 
@@ -46,7 +63,8 @@ Approval:
 - C0 V1 nearest-segment hard partition + independent rigid rotations;
 - single-still full-body cutout/warp/cage -> gait;
 - skinned MPFB body as mandatory hidden guide;
-- independent full-body generative redraw per walk frame.
+- independent full-body generative redraw per walk frame;
+- implicit return to isometric/multi-directional character coverage.
 
 ## Latest visual failure — C1B Flux2
 
@@ -65,11 +83,11 @@ Failure marker:
 
 No new model/runtime was installed; no cleanup applies.
 
-## CURRENT — C1B segmented persistent 2D skeletal puppet
+## CURRENT — C1B minimal segmented persistent 2D puppet
 
 Architecture:
 
-`approved hidden skeleton -> persistent native-2D part atlas -> explicit anatomical pivots -> skeleton projected transform -> camera-space depth sort -> composited sprite`
+`approved hidden skeleton -> persistent native-2D part atlas -> explicit anatomical pivots + deliberate overlap -> projected skeleton transforms -> camera-space depth sort -> composited sprite`
 
 Detailed doc:
 
@@ -79,29 +97,40 @@ Spec:
 
 `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`
 
+Current revision:
+
+`SEGMENTED_2D_SKELETAL_PUPPET_V2_BELT_SCROLLER_MINIMAL`
+
 Initial parts: head/neck, torso, pelvis, bilateral upper arms, forearms, hands, thighs, shins and feet.
 
 This is **not** the failed C0 V1 method. Requirements:
 
 - deliberate overlapping art under joints;
 - explicit anatomical pivots;
-- optional joint caps/covers;
 - continuous torso/pelvis connection;
 - projected bone direction/length drives each part;
-- skeleton depth drives draw order;
-- small reusable orientation/foreshortening variants only where needed.
+- skeleton depth drives draw order.
 
-Variants are persistent assets, not frame-specific redraws.
+### First-proof simplification
+
+- screen-left family only;
+- same persistent part artwork reused across all 8 walk states;
+- no north/south/isometric directions;
+- no pre-emptive orientation/foreshortening library;
+- no frame-specific redraw;
+- no generative model;
+- no manual frame repair required from the user.
+
+Only if the composed left-facing walk demonstrates one specific unavoidable projection failure may a small persistent reusable part variant be added.
 
 ## Exact next implementation
 
-Implement a new runner after the disabled runner 22. It must generate in one pass:
+Implement a new headless runner after the disabled runner 22. It must:
 
-- segmented body-part atlas from/founded on canonical B3B;
-- pivot/binding manifest;
-- eight body-only walk frames driven by approved C1A;
-- in-place GIF;
-- travel GIF;
-- contact sheet with optional skeleton overlay.
+1. derive/cut the persistent part atlas from the canonical B3B without altering the source file;
+2. write a pivot/binding/overlap manifest;
+3. attach the parts to the approved C1A projected skeleton;
+4. composite all eight left-facing walk frames using skeleton depth order;
+5. generate in-place GIF, travel GIF and contact sheet with optional skeleton overlay.
 
-Initial proof should use no new model/API/download and require no user frame-by-frame repair.
+Initial proof uses no new model/API/download. Hair remains deferred.
