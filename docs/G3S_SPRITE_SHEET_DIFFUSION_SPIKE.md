@@ -2,15 +2,13 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 TRANSPORT FIX V3 READY / RETRY REQUIRED**
+Gate status: **ACTIVE — EXACT UPSTREAM SSD BLOCKED BY UNRELEASED CUSTOM POSE GUIDER / MOORE-COMPAT FALLBACK RUNNER 29 READY**
 
 ## Decision
 
-The character-production target is a conventional **2D spritesheet**: approved persistent frames arranged by action in rows/blocks or equivalent atlas regions, with metadata for timing, pivots, hitboxes and events as needed.
+The character-production target remains a conventional **2D spritesheet**: approved persistent frames arranged by action in rows/blocks or equivalent atlas regions, with metadata for timing, pivots, hitboxes and events as needed.
 
-The active offline source-authoring spike is **Sprite Sheet Diffusion (SSD)**, using the complete Exilada master as appearance reference plus pose/motion guidance. SSD is a production tool under validation, not a runtime dependency.
-
-The workstation setup includes all assets genuinely useful/necessary for the best practical spritesheet-authoring workflow while excluding unrelated audio/portrait assets and unsuitable legacy components.
+The active offline authoring investigation is based on Sprite Sheet Diffusion (SSD), using the complete Exilada master as appearance reference plus pose/motion guidance. Diffusion remains an authoring tool only; runtime remains ordinary spritesheet playback.
 
 ## Presentation/runtime lock retained
 
@@ -23,7 +21,7 @@ The workstation setup includes all assets genuinely useful/necessary for the bes
 - gameplay depth movement does not require north/south/isometric sprite families;
 - runtime is ordinary spritesheet playback, not 3D, puppet assembly or diffusion.
 
-## Local SSD stack — PASS
+## Local SSD environment / support — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -36,39 +34,18 @@ Validated:
 - RTX 3060 detected;
 - Torch `2.0.1+cu118`;
 - CUDA build `11.8`;
-- real upstream `ModelTraining/inference.py` import graph PASS;
-- core generation models PASS;
-- authoring-support models PASS;
-- DWPose available;
-- FILM available, optional/not default.
+- upstream SSD inference import graph PASS;
+- DWPose available and working in walk8 input preparation;
+- FILM available, optional/not default;
+- SD1.5 UNet, VAE and CLIP image encoder present;
+- released SSD fine-tuned denoising/reference UNets present;
+- AnimateAnyone baseline pose guider + motion module present.
 
-## Correct role of the downloaded AIs
+## Canonical walk8 input — PREPARATION PASS
 
-### SSD
+No manual pose folder is required.
 
-**Sprite Sheet Diffusion generates the visible Exilada frames.** It consumes an appearance/reference image, a reference pose for that image and a target pose sequence.
-
-### DWPose
-
-**DWPose is the downloaded AI pose extractor.** It converts RGB character/action images or driving video frames into body/hand/face pose maps.
-
-For the first walk proof, DWPose extracts the pose of `exilada_master.png`, so the appearance reference has a matching pose-control image.
-
-### C1A walk guide
-
-The eight walk targets already exist as exact project-owned motion control. Re-running an AI detector over those eight states would add detection error for no benefit. Therefore those target maps are rendered deterministically from approved C1A joint coordinates using the SSD repo's OpenPose-style drawing convention.
-
-Correct split:
-
-`Exilada master --DWPose--> reference pose`
-
-`approved C1A guide --deterministic conversion--> 8 target pose maps`
-
-`master + reference pose + 8 targets --SSD--> 8 visible Exilada frames`
-
-No manual/external pose folder is required from the user.
-
-## Canonical eight-state walk
+The eight target states are the approved C1A walk cycle:
 
 | Index | Source frame | Event | Support foot |
 |---:|---:|---|---|
@@ -81,114 +58,158 @@ No manual/external pose folder is required from the user.
 | 6 | 1648 | `right_passing` | right |
 | 7 | 1658 | `right_up` | right |
 
-Canonical local guide:
+Canonical guide:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`
 
-Existing C1A review PNGs must not be used as SSD control images because they contain labels, ground graphics, support-foot rings and review colors.
+Runner 28 V3 successfully reached real inference, which confirms the JSON path-control plane, DWPose reference-pose extraction and deterministic eight-target pose-map preparation work.
 
-## Upstream inference issue handled
+Correct input split:
 
-Upstream `ModelTraining/inference.py` assumes the first target pose is also the reference-image pose. That assumption is false for our master: the Exilada master is standing while target frame 1 is `left_contact`.
+`Exilada master --DWPose--> reference pose`
 
-Project runner 28 leaves upstream `inference.py` untouched and generates a deterministic local copy with one narrow patch: a separate `reference_pose_path` is read from config while the target list stays exactly eight walk frames.
+`approved C1A guide --deterministic OpenPose-style conversion--> 8 target pose maps`
 
-## Runner 28 execution history — SCRIPT FAILURES, NOT SSD FAILURES
+## Runner 28 real inference result — BLOCKED / CLOSED
 
 Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-### Attempt 1 — raw `Start-Process -ArgumentList`
+The latest run reached:
 
-Python received only `D:\GOOGLE` for the helper path and failed before preparation.
+`[INFER] Running SSD: 512x512, 8 target frames, 25 steps, CFG 3.5, fp16...`
 
-### Attempt 2 — manually quoted `Start-Process -ArgumentList`
+Model initialization then failed at:
 
-The argv preflight failed before DWPose/model work. Manual quoting around `Start-Process` is rejected.
+`pose_guider.load_state_dict(..., strict=True)`
 
-### Attempt 3 — PowerShell call-operator array splatting
+The installed `pose_guider.pth` contains the original Moore/AnimateAnyone architecture keys:
 
-The user supplied the exact preflight result:
+- `conv_in.*`;
+- `blocks.*`;
+- `conv_out.*`.
 
-- expected two payload arguments;
-- received count: `1`;
-- received value: `D:\GOOGLE DRIVE\DEV\Roguelite D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_master.png`.
+Current SSD `models/pose_guider.py` instead defines a custom multi-scale architecture with keys including:
 
-Therefore `& $PythonExe @Arguments` through the runner's function/parameter path also failed to preserve the two whitespace-bearing Windows paths as separate native argv entries in this Windows PowerShell 5.1 environment.
+- `scale`;
+- `conv_layers.*`;
+- `conv_layers_1.*` through `conv_layers_4.*`;
+- `final_proj.*`;
+- `cross_attn1.*` through `cross_attn4.*`.
 
-This third failure was again caught before DWPose or SSD inference. No model, CUDA, dependency or quality gate failed.
+The state-dict mismatch is therefore structural, not a damaged file, CUDA problem, DWPose problem or path-transport issue.
 
-## Windows native transport rule — LOCKED V3
+The preceding warning that several SD1.5 UNet output-layer weights were unused was **not** the fatal error; execution continued until the pose-guider strict load.
 
-Do **not** keep trying to solve this by adding another quoting layer.
+### Public-release blocker — CONFIRMED
 
-For project Python control-plane data under Windows PowerShell 5.1:
+The SSD repository's current `inference.py` instantiates the custom multi-scale `PoseGuider(noise_latent_channels=320)` and loads `config.pose_guider_path` with `strict=True`.
 
-1. whitespace-bearing project paths are **not transported through native argv**;
-2. project-root, master path, guide path and markers are serialized into a UTF-8 JSON request file under `Z:\AI\SpriteSheetDiffusionSpike`, whose path contains no spaces;
-3. the Python helper and request wrapper are copied to the same no-space SSD workspace before native invocation;
-4. Python receives only no-space script/request paths plus scalar literals;
-5. a Python request probe reads the JSON and writes the decoded values back; PowerShell compares them byte-for-string with the expected actual paths before DWPose/model work;
-6. `Start-Process` and dynamic native argument-array splatting are no longer used by runner 28.
+SSD's modified `unet_3d.py` consumes a list of multi-scale pose features (`pose_cond_fea[0]` plus additional indexed features through down blocks). This is incompatible with the original Moore/AnimateAnyone PoseGuider, which returns a single pose feature tensor and whose UNet adds it only at the input stage.
 
-This removes the failing transport class instead of attempting to quote around it.
+The official SSD README links a pretrained-weight Drive, but the public release does not contain the required custom `pose_guider.pth`. Upstream GitHub issue **#3 — “Missing pose_guider.pth in released weights — inference cannot run as-is”** independently records exactly this blocker.
 
-## Runner 28 — FIX V3 / RETRY REQUIRED
+Therefore:
 
-New request wrapper:
+**Exact current-upstream SSD inference is not reproducible from the publicly released model set.**
 
-`tools/structured-2d-character-pipeline/g3s_ssd_walk8_request.py`
+The earlier project assumption that the baseline `patrolli/AnimateAnyone/pose_guider.pth` was a drop-in companion for the released SSD UNets was wrong and is now corrected in `ssd_model_manifest.json`.
 
-Runner 28 now:
+Do not rename, reshape loosely, or load the baseline checkpoint with `strict=False` into SSD's custom PoseGuider. That would leave the custom pose network substantially random and would not constitute a valid SSD test.
 
-1. verifies environment/dependency/core-model/support PASS markers;
-2. verifies canonical guide/master/helper sources;
-3. copies `g3s_ssd_prepare_walk8.py` and `g3s_ssd_walk8_request.py` to `Z:\AI\SpriteSheetDiffusionSpike`;
-4. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_walk8_prepare_request.json` containing all real project paths;
-5. invokes the local request wrapper using only no-space argv;
-6. verifies a Python-decoded request probe against the exact project root/master/model-training/guide/marker values;
-7. only after probe PASS runs DWPose on the master and builds the eight clean target maps;
-8. writes a dedicated SSD config and local patched inference copy;
-9. runs SSD at `512×512`, 8 frames, 25 steps, CFG 3.5, fp16, FILM disabled;
-10. verifies exactly eight generated PNGs;
-11. creates an unaltered 4×2 contact sheet and review GIF;
-12. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+## Released-model manifest — CORRECTED
 
-No reinstall or redownload is required.
+Manifest:
+
+`tools/structured-2d-character-pipeline/ssd_model_manifest.json`
+
+Current revision:
+
+`SSD_RELEASED_MODEL_SET_V2`
+
+Status:
+
+`EXACT_UPSTREAM_INFERENCE_BLOCKED_POSE_GUIDER_UNRELEASED`
+
+The baseline AnimateAnyone pose guider is retained only as a **fallback-compatible Moore asset**, not as an exact SSD pose-guider checkpoint.
+
+## Current empirical salvage route — Moore-compatible graph + released SSD UNets
+
+Because the missing checkpoint prevents exact SSD inference, the next bounded validation uses a technically coherent graph whose pose guider actually matches the available checkpoint:
+
+`Moore-AnimateAnyone graph + baseline Moore PoseGuider/motion module + released SSD fine-tuned denoising/reference UNets`
+
+This is **not** claimed to be the exact published SSD graph. It is an empirical salvage test answering a narrower practical question: do the released SSD fine-tuned UNets still provide useful sprite-character generation when run in the compatible original AnimateAnyone graph they evolved from?
+
+Pinned Moore source commit:
+
+`a914ef38aae3733c2f02f29853dd0593372e0cc9`
+
+New helper:
+
+`tools/structured-2d-character-pipeline/g3s_ssd_moore_compat_walk8.py`
+
+New runner:
+
+`tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
+
+Runner 29:
+
+1. validates all existing environment/model/support PASS markers;
+2. rebuilds the canonical Exilada master + C1A walk8 input package;
+3. fetches only the pinned Moore-AnimateAnyone source code under `Z:\AI\SpriteSheetDiffusionSpike\moore_animateanyone`;
+4. reuses the already-downloaded VAE, SD1.5 base, CLIP encoder, released SSD denoising/reference UNets, baseline pose guider and motion module;
+5. verifies the pose-guider checkpoint has the Moore `conv_in/blocks/conv_out` signature;
+6. instantiates the matching Moore PoseGuider and Moore UNet/pipeline graph;
+7. loads the SSD denoising UNet with Moore's own `strict=False` convention but refuses unexpected checkpoint keys;
+8. loads the SSD reference UNet and baseline pose guider strictly;
+9. generates 8 frames at `512×512`, 25 steps, CFG 3.5, seed 42, fp16;
+10. writes PNG frames, contact sheet, GIF and a result marker explicitly labelled `exact_upstream_ssd: false`.
+
+No heavyweight model redownload or environment reinstall is required. Runner 29 downloads only the Moore source code.
 
 ## Current exact operator action
+
+Do **not** run runner 28 again.
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\29_run_ssd_moore_compat_exilada_walk8.ps1"
 ```
 
-Expected early sequence:
+Technical PASS target:
 
-- `[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...`
-- `SSD-WALK8-REQUEST-PROBE: PASS`
-- `[OK] JSON path transport preflight PASS.`
-- `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
+- `SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`;
+- eight generated PNGs;
+- contact sheet;
+- GIF;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
 
 ## PASS semantics
 
-Runner success means **output ready for visual QA**, not visual PASS.
-
-Visual PASS requires review of:
+A technical runner PASS is only output-ready status. Visual QA must judge:
 
 - Exilada identity persistence;
-- anatomy/proportion persistence;
-- hair persistence;
+- anatomy/proportions;
+- long hair consistency;
 - cloth/shackles/chains consistency;
 - pose obedience;
 - temporal coherence;
-- suitability for native spritesheet production.
+- whether output is useful enough to justify further spritesheet production.
 
-Only after visual PASS do we proceed to alpha cleanup, pivot/root alignment and sheet packing.
+If runner 29 fails, diagnose that exact failure. Do not paper over architecture/state-dict mismatches with `strict=False` unless the source architecture itself explicitly requires it and the compatibility probe supports it.
+
+## Exact SSD route status
+
+Keep exact SSD marked **BLOCKED** unless one of the following happens:
+
+- the authors release the custom multi-scale `pose_guider.pth`;
+- a trustworthy mirror of that exact compatible checkpoint is found and hash/provenance are verified;
+- the project deliberately chooses to retrain the missing custom pose guider/stage-1 stack, which would be a new project decision rather than a smoke test.
 
 ## Cleanup
 
-SSD is ACTIVE. No cleanup applies.
+SSD remains ACTIVE as an investigation and the released fine-tuned UNets are retained. No cleanup applies now.
