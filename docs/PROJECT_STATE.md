@@ -7,17 +7,13 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/G1_CAMERA_SCALE_LOG.md`
-3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+3. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+4. `docs/G1_CAMERA_SCALE_LOG.md`
 5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
 6. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
 7. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-8. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-9. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-10. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-11. `docs/G3S_B4_HAIR_LOG.md`
-12. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+8. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -27,74 +23,56 @@ Normal operator loop after an approved runner exists:
 
 `git pull -> one documented PowerShell command -> inspect/share output`
 
-## Game / presentation — LOCKED FOR FEASIBILITY
+## Game / presentation — LOCKED
 
-True isometric character production was deliberately abandoned because it multiplies view families, pose coverage, occlusion cases and animation cost.
-
-The locked gameplay presentation is an **elevated 2D arcade beat'em-up / belt-scroller / false 3D**:
-
+- elevated 2D arcade beat'em-up / belt-scroller / false 3D;
 - fixed orthographic camera;
 - native raster `640×360`;
 - pitch `26 deg`;
-- protagonist standing body about `128 px`;
-- walkable gameplay-depth band retained;
+- protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
-- movement through gameplay depth does not require north/south/isometric sprite families.
+- gameplay depth movement does not require north/south/isometric sprite families.
 
-Any route that silently recreates isometric/multi-directional character complexity is architecture drift.
+True isometric multi-directional character production remains closed unless explicitly reopened.
 
-## Final runtime animation representation — LOCKED
+## Runtime animation representation — LOCKED
 
-The game uses conventional 2D sprite animation:
+`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
 
-`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime playback`
-
-Actions are deterministic frame sequences arranged in rows/blocks or equivalent atlas regions. One huge PNG is not required; grouped sheets are acceptable.
-
-Runtime does not require a 3D skeleton, segmented-body puppet, diffusion model or per-frame generation.
+Runtime does not require a 3D skeleton, MPFB, segmented puppet, diffusion model or per-frame generation.
 
 ## Canonical Exilada references
 
-Design/master reference:
+Complete design/master reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Approved earlier body-base artifact remains retained for provenance:
+Earlier approved body-base artifact remains retained for provenance:
 
 `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 
-- `37×128` RGBA;
-- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- screen-left/front-three-quarter family.
+The active SSD spike uses the **complete master** as appearance reference.
 
-For the active SSD spike, the **complete Exilada master** is the intended appearance reference; the old body-only/hair-deferred staging is not a prerequisite for this direct spritesheet-source test.
+## Retained offline motion source
 
-## Motion backbone — PASS/RETAINED AS OFFLINE SOURCE
-
-- G2 = PASS/CLOSED;
-- CMU `105_34 NormalWalk`;
+- G2 PASS/CLOSED;
 - `G2_CANONICAL_RIG`;
-- C1A skeleton walk = PASS/CLOSED;
-- approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`;
-- projected root travel approximately `-43.77 px` screen-left.
+- CMU `105_34 NormalWalk`;
+- C1A skeleton walk PASS/CLOSED;
+- approved eight-state cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
 
-Approval:
+This may be reused as offline pose/motion control only.
 
-`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
-
-This work may be reused as offline pose/motion control. It is not a runtime dependency.
-
-## Closed / superseded visible routes
+## Closed / historical visible routes
 
 - direct visible 3D -> final pixel art — CLOSED;
-- C0 V1 nearest-segment hard partition / exposed rigid pieces — CLOSED;
-- single-still continuous chain/cage warp -> gait — CLOSED;
-- MPFB skinned body as mandatory hidden guide — CLOSED;
-- independent full-body Flux2 redraw for each walk frame — FAIL/CLOSED;
-- segmented 2D skeletal puppet — **PAUSED/HISTORICAL, NOT CURRENT**;
-- implicit return to isometric/multi-directional character coverage — CLOSED unless presentation is explicitly reopened.
+- nearest-segment rigid body partition — CLOSED;
+- whole-body chain/cage warp -> gait — CLOSED;
+- MPFB skinned body as mandatory guide — CLOSED;
+- independent Flux2 full-body redraw per frame — FAIL/CLOSED;
+- segmented 2D puppet runner 23 — PAUSED/HISTORICAL, NOT CURRENT.
 
-## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION SPIKE
+## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION
 
 Canonical doc:
 
@@ -102,84 +80,77 @@ Canonical doc:
 
 Goal:
 
-Determine whether **Sprite Sheet Diffusion (SSD)** can locally generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that accepted frames can be frozen into conventional spritesheets.
+Determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that accepted frames can be frozen into conventional spritesheets.
 
-### Upstream verified facts
+### Verified upstream layout
 
-Upstream repo:
+Repo:
 
 `chenganhsieh/Sprite-Sheet-Diffusion`
 
-Actual implementation facts:
+- inference: `ModelTraining/inference.py`;
+- config: `ModelTraining/configs/prompts/inference.yaml`;
+- real upstream dependency file: `ModelTraining/requirements.txt`;
+- there is no root `requirements.txt` despite the README command;
+- config requires SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
 
-- README requests Python 3.10 conda environment;
-- README references `requirements.txt`, but the repository does **not** contain that root file;
-- actual inference entry point: `ModelTraining/inference.py`;
-- actual config: `ModelTraining/configs/prompts/inference.yaml`;
-- config requires SD1.5 base model in addition to SSD/AnimateAnyone/VAE/CLIP components.
-
-### Actual local state
+### Environment gate — PASS
 
 Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
-Clone:
+Actual user result:
 
-- upstream clone completed successfully;
-- 887/887 objects received;
-- approximately 289.63 MiB transferred.
+- upstream clone: SUCCESS;
+- Miniconda: SUCCESS;
+- `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
+- env `ssd`: PASS;
+- Python: `3.10.21`;
+- pip: `26.2.1`;
+- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
 
-Miniconda:
+No model weights were downloaded by the environment gate.
 
-- installation **SUCCESS**;
-- `conda.exe` resolved at `C:\Users\jsaid\miniconda3\Scripts\conda.exe`.
+## CURRENT RUNNER — Windows inference dependencies
 
-Environment `ssd`:
+Requirements lock:
 
-- **NOT CREATED YET**;
-- `conda create -n ssd python=3.10 pip -y` was blocked by `CondaToSNonInteractiveError` before package transaction;
-- Anaconda Terms of Service have not yet been accepted for:
-  - `https://repo.anaconda.com/pkgs/main`;
-  - `https://repo.anaconda.com/pkgs/r`;
-  - `https://repo.anaconda.com/pkgs/msys2`.
-
-This is an environment bootstrap/legal-opt-in blocker, not an SSD model-quality failure.
-
-## CURRENT RUNNER — SSD environment bootstrap
+`tools/structured-2d-character-pipeline/ssd_windows_inference_requirements.txt`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
+`tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
 
-The runner now has an explicit legal opt-in switch:
+Key compatibility decisions:
 
-`-AcceptAnacondaTos`
+- install `torch==2.0.1` + `torchvision==0.15.2` from official CUDA 11.8 wheels;
+- do not blindly install the full mixed training/UI upstream requirements;
+- defer optional `xformers` for the first proof;
+- use `av==12.0.0` on Windows because upstream `av==11.0.0` is source-only on PyPI and the required APIs are compatible;
+- include `matplotlib`/`scikit-image` because the imported local OpenPose graph requires them.
 
-It does **not** accept Anaconda terms silently. When this switch is supplied, it executes the exact `conda tos accept --override-channels --channel ...` commands for the three required channels, then creates and verifies the `ssd` Python 3.10 environment.
-
-The runner still downloads no models and installs no large SSD dependency stack.
+Runner 25 performs package install, `pip check`, CUDA probe and a real import of upstream `ModelTraining/inference.py` without loading models. It writes local dependency marker/probe/freeze files and downloads no checkpoints.
 
 ## Current exact operator action
-
-Only if the user agrees to those Anaconda Terms of Service:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
-  -AcceptAnacondaTos
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\25_bootstrap_ssd_dependencies.ps1"
 ```
 
-Using `-AcceptAnacondaTos` constitutes explicit authorization for the runner to accept those channel terms.
+PASS target:
 
-PASS requires console `SSD-ENV: PASS`, Python 3.10.x and local marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
+- `SSD-DEPS: PASS`;
+- CUDA available;
+- torch 2.0.1 / CUDA build 11.8;
+- RTX/NVIDIA GPU reported;
+- real SSD inference import graph PASS.
 
-After PASS, next gate is the controlled Windows dependency bootstrap. No model download before that gate is documented and prepared.
+After dependency PASS, prepare the separate model/checkpoint download gate. No model download before then.
 
-## No cleanup yet
+## No cleanup
 
-SSD is ACTIVE, not discarded. Do not delete `Z:\AI\SpriteSheetDiffusionSpike`.
-
-If the route is later explicitly closed, cleanup is documented in `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`.
+SSD is ACTIVE. Do not delete `Z:\AI\SpriteSheetDiffusionSpike`.
