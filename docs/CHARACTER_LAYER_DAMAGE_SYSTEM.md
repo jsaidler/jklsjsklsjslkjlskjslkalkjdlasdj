@@ -8,9 +8,9 @@ Status: **CANONICAL — OFFLINE MODULAR AUTHORING / COMPLETE-CHARACTER RUNTIME S
 
 The earlier assumption that the runtime would assemble the visible character from body, hair, clothing, armor, restraints and equipment layers is **abolished**.
 
-The runtime now receives **complete already-composed character frames**. Each animation/state family is exported as a full-character spritesheet.
+The runtime receives **complete already-composed character frames**. Each animation/state family is exported as a full-character spritesheet.
 
-Internal source assets may still be modular offline because that is useful for authoring armor, equipment, damage, exposure and secondary motion. But those modules are production inputs, not runtime-visible character layers.
+Internal source assets may still be modular offline because that is useful for authoring armor, equipment, damage, exposure and secondary motion. Those modules are production inputs, not runtime-visible character layers.
 
 Locked invariant:
 
@@ -24,7 +24,7 @@ For the Exilada's first animation proof:
 
 is the complete initial-state appearance reference.
 
-The first walk sequence must therefore preserve and animate together:
+The walk sequence must preserve and animate together:
 
 - body;
 - long hair;
@@ -47,7 +47,7 @@ The production pipeline may still represent the source character using stable se
 8. surface-state masks;
 9. transient VFX inputs.
 
-This stack exists to make authoring and variation manageable. It does **not** imply runtime composition.
+This stack exists to make authoring, motion control and variation manageable. It does **not** imply runtime composition.
 
 ## Complete-frame export rule
 
@@ -64,13 +64,13 @@ Each exported frame must already contain:
 - occlusion/depth result;
 - selected persistent damage/exposure/surface appearance for that variant.
 
-Detached or migrating source elements are authoring failures and cannot be delegated to the runtime.
+Detached, frozen or migrating source elements are authoring failures and cannot be delegated to the runtime.
 
 ## Equipment / armor variation — OPEN IMPLEMENTATION
 
 The game still requires changing armor, accessories and other equipment states.
 
-The exact scalable production strategy is intentionally deferred until the initial complete-character animation route is proven.
+The exact scalable production strategy is intentionally deferred until the complete-character animation route is stable.
 
 Allowed future production approaches may include:
 
@@ -120,13 +120,13 @@ Structural changes require deterministic source-state ownership before complete-
 
 The source-authoring character should retain a complete underlying body because clothing may be removed or damaged. This remains an **offline authoring requirement**.
 
-When coverage changes, the offline state resolver determines what becomes visible and exports a new complete-character state/animation family as required by the later variation strategy.
+When coverage changes, the offline state resolver determines what becomes visible and exports a new complete-character state/animation family according to the later variation strategy.
 
 No runtime body-under-clothing assembly is implied.
 
 ## Stable identity / ownership
 
-Offline source elements should continue to preserve:
+Offline source elements should preserve:
 
 - stable item/state IDs;
 - equipment slots/classes;
@@ -143,30 +143,31 @@ This information prevents left/right migration and makes complete variant genera
 
 Hair, loose cloth and chains/restraints are not optional decoration. Their motion is part of the baked animation output.
 
-The authoring system may use:
+The authoring system may use temporal image/video priors, deterministic rigs, secondary bones, spring/damped solvers, constrained simulation, offline layer-specific generation/composition or other offline controls, provided the final result is a stable complete-character frame sequence.
 
-- temporal image/video priors;
-- deterministic rigs;
-- secondary bones;
-- spring/damped solvers;
-- constrained simulation;
-- offline layer-specific generation/composition;
+## Runner 34 result — IMPORTANT SECONDARY-MOTION EVIDENCE
 
-provided the final result is a stable complete-character frame sequence.
+Runner 34 proved that complete-character frames and spritesheets can be generated/packed successfully from the initial master.
 
-## Current proof condition
+It also proved that **body OpenPose control alone is insufficient** for the locked secondary-motion requirement:
 
-Runner 34 tests the initial Exilada state as a complete master-driven temporal sequence.
+- hair remained mostly frozen/warped;
+- cloth did not gain convincing inertial motion;
+- jiggle was not controllable/readable enough;
+- wrist chain remained largely static;
+- ankle restraint/chain detached and mutated in middle frames.
 
-The route passes only if body movement and the visible secondary systems remain coherent enough to justify continued production development.
+Therefore secondary systems cannot be left to an unconstrained temporal prior if stable ownership/physics is required.
 
-Current runner:
+## Next source-authoring requirement
 
-`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
+The next offline authoring gate must introduce richer complete-motion control for hair, cloth, restraints/chains and soft tissue while preserving the final complete-frame export invariant.
+
+A hidden modular rig/simulation is explicitly allowed for this purpose because it is an **offline source-control system**, not runtime composition.
 
 ## Later G6/G7 decision
 
-After the initial full-character animation route is proven, the project must choose how armor/equipment/damage/state variation is generated efficiently **offline** without combinatorial manual work.
+After the complete-character animation route is stable, choose how armor/equipment/damage/state variation is generated efficiently offline without combinatorial manual work.
 
 The future system must satisfy both:
 
