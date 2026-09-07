@@ -1,0 +1,27 @@
+{
+  "gate": "G3S-C1B",
+  "revision": "FLUX2_EIGHT_POSE_VISUAL_PROOF_V1",
+  "status": "FAIL_CLOSED",
+  "date": "2026-09-06",
+  "reviewed_artifacts": {
+    "gif_sha256": "edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee",
+    "contact_sheet_sha256": "8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e"
+  },
+  "failure_class": "independent full-body generative redraw per gait frame cannot maintain one persistent visible character",
+  "observed_failures": [
+    "face and identity drift between frames",
+    "skin tone and shading drift between frames",
+    "body proportions and breast/waist/shoulder anatomy change between frames",
+    "camera/view family and silhouette vary between frames",
+    "pixel-art language and edge treatment vary between frames",
+    "playback reads as different women rather than one persistent Exilada"
+  ],
+  "closed_method": "one independent generative full-body redraw for every gait state",
+  "retained": [
+    "C1A approved hidden skeleton cycle",
+    "B3B V4 canonical visible identity/body-style anchor",
+    "retained FLUX2 local stack for unrelated bounded experiments only"
+  ],
+  "next_method": "segmented persistent native-2D billboard puppet bound to the approved hidden skeleton, with explicit pivots, overlap/joint coverage, depth ordering and limited pose/orientation variants where projection requires them",
+  "cleanup": "none; this gate added no new model/API/runtime and the FLUX2 stack predates C1B"
+}
