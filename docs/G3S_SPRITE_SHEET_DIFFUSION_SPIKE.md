@@ -2,63 +2,40 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — LOCAL SSD INSTALLATION / ENVIRONMENT BOOTSTRAP BLOCKED ONLY ON ANACONDA TOS OPT-IN**
+Gate status: **ACTIVE — WINDOWS INFERENCE DEPENDENCY BOOTSTRAP RUNNER READY**
 
 ## Decision
 
-The character-production target is a conventional **2D spritesheet**, as used by classic arcade beat'em-up production: final gameplay animation is stored as persistent frame images arranged by action in rows/blocks, with metadata for timing/pivots/events as needed.
+The character-production target is a conventional **2D spritesheet**: approved persistent frames arranged by action in rows/blocks or equivalent atlas regions, with metadata for timing, pivots, hitboxes and events as needed.
 
-The current local source-authoring spike is **Sprite Sheet Diffusion (SSD)**, using the Exilada master as the appearance reference and pose/motion guidance to generate a consistent animation sequence. The SSD spike is a production-tool validation only; SSD is not a runtime dependency.
+The active offline source-authoring spike is **Sprite Sheet Diffusion (SSD)**, using the complete Exilada master as appearance reference plus pose/motion guidance. SSD is a production tool under validation, not a runtime dependency.
 
-## Presentation lock retained
+## Presentation/runtime lock retained
 
-The project remains an elevated arcade beat'em-up / belt-scroller false 3D, not true isometric character production:
-
+- elevated arcade beat'em-up / belt-scroller false 3D;
 - fixed orthographic gameplay camera;
 - native raster `640×360`;
 - pitch `26 deg`;
-- protagonist about `128 px` tall in gameplay;
+- protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
-- movement through gameplay depth does not require north/south/isometric sprite families.
+- gameplay depth movement does not require north/south/isometric sprite families;
+- runtime is ordinary spritesheet playback, not 3D, puppet assembly or diffusion.
 
-## Runtime/output lock
-
-Final runtime representation:
-
-`offline source-authoring -> approved 2D frames -> spritesheet PNG(s) + animation metadata -> ordinary sprite playback`
-
-A hidden rig/mocap sequence may be used offline to create/control source poses, but it is not required at runtime.
-
-A single giant PNG is not mandatory. Conventional grouped sheets are acceptable, e.g. locomotion/combat/damage/contextual, provided actions remain deterministic frame sequences.
-
-## Why SSD is being tested
-
-SSD adapts an AnimateAnyone-style architecture for game-character animation and uses:
-
-- a fine-tuned denoising UNet;
-- a fine-tuned reference UNet;
-- a pose guider;
-- a motion module;
-- SD1.5 base model;
-- SD VAE;
-- CLIP vision image encoder.
-
-The project is testing it specifically because it is trained for sprite/game-character animation rather than independently regenerating unrelated full-body frames.
-
-## Upstream repository reality — VERIFIED
+## Upstream repository — verified layout
 
 Upstream:
 
 `https://github.com/chenganhsieh/Sprite-Sheet-Diffusion`
 
-Important implementation facts verified on 2026-09-06:
+Verified implementation facts:
 
-- the README says `conda create -n ssd python=3.10`, `conda activate ssd`, then `pip install -r requirements.txt`;
-- **the repository does not actually contain a root `requirements.txt`**;
-- actual inference entry point is `ModelTraining/inference.py`;
-- actual prompt config is `ModelTraining/configs/prompts/inference.yaml`;
-- that config requires these paths:
-  - `stable-diffusion-v1-5` base model;
+- README requests a Python 3.10 conda environment;
+- README says `pip install -r requirements.txt`, but there is **no root** `requirements.txt`;
+- there **is** an actual dependency file at `ModelTraining/requirements.txt`;
+- inference entry point: `ModelTraining/inference.py`;
+- prompt config: `ModelTraining/configs/prompts/inference.yaml`;
+- inference config requires:
+  - `stable-diffusion-v1-5`;
   - `sd-vae-ft-mse`;
   - `image_encoder`;
   - `denoising_unet.pth`;
@@ -66,15 +43,9 @@ Important implementation facts verified on 2026-09-06:
   - `pose_guider.pth`;
   - `motion_module.pth`.
 
-The earlier local-install plan omitted the SD1.5 base model and incorrectly assumed a usable root `requirements.txt`; this is corrected here.
+The earlier install plan was corrected twice: first to stop assuming a root requirements file, then after inspection to use the real `ModelTraining/requirements.txt` as the upstream reference rather than the Moore repo alone.
 
-## Dependency baseline
-
-SSD states that it is built directly on Moore-AnimateAnyone. Until a project-specific Windows requirements lock is proven, dependency bootstrap uses the Moore-AnimateAnyone pinned inference-era requirements as the compatibility baseline, with SSD-specific missing imports added only when observed/verified.
-
-The Moore baseline includes Python 3.10-era versions including Torch 2.0.1 / torchvision 0.15.2, diffusers 0.24.0, transformers 4.30.2, xformers 0.0.22 and related packages.
-
-## Local workspace
+## Environment bootstrap — PASS
 
 Workspace:
 
@@ -84,108 +55,112 @@ Upstream clone:
 
 `Z:\AI\SpriteSheetDiffusionSpike\repo`
 
-## Actual bootstrap history
-
-Initial user result:
-
-- upstream clone: **SUCCESS**;
-- 887/887 objects received;
-- approximately 289.63 MiB transferred;
-- `conda` initially not installed / not on PATH;
-- `cd /d ...` failed because `/d` is CMD syntax, not PowerShell;
-- `pip install -r requirements.txt` failed from `C:\Users\jsaid` and the upstream root requirements file is absent.
-
-Bootstrap runner was then added:
-
-`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
-
-Latest actual user result on 2026-09-07:
-
-- Miniconda installation: **SUCCESS**;
-- resolved `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
-- `conda create -n ssd python=3.10 pip -y`: **BLOCKED BEFORE PACKAGE TRANSACTION**;
-- blocker: `CondaToSNonInteractiveError` because Anaconda Terms of Service were not yet accepted for default channels:
-  - `https://repo.anaconda.com/pkgs/main`;
-  - `https://repo.anaconda.com/pkgs/r`;
-  - `https://repo.anaconda.com/pkgs/msys2`.
-
-This is not an SSD/model failure. The environment has not yet been created.
-
-## ToS handling decision — EXPLICIT OPT-IN ONLY
-
-The project runner must **not silently accept legal terms on the user's behalf**.
-
-Runner 24 now supports:
-
-`-AcceptAnacondaTos`
-
-Supplying that switch is the user's explicit opt-in to let the runner execute the exact `conda tos accept` commands for the three required default channels before creating the environment.
-
-Without that switch, if environment creation is needed, runner 24 stops and prints the required action rather than accepting terms automatically.
-
-## Environment bootstrap runner
-
 Runner:
 
 `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-Current behavior:
+Actual result supplied by the user on 2026-09-07:
 
-1. verifies the existing upstream clone and actual inference/config paths;
-2. locates existing `conda.exe` or installs Miniconda through WinGet if absent;
-3. probes for an already-working `ssd` Python 3.10 environment;
-4. if no environment exists, requires explicit `-AcceptAnacondaTos` before accepting Anaconda default-channel terms;
-5. creates env `ssd` with Python 3.10 + pip;
-6. verifies Python 3.10 and pip through `conda run`;
-7. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
-8. downloads **no model weights** and installs **no large SSD dependency stack** in this gate.
+- Miniconda: **installed successfully**;
+- `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
+- Anaconda default-channel ToS: explicitly accepted through runner opt-in;
+- env `ssd`: **PASS**;
+- Python: **3.10.21**;
+- pip: **26.2.1**;
+- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
+- no model weights downloaded by this gate.
 
-## Current exact next gate
+The earlier `CondaToSNonInteractiveError` is resolved and closed as an environment-bootstrap issue.
 
-**Environment bootstrap only.**
+## Windows dependency strategy — LOCKED FOR THIS SPIKE
 
-If the user agrees to the Anaconda Terms of Service for the three channels above, run:
+Do **not** blindly install all of `ModelTraining/requirements.txt` on Windows.
+
+A project-specific inference-only lock is committed at:
+
+`tools/structured-2d-character-pipeline/ssd_windows_inference_requirements.txt`
+
+Reasons:
+
+1. upstream mixes inference, training, UI and evaluation dependencies;
+2. `xformers==0.0.22` is optional in SSD inference code and has no CPython 3.10 Windows wheel on PyPI; it is deferred rather than compiled from source or silently substituted;
+3. upstream `av==11.0.0` is source-only on PyPI, while SSD only uses stable `av.open` / `VideoFrame` APIs; the Windows lock uses `av==12.0.0`, which has a CPython 3.10 Windows wheel;
+4. training/UI-only packages such as `bitsandbytes`, `wandb`, Gradio and related packages are not installed in this gate;
+5. local OpenPose imports require `matplotlib` and `scikit-image`, so they are included even though the upstream requirements are not fully self-consistent for this import graph.
+
+## CUDA/PyTorch decision
+
+Install exactly:
+
+- `torch==2.0.1`;
+- `torchvision==0.15.2`;
+- from the official **CUDA 11.8** PyTorch wheel index.
+
+This matches the SSD-era dependency family while giving a deterministic Windows CUDA build for the RTX 3060.
+
+`xformers` is intentionally absent from the first inference dependency proof. If 12 GB VRAM later proves insufficient, xformers/offload becomes a separate measured optimization gate rather than an installation prerequisite.
+
+## Current runner — dependency gate
+
+Runner:
+
+`tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
+
+It:
+
+1. requires the environment PASS marker;
+2. validates Python 3.10 in env `ssd`;
+3. validates the real upstream `ModelTraining/requirements.txt` and the project Windows inference lock;
+4. installs PyTorch 2.0.1 + torchvision 0.15.2 CUDA 11.8 from the official PyTorch index;
+5. installs the inference-only Windows lock;
+6. runs `pip check`;
+7. performs a CUDA probe;
+8. imports the real upstream `ModelTraining/inference.py` and its local model/OpenPose/pipeline import graph without loading checkpoints;
+9. writes:
+   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`;
+   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`;
+   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
+10. downloads **no model weights**.
+
+## Current exact operator action
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
-  -AcceptAnacondaTos
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\25_bootstrap_ssd_dependencies.ps1"
 ```
 
-Using `-AcceptAnacondaTos` is explicit acceptance authorization for the runner; it is not implied by project participation.
+## Dependency gate PASS
 
-Do not download model weights or install the large dependency stack until this environment gate passes.
+PASS requires all of the following:
 
-## PASS
+- `SSD-DEPS: PASS`;
+- CUDA available in torch;
+- RTX/NVIDIA GPU name reported;
+- torch `2.0.1` with CUDA build `11.8`;
+- real SSD `inference.py` import graph passes;
+- dependency marker and freeze snapshot are written.
 
-Environment bootstrap PASS requires:
+## Dependency gate FAIL
 
-- `conda.exe` resolvable;
-- environment `ssd` exists;
-- `conda run -n ssd python --version` reports Python 3.10.x;
-- local bootstrap marker is written.
+Any package-resolution, Windows-wheel, CUDA or real-import failure is a dependency-gate failure only. It is not evidence about SSD image quality. Fix the smallest concrete compatibility defect and rerun this gate before downloading models.
 
-## FAIL
+## Model assets — NOT YET DOWNLOADED
 
-Environment bootstrap FAIL if Terms are not accepted, Miniconda cannot be used, or Python 3.10 environment creation fails.
+Only after dependency PASS, prepare a separate controlled model-bootstrap gate for:
 
-## Later model assets — NOT YET DOWNLOADED
-
-When environment bootstrap passes, the next stage will install dependencies and then fetch, in a controlled order:
-
-- `stable-diffusion-v1-5` base model;
+- Stable Diffusion v1.5 base model;
 - SSD `denoising_unet.pth`;
 - SSD `reference_unet.pth`;
-- AnimateAnyone baseline `pose_guider.pth`;
-- AnimateAnyone baseline `motion_module.pth`;
+- AnimateAnyone `pose_guider.pth`;
+- AnimateAnyone `motion_module.pth`;
 - `stabilityai/sd-vae-ft-mse`;
 - CLIP vision `image_encoder/` from the SD image-variations model.
 
-No model download is considered complete until path, size and provenance are recorded here.
+No checkpoint/model download is considered complete until exact path, provenance, size/hash when available and local verification are recorded here.
 
-## Cleanup if SSD is discarded
+## Cleanup if SSD is explicitly discarded
 
 Workspace:
 
@@ -193,10 +168,10 @@ Workspace:
 Remove-Item -LiteralPath "Z:\AI\SpriteSheetDiffusionSpike" -Recurse -Force -ErrorAction SilentlyContinue
 ```
 
-Environment, if later created:
+Environment:
 
 ```powershell
 & "C:\Users\jsaid\miniconda3\Scripts\conda.exe" env remove -n ssd -y
 ```
 
-This cleanup applies only if the SSD route is explicitly closed.
+SSD is currently ACTIVE, so no cleanup applies now.
