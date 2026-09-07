@@ -13,6 +13,24 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 5. `docs/ANIMATION_PIPELINE.md`
 6. `docs/CHARACTERS.md`
 
+## Local paths — LOCKED
+
+Project repository:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite`
+
+AI/model root:
+
+`Z:\AI`
+
+Current workspaces:
+
+- `Z:\AI\RogueliteCharacterPipeline`
+- `Z:\AI\SpriteSheetDiffusionSpike`
+- Wan W0: `Z:\AI\WanAnimate2`
+
+`D:\AI` is stale/historical and must not be used by current scripts.
+
 ## Runtime lock
 
 - final runtime = ordinary playback of **complete-character spritesheets**;
@@ -51,9 +69,7 @@ Do not install another pose-only model.
 
 It did not exhaust the model family.
 
-## Wan W0 quality decision — LOCKED 2026-09-07
-
-Ignore the RTX 3060 when choosing the checkpoint.
+## Wan W0 quality decision — LOCKED
 
 Canonical W0 model set:
 
@@ -64,17 +80,9 @@ Canonical W0 model set:
 
 Total ~45.7 GB.
 
-Do not retain for W0:
+Do not retain for W0: Base INT8, Distilled BF16/INT8, LightX2V distillation LoRA or UMT5 FP8. The active bootstrap deletes those superseded Wan-specific files if found.
 
-- Base INT8;
-- Distilled BF16;
-- Distilled INT8;
-- LightX2V distillation LoRA;
-- UMT5 FP8.
-
-The active bootstrap deletes those superseded Wan-specific files if found.
-
-If the BF16 set cannot execute on 12 GB VRAM + 48 GB RAM, reduce execution one variable at a time: offload/cache -> temporal window -> spatial resolution -> text encoder precision -> only then consider main-model quantization as an explicit W4 comparison.
+If BF16 cannot execute on 12 GB VRAM + 48 GB RAM, reduce execution one controlled variable at a time rather than silently changing the main checkpoint.
 
 ## Upstream W0 semantics
 
@@ -86,12 +94,23 @@ Repository Base YAML documents roughly:
 - 20 steps;
 - seed 0.
 
-Upstream Diffusers separately documents Base BF16 at `640×800` / 40 steps. Do not mix the two paths silently; W0 will record the exact one reproduced.
-
 Official W0 inputs:
 
 - upstream `examples/demo1/reference.png`;
 - upstream `examples/demo1/template.mp4`.
+
+## 2026-09-07 path incident — INFRASTRUCTURE FAIL / FIXED IN REPO
+
+The first new runner-35 preparation attempt failed before ComfyUI installation because the rebuilt script still used the obsolete path `D:\AI\WanAnimate2` and `bootstrap.ps1` explicitly did `Push-Location 'D:\AI'`.
+
+This is an **infrastructure/path failure only**. It says nothing about Wan model quality.
+
+Corrections committed:
+
+- runner default workspace -> `Z:\AI\WanAnimate2`;
+- bootstrap default workspace -> `Z:\AI\WanAnimate2`;
+- inspect default workspace -> `Z:\AI\WanAnimate2`;
+- comfy-cli working directory is now derived from `Split-Path -Parent $Workspace`, so there is no fixed AI-drive hard-code.
 
 ## CURRENT GATE — RUNNER 35 PREPARATION
 
@@ -101,21 +120,21 @@ Runner:
 
 It:
 
-1. requires at least 70 GB free on the workspace drive;
-2. rebuilds/restores `D:\AI\WanAnimate2`;
+1. requires at least 70 GB free on `Z:`;
+2. rebuilds/restores `Z:\AI\WanAnimate2`;
 3. cleans superseded Wan INT8/Distilled/LoRA/FP8 assets if present;
 4. downloads only the canonical ~45.7 GB BF16/FP16 set;
 5. downloads official W0 reference + driver;
 6. copies `exilada_master.png` for later W1;
 7. removes completed Hugging Face/Xet cache;
 8. starts ComfyUI headlessly;
-9. records the exact installed Wan/loader node schemas;
+9. records exact installed Wan/loader node schemas;
 10. stops before inference.
 
 Expected files:
 
-- `D:\AI\WanAnimate2\wan_bf16_route.json`;
-- `D:\AI\WanAnimate2\object_info_wan_bf16.json`.
+- `Z:\AI\WanAnimate2\wan_bf16_route.json`;
+- `Z:\AI\WanAnimate2\object_info_wan_bf16.json`.
 
 Expected marker:
 
@@ -130,16 +149,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\35_prepare_wan_animate2_bf16_w0.ps1"
 ```
 
-This downloads ~45.7 GB of model payload plus ComfyUI/runtime overhead. It does **not** run the expensive inference yet.
-
-After runner 35 passes, share the terminal output or the two JSON proof files. The next code action is to author W0 from the captured fresh schema and then run the official Base BF16 baseline.
+The runner defaults to `Z:\AI\WanAnimate2`. It downloads ~45.7 GB of model payload plus runtime overhead and does **not** run inference yet.
 
 ## Cleanup discipline
 
 User reconfirmed that unused models/materials must not accumulate.
 
-- superseded Wan-specific variants are deleted by the bootstrap;
+- superseded Wan-specific variants are deleted by bootstrap;
 - completed HF download cache is removed;
 - small manifests/logs/evidence remain;
 - do not delete the current Wan BF16 route after one poor result;
-- do not delete `Z:\AI\SpriteSheetDiffusionSpike` yet: keep as comparison/fallback evidence until Wan W0 is established or SSD research is explicitly abandoned.
+- retain `Z:\AI\SpriteSheetDiffusionSpike` only as comparison/fallback evidence until Wan W0 is established or SSD research is explicitly abandoned.
