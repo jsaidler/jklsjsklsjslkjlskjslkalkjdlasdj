@@ -2,163 +2,118 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN-ANIMATE-2 BASE BF16 W0 RETRY ACTIVE / SCAIL-2 NEXT OPEN LOCAL CANDIDATE**
+Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN-ANIMATE-2 W0 PASS_BASELINE / W1 EXILADA ACTIVE / SCAIL-2 NEXT OPEN LOCAL CANDIDATE**
 
 ## Purpose
 
-Select only model classes capable of generating the Exilada as a **complete animated character** from two distinct references:
+Select only model classes capable of generating the Exilada as a complete animated character from two distinct references:
 
 1. `exilada_master.png` owns appearance/state;
-2. an arbitrary real driving video owns movement/performance.
+2. arbitrary real driving video owns movement/performance.
 
-The driving performer does not need matching clothing, hair, body type or identity and may come from Internet video.
-
-## Local workspace lock — 2026-09-07
-
-Project repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
-
-AI/model workspace root: `Z:\AI`
-
-Active Wan workspace: `Z:\AI\WanAnimate2`
-
-`D:\AI` is stale/historical. The first BF16 preparation attempt failed before installation because of an old hard-code; that was an **INFRASTRUCTURE/PATH FAIL** only and was fixed in current tooling.
-
-## Hard production contract — LOCKED
-
-A production candidate must accept a complete reference image plus a separate driving video, consume richer motion information than a body skeleton, preserve target appearance strongly, automatically infer locomotion/weight transfer, jiggle/soft response, long-hair inertia, cloth/material/wind response and restraint/accessory behavior, and require no routine manual animation cleanup or repair.
-
-Automatic preprocessing is allowed. Runtime output remains complete precomposed character frames suitable for automatic spritesheet packing.
-
-## Pose-only methods
-
-Body-pose-only conditioning is not a valid final production foundation under this contract. Moore/AnimateAnyone and the released SSD-UNet compatibility reconstruction remain research evidence only. Exact public SSD remains independently `BLOCKED` by the absent custom SSD pose-guider checkpoint.
+The model must consume richer information than a body skeleton and automatically infer locomotion, body soft response/jiggle, long-hair inertia, cloth/material/wind response and restraint/accessory dynamics. Routine manual repair is forbidden.
 
 ## Candidate ranking
 
-### 1 — Wan-Animate-2 / Wan2.2-Animate-2-14B
+1. **Wan-Animate-2 / Wan2.2-Animate-2-14B** — active exhaustion pass.
+2. **SCAIL-2** — only after documented Wan `EXHAUSTED_FAIL`.
+3. DreamActor-M2 — benchmark; no confirmed self-hostable production route.
+4. Kling Motion Control — hosted comparator only.
 
-**Class:** reference image + direct driving video.
+Pose-only Moore/AnimateAnyone and current Moore+released-SSD-UNet compatibility route remain research evidence, not final production candidates. Exact public SSD remains `BLOCKED` by the missing custom pose-guider checkpoint.
 
-**Architectural fit:** YES — pending visual proof.
+## Model exhaustion protocol — LOCKED
 
-The old 2026-09-04 project run used constrained Base INT8/FP8 at approximately `384×576`, 17 frames and seed 42. It produced recognizable Exilada identity but weak movement transfer and a painted/smoothed visual result. That is a configuration-level negative result, not model-family exhaustion.
+A model reaches `EXHAUSTED_FAIL` only after finite controlled tests. Runtime/loader failures are infrastructure failures, not model-quality evidence. No seed fishing and no manual rescue.
 
-### 2 — SCAIL-2
+## Wan Base-BF16 route
 
-**Class:** end-to-end driving video + reference image.
+Canonical local set:
 
-**Architectural fit:** YES.
+- `wan_animate_2_bf16.safetensors` ~32.8 GB;
+- `umt5_xxl_fp16.safetensors` ~11.4 GB;
+- `clip_vision_h.safetensors` ~1.26 GB;
+- `Wan2_1_VAE_bf16.safetensors` ~0.254 GB.
 
-Strongest next open/local candidate if Wan reaches a documented `EXHAUSTED_FAIL`. Do not install while Wan is active.
+Total ~45.7 GB. Lower-precision/Distilled variants are not retained in advance.
 
-### 3 — DreamActor-M2
-
-Architecturally relevant benchmark; no current public self-hostable production route confirmed.
-
-### 4 — Kling Motion Control
-
-Hosted comparator only.
-
-## Model Exhaustion Protocol — LOCKED
-
-A candidate reaches `EXHAUSTED_FAIL` only after a finite controlled sequence:
-
-1. reproduce official/reference baseline;
-2. keep known-good driver/settings and replace only reference with Exilada;
-3. test target Internet walking footage;
-4. test secondary-motion footage with body bounce/hair/cloth/wind;
-5. test only finite high-leverage implementation variants tied to explicit hypotheses;
-6. no manual rescue;
-7. no seed fishing.
-
-A runtime/loader failure is `INFRASTRUCTURE FAIL`, not evidence about model quality.
-
-## W0 checkpoint-quality decision — LOCKED 2026-09-07
-
-Canonical ComfyUI W0 asset set:
-
-- `diffusion_models/wan_animate_2_bf16.safetensors` — ~32.8 GB;
-- `text_encoders/umt5_xxl_fp16.safetensors` — ~11.4 GB;
-- `clip_vision/clip_vision_h.safetensors` — ~1.26 GB;
-- `vae/Wan2_1_VAE_bf16.safetensors` — ~0.254 GB.
-
-Total: approximately **45.7 GB**.
-
-Excluded from W0: Base INT8 ConvRot, Distilled BF16/INT8, LightX2V distillation LoRA and UMT5 FP8.
-
-If the exact BF16 set cannot execute on 12 GB VRAM + 48 GB RAM, reduce execution one controlled variable at a time rather than silently lowering checkpoint precision.
-
-## Upstream W0 semantics
-
-Repository Base config documents `640×800`, 37 frames, 16 fps, 20 steps, seed `0`, Base BF16, flow/model shift `5.0` and no CFG in the normal Base route.
-
-W0 uses upstream `examples/demo1/reference.png` and `examples/demo1/template.mp4`.
-
-## Runner 35 preparation — PASS 2026-09-07
-
-`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
-
-Result: **PASS**. Canonical BF16 assets and native ComfyUI schemas are present.
-
-## Runner 36 — W0 OFFICIAL BF16 INFERENCE
+## W0 official baseline — PASS_BASELINE
 
 Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-Builder/executor: `tools/wan-animate2-spike/build_and_run_w0.py`
+Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `hostbuf_file_reader_read failed`; this was infrastructure only.
 
-The graph and all model/inference settings remain locked at the official W0 values.
+Attempt 2 added only `--disable-pinned-memory` and completed successfully with the official demo1 reference + driver at:
 
-### Attempt 1 — INFRASTRUCTURE FAIL
-
-Observed failure after approximately 74 seconds:
-
-`RuntimeError: hostbuf_file_reader_read failed`
-
-Location: `comfy_aimdo/host_buffer.py`, during ComfyUI host-buffer/dynamic weight streaming.
-
-This is **not** a visual/model failure and does not count against Wan exhaustion. It happened before meaningful denoising/output evaluation.
-
-Current ComfyUI exposes `--disable-pinned-memory`, and contemporary ComfyUI/Wan reports document this same host-buffer failure being resolved by disabling pinned memory while keeping the workflow unchanged.
-
-### Attempt 2 — ACTIVE
-
-Change exactly one variable: launch ComfyUI with:
-
-`--disable-pinned-memory`
-
-Unchanged:
-
-- Base BF16;
-- UMT5 FP16;
-- CLIP Vision H;
-- VAE BF16;
-- official reference/driver;
 - `640×800`;
 - 37 frames;
+- 16 fps;
 - 20 steps;
-- seed 0;
+- CFG 1.0;
 - Euler/simple;
 - shift 5.0;
-- all conditioning strengths.
+- seed 0;
+- conditioning strengths 1.0.
 
-The runner restarts only its own managed ComfyUI server so the new launch flag is definitely applied.
+Inference time was about 1896.94 seconds (~31m37s).
 
-Do not disable Dynamic VRAM, reduce resolution/frame count or quantize unless this narrower retry fails. Those would be subsequent one-variable tests.
+Visual diagnosis of the uploaded W0 output:
 
-## Wan exhaustion order
+- complete subject remains coherent across the 37-frame sequence;
+- substantial arm/body motion is transferred;
+- cat face/species identity remains recognizable;
+- uniform, red bow and pleated skirt remain materially persistent;
+- no catastrophic extra-limb/topology collapse;
+- some motion blur and framing/crop change are present but do not invalidate the baseline.
 
-- W0 official baseline;
-- W1 Exilada cross-identity;
-- W2 target walking driver;
-- W3 secondary-motion stress;
-- W4 finite high-leverage variants only.
+Conclusion: **the local direct-driving Base-BF16 integration works.**
+
+Important limit: W0 does not establish project fitness because it does not stress Exilada identity, pixel-art preservation, very long hair, ragged cloth, body jiggle or restraints/chains.
+
+## W1 — CURRENT: EXILADA CROSS-IDENTITY / OFFICIAL DRIVER
+
+Runner: `tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
+
+Executor: `tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
+
+W1 is mechanically derived from the exact successful W0 API prompt.
+
+The official W0 positive text literally describes the official cat character, so the target appearance must change as a coherent package. W1 changes only:
+
+1. reference image -> `exilada_master.png`;
+2. positive target-appearance description -> matching canonical Exilada description;
+3. output prefix.
+
+Everything that owns movement/execution remains identical: official driver, model files, resolution, 37-frame window, fps, steps, CFG, sampler, scheduler, shift, seed, conditioning strengths and W0 negative prompt.
+
+### W1 decisive QA
+
+Judge:
+
+1. Exilada face/body proportions and adult identity;
+2. complete initial-state preservation from the master;
+3. long black hair mass persistence and temporal inertia;
+4. ragged chest/hip cloth topology and lag;
+5. soft-body/jiggle response where motion warrants it;
+6. shackles/chains staying attached and temporally plausible;
+7. motion adherence to the official driver;
+8. hands/feet/limb topology;
+9. no leakage of the cat/driver appearance;
+10. preservation of discrete modern pixel/game-art language rather than smooth painterly reinterpretation;
+11. zero routine manual cleanup.
+
+W1 does not yet decide walking suitability because the official driver is not the target locomotion clip. If W1 establishes identity/style/complete-state viability, advance to W2 with Internet walking footage.
+
+## Wan exhaustion sequence
+
+- W0 official baseline — **PASS_BASELINE**.
+- W1 Exilada + official driver — **CURRENT**.
+- W2 target Internet walking driver.
+- W3 secondary-motion stress video.
+- W4 finite hypothesis-driven variants only if needed.
 
 After W4 classify Wan as `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
-## Complete-character QA
-
-Judge identity/body proportions, motion adherence, hands/feet topology, hair persistence/inertia, cloth lag/folding, body soft motion, restraint/accessory temporal coherence, driver leakage, camera/background extraction suitability, ~128 px game readability, automatic packing suitability and zero routine manual cleanup.
-
 ## Cleanup discipline
 
-Large local model files must correspond to an active test hypothesis. Do not keep duplicate quantizations or Distilled checkpoints in advance. Preserve small logs/manifests/result evidence. Keep the current Base BF16 workspace throughout Wan exhaustion unless explicitly abandoned. Retain the SSD workspace temporarily as comparison/fallback evidence until Wan passes W0 or SSD research is explicitly abandoned.
+Keep only large files tied to the active Wan hypothesis. Do not download duplicate quantizations/Distilled checkpoints in advance. Preserve small manifests/logs/results. Keep `Z:\AI\SpriteSheetDiffusionSpike` temporarily as comparison/fallback evidence until Wan reaches a production verdict.
