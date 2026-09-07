@@ -105,45 +105,50 @@ First walk proof:
 
 ## CURRENT GATE — runner 28 first real Exilada inference
 
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_ssd_prepare_walk8.py`
-
 Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_ssd_prepare_walk8.py`
+
+Request wrapper:
+
+`tools/structured-2d-character-pipeline/g3s_ssd_walk8_request.py`
+
 ### Attempt 1 — SCRIPT FAIL
 
-Error:
-
-`can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
-
-Cause: raw `Start-Process -ArgumentList` array split `D:\GOOGLE DRIVE\...`.
+Raw `Start-Process -ArgumentList` split `D:\GOOGLE DRIVE\...`; Python received `D:\GOOGLE`.
 
 ### Attempt 2 — SCRIPT FAIL caught by preflight
 
+Manually quoted `Start-Process -ArgumentList` still failed the native argument preflight. No model work started.
+
+### Attempt 3 — SCRIPT FAIL caught by preflight
+
 Actual user result:
 
-- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `SSD-WALK8: FAIL - native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.`
+- expected `D:\GOOGLE DRIVE\DEV\Roguelite` and the complete master path as two values;
+- received count `1`;
+- received a single concatenated string containing both paths.
 
-The preflight did its job: it prevented DWPose/SSD work from starting with corrupted argv. The manually quoted `Start-Process -ArgumentList` strategy is therefore also rejected for this project on Windows PowerShell 5.1.
+Thus the call-operator/array-splatting transport used inside the runner function is also rejected for whitespace-bearing path payloads on this Windows PowerShell 5.1 environment.
 
-Neither attempt invalidated environment/model/support PASS gates. No reinstall/redownload is required.
+All three are runner/control-plane defects. Environment, models, DWPose and SSD remain untested by runner 28 and all previous PASS gates remain valid. No reinstall/redownload is required.
 
-## Windows native Python invocation rule — LOCKED V2
+## Windows Python transport rule — LOCKED V3
 
-Under Windows PowerShell 5.1:
+Stop transporting whitespace-bearing project paths through native argv.
 
-- **do not use `Start-Process -ArgumentList` for project Python invocations containing paths with spaces**;
-- invoke directly with the PowerShell call operator and array splatting: `& $PythonExe @Arguments`;
-- temporarily prevent native stderr from becoming terminating control flow;
-- show stdout/stderr but decide success only from `$LASTEXITCODE` and structured markers;
-- preflight the actual project-root and Exilada-master paths before expensive model work;
-- print received argv values on any future mismatch.
+Runner 28 now uses a **JSON request control plane**:
 
-Runner 28 has been updated to follow this rule for preflight, input preparation, SSD inference and review. `Start-Process` is no longer used for Python in runner 28.
+- actual project paths are written to `Z:\AI\SpriteSheetDiffusionSpike\ssd_walk8_prepare_request.json`;
+- helper and request-wrapper scripts are copied to the same no-space `Z:\AI\SpriteSheetDiffusionSpike` workspace;
+- native Python invocations receive only no-space script/request paths and scalar literals;
+- Python reads the real paths from JSON;
+- a request probe writes them back to JSON and PowerShell verifies exact equality before DWPose/model work;
+- runner 28 uses neither `Start-Process` nor dynamic argv-array transport for the whitespace-bearing payload.
 
 ## Exact next operator action
 
@@ -156,8 +161,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 Expected early sequence:
 
-- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `[OK] Native argument transport preflight PASS.`
+- `[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...`
+- `SSD-WALK8-REQUEST-PROBE: PASS`
+- `[OK] JSON path transport preflight PASS.`
 - `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 Expected successful end state:
