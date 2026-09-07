@@ -43,14 +43,6 @@ if (-not $ComfyRoot) { Fail "ComfyUI root not found under $Workspace" }
 $WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
 if (-not $WorkspacePython) { Fail "ComfyUI Python environment not found under $Workspace" }
 
-$Base = "http://127.0.0.1:$Port"
-$UserDir = Join-Path $ComfyRoot 'user'
-New-Item -ItemType Directory -Force -Path $UserDir | Out-Null
-$StdoutLog = Join-Path $UserDir "comfyui_${Port}_stdout.log"
-$StderrLog = Join-Path $UserDir "comfyui_${Port}_stderr.log"
-$PidFile = Join-Path $Workspace '.wan_animate2_spike.pid'
-$MainPy = Join-Path $ComfyRoot 'main.py'
-
 Write-Host ''
 Write-Host 'Roguelite Runner 39 — Wan-Animate-2 Base BF16 W1F / automatic safe-framing proof' -ForegroundColor Cyan
 Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
@@ -61,6 +53,28 @@ Write-Host '[UNCHANGED] Exilada reference/prompt, Base BF16 stack, 640x800, 37 f
 Write-Host '[PURPOSE] Fix the inherited head/body edge crop before artistic prompt changes or Internet-driver W2.' -ForegroundColor Yellow
 Write-Host '[MEMORY] Keep proven --disable-pinned-memory workaround.' -ForegroundColor Yellow
 Write-Host ''
+
+# W1F is the first current runner that preprocesses video with OpenCV. The isolated
+# ComfyUI environment does not guarantee cv2 as a core dependency, so validate it
+# explicitly and install only this small preprocessing dependency if absent.
+Write-Host '[PREFLIGHT] Checking automatic video-preprocessing dependencies...' -ForegroundColor Cyan
+& $WorkspacePython -c "import cv2, numpy; print('opencv=' + cv2.__version__)"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '[PREFLIGHT] OpenCV is absent from the isolated ComfyUI environment; installing opencv-python-headless only.' -ForegroundColor Yellow
+    & $WorkspacePython -m pip install --disable-pip-version-check --no-input 'opencv-python-headless>=4.10,<5'
+    if ($LASTEXITCODE -ne 0) { Fail 'could not install opencv-python-headless required by the automatic safe-framing preprocessor' }
+    & $WorkspacePython -c "import cv2, numpy; print('opencv=' + cv2.__version__)"
+    if ($LASTEXITCODE -ne 0) { Fail 'OpenCV installation completed but import still fails' }
+}
+Write-Host '[PREFLIGHT] Automatic video-preprocessing dependencies: PASS' -ForegroundColor Green
+
+$Base = "http://127.0.0.1:$Port"
+$UserDir = Join-Path $ComfyRoot 'user'
+New-Item -ItemType Directory -Force -Path $UserDir | Out-Null
+$StdoutLog = Join-Path $UserDir "comfyui_${Port}_stdout.log"
+$StderrLog = Join-Path $UserDir "comfyui_${Port}_stderr.log"
+$PidFile = Join-Path $Workspace '.wan_animate2_spike.pid'
+$MainPy = Join-Path $ComfyRoot 'main.py'
 
 $apiRunning = $false
 try {
