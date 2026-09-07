@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 argv TRANSPORT FIX V2 READY / RETRY REQUIRED**
+Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 TRANSPORT FIX V3 READY / RETRY REQUIRED**
 
 ## Decision
 
@@ -38,15 +38,9 @@ Validated:
 - CUDA build `11.8`;
 - real upstream `ModelTraining/inference.py` import graph PASS;
 - core generation models PASS;
-- authoring-support models PASS.
-
-Latest user-supplied support result:
-
-- `SSD-SUPPORT: PASS`;
+- authoring-support models PASS;
 - DWPose available;
-- FILM available, optional/not default;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json`;
-- probe `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json`.
+- FILM available, optional/not default.
 
 ## Correct role of the downloaded AIs
 
@@ -105,53 +99,61 @@ Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-### Attempt 1 — `Start-Process -ArgumentList` raw array
+### Attempt 1 — raw `Start-Process -ArgumentList`
 
-Python reported:
-
-`can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
-
-Root cause: Windows PowerShell 5.1 flattened the raw `Start-Process -ArgumentList` array and split the helper path `D:\GOOGLE DRIVE\...`.
+Python received only `D:\GOOGLE` for the helper path and failed before preparation.
 
 ### Attempt 2 — manually quoted `Start-Process -ArgumentList`
 
-The added argv preflight correctly stopped the runner before DWPose/model work:
+The argv preflight failed before DWPose/model work. Manual quoting around `Start-Process` is rejected.
 
-`SSD-WALK8: FAIL - native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.`
+### Attempt 3 — PowerShell call-operator array splatting
 
-This proves that manually constructing a quoted argument string around `Start-Process` is still not a reliable argv transport for this project on the operator's Windows PowerShell 5.1 environment.
+The user supplied the exact preflight result:
 
-No DWPose inference or SSD generation ran in either failed attempt. All prior PASS gates remain valid.
+- expected two payload arguments;
+- received count: `1`;
+- received value: `D:\GOOGLE DRIVE\DEV\Roguelite D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_master.png`.
 
-## Windows native process rule — LOCKED V2
+Therefore `& $PythonExe @Arguments` through the runner's function/parameter path also failed to preserve the two whitespace-bearing Windows paths as separate native argv entries in this Windows PowerShell 5.1 environment.
 
-For project Python invocations under Windows PowerShell 5.1:
+This third failure was again caught before DWPose or SSD inference. No model, CUDA, dependency or quality gate failed.
 
-1. **do not use `Start-Process -ArgumentList` for Python commands that contain paths with spaces**, whether supplied as a raw string array or manually reconstructed quoted string;
-2. invoke Python directly with the PowerShell call operator and an argument array: `& $PythonExe @Arguments`;
-3. temporarily use non-terminating native stderr handling and inspect `$LASTEXITCODE` explicitly;
-4. route stdout/stderr to the console but never use stderr text as control flow;
-5. keep the argv preflight using the actual project root and Exilada master path before any expensive model work;
-6. if the preflight fails, print the received argv values before aborting.
+## Windows native transport rule — LOCKED V3
 
-## Runner 28 — FIX V2 / RETRY REQUIRED
+Do **not** keep trying to solve this by adding another quoting layer.
+
+For project Python control-plane data under Windows PowerShell 5.1:
+
+1. whitespace-bearing project paths are **not transported through native argv**;
+2. project-root, master path, guide path and markers are serialized into a UTF-8 JSON request file under `Z:\AI\SpriteSheetDiffusionSpike`, whose path contains no spaces;
+3. the Python helper and request wrapper are copied to the same no-space SSD workspace before native invocation;
+4. Python receives only no-space script/request paths plus scalar literals;
+5. a Python request probe reads the JSON and writes the decoded values back; PowerShell compares them byte-for-string with the expected actual paths before DWPose/model work;
+6. `Start-Process` and dynamic native argument-array splatting are no longer used by runner 28.
+
+This removes the failing transport class instead of attempting to quote around it.
+
+## Runner 28 — FIX V3 / RETRY REQUIRED
+
+New request wrapper:
+
+`tools/structured-2d-character-pipeline/g3s_ssd_walk8_request.py`
 
 Runner 28 now:
 
 1. verifies environment/dependency/core-model/support PASS markers;
-2. verifies the canonical C1A guide and Exilada master;
-3. **does not use `Start-Process` for Python at all**;
-4. invokes Python with `& $PythonExe @Arguments`, preserving array-item argv boundaries;
-5. uses the same direct invocation path for preflight, preparation, SSD inference and review;
-6. explicitly checks `$LASTEXITCODE` after every Python process;
-7. preflights the exact `D:\GOOGLE DRIVE\DEV\Roguelite` and canonical Exilada master paths;
-8. runs DWPose on the master and saves a 512×512 reference-pose map;
-9. converts the eight approved C1A states to clean 512×512 OpenPose-style body maps;
-10. writes a dedicated SSD config and local patched inference copy;
-11. runs SSD at `512×512`, 8 frames, 25 steps, CFG 3.5, fp16, FILM disabled;
-12. verifies exactly eight generated PNGs;
-13. creates an unaltered 4×2 contact sheet and review GIF;
-14. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+2. verifies canonical guide/master/helper sources;
+3. copies `g3s_ssd_prepare_walk8.py` and `g3s_ssd_walk8_request.py` to `Z:\AI\SpriteSheetDiffusionSpike`;
+4. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_walk8_prepare_request.json` containing all real project paths;
+5. invokes the local request wrapper using only no-space argv;
+6. verifies a Python-decoded request probe against the exact project root/master/model-training/guide/marker values;
+7. only after probe PASS runs DWPose on the master and builds the eight clean target maps;
+8. writes a dedicated SSD config and local patched inference copy;
+9. runs SSD at `512×512`, 8 frames, 25 steps, CFG 3.5, fp16, FILM disabled;
+10. verifies exactly eight generated PNGs;
+11. creates an unaltered 4×2 contact sheet and review GIF;
+12. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
 
 No reinstall or redownload is required.
 
@@ -166,8 +168,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 Expected early sequence:
 
-- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `[OK] Native argument transport preflight PASS.`
+- `[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...`
+- `SSD-WALK8-REQUEST-PROBE: PASS`
+- `[OK] JSON path transport preflight PASS.`
 - `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 ## PASS semantics
@@ -185,13 +188,6 @@ Visual PASS requires review of:
 - suitability for native spritesheet production.
 
 Only after visual PASS do we proceed to alpha cleanup, pivot/root alignment and sheet packing.
-
-## Explicit exclusions
-
-- wav2vec2 / AniPortrait audio models — unrelated;
-- legacy CMU OpenPose body/hand/face weights — not a production dependency; DWPose is preferred;
-- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
-- xformers — optimization only if measured VRAM behavior requires it.
 
 ## Cleanup
 
