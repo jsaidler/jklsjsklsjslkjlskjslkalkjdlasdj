@@ -53,7 +53,7 @@ The active SSD spike uses the complete master as appearance reference.
 - `G2_CANONICAL_RIG`;
 - CMU `105_34 NormalWalk`;
 - C1A skeleton walk PASS/CLOSED;
-- approved eight-state cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
+- approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
 
 This may be reused only as offline pose/motion control.
 
@@ -68,9 +68,7 @@ This may be reused only as offline pose/motion control.
 
 ## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION
 
-Canonical doc:
-
-`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
 Goal: determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence strongly enough that accepted frames can be frozen into conventional spritesheets.
 
@@ -82,58 +80,65 @@ Repo: `chenganhsieh/Sprite-Sheet-Diffusion`
 - config: `ModelTraining/configs/prompts/inference.yaml`;
 - actual dependency file: `ModelTraining/requirements.txt`;
 - no root requirements file despite README command;
-- model paths required later: SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
+- default `pretrained_model` layout is compatible with the current model bootstrap plan.
 
-### Environment gate — PASS
+## Environment gate — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
 - clone: PASS;
 - Miniconda: PASS;
-- `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
 - env `ssd`: PASS;
 - Python `3.10.21`;
 - pip `26.2.1`;
-- environment marker written;
-- no model weights downloaded.
+- environment marker written.
 
-## CURRENT GATE — Windows inference dependencies
+## Windows inference dependency gate — PASS
 
-Requirements lock:
+Validated user console on 2026-09-07:
 
-`tools/structured-2d-character-pipeline/ssd_windows_inference_requirements.txt`
+- `SSD-DEPS: PASS`;
+- GPU `NVIDIA GeForce RTX 3060`;
+- Torch `2.0.1+cu118`;
+- CUDA build `11.8`;
+- real SSD `inference.py` import graph PASS;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
+- freeze `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`.
+
+The earlier runner 25 `NativeCommandError` was a PowerShell control-flow defect and is closed. Subsequent runners must use controlled native-process execution and structured Python diagnostics.
+
+## CURRENT GATE — model/checkpoint download
+
+Manifest:
+
+`tools/structured-2d-character-pipeline/ssd_model_manifest.json`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
+`tools/structured-2d-character-pipeline/26_download_ssd_models.ps1`
 
-### First run — FAIL due runner control-flow bug
+Destination:
 
-The first runner 25 execution aborted at its old Torch preflight probe with `NativeCommandError / RemoteException`.
+`Z:\AI\SpriteSheetDiffusionSpike\repo\ModelTraining\pretrained_model`
 
-Root cause was PowerShell-native process handling:
+Estimated download: **~13.7 GB**.
 
-- global `$ErrorActionPreference='Stop'`;
-- expected missing-Torch traceback written to native STDERR;
-- `2>&1` redirected STDERR into the PowerShell pipeline;
-- Windows PowerShell terminated before `$LASTEXITCODE` could be inspected.
+Minimal set:
 
-This is not a Torch/CUDA/SSD failure.
+- SD1.5 UNet config + weights;
+- Stability AI MSE VAE config + safetensors;
+- Lambda CLIP vision encoder config + weights;
+- SSD fine-tuned `denoising_unet.pth` + `reference_unet.pth`;
+- AnimateAnyone baseline `pose_guider.pth` + `motion_module.pth`.
 
-### Scripting rule now locked
+Known large-file SHA256 values are enforced by the manifest. Downloads use resumable `.part` files and do not create a duplicate Hugging Face model cache.
 
-Expected-failure native probes must not be used as raw control flow under `ErrorActionPreference=Stop`. Native calls must isolate STDERR/error preference and explicitly inspect exit codes. Expected Python probes should catch exceptions and emit structured JSON.
+Intentionally deferred because they are not required for the first selected inference path:
 
-### Runner 25 — FIXED / RETRY READY
-
-The runner now:
-
-- resolves env Python directly rather than repeatedly using `conda run`;
-- wraps all native calls so native STDERR cannot prematurely terminate PowerShell;
-- performs Torch preflight via a clean JSON probe;
-- repairs incompatible Torch deterministically from official CUDA 11.8 wheels;
-- performs the real SSD `inference.py` import through a structured diagnostic probe;
-- downloads no models.
+- wav2vec2;
+- DWPose detector weights;
+- FILM frame interpolation model;
+- xformers.
 
 ## Current exact operator action
 
@@ -141,23 +146,18 @@ The runner now:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\25_bootstrap_ssd_dependencies.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\26_download_ssd_models.ps1"
 ```
 
 PASS target:
 
-- `SSD-DEPS: PASS`;
-- torch 2.0.1 / torchvision 0.15.2;
-- CUDA build 11.8;
-- RTX/NVIDIA GPU detected;
-- `pip check` PASS;
-- real SSD inference import graph PASS.
+- `SSD-MODELS: PASS`;
+- all manifest files verified;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_models_bootstrap.json` written.
 
-If it fails, use the clean runner message plus `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`; do not improvise package/model installation.
+## Next after model PASS
 
-## Next after PASS
-
-Prepare a separate model/checkpoint download gate with exact sources, paths and verification. No model download before dependency PASS.
+Prepare input/config + first **8-frame Exilada walk inference** using the complete master and an approved 8-state pose sequence. No large multi-action sheet until temporal identity is proven.
 
 ## No cleanup
 
