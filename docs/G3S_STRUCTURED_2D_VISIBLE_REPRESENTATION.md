@@ -2,17 +2,17 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C0 SINGLE-STILL MOTION CLOSED / C1A SKELETON WALK PASS/CLOSED / C1B VISIBLE WALK PROOF RUNNER READY**
+Gate status: **ACTIVE — B3 BODY PASS/CLOSED / B4 HAIR DEFERRED / C1A SKELETON WALK PASS/CLOSED / C1B FLUX2 REDRAW FAIL/CLOSED / SEGMENTED PUPPET CURRENT**
 
 Canonical animation lock:
 
 `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 
-## Locked visible/hidden ownership
+## Locked ownership
 
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root guide data -> complete visible 2D pose assets -> deterministic sprite playback -> QA`
+`real/captured motion -> hidden skeleton/rig -> persistent native-2D visible parts -> skeleton-driven transforms/depth -> composited sprite -> QA`
 
-Hidden 3D is an armature only. It may own skeletal motion, joint transforms, anatomical side, near/far depth/order, contacts, root travel and sockets. It does not require a skinned human mesh and does not own final visible RGB, alpha, anatomy or silhouette.
+Hidden 3D is an armature only. It owns motion, joint transforms, anatomical side, near/far depth/order, contact, root travel and sockets. It does not own final visible RGB, alpha, anatomy or silhouette.
 
 ## Canonical B3 body — PASS/CLOSED
 
@@ -21,30 +21,21 @@ Hidden 3D is an armature only. It may own skeletal motion, joint transforms, ana
 - visible standing body height `128 px`;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- front-three-quarter family facing screen-left.
+- front-three-quarter screen-left family.
 
-B3B is identity/body-style reference only. It is never stretched/warped into arbitrary gait poses.
+The source remains unchanged.
 
-## Closed methods
+## Closed visible methods
 
-- direct hidden-3D render -> final pixel art — CLOSED;
-- single B3B still -> cutout/warp/cage -> full walk — CLOSED;
-- skinned MPFB human as mandatory hidden animation guide — CLOSED.
-
-## Facing/laterality
-
-- visible family faces/travels screen-left;
-- anatomical left/right comes from skeleton identity, never screen-x;
-- near/far comes from camera-space depth;
-- hidden directional-family handling may normalize guide screen-X convention without transforming the rig or changing anatomical ownership.
-
-## B4 hair — DEFERRED
-
-Hair remains paused. Eventual composition still requires `rear_hair -> body -> front_hair`. C1 body locomotion does not resume hair.
+- direct hidden-3D render -> final pixel art;
+- C0 V1 nearest-segment hard partition + independent rigid rotation;
+- full-body cutout/cage/chain warp from a single still;
+- skinned MPFB body as mandatory animation guide;
+- independent full-body diffusion redraw for each gait frame.
 
 ## C1A — PASS/CLOSED
 
-Approved eight-state cycle:
+Approved eight-state skeleton cycle:
 
 `1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
 
@@ -54,64 +45,68 @@ Approval:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
 
+## C1B Flux2 full-body redraw — FAIL/CLOSED
+
 Reviewed evidence:
 
-- contact sheet SHA256 `672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd`;
-- zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
-- projected root travel approximately `-43.77 px` screen-left.
+- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
+- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
 
-C1A visually passed coherent gait, left/right progression, support-foot progression, limb-chain integrity and readable pelvis/trunk/leg relationship.
+The generated walk changes face, skin tone, proportions, silhouette and pixel-art language across frames. It fails persistent-character continuity.
 
-The earlier skeleton camera-selection failure is closed/resolved in:
+Marker:
 
-`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+`tools/structured-2d-character-pipeline/g3s_c1b_flux2_visual_failure.json`
 
-No model/API/download was used in C1A; no cleanup applies.
+Runner 22 is disabled.
 
-## C1B — CURRENT visible walk proof
+## CURRENT — segmented persistent 2D puppet
 
-Goal: finally show the bald body of the Exilada walking as one eight-frame visible sequence.
+Detailed architecture:
 
-Current bounded authoring route:
+`docs/G3S_C1B_SEGMENTED_PUPPET.md`
 
-`C1A approved skeleton pose -> exact B3B identity/style reference + pose-control reference -> existing local FLUX.2 Klein -> complete redraw for each of 8 gait states -> review GIF/contact sheet`
+Spec:
 
-This is a **visual proof gate**, not automatic production promotion.
+`tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`
 
-It reuses only the already-retained local stack at:
+Visible body ownership becomes a reusable part atlas:
 
-`Z:\AI\Flux2RefControlSpike`
+- head/neck;
+- torso;
+- pelvis;
+- bilateral upper arms;
+- bilateral forearms;
+- bilateral hands;
+- bilateral thighs;
+- bilateral shins;
+- bilateral feet.
 
-No download and no paid API are allowed.
+Each part has an explicit anatomical pivot and is attached to the approved hidden skeleton chain. The proximal joint controls pivot position; the distal joint controls projected direction/length; camera-space skeleton depth controls draw order.
 
-Current files:
+### Joint continuity
 
-- `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_flux2_walk_spec.json`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_prepare_flux2_walk_inputs.py`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_build_flux2_walk_review.py`;
-- `tools/structured-2d-character-pipeline/22_run_g3s_c1b_flux2_walk_visual_proof.ps1`.
+Unlike C0 V1, adjacent parts must deliberately overlap under joints. Joint cover/cap sprites are permitted where necessary. Torso/pelvis continuity must be designed, not inferred from nearest-pixel ownership.
 
-Workspace:
+### Foreshortening
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof`
+A flat sprite part may use a small frozen set of orientation variants where the 3D projection materially changes visible shape. Example: normal vs foreshortened thigh/shin/forearm, near/far hands/feet, optional pelvis/torso lead-side variant.
 
-Expected primary outputs:
+These variants are persistent reusable assets selected deterministically from skeleton orientation/depth. They are not generated independently per animation frame.
 
-- `g3s_c1b_exilada_walk_visual_proof.gif`;
-- `g3s_c1b_exilada_walk_contact_sheet.png`;
-- `g3s_c1b_review.json`.
+## Facing/laterality
 
-Hard locks:
+- visible family faces/travels screen-left;
+- anatomical left/right comes from skeleton identity, never screen-x;
+- near/far and draw order come from camera-space depth;
+- rig is never rotated merely to manufacture facing.
 
-- no static-body warp;
-- no hidden-3D RGB promotion;
-- no hair/clothing/restraints/accessories/weapons;
-- no automatic promotion of generated frames;
-- no manual frame repair demanded from the user.
+## B4 hair — DEFERRED
 
-The `96×160` reductions made by the review builder are inspection images only and are not production sprite assets.
+Hair remains paused. Eventual composition remains `rear_hair -> body -> front_hair`, but hair does not block proving the body puppet.
 
-## After C1B review
+## Next proof
 
-If the visible eight-frame body proof is coherent, freeze/author the accepted walk family into native persistent 2D assets under the existing production-art rules. Only after body locomotion is viable do hair, clothing, restraints and equipment return as separate layers.
+The next runner must create the body-part atlas/bindings and play the full approved eight-state walk as one persistent 2D puppet, with both in-place and travel GIFs plus a contact sheet.
+
+The initial proof should require no new model/API/download and no manual frame-by-frame repair by the user.
