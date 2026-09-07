@@ -1,10 +1,27 @@
 # G1 Camera / Native Scale — Execution Log
 
-Status date: **2026-09-04**
+Status date: **2026-09-06**
 
 Gate: **G1 — camera/native gameplay scale**
 
 Current status: **PASS / CLOSED.**
+
+## Presentation simplification decision — LOCKED
+
+The project originally considered a true isometric 2D presentation. That direction was deliberately abandoned because it multiplies character-facing families, pose coverage, occlusion cases and animation-authoring cost.
+
+The locked presentation is instead an **elevated 2D belt-scroller / arcade beat'em-up camera**, preserving a walkable depth band while making character art fundamentally lateral.
+
+This is not a cosmetic preference. It is a production-feasibility decision intended to make the character pipeline possible:
+
+- fixed elevated orthographic camera rather than free/isometric camera coverage;
+- first production body family is screen-left front-three-quarter;
+- screen-right may later be mirrored or separately authored only if visual QA requires it;
+- movement through the walkable depth band does **not** require north/south/isometric directional sprite families;
+- the same lateral locomotion family can move through gameplay depth while runtime position/depth sorting handles the world-space Y/depth component;
+- hidden 3D exists to drive motion, depth order, sockets and contacts, not to force visible multi-angle 3D coverage.
+
+Any animation proposal that starts rebuilding isometric-style multi-directional coverage, independent per-frame character redraws or unnecessary view families is architectural drift and must be rejected unless the presentation itself is explicitly reopened.
 
 ## First execution defect
 
@@ -47,4 +64,4 @@ Machine-readable baseline:
 
 `tools/deterministic-character-pipeline/g1_baseline.json`
 
-This baseline is locked for G2/G3 validation and may only change through an explicit later gate decision.
+This baseline is locked for later validation and may only change through an explicit gate decision.
