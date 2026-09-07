@@ -1,344 +1,185 @@
 # Character Layer, Equipment Damage and Exposure System — Living Plan
 
-Status: **canonical architecture.** Character body, clothing, armor, restraints, equipment, surface states and structural damage are persistent modular systems. They must not be regenerated independently per animation frame and must not require body×equipment×damage×animation combinatorial sprite authoring.
+Status date: **2026-09-07**
 
-## Purpose
+Status: **CANONICAL — OFFLINE MODULAR AUTHORING / COMPLETE-CHARACTER RUNTIME SPRITESHEETS**
 
-This document defines how a character is assembled, damaged, exposed and rendered across animation while preserving anatomical side, attachment ownership, body continuity and systemic state.
+## Architecture correction
 
-The system must support, without manual frame repair:
+The earlier assumption that the runtime would assemble the visible character from body, hair, clothing, armor, restraints and equipment layers is **abolished**.
 
-- removable and replaceable clothing;
-- damaged/torn clothing;
-- damaged/broken armor;
-- exposed body under missing/damaged layers;
-- blood, dirt, wetness, burns and other surface states;
-- restraints/chains and weapons attached to stable sockets;
-- severed body parts carrying the correct attached clothing/equipment;
-- wind/secondary motion on eligible layers;
-- persistent state across animation clips and gameplay sessions.
+The runtime now receives **complete already-composed character frames**. Each animation/state family is exported as a full-character spritesheet.
 
-## Canonical character layer stack
+Internal source assets may still be modular offline because that is useful for authoring armor, equipment, damage, exposure and secondary motion. But those modules are production inputs, not runtime-visible character layers.
 
-The logical stack is not a fixed painter's-order list; actual visibility is depth/occlusion-aware. Every layer has a stable semantic ID.
+Locked invariant:
 
-1. **Body base**
-   - complete persistent body geometry;
-   - anatomy, skin, scars, wounds and sever zones;
-   - exists independently of clothing;
-   - owns canonical anatomical left/right identity.
+> offline source state may be modular; runtime sprite output is complete/precomposed.
 
-2. **Hair / body-attached secondary masses**
-   - persistent 2D hair assets/layer family;
-   - minimum structural split is **rear/back hair** and **front hair**;
-   - minimum deterministic composition is `rear_hair -> body -> front_hair`;
-   - additional side/intermediate masses are allowed when occlusion or secondary motion requires them;
-   - may use deterministic secondary motion and wind response;
-   - not regenerated as independent frame detail and not baked into the body.
+## Current initial-state reference
 
-3. **Underlayers / soft clothing**
-   - wraps, underwear, tunics, shirts, trousers, bindings and similar garments;
-   - separate meshes/material regions from body;
-   - may be damaged, removed or exposed.
+For the Exilada's first animation proof:
 
-4. **Outer clothing**
-   - coats, skirts, loose cloth, capes, belts and layered fabric/leather pieces;
-   - persistent objects with attachment and damage zones.
+`assets/source/characters/exilada/reference/exilada_master.png`
 
-5. **Armor**
-   - rigid/semi-rigid plates, mail, leather armor, helmets, greaves, bracers, shields where equipped;
-   - each piece has its own condition and structural state.
+is the complete initial-state appearance reference.
 
-6. **Restraints/accessories**
-   - shackles, chains, jewelry, pouches and other persistent attachments;
-   - fixed named sockets/endpoints.
+The first walk sequence must therefore preserve and animate together:
 
-7. **Weapons/tools**
-   - socketed modular objects;
-   - own durability/damage state where applicable.
+- body;
+- long hair;
+- base clothing/bindings;
+- shackles/chains/restraints;
+- visible accessories in the master;
+- correct occlusion among all of the above.
 
-8. **Surface-state overlays**
-   - blood, dirt, mud, wetness, frost, burn/soot, poison/acid residue and wear;
-   - applied through semantic/body/material masks rather than full-character redraw.
+## Offline logical source stack
 
-9. **Transient VFX**
-   - sprays, sparks, droplets, debris, smoke, impact flashes and similar event-driven effects;
-   - not persisted as part of the base character sprite unless converted into a persistent surface/world state.
+The production pipeline may still represent the source character using stable semantic parts such as:
 
-## Stable identity and ownership
+1. body base;
+2. hair masses;
+3. base clothing / bindings;
+4. outer clothing;
+5. armor;
+6. restraints / accessories;
+7. weapons / tools;
+8. surface-state masks;
+9. transient VFX inputs.
 
-Every persistent object must carry at least:
+This stack exists to make authoring and variation manageable. It does **not** imply runtime composition.
 
-- unique asset/state ID;
-- equipment slot/layer class;
-- material class;
-- parent body region or named socket(s);
-- anatomical side where applicable (`L`, `R`, `center`);
-- coverage/body-region mask;
-- occlusion/depth behavior;
-- structural damage zones;
-- surface-state mask channels;
-- detach/drop rule;
-- sever inheritance rule;
-- wind/secondary-motion eligibility;
-- persistence/serialization state.
+## Complete-frame export rule
 
-No render/edit process is allowed to reinterpret a left-side item as right-side or vice versa.
+Before spritesheet export, all persistent visible source systems for the selected character state must be resolved into one temporally coherent frame sequence.
 
-## Damage model — two independent axes
+Each exported frame must already contain:
 
-Damage is separated into **surface damage** and **structural damage**.
+- final body pose;
+- body soft-tissue/jiggle state;
+- hair secondary motion;
+- cloth/binding motion;
+- armor/equipment motion if equipped in that state;
+- shackles/chains/restraints motion;
+- occlusion/depth result;
+- selected persistent damage/exposure/surface appearance for that variant.
+
+Detached or migrating source elements are authoring failures and cannot be delegated to the runtime.
+
+## Equipment / armor variation — OPEN IMPLEMENTATION
+
+The game still requires changing armor, accessories and other equipment states.
+
+The exact scalable production strategy is intentionally deferred until the initial complete-character animation route is proven.
+
+Allowed future production approaches may include:
+
+- offline recomposition and rerendering into complete variant spritesheets;
+- bounded armor/equipment state families;
+- reusable offline semantic masks or source modules;
+- selective precomputed variant atlases;
+- other deterministic offline methods that avoid routine frame-by-frame repainting.
+
+The following is no longer an allowed assumption:
+
+- assembling body + armor + hair + accessories into the final visible character at runtime.
+
+## Damage model retained
+
+Damage still has two conceptual axes.
 
 ### Surface damage
 
-Does not change the topology of the item.
+Does not materially change silhouette/topology:
 
-Examples:
-
-- scratches;
-- abrasions;
-- blood staining;
+- blood;
 - dirt/mud;
 - wetness;
-- soot/scorch marks;
+- scratches;
+- scorch/soot;
 - discoloration;
-- wear/polish loss;
-- shallow cuts/marks that do not alter silhouette.
+- material wear.
 
-Surface damage should be represented by persistent semantic/material masks and parameterized pixel rendering where possible.
+These may be produced from semantic masks/parameters offline and baked into the chosen full-character state/variant.
 
 ### Structural damage
 
-Changes silhouette, coverage, attachment or physical behavior.
+Changes silhouette, coverage, attachment or physical behavior:
 
-Examples:
+- torn/missing cloth;
+- broken straps;
+- missing armor pieces;
+- detached panels;
+- displaced equipment;
+- exposed body;
+- severed/damaged attached components.
 
-- cloth tear/opening;
-- missing cloth section;
-- broken strap;
-- detached sleeve/panel;
-- armor dent severe enough to alter silhouette;
-- cracked/broken plate;
-- missing armor segment;
-- displaced piece;
-- shattered shield section;
-- severed equipment attachment.
-
-Structural damage uses a finite set of deterministic geometry/mesh state transitions rather than arbitrary per-frame generative reconstruction.
-
-## Material-specific damage language
-
-### Cloth
-
-Supported classes include:
-
-- cut;
-- tear propagation;
-- puncture;
-- frayed edge;
-- burned edge/hole;
-- soaked/wet state;
-- blood/dirt absorption;
-- partial loss/detachment.
-
-### Leather / hide
-
-- cut;
-- puncture;
-- abrasion;
-- strap failure;
-- split seam;
-- burn/scorch;
-- deformation;
-- wet/darkened state.
-
-### Metal armor
-
-- scratch;
-- dent;
-- edge deformation;
-- crack where material/design permits;
-- buckle/collapse;
-- broken fastening;
-- missing plate/component;
-- blood/dirt/water surface state.
-
-### Wood / bone / rigid organic equipment
-
-- scratch;
-- crack;
-- splinter/chip;
-- fracture;
-- missing section;
-- complete break where gameplay permits.
-
-The final visible pixel vocabulary for each material is validated at gameplay scale; the physical state is independent from how many pixels can represent it.
-
-## Damage zones and state progression
-
-Each garment/armor asset defines named damage zones such as:
-
-- front torso;
-- back torso;
-- left/right shoulder;
-- left/right upper arm;
-- left/right forearm;
-- waist;
-- left/right thigh;
-- left/right lower leg;
-- edge/hem/strap-specific zones.
-
-Damage events target a known zone based on hit location/direction and item coverage.
-
-A zone may have a small deterministic progression, for example:
-
-`intact -> surface_damaged -> structurally_damaged -> failed/missing`
-
-The exact number of states is asset/material dependent. We do not require every item to implement every stage.
+Structural changes require deterministic source-state ownership before complete-frame export.
 
 ## Body exposure
 
-The complete body base always exists under removable/damageable clothing.
+The source-authoring character should retain a complete underlying body because clothing may be removed or damaged. This remains an **offline authoring requirement**.
 
-When clothing or armor coverage is lost:
+When coverage changes, the offline state resolver determines what becomes visible and exports a new complete-character state/animation family as required by the later variation strategy.
 
-- underlying clothing layer becomes visible if present;
-- otherwise the correct body region becomes visible;
-- scars/wounds/blood remain attached to the body region;
-- no new body pixels are generated from scratch;
-- exposure persists across every animation because it is a state of the modular character, not of one sprite frame.
+No runtime body-under-clothing assembly is implied.
 
-This architecture supports partial or complete unclothed states without making clothing technically mandatory.
+## Stable identity / ownership
 
-## Combat and armor logic integration
+Offline source elements should continue to preserve:
 
-Visual damage must be causally connected to gameplay state where appropriate.
+- stable item/state IDs;
+- equipment slots/classes;
+- parent body region/socket;
+- anatomical side (`L`, `R`, `center`);
+- coverage and occlusion ownership;
+- detach/drop rule;
+- sever inheritance rule;
+- secondary-motion eligibility.
 
-Examples:
+This information prevents left/right migration and makes complete variant generation reproducible.
 
-- armor absorbs/deflects a hit and receives a dent/scratch;
-- fastening failure causes a plate to detach and changes protection;
-- cloth is cut at the actual hit region;
-- shield structural failure changes collision/defense state;
-- broken armor may expose body or underlayer;
-- a severed limb carries/drops any attached compatible garment/armor component according to its sever rule.
+## Hair / cloth / restraints secondary motion
 
-Purely cosmetic wear may exist, but structural failure should not visually claim gameplay consequences that are absent unless explicitly designed that way.
+Hair, loose cloth and chains/restraints are not optional decoration. Their motion is part of the baked animation output.
 
-## Gore integration
+The authoring system may use:
 
-The damage system must interoperate with named anatomical sever zones.
+- temporal image/video priors;
+- deterministic rigs;
+- secondary bones;
+- spring/damped solvers;
+- constrained simulation;
+- offline layer-specific generation/composition;
 
-On sever/dismemberment:
+provided the final result is a stable complete-character frame sequence.
 
-- body region is removed at the deterministic cut boundary;
-- attached clothing/armor component is either severed with the part, broken, detached or retained according to asset rules;
-- wound-cap/gore socket appears at the correct anatomical boundary;
-- detached body/equipment objects inherit motion and collision;
-- blood emitter originates from the correct wound socket;
-- no intact hidden layer may incorrectly cover the removed body part.
+## Current proof condition
 
-## Wind and secondary-motion integration
+Runner 34 tests the initial Exilada state as a complete master-driven temporal sequence.
 
-Eligible damaged pieces can alter secondary motion.
+The route passes only if body movement and the visible secondary systems remain coherent enough to justify continued production development.
 
-Examples:
+Current runner:
 
-- torn cloth produces a loose flap;
-- broken strap allows a plate/pouch to swing or fall;
-- detached cloth becomes world debris;
-- exposed loose layers react to wind more strongly.
+`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-Hair uses the same deterministic secondary-motion principle but preserves its own persistent front/back depth ownership while moving.
+## Later G6/G7 decision
 
-These effects must remain deterministic and scriptable. If a damage state requires routine manual simulation repair, that implementation is rejected.
+After the initial full-character animation route is proven, the project must choose how armor/equipment/damage/state variation is generated efficiently **offline** without combinatorial manual work.
 
-## Liquid and surface-state integration
+The future system must satisfy both:
 
-Coverage determines where liquids/states accumulate.
-
-Examples:
-
-- armor can shield cloth/body from some splashes;
-- blood may stain outer cloth before underlying skin;
-- rain/water can wet exposed skin and clothing separately;
-- damage holes allow underlying layers/body to receive direct state;
-- mud/wetness can change discrete material palette ramps.
-
-State propagation is causal and mask-based, not random decoration.
-
-## Rendering/composition architecture
-
-The production target avoids combinatorial sprite explosion.
-
-Preferred data flow:
-
-`body + modular layer geometry/state -> deterministic rig/depth -> semantic passes -> native-pixel renderer -> modular depth-aware composition`
-
-The renderer may output separate pixel layers/passes for:
-
-- rear/back hair;
-- body;
-- front hair;
-- optional intermediate hair masses;
-- each relevant clothing/armor slot/group;
-- equipment;
-- state overlays;
-- depth/occlusion metadata.
-
-For the Exilada's baseline long hair, the minimum valid composition explicitly preserves `rear_hair -> body -> front_hair` rather than treating hair as one flat post-body overlay.
-
-If fully independent per-item depth composition proves impractical at gameplay scale, G6 must choose a bounded front/back/slot-family strategy before the equipment catalog is expanded.
-
-## Persistence/data model
-
-Character save/state must be able to represent, without saving individual rendered frames:
-
-- equipped item IDs;
-- per-item durability/condition;
-- per-zone structural state;
-- surface-state intensities/masks as required;
-- detached/missing components;
-- body injury/sever state;
-- wetness/blood/dirt and related causal states.
-
-Rendered animation is derived from this state.
-
-## Validation gate — G6D clothing/armor damage
-
-Before broad equipment production, test one representative soft garment and one representative rigid armor piece on the generic/early production character.
-
-The test must include:
-
-1. intact state;
-2. surface damage;
-3. structural damage changing silhouette/coverage;
-4. one detach/broken-fastener event;
-5. correct body/underlayer exposure;
-6. the same states across locomotion and one high-energy action;
-7. blood and wetness interaction;
-8. one wind interaction on a damaged soft piece;
-9. deterministic headless rebuild/export from saved state.
-
-### PASS requires
-
-- no frame-specific redraw dependency;
-- damage remains on the same item/body zone through motion;
-- anatomical left/right ownership remains stable;
-- exposure is correct;
-- occlusion/depth is correct;
-- structural state matches gameplay state;
-- no body×item×damage×animation combinatorial asset explosion;
-- native-pixel readability remains acceptable.
+1. scalable authoring of variants/states;
+2. complete-character runtime spritesheets.
 
 ## Kill switches
 
-- If a damage type requires generative reconstruction per frame, reject that implementation.
-- If structural damage cannot remain stable across arbitrary clips, rework geometry/state ownership before producing items.
-- If modular composition causes unacceptable occlusion artifacts, solve the layer architecture before adding more equipment.
-- If damage-state multiplication becomes combinatorial, reduce to semantic overlays + a small deterministic set of silhouette-changing structural variants.
-- If damaged secondary motion needs manual Blender cleanup per clip, simplify the physical model.
+- If a variation strategy requires routine manual repainting across every frame, reject it.
+- If an offline modular source cannot keep ownership/occlusion stable across animation, fix the source architecture before expanding equipment content.
+- If secondary motion routinely breaks attachments or anatomical sides, reject/simplify that authoring method.
+- Do not solve production complexity by reintroducing runtime character assembly without an explicit new architectural decision.
 
 ## Locked production rule
 
-**Clothing and armor damage are not optional polish. They are first-class systemic character state and must be supported by the canonical deterministic character pipeline before content production scales.**
+**The visible runtime character is always a complete baked sprite frame. Modular character structure, where useful, belongs to offline authoring only.**
