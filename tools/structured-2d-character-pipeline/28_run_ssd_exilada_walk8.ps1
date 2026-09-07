@@ -13,42 +13,31 @@ function Fail([string]$Message) {
     exit 1
 }
 
-# Windows PowerShell 5.1 Start-Process does not preserve string-array argument
-# boundaries when an item contains spaces. Build one explicitly quoted command
-# line instead of passing a raw string[] to -ArgumentList.
-function Join-ProcessArguments([string[]]$Items) {
-    $quoted = foreach ($item in $Items) {
-        if ($null -eq $item -or $item.Length -eq 0) {
-            '""'
-            continue
-        }
-        if ($item.Contains('"')) {
-            throw "embedded double quote is not supported in native process argument: $item"
-        }
-        if ($item -match '\s') {
-            '"' + $item + '"'
-        } else {
-            $item
-        }
-    }
-    return ($quoted -join ' ')
-}
-
-function Start-ControlledPython(
+# Windows PowerShell 5.1 Start-Process -ArgumentList ultimately rebuilds one
+# command-line string and is not reliable enough for this project when argv
+# contains whitespace-bearing paths. Do not use Start-Process for Python here.
+# The call operator (&) with an argument array preserves each array item as one
+# native argv item. Native stderr is allowed to print, but is not used as
+# control flow; the process exit code is checked explicitly.
+function Invoke-ControlledPython(
     [string]$PythonExe,
     [string[]]$Arguments,
     [string]$WorkingDirectory
 ) {
-    $argumentLine = Join-ProcessArguments $Arguments
-    $startParams = @{
-        FilePath = $PythonExe
-        ArgumentList = $argumentLine
-        WorkingDirectory = $WorkingDirectory
-        NoNewWindow = $true
-        Wait = $true
-        PassThru = $true
+    $previousPreference = $ErrorActionPreference
+    $exitCode = 1
+    Push-Location -LiteralPath $WorkingDirectory
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $PythonExe @Arguments 2>&1 | Out-Host
+        if ($null -ne $LASTEXITCODE) {
+            $exitCode = [int]$LASTEXITCODE
+        }
+    } finally {
+        $ErrorActionPreference = $previousPreference
+        Pop-Location
     }
-    return Start-Process @startParams
+    return $exitCode
 }
 
 Write-Host ''
@@ -59,7 +48,8 @@ Write-Host '[LOCK] The 8 walk target poses are generated automatically from the 
 Write-Host '[LOCK] No external/manual pose PNGs are required from the operator.' -ForegroundColor Green
 Write-Host '[LOCK] FILM disabled for this identity/temporal-coherence proof.' -ForegroundColor Green
 Write-Host '[LOCK] Upstream inference.py is not overwritten; a deterministic local patched copy is generated.' -ForegroundColor Green
-Write-Host '[LOCK] Native process arguments are explicitly quoted and preflight-tested for paths with spaces.' -ForegroundColor Green
+Write-Host '[LOCK] Python is invoked with PowerShell call-operator argv splatting; Start-Process is forbidden for this runner.' -ForegroundColor Green
+Write-Host '[LOCK] Native argv transport is preflight-tested with the actual paths containing spaces.' -ForegroundColor Green
 Write-Host ''
 
 $EnvMarker = Join-Path $SsdRoot 'ssd_environment_bootstrap.json'
@@ -112,8 +102,8 @@ Write-Host "[OK] Master:       $MasterPath" -ForegroundColor Green
 Write-Host "[OK] C1A guide:    $Guide" -ForegroundColor Green
 Write-Host ''
 
-# Regression guard for the exact failure class seen on the first runner-28 run:
-# verify that Python receives space-bearing Windows paths as single argv items.
+# Regression guard for both runner-28 path failures: use the exact project root
+# and master path and require Python to receive them as two intact argv items.
 $ArgProbeScript = Join-Path $SsdRoot 'ssd_native_arg_probe.py'
 $ArgProbeResult = Join-Path $SsdRoot 'ssd_native_arg_probe.json'
 $argProbeSource = @'
@@ -126,13 +116,9 @@ Set-Content -LiteralPath $ArgProbeScript -Value $argProbeSource -Encoding UTF8
 Remove-Item -LiteralPath $ArgProbeResult -Force -ErrorAction SilentlyContinue
 
 Write-Host '[PREFLIGHT] Verifying native argument transport for paths containing spaces...' -ForegroundColor Yellow
-try {
-    $argProbe = Start-ControlledPython -PythonExe $Python -Arguments @($ArgProbeScript, $ArgProbeResult, $ProjectRepoRoot, $MasterPath) -WorkingDirectory $SsdRoot
-} catch {
-    Fail "native argument preflight could not start: $($_.Exception.Message)"
-}
-if ($argProbe.ExitCode -ne 0) {
-    Fail "native argument preflight exited with code $($argProbe.ExitCode)"
+$argProbeExit = Invoke-ControlledPython -PythonExe $Python -Arguments @($ArgProbeScript, $ArgProbeResult, $ProjectRepoRoot, $MasterPath) -WorkingDirectory $SsdRoot
+if ($argProbeExit -ne 0) {
+    Fail "native argument preflight exited with code $argProbeExit"
 }
 if (-not (Test-Path -LiteralPath $ArgProbeResult -PathType Leaf)) {
     Fail "native argument preflight did not write: $ArgProbeResult"
@@ -145,12 +131,17 @@ try {
 if ($argProbeValues.Count -ne 2 -or
     [string]$argProbeValues[0] -ne $ProjectRepoRoot -or
     [string]$argProbeValues[1] -ne $MasterPath) {
-    Fail 'native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.'
+    Write-Host "[PREFLIGHT] expected[0]: $ProjectRepoRoot" -ForegroundColor DarkYellow
+    Write-Host "[PREFLIGHT] expected[1]: $MasterPath" -ForegroundColor DarkYellow
+    Write-Host "[PREFLIGHT] received count: $($argProbeValues.Count)" -ForegroundColor DarkYellow
+    for ($i = 0; $i -lt $argProbeValues.Count; $i++) {
+        Write-Host "[PREFLIGHT] received[$i]: $([string]$argProbeValues[$i])" -ForegroundColor DarkYellow
+    }
+    Fail 'native argument transport preflight failed; refusing to run preparation with corrupted argv.'
 }
-Write-Host '[OK] Native argument quoting preflight PASS.' -ForegroundColor Green
+Write-Host '[OK] Native argument transport preflight PASS.' -ForegroundColor Green
 Write-Host ''
 
-# Preparation is a controlled Python process. Child stderr is not used as PowerShell control flow.
 Write-Host '[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...' -ForegroundColor Yellow
 $prepArgs = @(
     $Helper,
@@ -160,13 +151,9 @@ $prepArgs = @(
     '--master', $MasterPath,
     '--marker', $InputMarker
 )
-try {
-    $prep = Start-ControlledPython -PythonExe $Python -Arguments $prepArgs -WorkingDirectory $ModelTraining
-} catch {
-    Fail "input preparation could not start: $($_.Exception.Message)"
-}
-if ($prep.ExitCode -ne 0) {
-    Fail "input preparation exited with code $($prep.ExitCode)"
+$prepExit = Invoke-ControlledPython -PythonExe $Python -Arguments $prepArgs -WorkingDirectory $ModelTraining
+if ($prepExit -ne 0) {
+    Fail "input preparation exited with code $prepExit"
 }
 if (-not (Test-Path -LiteralPath $InputMarker -PathType Leaf)) {
     Fail "input-preparation marker missing: $InputMarker"
@@ -196,16 +183,11 @@ $inferArgs = @(
     '--cfg', '3.5',
     '--fps', '8'
 )
-try {
-    $infer = Start-ControlledPython -PythonExe $Python -Arguments $inferArgs -WorkingDirectory $ModelTraining
-} catch {
-    Fail "SSD inference could not start: $($_.Exception.Message)"
-}
-if ($infer.ExitCode -ne 0) {
-    Fail "SSD inference exited with code $($infer.ExitCode)"
+$inferExit = Invoke-ControlledPython -PythonExe $Python -Arguments $inferArgs -WorkingDirectory $ModelTraining
+if ($inferExit -ne 0) {
+    Fail "SSD inference exited with code $inferExit"
 }
 
-# Find the predict directory written by this run. inference.py uses date/time folders.
 $outputRoot = Join-Path $ModelTraining 'output'
 if (-not (Test-Path -LiteralPath $outputRoot -PathType Container)) {
     Fail "SSD output root not created: $outputRoot"
@@ -220,7 +202,6 @@ $predictDirs = Get-ChildItem -LiteralPath $outputRoot -Directory -Recurse -Error
     Sort-Object LastWriteTime -Descending
 
 if (-not $predictDirs -or $predictDirs.Count -lt 1) {
-    # Fallback without time filter, useful if filesystem timestamps are coarse.
     $predictDirs = Get-ChildItem -LiteralPath $outputRoot -Directory -Recurse -ErrorAction SilentlyContinue |
         Where-Object {
             $_.Name -eq 'predict' -and
@@ -247,13 +228,9 @@ $reviewArgs = @(
     '--review-root', $ReviewRoot,
     '--marker', $ResultMarker
 )
-try {
-    $review = Start-ControlledPython -PythonExe $Python -Arguments $reviewArgs -WorkingDirectory $ModelTraining
-} catch {
-    Fail "review package could not start: $($_.Exception.Message)"
-}
-if ($review.ExitCode -ne 0) {
-    Fail "review package exited with code $($review.ExitCode)"
+$reviewExit = Invoke-ControlledPython -PythonExe $Python -Arguments $reviewArgs -WorkingDirectory $ModelTraining
+if ($reviewExit -ne 0) {
+    Fail "review package exited with code $reviewExit"
 }
 if (-not (Test-Path -LiteralPath $ResultMarker -PathType Leaf)) {
     Fail "inference result marker missing: $ResultMarker"
