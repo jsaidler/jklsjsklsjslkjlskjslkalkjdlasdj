@@ -13,33 +13,6 @@ function Fail([string]$Message) {
     exit 1
 }
 
-# Windows PowerShell 5.1 Start-Process -ArgumentList ultimately rebuilds one
-# command-line string and is not reliable enough for this project when argv
-# contains whitespace-bearing paths. Do not use Start-Process for Python here.
-# The call operator (&) with an argument array preserves each array item as one
-# native argv item. Native stderr is allowed to print, but is not used as
-# control flow; the process exit code is checked explicitly.
-function Invoke-ControlledPython(
-    [string]$PythonExe,
-    [string[]]$Arguments,
-    [string]$WorkingDirectory
-) {
-    $previousPreference = $ErrorActionPreference
-    $exitCode = 1
-    Push-Location -LiteralPath $WorkingDirectory
-    try {
-        $ErrorActionPreference = 'Continue'
-        & $PythonExe @Arguments 2>&1 | Out-Host
-        if ($null -ne $LASTEXITCODE) {
-            $exitCode = [int]$LASTEXITCODE
-        }
-    } finally {
-        $ErrorActionPreference = $previousPreference
-        Pop-Location
-    }
-    return $exitCode
-}
-
 Write-Host ''
 Write-Host 'Roguelite - first real Sprite Sheet Diffusion Exilada walk8 proof' -ForegroundColor Cyan
 Write-Host '[LOCK] Uses complete Exilada master as appearance reference.' -ForegroundColor Green
@@ -48,8 +21,8 @@ Write-Host '[LOCK] The 8 walk target poses are generated automatically from the 
 Write-Host '[LOCK] No external/manual pose PNGs are required from the operator.' -ForegroundColor Green
 Write-Host '[LOCK] FILM disabled for this identity/temporal-coherence proof.' -ForegroundColor Green
 Write-Host '[LOCK] Upstream inference.py is not overwritten; a deterministic local patched copy is generated.' -ForegroundColor Green
-Write-Host '[LOCK] Python is invoked with PowerShell call-operator argv splatting; Start-Process is forbidden for this runner.' -ForegroundColor Green
-Write-Host '[LOCK] Native argv transport is preflight-tested with the actual paths containing spaces.' -ForegroundColor Green
+Write-Host '[LOCK] No whitespace-bearing project path is passed through native argv.' -ForegroundColor Green
+Write-Host '[LOCK] Path payload is transported in a JSON request file under Z:\AI.' -ForegroundColor Green
 Write-Host ''
 
 $EnvMarker = Join-Path $SsdRoot 'ssd_environment_bootstrap.json'
@@ -60,10 +33,24 @@ $InputMarker = Join-Path $SsdRoot 'ssd_exilada_walk8_input.json'
 $ResultMarker = Join-Path $SsdRoot 'ssd_exilada_walk8_inference.json'
 $ModelTraining = Join-Path $SsdRoot 'repo\ModelTraining'
 $Guide = Join-Path $MotionRoot 'g3s_c1_skeleton_walk_guide.json'
-$Helper = Join-Path $ProjectRepoRoot 'tools\structured-2d-character-pipeline\g3s_ssd_prepare_walk8.py'
+$HelperRepo = Join-Path $ProjectRepoRoot 'tools\structured-2d-character-pipeline\g3s_ssd_prepare_walk8.py'
+$RequestWrapperRepo = Join-Path $ProjectRepoRoot 'tools\structured-2d-character-pipeline\g3s_ssd_walk8_request.py'
+$HelperLocal = Join-Path $SsdRoot 'g3s_ssd_prepare_walk8.py'
+$RequestWrapperLocal = Join-Path $SsdRoot 'g3s_ssd_walk8_request.py'
+$PrepareRequest = Join-Path $SsdRoot 'ssd_walk8_prepare_request.json'
+$TransportProbe = Join-Path $SsdRoot 'ssd_walk8_transport_probe.json'
 $ReviewRoot = Join-Path $SsdRoot 'exilada_walk8_review'
 
-foreach ($required in @($EnvMarker, $DepMarker, $ModelMarker, $SupportMarker, $ModelTraining, $Guide, $Helper)) {
+foreach ($required in @(
+    $EnvMarker,
+    $DepMarker,
+    $ModelMarker,
+    $SupportMarker,
+    $ModelTraining,
+    $Guide,
+    $HelperRepo,
+    $RequestWrapperRepo
+)) {
     if (-not (Test-Path -LiteralPath $required)) {
         Fail "required path missing: $required"
     }
@@ -96,69 +83,96 @@ if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     Fail "ssd python.exe missing: $Python"
 }
 
-Write-Host "[OK] Python:       $Python" -ForegroundColor Green
-Write-Host "[OK] ModelTraining:$ModelTraining" -ForegroundColor Green
-Write-Host "[OK] Master:       $MasterPath" -ForegroundColor Green
-Write-Host "[OK] C1A guide:    $Guide" -ForegroundColor Green
+Write-Host "[OK] Python:        $Python" -ForegroundColor Green
+Write-Host "[OK] ModelTraining: $ModelTraining" -ForegroundColor Green
+Write-Host "[OK] Master:        $MasterPath" -ForegroundColor Green
+Write-Host "[OK] C1A guide:     $Guide" -ForegroundColor Green
 Write-Host ''
 
-# Regression guard for both runner-28 path failures: use the exact project root
-# and master path and require Python to receive them as two intact argv items.
-$ArgProbeScript = Join-Path $SsdRoot 'ssd_native_arg_probe.py'
-$ArgProbeResult = Join-Path $SsdRoot 'ssd_native_arg_probe.json'
-$argProbeSource = @'
-import json
-import sys
-from pathlib import Path
-Path(sys.argv[1]).write_text(json.dumps(sys.argv[2:]), encoding="utf-8")
-'@
-Set-Content -LiteralPath $ArgProbeScript -Value $argProbeSource -Encoding UTF8
-Remove-Item -LiteralPath $ArgProbeResult -Force -ErrorAction SilentlyContinue
+# Copy the Python control scripts to the SSD workspace. Their native invocation
+# paths therefore contain no spaces. All real project paths travel as JSON data,
+# not command-line arguments. This deliberately removes the PowerShell 5.1 argv
+# failure class instead of trying to quote around it again.
+Copy-Item -LiteralPath $HelperRepo -Destination $HelperLocal -Force
+Copy-Item -LiteralPath $RequestWrapperRepo -Destination $RequestWrapperLocal -Force
 
-Write-Host '[PREFLIGHT] Verifying native argument transport for paths containing spaces...' -ForegroundColor Yellow
-$argProbeExit = Invoke-ControlledPython -PythonExe $Python -Arguments @($ArgProbeScript, $ArgProbeResult, $ProjectRepoRoot, $MasterPath) -WorkingDirectory $SsdRoot
-if ($argProbeExit -ne 0) {
-    Fail "native argument preflight exited with code $argProbeExit"
+$requestObject = [ordered]@{
+    version = 1
+    gate = 'SSD_EXILADA_WALK8_PREPARE'
+    project_repo_root = $ProjectRepoRoot
+    model_training = $ModelTraining
+    guide = $Guide
+    master = $MasterPath
+    marker = $InputMarker
 }
-if (-not (Test-Path -LiteralPath $ArgProbeResult -PathType Leaf)) {
-    Fail "native argument preflight did not write: $ArgProbeResult"
+$requestObject | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $PrepareRequest -Encoding UTF8
+Remove-Item -LiteralPath $TransportProbe -Force -ErrorAction SilentlyContinue
+
+Write-Host '[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...' -ForegroundColor Yellow
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    Push-Location -LiteralPath $SsdRoot
+    try {
+        & $Python $RequestWrapperLocal 'probe' $PrepareRequest $TransportProbe 2>&1 | Out-Host
+        $probeExit = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
+if ($probeExit -ne 0) {
+    Fail "JSON transport preflight exited with code $probeExit"
+}
+if (-not (Test-Path -LiteralPath $TransportProbe -PathType Leaf)) {
+    Fail "JSON transport preflight did not write: $TransportProbe"
 }
 try {
-    $argProbeValues = @(Get-Content -LiteralPath $ArgProbeResult -Raw | ConvertFrom-Json)
+    $transport = Get-Content -LiteralPath $TransportProbe -Raw | ConvertFrom-Json
 } catch {
-    Fail 'cannot parse native argument preflight result.'
+    Fail 'cannot parse JSON transport preflight result.'
 }
-if ($argProbeValues.Count -ne 2 -or
-    [string]$argProbeValues[0] -ne $ProjectRepoRoot -or
-    [string]$argProbeValues[1] -ne $MasterPath) {
-    Write-Host "[PREFLIGHT] expected[0]: $ProjectRepoRoot" -ForegroundColor DarkYellow
-    Write-Host "[PREFLIGHT] expected[1]: $MasterPath" -ForegroundColor DarkYellow
-    Write-Host "[PREFLIGHT] received count: $($argProbeValues.Count)" -ForegroundColor DarkYellow
-    for ($i = 0; $i -lt $argProbeValues.Count; $i++) {
-        Write-Host "[PREFLIGHT] received[$i]: $([string]$argProbeValues[$i])" -ForegroundColor DarkYellow
-    }
-    Fail 'native argument transport preflight failed; refusing to run preparation with corrupted argv.'
+if ($transport.status -ne 'PASS' -or
+    [string]$transport.project_repo_root -ne $ProjectRepoRoot -or
+    [string]$transport.master -ne $MasterPath -or
+    [string]$transport.model_training -ne $ModelTraining -or
+    [string]$transport.guide -ne $Guide -or
+    [string]$transport.marker -ne $InputMarker) {
+    Write-Host "[PREFLIGHT] expected project root: $ProjectRepoRoot" -ForegroundColor DarkYellow
+    Write-Host "[PREFLIGHT] received project root: $([string]$transport.project_repo_root)" -ForegroundColor DarkYellow
+    Write-Host "[PREFLIGHT] expected master: $MasterPath" -ForegroundColor DarkYellow
+    Write-Host "[PREFLIGHT] received master: $([string]$transport.master)" -ForegroundColor DarkYellow
+    Fail 'JSON control-plane transport did not preserve the exact path payload.'
 }
-Write-Host '[OK] Native argument transport preflight PASS.' -ForegroundColor Green
+Write-Host '[OK] JSON path transport preflight PASS.' -ForegroundColor Green
 Write-Host ''
 
 Write-Host '[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...' -ForegroundColor Yellow
-$prepArgs = @(
-    $Helper,
-    'prepare',
-    '--model-training', $ModelTraining,
-    '--guide', $Guide,
-    '--master', $MasterPath,
-    '--marker', $InputMarker
-)
-$prepExit = Invoke-ControlledPython -PythonExe $Python -Arguments $prepArgs -WorkingDirectory $ModelTraining
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    Push-Location -LiteralPath $SsdRoot
+    try {
+        & $Python $RequestWrapperLocal 'prepare' $PrepareRequest 2>&1 | Out-Host
+        $prepExit = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 if ($prepExit -ne 0) {
     Fail "input preparation exited with code $prepExit"
 }
 if (-not (Test-Path -LiteralPath $InputMarker -PathType Leaf)) {
     Fail "input-preparation marker missing: $InputMarker"
 }
-try { $inputState = Get-Content -LiteralPath $InputMarker -Raw | ConvertFrom-Json } catch { Fail 'cannot parse input-preparation marker.' }
+try {
+    $inputState = Get-Content -LiteralPath $InputMarker -Raw | ConvertFrom-Json
+} catch {
+    Fail 'cannot parse input-preparation marker.'
+}
 if ($inputState.status -ne 'PASS') { Fail 'input-preparation marker is not PASS.' }
 if ([int]$inputState.target_pose_count -ne 8) { Fail 'input-preparation marker does not contain 8 target poses.' }
 
@@ -171,19 +185,22 @@ if (-not (Test-Path -LiteralPath $PatchedInference -PathType Leaf)) {
     Fail "patched inference copy missing: $PatchedInference"
 }
 $relativeConfig = '.\configs\prompts\inference_exilada_walk8.yaml'
-
 $before = Get-Date
-$inferArgs = @(
-    $PatchedInference,
-    '--config', $relativeConfig,
-    '-W', '512',
-    '-H', '512',
-    '-L', '8',
-    '--steps', '25',
-    '--cfg', '3.5',
-    '--fps', '8'
-)
-$inferExit = Invoke-ControlledPython -PythonExe $Python -Arguments $inferArgs -WorkingDirectory $ModelTraining
+
+# Every argument in this native call is now a no-space path or scalar literal.
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    Push-Location -LiteralPath $ModelTraining
+    try {
+        & $Python $PatchedInference '--config' $relativeConfig '-W' '512' '-H' '512' '-L' '8' '--steps' '25' '--cfg' '3.5' '--fps' '8' 2>&1 | Out-Host
+        $inferExit = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 if ($inferExit -ne 0) {
     Fail "SSD inference exited with code $inferExit"
 }
@@ -221,14 +238,19 @@ if ($generated.Count -ne 8) {
 
 Write-Host ''
 Write-Host '[REVIEW] Building contact sheet and GIF without altering source frames...' -ForegroundColor Yellow
-$reviewArgs = @(
-    $Helper,
-    'review',
-    '--predict-dir', $PredictDir,
-    '--review-root', $ReviewRoot,
-    '--marker', $ResultMarker
-)
-$reviewExit = Invoke-ControlledPython -PythonExe $Python -Arguments $reviewArgs -WorkingDirectory $ModelTraining
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    Push-Location -LiteralPath $SsdRoot
+    try {
+        & $Python $HelperLocal 'review' '--predict-dir' $PredictDir '--review-root' $ReviewRoot '--marker' $ResultMarker 2>&1 | Out-Host
+        $reviewExit = if ($null -eq $LASTEXITCODE) { 1 } else { [int]$LASTEXITCODE }
+    } finally {
+        Pop-Location
+    }
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 if ($reviewExit -ne 0) {
     Fail "review package exited with code $reviewExit"
 }
@@ -236,7 +258,11 @@ if (-not (Test-Path -LiteralPath $ResultMarker -PathType Leaf)) {
     Fail "inference result marker missing: $ResultMarker"
 }
 
-try { $result = Get-Content -LiteralPath $ResultMarker -Raw | ConvertFrom-Json } catch { Fail 'cannot parse inference result marker.' }
+try {
+    $result = Get-Content -LiteralPath $ResultMarker -Raw | ConvertFrom-Json
+} catch {
+    Fail 'cannot parse inference result marker.'
+}
 if ($result.status -ne 'PASS_OUTPUT_READY_FOR_VISUAL_QA') {
     Fail "unexpected result status: $($result.status)"
 }
