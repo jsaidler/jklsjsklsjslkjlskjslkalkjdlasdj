@@ -1,4 +1,4 @@
-# Next-chat handoff — G3S structured character build
+# Next-chat handoff — G3S character spritesheet production
 
 Status date: **2026-09-06**
 
@@ -9,16 +9,16 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 1. `docs/PROJECT_STATE.md`
 2. `docs/G1_CAMERA_SCALE_LOG.md`
 3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-4. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-5. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-7. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+6. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
+7. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
 8. `docs/G3S_C0_BODY_MOTION_PROOF.md`
 9. `docs/G3S_B4_HAIR_LOG.md`
 
 ## Presentation simplification — LOCKED
 
-True isometric character production was abandoned for feasibility.
+The project is not pursuing true isometric multi-directional character production.
 
 Locked presentation:
 
@@ -26,106 +26,94 @@ Locked presentation:
 - fixed orthographic `640×360` camera;
 - pitch `26 deg`;
 - protagonist about `128 px` tall;
-- first visible family screen-left front-three-quarter;
-- gameplay depth movement uses world position/depth sorting, not north/south/isometric character sprite families.
+- first visible family screen-left/front-three-quarter;
+- gameplay depth movement does not require north/south/isometric sprite sets.
 
-Do not silently recreate multi-directional/isometric art complexity.
+## Runtime animation representation — LOCKED
 
-## Canonical body
+Use conventional sprite animation:
 
-`assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
 
-- `37×128` RGBA;
-- screen-left front-three-quarter family;
-- PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`.
+Actions are stored as deterministic frame sequences in rows/blocks/atlas regions. The runtime does not require 3D, a segmented puppet or diffusion.
 
-Hair remains DEFERRED.
+## Current source-authoring route — SSD SPIKE
 
-## Motion backbone — PASS
+Current active validation:
 
-- G2 PASS;
-- `G2_CANONICAL_RIG`;
-- CMU `105_34 NormalWalk`;
-- C1A skeleton walk PASS/CLOSED;
-- approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`;
-- projected root travel approximately `-43.77 px` screen-left.
+**Sprite Sheet Diffusion (SSD)**
 
-Approval:
+Canonical doc:
 
-`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
+`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-## Closed methods
+Purpose:
 
-- visible 3D -> final pixel art;
-- C0 V1 nearest-segment exclusive hard partition + exposed independent rigid parts;
-- single-still full-body chain/cage warp -> gait;
-- skinned MPFB body as mandatory hidden guide;
-- independent full-body generative redraw per walk frame;
-- implicit return to isometric/multi-directional character coverage.
+Test whether SSD can generate a coherent Exilada action sequence from the complete master plus pose/motion guidance, so approved frames can be frozen into conventional spritesheets.
 
-## C1B Flux2 — FAIL/CLOSED
+## Upstream repository facts — VERIFIED
 
-Reviewed output failed persistent identity:
+Repo:
 
-- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
-- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
+`chenganhsieh/Sprite-Sheet-Diffusion`
 
-Runner 22 is disabled and must not be tuned/rerun for locomotion. No new model/runtime was installed; no cleanup applies.
+Actual code layout:
 
-## CURRENT — C1B MINIMAL SEGMENTED PERSISTENT 2D PUPPET — RUNNER READY
+- inference: `ModelTraining/inference.py`;
+- config: `ModelTraining/configs/prompts/inference.yaml`.
 
-Architecture:
+Upstream README says to use a Python 3.10 conda environment and `pip install -r requirements.txt`, but the repository does **not** contain the referenced root `requirements.txt`.
 
-`approved hidden skeleton -> persistent B3B-derived part set -> bind landmarks + overlap -> projected skeleton transforms -> camera-space depth sort -> composited sprite`
+The actual config additionally requires:
 
-Current files:
+- Stable Diffusion v1.5 base model;
+- SD VAE;
+- CLIP image encoder;
+- SSD denoising UNet;
+- SSD reference UNet;
+- AnimateAnyone pose guider;
+- AnimateAnyone motion module.
 
-- doc: `docs/G3S_C1B_SEGMENTED_PUPPET.md`;
-- spec: `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json` revision `MINIMAL_BEATEMUP_SEGMENTED_PUPPET_V2`;
-- builder: `tools/structured-2d-character-pipeline/g3s_c1b_build_segmented_puppet.py`;
-- runner: `tools/structured-2d-character-pipeline/23_run_g3s_c1b_segmented_puppet_walk.ps1`.
+## Actual local state
 
-Workspace:
+Workspace intended:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet`
+`Z:\AI\SpriteSheetDiffusionSpike`
 
-### Minimal persistent part set
+Upstream clone: **SUCCESS**
 
-- `head_neck`;
-- one continuous torso+pelvis `core`;
-- bilateral upper arms, forearms, hands;
-- bilateral thighs, shins, feet.
+Observed user console:
 
-The builder fits bind landmarks to the actual B3B alpha silhouette, uses overlapping limb masks and shoulder/hip/neck cap pixels, then reuses those same parts through all eight approved skeleton states. No per-frame generation is involved.
+- 887/887 objects received;
+- ~289.63 MiB transferred;
+- `conda` command unavailable;
+- env `ssd` not created yet;
+- `cd /d` failed because it is CMD syntax, not PowerShell;
+- `pip install -r requirements.txt` failed from the wrong directory and the upstream file is absent anyway.
 
-### First-proof locks
+These are bootstrap/procedure failures, not an SSD inference failure.
 
-- screen-left family only;
-- no north/south/isometric directions;
-- no pre-emptive orientation/foreshortening variants;
-- no MPFB body;
-- no image model/API/download;
-- no manual frame repair required from the user;
-- hair deferred.
+## Superseded current route
+
+The segmented-puppet runner 23 is no longer the current production route. It remains historical and must not be continued unless explicitly reopened.
+
+Flux2 per-frame full-body redraw remains FAIL/CLOSED.
 
 ## Exact next operator action
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Only bootstrap Miniconda + Python 3.10 env. Do not download weights yet.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\23_run_g3s_c1b_segmented_puppet_walk.ps1"
-```
+Use the PowerShell block provided in the current chat, which:
 
-Primary review outputs:
+1. installs Miniconda through WinGet if `conda.exe` is absent;
+2. locates `conda.exe` without relying on shell PATH refresh;
+3. creates env `ssd` with Python 3.10;
+4. verifies `conda run -n ssd python --version`.
 
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet\g3s_c1b_puppet_walk_zoom.gif`;
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet\g3s_c1b_puppet_contact_sheet.png`.
+PASS requires Python 3.10.x inside env `ssd`.
 
-Debug only if needed:
+After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, then model download in a documented order.
 
-- `g3s_c1b_puppet_contact_sheet_skeleton_overlay.png`;
-- `g3s_c1b_segmented_part_atlas.png`;
-- `g3s_c1b_puppet_bind_manifest.json`.
+## Do not clean SSD workspace
 
-If the result fails, diagnose the specific joint/part/projection defect. Do not change presentation or add art families unless the visible failure requires it.
+SSD route is active. No cleanup applies now.
