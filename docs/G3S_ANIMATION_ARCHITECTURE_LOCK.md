@@ -2,139 +2,134 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / LOCKED — CONVENTIONAL 2D SPRITESHEET RUNTIME; 72 DEG LOCOMOTION FACING LOCKED; FEMININE GAMEPLAY WALK AUTHORING ACTIVE; SSD VISIBLE AUTHORING PAUSED**
+Status: **CANONICAL / LOCKED — COMPLETE-CHARACTER 2D SPRITESHEET RUNTIME; 72 DEG LOCOMOTION FACING LOCKED; INITIAL MASTER-DRIVEN PLAYABLE PROOF ACTIVE**
 
-## Presentation constraint that makes animation feasible
+## Presentation lock
 
-The project is **not** targeting true isometric multi-directional character animation.
-
-That option was deliberately abandoned in favor of an elevated arcade beat'em-up / belt-scroller presentation because it radically reduces character-production complexity while preserving a walkable gameplay-depth band.
-
-Locked presentation consequences:
+The game uses an elevated arcade beat'em-up / belt-scroller false-3D presentation:
 
 - fixed orthographic gameplay camera;
 - native raster `640×360`;
 - pitch `26 deg`;
-- protagonist standing body height about `128 px`;
-- first canonical visible family is screen-left and mostly lateral/three-quarter;
-- gameplay depth movement does not require north/south/isometric sprite families;
-- runtime world-depth movement and z-order are separate from visible facing;
-- do not multiply view families unless an explicit later gate proves one necessary.
+- protagonist about `128 px` tall at gameplay scale;
+- first canonical locomotion family is screen-left and mostly lateral/three-quarter;
+- gameplay-depth movement and z-order are world/runtime concerns, not extra north/south sprite families.
 
-### Gameplay locomotion facing — LOCKED
-
-Runner 31 compared `60`, `72` and `84 deg` azimuth from travel heading using the same retained real gait and camera baseline.
-
-Decision:
-
-- `60 deg` rejected as too frontal;
-- `84 deg` rejected as too profile-thin for the first canonical baseline;
-- **`72 deg` selected and locked as the first screen-left gameplay locomotion facing baseline**.
-
-`90 deg` is pure side profile in this convention. The old `45 deg` C1A projection remains historical/mechanical only.
-
-This facing lock does not require every combat action to preserve exactly the same torso yaw if an action-specific pose later needs more exposure for gameplay readability.
+Runner 31 compared `60`, `72` and `84 deg` azimuth from travel heading. `60` was too frontal, `84` too profile-thin, and **`72 deg` is locked as the first screen-left gameplay locomotion baseline**. `90 deg` is pure profile. The historical C1A `45 deg` view remains only a mechanical sanity projection.
 
 ## Final runtime representation — LOCKED
 
-The game uses conventional 2D frame animation:
+The runtime consumes **complete, already-composed character frames**:
 
-`approved 2D animation frames -> spritesheet PNG(s) + metadata -> ordinary sprite playback`
+`complete authored frames -> complete-character spritesheet PNG(s) + metadata -> ordinary sprite playback`
 
-Each action is a deterministic frame sequence arranged in a row/block or equivalent atlas region.
+Every visible sprite frame contains the whole character state for that animation/variant. The runtime does **not** assemble the character from body/hair/clothing/armor/accessory layers.
 
-Runtime does **not** require:
+Runtime character-layer assembly is therefore **ABOLISHED/CLOSED**.
+
+The runtime does not require:
 
 - a 3D skeleton;
 - MPFB;
-- a segmented-body puppet;
+- segmented-body puppets;
 - diffusion;
-- per-frame generation.
+- per-frame generation;
+- body/hair/clothing/equipment compositing.
 
-Any hidden rig, mocap, pose-control or image model belongs only to the offline authoring pipeline.
+Any rig, mocap, pose-control, image/video model, layer separation, simulation or compositing exists only in the **offline authoring pipeline**.
 
-## Offline source-authoring principle
+## Complete-frame motion requirement — LOCKED
 
-The source-authoring method may change as long as approved persistent 2D assets result and the method does not silently recreate the directional complexity the belt-scroller decision removed.
+The animation is not only skeletal locomotion. The exported frame sequence must bake the whole visible motion state, including where present:
 
-The authoring pipeline separates two questions:
+- body locomotion;
+- soft-tissue/jiggle motion;
+- hair secondary motion;
+- base-clothing/binding motion;
+- shackles/chains/restraints motion;
+- accessories visible in the chosen character state;
+- all occlusion changes produced by those motions.
 
-1. **motion design** — exact gameplay facing, phase structure and body-language must be approved first;
-2. **visible rendering/authoring** — a model/tool must then reproduce that approved motion without destroying anatomy/identity.
+A body-only animation may be used as an internal diagnostic, but it is **never** the production/runtime sprite artifact.
 
-Do not use image-model parameter tuning to compensate for an unapproved locomotion design.
+## Initial Exilada state — LOCKED
+
+Canonical initial-state visual reference:
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+For the first complete-character animation proof, this master is the reference for the Exilada's **entire initial visible state**. It includes the appearance that must be preserved and animated as one character: body, hair, base clothing/bindings, shackles/chains/restraints and other visible initial-state details.
+
+The master defines the initial character state, not merely a body reference.
+
+## Equipment / armor variation — OPEN LATER GATE
+
+The project still needs character-state variation across armor, equipment, accessories, damage and exposure, but the implementation strategy is **not** runtime body-layer assembly.
+
+The production source may remain modular offline so variants can be authored efficiently, but each runtime artifact must be exported as a **complete precomposed character spritesheet family/state**.
+
+Possible later strategies include offline regeneration/composition of complete variants, bounded state families, masks or other production optimizations. No specific variant system is locked yet beyond this invariant:
+
+> the runtime plays complete-character frames and does not construct the visible character from interchangeable body/equipment layers.
+
+## Offline authoring principle
+
+The authoring pipeline may internally separate body, hair, cloth, restraints, armor and other systems to control motion and variation. Those separations are production tools only. Before export they must resolve into one temporally coherent complete-character frame sequence.
+
+This means secondary-motion quality is part of the animation test itself. Frozen hair, detached chains, migrating clothing or missing jiggle are not deferred runtime-layer problems; they are visible authoring failures in the baked sequence.
 
 ## Retained motion work
 
-G2/C1A remains useful as a mechanical human-gait source:
+G2/C1A remains useful as mechanical motion infrastructure:
 
 - `G2_CANONICAL_RIG`;
 - CMU `105_34 NormalWalk`;
 - eight support/phase states.
 
-C1A proves gait timing and skeletal consistency. It is **not** automatically the final gameplay locomotion master.
+Runner 32 V1 and runner 33 V2 explored projected gameplay-walk art direction. Neither is treated as final animation mastery. The user has explicitly prioritized generating a full spritesheet now to determine whether the complete-character authoring route works in practice.
 
-Current locomotion document:
+The current provisional motion driver for that proof is runner-33 V2 at the locked `72 deg` facing. It is **provisional input**, not final walk approval.
 
-`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
+## Current complete-character proof
 
-Runner 32 V1 is closed as visual FAIL: it made the walk somewhat more controlled but still read as generic and did not achieve the expected Exilada-specific feminine locomotion read.
+Runner:
 
-Current skeleton-only runner:
+`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-`tools/structured-2d-character-pipeline/33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1`
+Purpose:
 
-Current machine-readable motion-art-direction spec:
+- use `exilada_master.png` as the complete initial-state appearance reference;
+- use the current 8-frame `72 deg` V2 walk guide as provisional motion control;
+- run the proven Moore-compatible SSD fallback;
+- require hair/clothing/jiggle/restraints/accessories to move as part of the same temporal generation;
+- export eight complete RGBA frames;
+- pack them into a complete-character spritesheet + metadata;
+- visually judge whether this route can produce a usable whole-character animation.
 
-`tools/structured-2d-character-pipeline/g3s_c1c_gameplay_walk_overlay_v2_feminine_spec.json`
+This proof intentionally stops delaying visible generation for further skeleton micro-adjustment.
 
-Runner 33 retains real timing/support semantics at the locked `72 deg` facing but adds restrained pelvis weight transfer, pelvis/shoulder counter-motion, compact arms, controlled stride and swing-leg clearance. The goal is an adult feminine Exilada walk that remains grounded/action-ready and explicitly avoids catwalk/cartoon exaggeration.
+## SSD route status
 
-No visible diffusion inference should run until this walk master passes skeleton-only review.
+Exact upstream SSD remains blocked because the public release omits the custom multi-scale `pose_guider.pth`. The Moore-compatible fallback remains technically runnable and runner 30 proved that corrected pose registration improves visible pose response.
 
-## SSD spike status
+Runner 34 reuses that working route with the complete master and the current gameplay motion guide. The test is now explicitly about **whole-character temporal authoring**, including secondary motion.
 
-Canonical spike document:
+## Closed routes / assumptions
 
-`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+Closed unless explicitly reopened:
 
-Facts retained:
-
-- exact upstream SSD is blocked by the unreleased custom multi-scale pose-guider checkpoint;
-- the Moore-compatible fallback is technically runnable;
-- runner 29 visually failed;
-- runner 30 corrected a real pose-registration defect and clearly improved pose response/lower-limb reconstruction;
-- runner 30 still remained far below production quality and exposed the need for gameplay-specific locomotion art direction.
-
-Therefore SSD visible authoring is **paused**, not production-approved and not currently closed. It may be revisited after C1C provides a correct locomotion master.
-
-## Hair / clothing / equipment
-
-The direct complete-master SSD test was useful diagnostically, but runner 30 still produced unstable restraint/accessory fragments.
-
-For locomotion definition, body motion comes first. Hair, clothing, bindings, shackles/chains and other secondary masses are downstream authoring/layer problems and must not dictate the base gait.
-
-This is consistent with the broader body-first production principle.
-
-## Historical segmented-puppet route
-
-The minimal segmented 2D puppet remains historical/experimental and is not the current runtime route. Do not continue runner 23 unless explicitly reopened.
-
-## Closed routes
-
-The following remain closed unless explicitly reopened:
-
-- hidden 3D render -> final visible pixel art;
-- independent unconstrained full-body generative redraw for each frame;
-- C0 V1 nearest-segment hard partition with exposed rigid joints;
-- single-still whole-body chain/cage warp -> gait;
-- MPFB skinned body as mandatory hidden guide;
+- runtime construction of the visible character from body/hair/clothing/equipment layers;
+- hidden 3D render as final visible pixel art;
+- independent unconstrained full-body redraw for each frame;
+- C0 nearest-segment hard partition as production route;
+- single-still whole-body chain/cage warp as gait solution;
+- MPFB skinned body as mandatory visible guide;
 - implicit return to isometric/multi-directional character production.
 
 ## Current validation question
 
-The active question is:
+The immediate question is now:
 
-> Can the retained real gait be authored into a natural, grounded, adult-feminine and combat-readable Exilada walk at the locked `72 deg` belt-scroller facing without losing human phase/support integrity?
+> Can the complete initial-state Exilada master be animated into a coherent eight-frame walk spritesheet in which body motion, jiggle, hair, base clothing and restraints/accessories all read as one believable baked character sequence?
 
-Solve that skeleton-only first; then judge visible authoring against it.
+That answer must come from the actual complete-character spritesheet, not from more skeleton-only refinement.
