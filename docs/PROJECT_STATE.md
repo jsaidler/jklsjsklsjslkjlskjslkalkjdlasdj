@@ -21,13 +21,9 @@ Every state-changing project action updates thematic docs, this file and the act
 
 ## Local path topology — LOCKED 2026-09-07
 
-Project Git repository:
+Project Git repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
 
-`D:\GOOGLE DRIVE\DEV\Roguelite`
-
-AI/model workspace root:
-
-`Z:\AI`
+AI/model workspace root: `Z:\AI`
 
 Known retained workspaces:
 
@@ -115,13 +111,7 @@ No routine manual keyframing, rigging, cloth/hair simulation, masks, repainting,
 
 `tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-Runner 34 proved:
-
-- complete-character generation/packing architecture: **PASS**;
-- RGBA frames/spritesheet/runtime playback: **PASS**;
-- current Moore+SSD pose-only result quality: **not sufficient**.
-
-Moore/AnimateAnyone pose-only conditioning is research-only for the final contract. Exact upstream SSD remains independently `BLOCKED` by the unavailable custom SSD pose-guider checkpoint.
+Runner 34 proved complete-character generation/packing and runtime spritesheet playback, but the current Moore+SSD pose-only result quality was not sufficient. Moore/AnimateAnyone pose-only conditioning is research-only for the final contract. Exact upstream SSD remains independently `BLOCKED` by the unavailable custom SSD pose-guider checkpoint.
 
 ## Raw-video candidate ranking
 
@@ -155,13 +145,9 @@ If this exact BF16 set cannot execute on 12 GB VRAM + 48 GB RAM, reduce executio
 
 ## Runner 35 — PREPARATION PASS 2026-09-07
 
-Runner:
+Runner: `tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
 
-`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
-
-Result:
-
-**PASS — BF16 assets installed and exact native ComfyUI schema captured.**
+Result: **PASS — BF16 assets installed and exact native ComfyUI schema captured.**
 
 Observed terminal markers:
 
@@ -177,15 +163,11 @@ No inference was run by Runner 35.
 
 ## Runner 36 — CURRENT GATE: OFFICIAL W0 BF16 INFERENCE
 
-Runner:
+Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-`tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
+Schema-driven builder: `tools/wan-animate2-spike/build_and_run_w0.py`
 
-Schema-driven builder:
-
-`tools/wan-animate2-spike/build_and_run_w0.py`
-
-Runner 36 reproduces the repository-YAML W0 path as closely as the current native ComfyUI integration permits:
+Locked W0 content/settings remain unchanged:
 
 - official upstream `examples/demo1/reference.png`;
 - official upstream `examples/demo1/template.mp4`;
@@ -197,15 +179,40 @@ Runner 36 reproduces the repository-YAML W0 path as closely as the current nativ
 - 37 frames;
 - 16 fps;
 - 20 steps;
-- CFG `1.0` = no classifier-free guidance;
-- Euler sampler;
-- simple scheduler;
-- model-sampling shift `5.0`;
+- CFG `1.0` / no CFG;
+- Euler + simple scheduler;
+- shift `5.0`;
 - seed `0`;
-- pose/driving strength `1.0`;
+- driving strength `1.0`;
 - reference-image strength `1.0`.
 
-The builder queries the **live** `/object_info` schema before creating the API prompt. It feeds the raw official driving-video frames directly into the native `WanAnimate2ToVideo` driving/`pose_video` branch and does not install or use DWPose/custom preprocessing for this Animate-2 W0 route.
+The builder queries live `/object_info` and feeds raw official driving-video frames directly into native `WanAnimate2ToVideo`.
+
+### W0 attempt 1 — INFRASTRUCTURE FAIL 2026-09-07
+
+The first actual BF16 W0 submission did **not** reach meaningful model inference. It failed after about 74 seconds inside ComfyUI dynamic weight streaming with:
+
+`RuntimeError: hostbuf_file_reader_read failed`
+
+Trace location:
+
+`comfy_aimdo/host_buffer.py -> read_file_to_device`
+
+Classification: **INFRASTRUCTURE / ComfyUI host-buffer-pinned-memory failure**, not Wan model quality, not W0 visual failure and not evidence that BF16 is too large by itself.
+
+Current ComfyUI upstream includes the launch option `--disable-pinned-memory`. Contemporary ComfyUI reports document the same `comfy_aimdo` host-buffer failure with Dynamic VRAM/pinned-memory streaming and report successful continuation when pinned memory is disabled.
+
+### W0 attempt 2 — ACTIVE CONTROLLED RETRY
+
+Runner 36 has been updated to change exactly one execution variable:
+
+`--disable-pinned-memory`
+
+Everything else remains identical: checkpoint, text encoder, resolution, frame count, steps, seed, sampler, scheduler, official inputs and graph.
+
+The runner now forcibly restarts only its own managed ComfyUI process before retrying so the launch flag cannot be silently skipped by reusing the failed server. If port 8188 is occupied by an unmanaged process, the runner refuses to kill it.
+
+Do **not** add `--disable-dynamic-vram`, reduce frames/resolution or quantize yet. Those are later single-variable fallbacks only if this narrower workaround fails.
 
 Expected evidence after a successful run:
 
@@ -214,11 +221,9 @@ Expected evidence after a successful run:
 - `Z:\AI\WanAnimate2\w0_run_manifest.json`
 - `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
 
-Expected terminal marker:
+Expected terminal marker: `RUNNER36-WAN-W0: PASS — OFFICIAL BF16 BASELINE GENERATED`
 
-`RUNNER36-WAN-W0: PASS — OFFICIAL BF16 BASELINE GENERATED`
-
-Runner 36 is **W0 only**. It must not use `exilada_master.png` yet.
+Runner 36 is W0 only. It must not use `exilada_master.png` yet.
 
 ## Wan exhaustion sequence after W0
 
@@ -243,4 +248,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\36_run_wan_animate2_bf16_w0.ps1"
 ```
 
-This launches the first expensive Base-BF16 inference. If it fails for memory/runtime reasons, classify the result as an execution/infrastructure failure first and apply the locked one-variable-at-a-time exhaustion protocol.
+This retries the same official Base-BF16 W0 with **only pinned-memory streaming disabled**. If it fails again, capture the full failure before changing another execution variable.
