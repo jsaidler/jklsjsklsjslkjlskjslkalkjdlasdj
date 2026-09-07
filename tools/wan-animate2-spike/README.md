@@ -1,6 +1,6 @@
 # Wan-Animate-2 validation / exhaustion tooling
 
-Status: **ACTIVE — BASE BF16 OFFICIAL W0 INFERENCE GATE.**
+Status: **ACTIVE — BASE BF16 OFFICIAL W0 RETRY GATE.**
 
 The historical 2026-09-04 Base INT8 run remains valid negative evidence for that constrained configuration, but it does not count as model-family exhaustion.
 
@@ -47,27 +47,41 @@ Prepares/restores `Z:\AI\WanAnimate2`, checks disk space, removes superseded Wan
 
 ### `inspect.ps1`
 
-Starts the workspace ComfyUI headlessly, validates BF16 files/native Wan nodes and stores the installed schema in:
-
-`Z:\AI\WanAnimate2\object_info_wan_bf16.json`
+Starts the workspace ComfyUI headlessly, validates BF16 files/native Wan nodes and stores the installed schema in `Z:\AI\WanAnimate2\object_info_wan_bf16.json`.
 
 Runner 35 completed this gate successfully on 2026-09-07.
 
 ### `build_and_run_w0.py`
 
-Active W0 builder/executor. It:
+W0 builder/executor. It queries live ComfyUI `/object_info`, validates required node classes, builds the graph against the actual installed schema, feeds official reference + raw official driving-video frames to native `WanAnimate2ToVideo`, runs Base BF16 at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, then trims/decodes/saves and records evidence.
 
-1. queries live ComfyUI `/object_info`;
-2. validates all node classes needed by the W0 API graph;
-3. builds the graph against the live installed schema rather than stale widget assumptions;
-4. feeds the official reference image and raw official driving-video frames directly to native `WanAnimate2ToVideo`;
-5. feeds the first driving frame to the dedicated driving CLIP-vision branch when the installed schema supports it;
-6. runs Base BF16 at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
-7. trims the model's overlap latent using native `TrimVideoLatent`;
-8. decodes, creates and saves the MP4;
-9. records the live schema, API prompt and run manifest.
+No DWPose/custom motion preprocessor is installed or used in W0.
 
-No DWPose/custom motion preprocessor is installed or used in this W0 graph.
+## W0 attempt 1 — infrastructure failure
+
+The first BF16 W0 inference submission failed after about 74 seconds with:
+
+`RuntimeError: hostbuf_file_reader_read failed`
+
+Trace location: `comfy_aimdo/host_buffer.py`, during host-buffer/dynamic model weight streaming.
+
+This happened before meaningful denoising/output evaluation and therefore does **not** count as a Wan model failure.
+
+## W0 attempt 2 — pinned-memory workaround
+
+Current runner:
+
+`tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
+
+It now restarts the managed ComfyUI server and adds one launch option only:
+
+`--disable-pinned-memory`
+
+All model/graph/W0 generation settings remain unchanged.
+
+Current ComfyUI exposes this option natively, and contemporary ComfyUI/Wan reports document the same `comfy_aimdo` host-buffer failure being resolved with pinned memory disabled.
+
+Do not add `--disable-dynamic-vram`, reduce resolution/frame count or quantize until this narrower retry is tested.
 
 Expected evidence after success:
 
@@ -76,17 +90,9 @@ Expected evidence after success:
 - `Z:\AI\WanAnimate2\w0_run_manifest.json`
 - `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
 
-### Historical scripts
+## Historical scripts
 
 `make_driver.ps1`, `build_workflow.py`, and `run_spike.ps1` document the earlier 384×576 / 17-frame INT8 experiment. Do not use them for current W0.
-
-## Current operator entry point
-
-Preparation is complete. Current runner:
-
-`tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
-
-This is the first expensive Base-BF16 inference and remains W0 only. It does not use the Exilada master.
 
 ## Cleanup discipline
 
