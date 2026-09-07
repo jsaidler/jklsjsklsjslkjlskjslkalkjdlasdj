@@ -2,129 +2,59 @@
 
 Status date: **2026-09-06**
 
-Gate status: **FLUX2 PER-FRAME REDRAW FAIL/CLOSED / MINIMAL BEAT-EM-UP SEGMENTED PUPPET RUNNER READY / REVIEW REQUIRED**
+Gate status: **HISTORICAL / PAUSED — NOT CURRENT PRODUCTION ROUTE**
 
-## Why this route exists
+## Current disposition
 
-The project deliberately moved away from true isometric character production to an elevated **arcade beat'em-up / belt-scroller** presentation because that is the viable 2D production problem.
+This route is retained for provenance but is no longer the active character-production path.
 
-That decision must simplify animation directly:
+The project explicitly returned to a conventional spritesheet target:
 
-- fixed orthographic `640×360` camera;
-- pitch `26°`;
-- protagonist standing body around `128 px`;
-- one screen-left front-three-quarter visible family first;
-- gameplay depth does not imply north/south/isometric character directions;
-- one persistent 2D doll is driven by one hidden skeleton.
+`offline source-authoring -> approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
 
-## Closed visible redraw route
+Current source-authoring validation is documented in:
 
-The C1B Flux2 eight-frame proof is FAIL/CLOSED. It regenerated the woman independently each frame and drifted in face, skin tone, anatomy, proportions, silhouette and pixel treatment.
+`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-Reviewed evidence:
+Do not run or continue `23_run_g3s_c1b_segmented_puppet_walk.ps1` unless the segmented-puppet route is explicitly reopened.
 
-- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
-- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
+## Why this route existed
 
-Failure marker:
+The project deliberately moved away from true isometric character production to an elevated arcade beat'em-up / belt-scroller presentation because that is the viable 2D production problem.
 
-`tools/structured-2d-character-pipeline/g3s_c1b_flux2_visual_failure.json`
+The segmented puppet attempted to exploit that simplification by driving persistent B3B-derived body parts from the approved hidden skeleton.
 
-Do not tune or revive that runner for locomotion.
-
-## Current architecture
+## Historical architecture
 
 `CMU real walk -> approved hidden skeleton -> persistent B3B-derived 2D parts -> bind landmarks + overlap -> projected bone transforms -> camera-space depth sort -> composited sprite`
 
-The hidden skeleton supplies motion/spatial control only. Visible RGB/alpha remain persistent native-2D pixels.
+Historical implementation:
 
-## First proof — deliberately minimal
+- spec: `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`;
+- builder: `tools/structured-2d-character-pipeline/g3s_c1b_build_segmented_puppet.py`;
+- runner: `tools/structured-2d-character-pipeline/23_run_g3s_c1b_segmented_puppet_walk.ps1`.
 
-The first proof now uses an even smaller part set than the earlier design:
+## Why it is not current
 
-- `head_neck`;
-- one continuous `core` containing torso + pelvis;
-- bilateral upper arms;
-- bilateral forearms;
-- bilateral hands;
-- bilateral thighs;
-- bilateral shins;
-- bilateral feet.
+The user explicitly chose to return to the conventional production model used by sprite-based arcade games: completed action frames assembled into spritesheets rather than requiring a segmented puppet as the production representation.
 
-Keeping torso and pelvis as one `core` avoids inventing a waist seam before evidence says it is needed.
+The retained puppet code may remain useful as a fallback or debugging experiment, but it must not compete with the active SSD spritesheet spike or silently become the runtime architecture again.
 
-The canonical source remains unchanged:
+## Still-closed methods
 
-`assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+The following failures remain closed:
 
-SHA256:
+- C1B Flux2 independent full-body redraw per frame;
+- C0 V1 nearest-segment exclusive hard partition with exposed rigid joints;
+- single-still whole-body chain/cage warp;
+- MPFB skinned body as mandatory hidden guide;
+- implicit return to isometric/multi-directional character coverage.
 
-`702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`
+## Presentation lock retained
 
-## Difference from failed C0 V1
-
-This is not the old nearest-segment exclusive partition with exposed rigid joints.
-
-The current builder:
-
-- fits explicit bind landmarks to the actual B3B alpha silhouette;
-- creates overlapping capsule masks for adjacent limb segments;
-- restores shoulder, hip and neck cap pixels into the persistent core;
-- keeps elbow/knee/wrist/ankle overlap between neighboring pieces;
-- transforms each reusable part from its bind segment to the approved projected skeleton segment;
-- sorts all parts far-to-near using C1A camera-space joint depth;
-- uses the same exact persistent source parts in every gait state.
-
-No per-frame image model is involved.
-
-## Simplification contract
-
-For this proof:
-
-- screen-left family only;
-- no extra isometric/north/south directions;
-- no preemptive foreshortening/orientation variants;
-- no high-resolution redraw stage;
-- no MPFB body;
-- no diffusion/model/API/download;
-- no user frame-by-frame repair;
-- hair remains deferred.
-
-A new persistent part variant may be added later only if a specific visible defect demonstrates that one base part cannot represent an important projection.
-
-## Current implementation
-
-Spec:
-
-`tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`
-
-Builder:
-
-`tools/structured-2d-character-pipeline/g3s_c1b_build_segmented_puppet.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/23_run_g3s_c1b_segmented_puppet_walk.ps1`
-
-Workspace:
-
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet`
-
-## Review outputs
-
-The runner generates in one pass:
-
-- `g3s_c1b_segmented_part_atlas.png`;
-- `g3s_c1b_puppet_bind_manifest.json`;
-- eight transparent body-frame PNGs;
-- `g3s_c1b_puppet_walk_in_place.gif`;
-- `g3s_c1b_puppet_walk_zoom.gif`;
-- `g3s_c1b_puppet_walk_travel.gif`;
-- `g3s_c1b_puppet_contact_sheet.png`;
-- `g3s_c1b_puppet_contact_sheet_skeleton_overlay.png`.
-
-## PASS requirement
-
-The proof passes only if the result reads as **the same persistent B3B doll moving** through the eight approved gait states, with connected joints, recognizable identity, usable left-facing walk and no catastrophic layer ordering.
-
-If it fails, diagnose the concrete seam/part/projection defect. Do not change presentation or reopen isometric complexity by default.
+- elevated beat'em-up / belt-scroller false 3D;
+- fixed orthographic `640×360` camera;
+- pitch `26 deg`;
+- protagonist around `128 px`;
+- first visible family screen-left/front-three-quarter;
+- gameplay depth does not imply north/south/isometric character sprite families.
