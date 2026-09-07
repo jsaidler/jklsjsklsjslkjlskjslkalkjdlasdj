@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 PATH-ARGUMENT BUG FIXED / RETRY REQUIRED**
+Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 argv TRANSPORT FIX V2 READY / RETRY REQUIRED**
 
 ## Decision
 
@@ -99,56 +99,52 @@ Upstream `ModelTraining/inference.py` assumes the first target pose is also the 
 
 Project runner 28 leaves upstream `inference.py` untouched and generates a deterministic local copy with one narrow patch: a separate `reference_pose_path` is read from config while the target list stays exactly eight walk frames.
 
-## Runner 28 first execution — FAIL due path argument corruption
+## Runner 28 execution history — SCRIPT FAILURES, NOT SSD FAILURES
 
 Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-Actual first execution reached:
+### Attempt 1 — `Start-Process -ArgumentList` raw array
 
-`[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
-
-then Python reported:
+Python reported:
 
 `can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
 
-and the runner ended:
+Root cause: Windows PowerShell 5.1 flattened the raw `Start-Process -ArgumentList` array and split the helper path `D:\GOOGLE DRIVE\...`.
 
-`SSD-WALK8: FAIL - input preparation exited with code 2`
+### Attempt 2 — manually quoted `Start-Process -ArgumentList`
 
-This is a **runner defect**, not an SSD, DWPose, CUDA or model-quality failure.
+The added argv preflight correctly stopped the runner before DWPose/model work:
 
-### Root cause
+`SSD-WALK8: FAIL - native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.`
 
-Windows PowerShell 5.1 `Start-Process -ArgumentList` was given a raw string array containing the helper path under:
+This proves that manually constructing a quoted argument string around `Start-Process` is still not a reliable argv transport for this project on the operator's Windows PowerShell 5.1 environment.
 
-`D:\GOOGLE DRIVE\DEV\Roguelite\...`
+No DWPose inference or SSD generation ran in either failed attempt. All prior PASS gates remain valid.
 
-The array was flattened into a command line without preserving the whitespace-bearing script path as one argv item. Python therefore received only `D:\GOOGLE` as the script path.
+## Windows native process rule — LOCKED V2
 
-## Native process rules — LOCKED
+For project Python invocations under Windows PowerShell 5.1:
 
-Existing rule remains: expected native failures must not be raw control flow under `$ErrorActionPreference='Stop'`; use structured diagnostics and explicit exit-code handling.
+1. **do not use `Start-Process -ArgumentList` for Python commands that contain paths with spaces**, whether supplied as a raw string array or manually reconstructed quoted string;
+2. invoke Python directly with the PowerShell call operator and an argument array: `& $PythonExe @Arguments`;
+3. temporarily use non-terminating native stderr handling and inspect `$LASTEXITCODE` explicitly;
+4. route stdout/stderr to the console but never use stderr text as control flow;
+5. keep the argv preflight using the actual project root and Exilada master path before any expensive model work;
+6. if the preflight fails, print the received argv values before aborting.
 
-Additional Windows argument-boundary rule:
-
-1. **never pass a raw string array containing whitespace-bearing paths to Windows PowerShell 5.1 `Start-Process -ArgumentList`;**
-2. build one explicitly quoted argument line, or use another transport that preserves argv boundaries;
-3. any runner that depends on space-bearing paths must preflight argv transport before expensive/model work;
-4. `D:\GOOGLE DRIVE\DEV\Roguelite` and the canonical Exilada master path are regression-test inputs for runner 28.
-
-## Runner 28 — FIXED / RETRY REQUIRED
+## Runner 28 — FIX V2 / RETRY REQUIRED
 
 Runner 28 now:
 
 1. verifies environment/dependency/core-model/support PASS markers;
 2. verifies the canonical C1A guide and Exilada master;
-3. routes every Python child process through one controlled invocation helper;
-4. explicitly quotes whitespace-bearing arguments before `Start-Process`;
-5. uses PowerShell splatting instead of fragile line-continuation syntax;
-6. runs a tiny Python argv transport preflight and confirms the full project-root and master paths arrive intact;
-7. refuses to continue if that preflight fails;
+3. **does not use `Start-Process` for Python at all**;
+4. invokes Python with `& $PythonExe @Arguments`, preserving array-item argv boundaries;
+5. uses the same direct invocation path for preflight, preparation, SSD inference and review;
+6. explicitly checks `$LASTEXITCODE` after every Python process;
+7. preflights the exact `D:\GOOGLE DRIVE\DEV\Roguelite` and canonical Exilada master paths;
 8. runs DWPose on the master and saves a 512×512 reference-pose map;
 9. converts the eight approved C1A states to clean 512×512 OpenPose-style body maps;
 10. writes a dedicated SSD config and local patched inference copy;
@@ -157,7 +153,7 @@ Runner 28 now:
 13. creates an unaltered 4×2 contact sheet and review GIF;
 14. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
 
-No reinstall or redownload is required. The failed first run did not invalidate any prior PASS gate.
+No reinstall or redownload is required.
 
 ## Current exact operator action
 
@@ -168,10 +164,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
 ```
 
-Expected early sequence after the fix:
+Expected early sequence:
 
 - `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `[OK] Native argument quoting preflight PASS.`
+- `[OK] Native argument transport preflight PASS.`
 - `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 ## PASS semantics
