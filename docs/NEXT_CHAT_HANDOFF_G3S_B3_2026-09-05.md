@@ -11,7 +11,6 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 3. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 4. `docs/G1_CAMERA_SCALE_LOG.md`
 5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
 
 ## Locked production direction
 
@@ -19,51 +18,30 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 - fixed `640×360` orthographic camera, pitch `26 deg`;
 - protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
-- no north/south/isometric sprite-family multiplication;
+- no isometric north/south character-family multiplication;
 - final runtime = conventional deterministic spritesheet playback.
-
-Runtime does not require 3D, a segmented puppet or diffusion.
 
 ## Current source-authoring route
 
 **Sprite Sheet Diffusion (SSD)** validation spike.
 
-Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+All installation/model/support gates are PASS:
 
-Purpose: generate a coherent Exilada action sequence from the complete master plus pose/motion guidance, then freeze approved frames into ordinary spritesheets.
-
-## Local SSD state — ALL INSTALLATION/SUPPORT GATES PASS
-
-Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
-
-Validated environment/dependencies:
-
-- Miniconda PASS;
 - env `ssd` PASS;
 - Python `3.10.21`;
-- pip `26.2.1`;
-- GPU `NVIDIA GeForce RTX 3060`;
-- Torch `2.0.1+cu118`;
-- CUDA build `11.8`;
-- real SSD inference import graph PASS.
-
-Core generation models: PASS.
-
-Authoring support actual user result:
-
+- RTX 3060;
+- Torch `2.0.1+cu118` / CUDA 11.8;
+- SSD import graph PASS;
+- core generation models PASS;
 - `SSD-SUPPORT: PASS`;
 - DWPose available;
-- FILM available, optional/not default;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json`;
-- probe `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json`.
+- FILM available, optional/not default.
 
-DWPose is the preferred future driving-video/action pose extractor. FILM is not enabled for the first proof.
+## Critical correction — no manual eight-pose folder
 
-## IMPORTANT CLARIFICATION — WHAT “8 POSES” MEANS
+The earlier placeholder `YOUR_8_POSE_IMAGES` instruction was wrong and must not recur.
 
-The user does **not** need to find or provide eight new pose images.
-
-The eight states already exist canonically in C1A, derived from real `CMU 105_34 NormalWalk` motion:
+The eight walk targets already exist in the approved C1A guide:
 
 1. 1588 — `left_contact`;
 2. 1598 — `left_down`;
@@ -74,41 +52,61 @@ The eight states already exist canonically in C1A, derived from real `CMU 105_34
 7. 1648 — `right_passing`;
 8. 1658 — `right_up`.
 
-Canonical data:
+Canonical local guide:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`
 
-The C1A review builder also created eight review PNGs in that workspace, but those contain labels, a ground band, support-foot rings and review colors. **Do not feed those review PNGs directly to SSD.**
+Role split:
 
-The previous manual instruction containing a placeholder `YOUR_8_POSE_IMAGES` was wrong. Do not ask the user for that folder again.
+- SSD generates visible Exilada frames;
+- DWPose extracts pose from RGB/reference/driving images/video;
+- C1A already owns the exact walk target motion.
 
-## CURRENT NEXT WORK
+For walk8:
 
-Prepare clean SSD/OpenPose-compatible body pose maps from the existing C1A guide data:
+`Exilada master --DWPose--> reference pose`
 
-`C1A guide -> clean 8 pose-control PNGs -> Exilada master -> first real SSD inference`
+`C1A guide --deterministic OpenPose-style conversion--> 8 target maps`
 
-The clean pose maps must contain only the pose-control drawing expected by the SSD family, without review annotations.
+`master + reference pose + targets --SSD--> 8 visible frames`
 
-## First real SSD proof contract
+This avoids both manual pose authoring and unnecessary AI re-detection of exact motion data.
 
-- reference: complete `assets/source/characters/exilada/reference/exilada_master.png`;
-- 8 clean C1A-derived pose maps;
-- `512×512` first proof;
-- 8 frames;
-- FILM disabled;
-- evaluate identity persistence, anatomy/proportions, hair/clothing/equipment persistence, pose obedience, temporal coherence, RTX 3060 12 GB fit, and background/alpha cleanup viability.
+## Current runner — READY
 
-Only after PASS expand to multi-action sheet production and automate packing/alpha/pivots/events.
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_ssd_prepare_walk8.py`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
+
+It automatically prepares the inputs, runs DWPose on the master, creates the eight target control maps, handles the upstream reference-pose assumption via a generated local inference copy, runs SSD at 512×512 / 8 frames / 25 steps / CFG 3.5 / fp16, and builds a contact sheet + GIF.
+
+FILM remains disabled for this first proof.
+
+## Exact next operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
+```
+
+Successful technical end state:
+
+- `SSD-WALK8: OUTPUT READY FOR VISUAL QA`;
+- eight generated PNGs;
+- contact sheet;
+- GIF;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+
+Do not declare visual PASS until the user reviews identity, anatomy/proportions, hair, cloth/shackles/chains, pose obedience and temporal coherence.
 
 ## PowerShell rule
 
-Do not repeat raw expected-failure native probes under `$ErrorActionPreference='Stop'`. Use controlled process execution, explicit exit codes and structured Python diagnostics.
+Expected native failures cannot be raw control flow under `$ErrorActionPreference='Stop'`. Use controlled child processes, structured diagnostics and explicit exit-code handling.
 
-## Historical routes
-
-- segmented-puppet runner 23: historical/paused;
-- Flux2 independent full-body frame redraw: FAIL/CLOSED;
-- isometric multi-directional character production: CLOSED unless explicitly reopened.
-
-SSD route is ACTIVE. No cleanup applies.
+SSD route remains ACTIVE. No cleanup applies.
