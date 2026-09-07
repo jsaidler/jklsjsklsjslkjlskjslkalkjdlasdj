@@ -2,25 +2,24 @@
 
 Status date: **2026-09-06**
 
-Gate status: **FLUX2 PER-FRAME FULL-BODY REDRAW FAIL/CLOSED / SEGMENTED 2D SKELETAL PUPPET CURRENT**
+Gate status: **FLUX2 PER-FRAME REDRAW FAIL/CLOSED / MINIMAL BEAT-EM-UP SEGMENTED PUPPET RUNNER READY / REVIEW REQUIRED**
 
 ## Why this route exists
 
 The project deliberately moved away from true isometric character production to an elevated **arcade beat'em-up / belt-scroller** presentation because that is the viable 2D production problem.
 
-That decision must directly simplify animation:
+That decision must simplify animation directly:
 
-- fixed elevated camera;
-- one lateral/front-three-quarter visible family first;
-- walkable gameplay depth without north/south/isometric character directions;
-- persistent 2D body parts driven by one hidden skeleton;
-- no per-frame reinvention of the woman.
+- fixed orthographic `640×360` camera;
+- pitch `26°`;
+- protagonist standing body around `128 px`;
+- one screen-left front-three-quarter visible family first;
+- gameplay depth does not imply north/south/isometric character directions;
+- one persistent 2D doll is driven by one hidden skeleton.
 
-The segmented puppet is therefore not an attempt to reproduce unrestricted 3D articulation in 2D. It is a deliberately constrained character system built for the locked belt-scroller camera.
+## Closed visible redraw route
 
-## Why the Flux2 walk proof is closed
-
-The reviewed C1B visual proof did not read as one persistent woman. Across the eight gait states it changed face, skin tone, proportions, shading, silhouette and pixel-art treatment. The motion control was usable, but the visible character was regenerated independently every frame.
+The C1B Flux2 eight-frame proof is FAIL/CLOSED. It regenerated the woman independently each frame and drifted in face, skin tone, anatomy, proportions, silhouette and pixel treatment.
 
 Reviewed evidence:
 
@@ -31,114 +30,101 @@ Failure marker:
 
 `tools/structured-2d-character-pipeline/g3s_c1b_flux2_visual_failure.json`
 
-Closed method:
-
-`approved skeleton pose -> independent full-body generative redraw for each gait frame`
-
-This route is not to be tuned further for production locomotion.
+Do not tune or revive that runner for locomotion.
 
 ## Current architecture
 
-The visible body is a persistent segmented 2D puppet attached to the already-approved hidden skeleton:
+`CMU real walk -> approved hidden skeleton -> persistent B3B-derived 2D parts -> bind landmarks + overlap -> projected bone transforms -> camera-space depth sort -> composited sprite`
 
-`CMU walk -> hidden 3D skeleton -> reusable native-2D body parts -> joint pivots/bindings -> projected bone transform -> skeleton depth order -> composited sprite`
+The hidden skeleton supplies motion/spatial control only. Visible RGB/alpha remain persistent native-2D pixels.
 
-The 3D remains hidden and supplies only motion/spatial control. The visible pixels remain persistent 2D assets.
+## First proof — deliberately minimal
 
-## Persistent body parts — first proof
+The first proof now uses an even smaller part set than the earlier design:
 
-Use the smallest practical body-only partition:
+- `head_neck`;
+- one continuous `core` containing torso + pelvis;
+- bilateral upper arms;
+- bilateral forearms;
+- bilateral hands;
+- bilateral thighs;
+- bilateral shins;
+- bilateral feet.
 
-- head/neck;
-- torso;
-- pelvis;
-- left/right upper arm;
-- left/right forearm;
-- left/right hand;
-- left/right thigh;
-- left/right shin;
-- left/right foot.
+Keeping torso and pelvis as one `core` avoids inventing a waist seam before evidence says it is needed.
 
-The canonical B3B body remains the identity/style source:
+The canonical source remains unchanged:
 
 `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
 
-Its original file remains unchanged.
+SHA256:
 
-## Critical difference from failed C0 V1
+`702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`
 
-This must **not** repeat the old `nearest-segment hard partition + independent rigid rotation` method.
+## Difference from failed C0 V1
 
-C0 V1 failed because pieces were assigned mechanically from one still, rotated independently and exposed gaps/disconnected joints.
+This is not the old nearest-segment exclusive partition with exposed rigid joints.
 
-The current puppet requires:
+The current builder:
 
-- explicit anatomical pivots;
-- deliberate overlap hidden under every joint;
-- continuous torso/pelvis connection;
-- optional joint cover/cap sprites only where a seam is actually visible;
-- depth order from the hidden skeleton rather than fixed draw order;
-- projected bone direction/length driving each part.
+- fits explicit bind landmarks to the actual B3B alpha silhouette;
+- creates overlapping capsule masks for adjacent limb segments;
+- restores shoulder, hip and neck cap pixels into the persistent core;
+- keeps elbow/knee/wrist/ankle overlap between neighboring pieces;
+- transforms each reusable part from its bind segment to the approved projected skeleton segment;
+- sorts all parts far-to-near using C1A camera-space joint depth;
+- uses the same exact persistent source parts in every gait state.
 
-## Belt-scroller simplification contract
+No per-frame image model is involved.
 
-Do **not** add complexity before the first composed walk proves that it is necessary.
+## Simplification contract
 
-First proof rules:
+For this proof:
 
 - screen-left family only;
-- same persistent part assets across all eight walk states;
-- no frame-specific redraw;
-- no extra north/south/isometric directions;
-- no pre-authored foreshortening libraries;
-- no generative model;
+- no extra isometric/north/south directions;
+- no preemptive foreshortening/orientation variants;
 - no high-resolution redraw stage;
-- no manual frame repair required from the user.
+- no MPFB body;
+- no diffusion/model/API/download;
+- no user frame-by-frame repair;
+- hair remains deferred.
 
-Gameplay movement into/out of the screen uses the same visible lateral family while world position and runtime depth sorting handle the gameplay-depth axis.
+A new persistent part variant may be added later only if a specific visible defect demonstrates that one base part cannot represent an important projection.
 
-Screen-right is not part of this proof. It can later be mirrored or separately authored only after the left family works.
+## Current implementation
 
-## 2.5D binding model
-
-Each limb part is attached to one projected skeleton chain:
-
-1. proximal joint gives the pivot;
-2. distal joint gives direction and projected length;
-3. the part is positioned/rotated to the chain;
-4. camera-space skeleton depth determines draw order;
-5. intentional overlap hides the joint seam.
-
-Head, torso and pelvis follow the central chain with the minimum transformation needed for this fixed camera family.
-
-## Variant rule — only after evidence
-
-A reusable variant may be introduced **only if the first left-facing composed walk demonstrates a specific projection that cannot be represented acceptably by the base part**.
-
-Examples could eventually include a strongly foreshortened foot or hand, but these are not assumed in advance.
-
-Any accepted variant must be:
-
-- persistent;
-- reusable across multiple frames/actions;
-- selected deterministically from skeleton orientation/depth;
-- never a frame-specific generative redraw.
-
-## Current spec
+Spec:
 
 `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`
 
-## First proof
+Builder:
 
-The next implementation must produce, in one runner:
+`tools/structured-2d-character-pipeline/g3s_c1b_build_segmented_puppet.py`
 
-- segmented body-part atlas;
-- pivot/binding manifest;
-- eight composited body-only walk frames driven by the approved C1A cycle;
-- in-place GIF;
-- travel GIF;
-- contact sheet with optional skeleton overlay for debugging.
+Runner:
 
-PASS requires one recognizable persistent Exilada body throughout the cycle with intact joints, stable identity, correct left-facing motion and no per-frame redesign.
+`tools/structured-2d-character-pipeline/23_run_g3s_c1b_segmented_puppet_walk.ps1`
 
-Hair remains deferred.
+Workspace:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet`
+
+## Review outputs
+
+The runner generates in one pass:
+
+- `g3s_c1b_segmented_part_atlas.png`;
+- `g3s_c1b_puppet_bind_manifest.json`;
+- eight transparent body-frame PNGs;
+- `g3s_c1b_puppet_walk_in_place.gif`;
+- `g3s_c1b_puppet_walk_zoom.gif`;
+- `g3s_c1b_puppet_walk_travel.gif`;
+- `g3s_c1b_puppet_contact_sheet.png`;
+- `g3s_c1b_puppet_contact_sheet_skeleton_overlay.png`.
+
+## PASS requirement
+
+The proof passes only if the result reads as **the same persistent B3B doll moving** through the eight approved gait states, with connected joints, recognizable identity, usable left-facing walk and no catastrophic layer ordering.
+
+If it fails, diagnose the concrete seam/part/projection defect. Do not change presentation or reopen isometric complexity by default.
