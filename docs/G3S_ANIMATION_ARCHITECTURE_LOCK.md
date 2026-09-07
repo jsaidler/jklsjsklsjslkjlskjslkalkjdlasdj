@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / LOCKED — CONVENTIONAL 2D SPRITESHEET RUNTIME; GAMEPLAY LOCOMOTION MASTER ACTIVE; SSD VISIBLE AUTHORING PAUSED AFTER RUNNER 30**
+Status: **CANONICAL / LOCKED — CONVENTIONAL 2D SPRITESHEET RUNTIME; 72 DEG LOCOMOTION FACING LOCKED; GAMEPLAY WALK AUTHORING ACTIVE; SSD VISIBLE AUTHORING PAUSED**
 
 ## Presentation constraint that makes animation feasible
 
@@ -21,7 +21,21 @@ Locked presentation consequences:
 - runtime world-depth movement and z-order are separate from visible facing;
 - do not multiply view families unless an explicit later gate proves one necessary.
 
-The exact horizontal body-facing angle inside the mostly-lateral family is currently **under C1C locomotion review**. The earlier `45 deg` azimuth from travel heading is no longer treated as production-locked merely because it passed the C1A mechanical skeleton gate.
+### Gameplay locomotion facing — LOCKED 2026-09-07
+
+Runner 31 compared `60`, `72` and `84 deg` azimuth from travel heading using the same retained real gait and camera baseline.
+
+Decision:
+
+- `60 deg` rejected as too frontal;
+- `84 deg` rejected as too profile-thin for the first canonical baseline;
+- **`72 deg` selected and locked as the first screen-left gameplay locomotion facing baseline**.
+
+In this convention `90 deg` is pure side profile. The selected `72 deg` family remains slightly three-quarter while prioritizing lateral gait readability.
+
+The old `45 deg` C1A projection remains historical/mechanical only and is not the production locomotion baseline.
+
+This facing lock does not require every combat action to preserve exactly the same torso yaw if an action-specific pose later needs more exposure for gameplay readability.
 
 ## Final runtime representation — LOCKED
 
@@ -45,7 +59,7 @@ Any hidden rig, mocap, pose-control or image model belongs only to the offline a
 
 The source-authoring method may change as long as approved persistent 2D assets result and the method does not silently recreate the directional complexity the belt-scroller decision removed.
 
-The authoring pipeline must separate two questions:
+The authoring pipeline separates two questions:
 
 1. **motion design** — the exact gameplay pose sequence and facing must be approved first;
 2. **visible rendering/authoring** — a model/tool must then reproduce that approved motion without destroying anatomy/identity.
@@ -68,9 +82,9 @@ Current locomotion document:
 
 Current skeleton-only runner:
 
-`tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
+`tools/structured-2d-character-pipeline/32_run_g3s_c1c_gameplay_walk_overlay_v1.ps1`
 
-No visible diffusion inference should run until this motion/facing gate is resolved.
+Runner 32 keeps the real gait timing/support sequence but applies a bounded deterministic gameplay locomotion overlay at the locked `72 deg` facing. No visible diffusion inference should run until this walk master passes skeleton-only review.
 
 ## SSD spike status
 
@@ -113,10 +127,8 @@ The following remain closed unless explicitly reopened:
 
 ## Current validation question
 
-The active question is no longer “can SSD make some moving frames?” Runner 30 already showed improved pose response after correcting registration.
-
 The active question is:
 
-> What exact body-facing and gait pose language should define the Exilada's production locomotion in the elevated arcade belt-scroller?
+> Can the retained real gait be authored into a natural, grounded and combat-readable Exilada walk at the locked `72 deg` belt-scroller facing without losing human phase/support integrity?
 
 Solve that skeleton-only first; then judge visible authoring against it.
