@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **ACTIVE — 72 DEG FACING LOCKED / RUNNER 32 V1 VISUAL FAIL / RUNNER 33 FEMININE WALK V2 READY**
+Status: **ACTIVE — 72 DEG FACING LOCKED / RUNNER 32 V1 VISUAL FAIL / RUNNER 33 FEMININE WALK V2 TECHNICAL GUARD FIXED, RERUN READY**
 
 ## Why this gate exists
 
@@ -70,22 +70,9 @@ Helper:
 
 `tools/structured-2d-character-pipeline/g3s_c1c_apply_gameplay_walk_overlay.py`
 
-V1 retained the real C1A timing/support structure while applying:
+V1 retained the real C1A timing/support structure while applying projected stride compression, pelvis/root vertical-bob reduction, mild forward upper-body intent, reduced civilian arm pendulum and head stabilization.
 
-- projected stride compression;
-- pelvis/root vertical-bob reduction;
-- mild screen-left upper-body forward shear;
-- reduced civilian arm pendulum;
-- head-offset stabilization.
-
-Visual review of the supplied baseline/V1 sheets and GIFs found that V1 was somewhat more controlled, but **did not solve the locomotion art direction**:
-
-- the difference from the raw `72 deg` baseline remained too small;
-- the walk still read as a generic human/mocap gait rather than the Exilada's authored locomotion;
-- specifically, it did not achieve the expected feminine body-language read;
-- V1 addressed bob/stride/arms but did not create convincing support-side weight transfer through pelvis, torso and shoulders.
-
-Therefore runner 32 is **FAIL/CLOSED as locomotion master V1**. This is not grounds to reopen diffusion or broad parameter sweeps.
+Visual review found V1 somewhat more controlled, but still too close to generic mocap/human locomotion and specifically lacking the expected feminine Exilada body-language read. It did not create convincing support-side weight transfer through pelvis, torso and shoulders. Runner 32 is therefore **FAIL/CLOSED as locomotion master V1**.
 
 ## CURRENT GATE — runner 33 gameplay walk overlay V2 / feminine
 
@@ -103,56 +90,62 @@ Machine-readable art-direction spec:
 
 ### Purpose
 
-Create a clearly more feminine Exilada walk while remaining:
-
-- grounded;
-- action-ready;
-- natural rather than runway-like;
-- compatible with the `72 deg` belt-scroller family;
-- faithful to the real eight-state gait timing/support order.
+Create a clearly more feminine Exilada walk while remaining grounded, action-ready, natural rather than runway-like, compatible with the locked `72 deg` family and faithful to the real eight-state gait timing/support order.
 
 ### V2 authored controls
 
-V2 keeps the source gait timing but adds a bounded projected-body treatment:
-
-- pelvis/root bob retained at `62%` of raw amplitude rather than V1's more aggressive `55%`;
-- less aggressive stride compression than V1: hip `0.99`, knee `0.95`, ankle/toe `0.91`;
-- phase-weighted pelvic obliquity with maximum total split `3.2 px` at the locked gameplay scale;
-- subtle pelvic yaw split up to `2.2 px` so the swing side advances while the support side yields;
-- torso/shoulder counterbalance against pelvis motion;
-- shoulder counter-yaw split up to `1.4 px`;
-- smaller forward upper-body shear than V1: `2.6 px` at the head;
-- more compact arm pendulum: elbow X `0.70`, wrist X `0.56`, elbow Y `0.91`, wrist Y `0.86`;
-- small phase-specific swing-leg clearance boost, strongest in passing/up, without marching knee lift;
+- pelvis/root bob at `62%` of raw amplitude;
+- moderate stride compression: hip `0.99`, knee `0.95`, ankle/toe `0.91`;
+- phase-weighted pelvic obliquity with maximum authored total split `3.2 px`;
+- subtle pelvic yaw split up to `2.2 px`;
+- torso/shoulder counterbalance and shoulder counter-yaw up to `1.4 px`;
+- mild forward upper-body shear `2.6 px` at the head;
+- compact arm pendulum;
+- small swing-leg clearance boost in passing/up;
 - head stabilization blend `0.64`.
 
-The phase weighting is deliberately strongest around passing/single-support and weaker at contact so the weight shift reads as locomotion rather than a continuous artificial sway.
+### Runner 33 first execution — TECHNICAL GUARD FAIL / RESOLVED
+
+The first real V2 run built the fresh `72 deg` baseline successfully, then stopped in the overlay helper with:
+
+`V2 pelvic obliquity exceeded safety limit: 10.12px`
+
+This was a **guard implementation error, not evidence that the authored V2 pelvis motion itself was 10.12 px**. The old guard compared the final absolute projected left/right hip Y separation against a flat `8 px` limit. At `72 deg`, the source gait already contains a substantial projected hip-Y separation from real pose/depth geometry before the V2 authored obliquity is added.
+
+The guard is corrected to measure the **additional projected hip-Y separation introduced by V2 relative to the same source frame**, not the absolute final separation. The additive allowance is tied to the authored `pelvic_obliquity_total_px` (`3.2 px`) plus a small numerical tolerance (`0.25 px`). The marker now records source maximum, authored maximum, added maximum and allowed added maximum separately. Runner 33 validates the same additive metric.
+
+No V2 art-direction parameter was changed in this correction. This preserves the experiment rather than weakening pelvic motion just to satisfy a bad absolute bound.
 
 ### Guardrails
 
-V2 explicitly rejects:
-
-- exaggerated hip sway;
-- catwalk leg crossing;
-- cartoon bounce;
-- loss of support-foot order;
-- diffusion or visible-body generation before skeleton approval.
-
-The helper hard-fails if projected left/right hip vertical separation exceeds `8 px`, which is a safety bound rather than an artistic target.
+V2 rejects exaggerated hip sway, catwalk leg crossing, cartoon bounce, loss of support-foot order and any diffusion/visible-body generation before skeleton approval.
 
 ## Runner 33 decision rule
 
 PASS requires all of the following:
 
-1. the skeleton must read **clearly more feminine** than the raw `72 deg` baseline without costume/hair carrying that impression;
-2. the result must still read as a grounded protagonist walk for an action belt-scroller, not runway locomotion;
-3. contact/down/passing/up phases remain readable;
-4. support-foot contacts remain grounded and left/right alternation intact;
-5. pelvis/torso/shoulder counter-motion improves naturality rather than looking mechanically oscillated;
+1. clearly more feminine skeleton read than raw `72 deg` baseline without costume/hair carrying that impression;
+2. grounded protagonist locomotion rather than runway locomotion;
+3. readable contact/down/passing/up phases;
+4. stable support-foot contacts and left/right alternation;
+5. natural pelvis/torso/shoulder counter-motion rather than mechanical oscillation;
 6. no anatomical break or cartoon exaggeration;
-7. the improvement over runner 32 V1 must be material enough to justify returning to visible body authoring.
+7. material improvement over runner 32 V1 sufficient to justify returning to visible body authoring.
 
-If runner 33 fails, diagnose the remaining motion-design defect before any visible generation. Do not compensate with SSD CFG/seed/resolution tuning.
+If runner 33 fails visually, diagnose the remaining motion-design defect before any SSD rerun.
+
+## Exact current operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1"
+```
+
+Expected terminal marker:
+
+`G3S-C1C-FEMININE-V2: A/B SKELETON REVIEW PACKAGE READY`
 
 ## Expected runner 33 outputs
 
