@@ -40,13 +40,15 @@ function Start-ControlledPython(
     [string]$WorkingDirectory
 ) {
     $argumentLine = Join-ProcessArguments $Arguments
-    return Start-Process \
-        -FilePath $PythonExe \
-        -ArgumentList $argumentLine \
-        -WorkingDirectory $WorkingDirectory \
-        -NoNewWindow \
-        -Wait \
-        -PassThru
+    $startParams = @{
+        FilePath = $PythonExe
+        ArgumentList = $argumentLine
+        WorkingDirectory = $WorkingDirectory
+        NoNewWindow = $true
+        Wait = $true
+        PassThru = $true
+    }
+    return Start-Process @startParams
 }
 
 Write-Host ''
@@ -125,10 +127,7 @@ Remove-Item -LiteralPath $ArgProbeResult -Force -ErrorAction SilentlyContinue
 
 Write-Host '[PREFLIGHT] Verifying native argument transport for paths containing spaces...' -ForegroundColor Yellow
 try {
-    $argProbe = Start-ControlledPython \
-        -PythonExe $Python \
-        -Arguments @($ArgProbeScript, $ArgProbeResult, $ProjectRepoRoot, $MasterPath) \
-        -WorkingDirectory $SsdRoot
+    $argProbe = Start-ControlledPython -PythonExe $Python -Arguments @($ArgProbeScript, $ArgProbeResult, $ProjectRepoRoot, $MasterPath) -WorkingDirectory $SsdRoot
 } catch {
     Fail "native argument preflight could not start: $($_.Exception.Message)"
 }
@@ -162,10 +161,7 @@ $prepArgs = @(
     '--marker', $InputMarker
 )
 try {
-    $prep = Start-ControlledPython \
-        -PythonExe $Python \
-        -Arguments $prepArgs \
-        -WorkingDirectory $ModelTraining
+    $prep = Start-ControlledPython -PythonExe $Python -Arguments $prepArgs -WorkingDirectory $ModelTraining
 } catch {
     Fail "input preparation could not start: $($_.Exception.Message)"
 }
@@ -201,10 +197,7 @@ $inferArgs = @(
     '--fps', '8'
 )
 try {
-    $infer = Start-ControlledPython \
-        -PythonExe $Python \
-        -Arguments $inferArgs \
-        -WorkingDirectory $ModelTraining
+    $infer = Start-ControlledPython -PythonExe $Python -Arguments $inferArgs -WorkingDirectory $ModelTraining
 } catch {
     Fail "SSD inference could not start: $($_.Exception.Message)"
 }
@@ -255,10 +248,7 @@ $reviewArgs = @(
     '--marker', $ResultMarker
 )
 try {
-    $review = Start-ControlledPython \
-        -PythonExe $Python \
-        -Arguments $reviewArgs \
-        -WorkingDirectory $ModelTraining
+    $review = Start-ControlledPython -PythonExe $Python -Arguments $reviewArgs -WorkingDirectory $ModelTraining
 } catch {
     Fail "review package could not start: $($_.Exception.Message)"
 }
