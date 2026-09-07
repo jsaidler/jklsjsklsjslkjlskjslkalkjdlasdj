@@ -28,30 +28,30 @@ Every state-changing project action updates thematic docs, this file and the act
 - first canonical locomotion family is screen-left / mostly lateral-three-quarter;
 - `72 deg` azimuth from travel heading is locked as the first locomotion-facing baseline (`90 deg` = pure side).
 
-## Runtime animation architecture — CORRECTED / LOCKED 2026-09-07
+## Runtime animation architecture — LOCKED
 
 The runtime plays **complete precomposed character frames**:
 
 `complete frames -> complete-character spritesheet PNG(s) + metadata -> ordinary sprite playback`
 
-The previous concept of constructing a visible character in runtime from body/hair/clothing/equipment layers is **ABOLISHED/CLOSED**.
+Runtime construction of the visible character from body/hair/clothing/equipment layers is **ABOLISHED/CLOSED**.
 
-Every exported animation frame must already contain the entire visible character state, including where present:
+Every exported frame must already contain the whole visible state and all baked motion, including where present:
 
-- body motion;
+- body locomotion;
 - soft-tissue/jiggle motion;
 - hair motion;
 - base clothing/bindings motion;
 - shackles/chains/restraints/accessories motion;
-- correct occlusion among all those elements.
+- final occlusion among those elements.
 
-Offline production may still use modular sources/rigs/layers to author variants efficiently, but composition is completed before export. Armor/equipment/accessory variation strategy will be designed later; it may not assume runtime character assembly.
+Offline authoring may still be modular. Runtime composition may not be silently reintroduced.
 
 ## Canonical Exilada initial-state master
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master is now explicitly the **complete initial-state appearance reference** for the first animation proof, not merely a body/identity anchor. Its visible hair, base clothing/bindings, restraints/shackles/chains and other initial details belong in the generated sequence.
+The master is the **complete initial-state appearance reference** for the current animation work: body, hair, base clothing/bindings, shackles/chains/restraints and other visible initial details.
 
 ## Motion state
 
@@ -61,21 +61,21 @@ Runner 31 locked `72 deg` facing.
 
 Runner 32 V1 failed as final locomotion art direction because it remained generic.
 
-Runner 33 V2 added restrained feminine pelvis/torso/shoulder treatment. It is not accepted as the final walk master, but the project will **not delay the first full spritesheet proof for further skeleton micro-adjustment**. V2 is the provisional motion driver for the complete-character proof.
+Runner 33 V2 improved the projected body treatment but still was not accepted as the final Exilada walk. It was deliberately retained as a **provisional motion driver** so the project could test the actual complete-character spritesheet instead of continuing skeleton-only micro-adjustments.
 
 ## SSD / visible-authoring state
 
 Exact upstream SSD remains **BLOCKED** because the public release omits the custom multi-scale `pose_guider.pth`.
 
-The Moore-compatible fallback is technically runnable:
+The Moore-compatible fallback remains technically runnable:
 
 `Moore-AnimateAnyone graph + baseline Moore pose guider/motion module + released SSD denoising/reference UNets`
 
 Runner 29: technical PASS / visual FAIL.
 
-Runner 30: corrected the `1.7778×` pose-registration distortion and materially improved pose response/lower-limb reconstruction. It also proved that a complete-master temporal generation is technically possible, although visible quality and secondary-mass stability were not yet production-ready.
+Runner 30: fixed the `1.7778×` pose-registration distortion and materially improved pose response/lower-limb reconstruction.
 
-## CURRENT GATE — RUNNER 34 COMPLETE-CHARACTER WALK8 PLAYABLE PROOF
+## RUNNER 34 — COMPLETE-CHARACTER PLAYABLE PROOF: TECHNICAL/PACKAGING PASS, TEMPORAL QUALITY FAIL
 
 Runner:
 
@@ -85,58 +85,64 @@ Packer:
 
 `tools/structured-2d-character-pipeline/g3s_pack_complete_character_spritesheet.py`
 
-Purpose:
+Runner 34 successfully produced the requested artifact class:
 
-1. use `exilada_master.png` as the complete initial-state appearance reference;
-2. use runner-33 V2 at locked `72 deg` as a provisional eight-frame motion driver;
-3. generate the whole character through the proven Moore-compatible SSD route;
-4. judge body motion, jiggle, hair, base clothing, bindings, shackles/chains/restraints and visible accessories **together**;
-5. remove the neutral connected background from each generated frame;
-6. pack eight complete RGBA frames into one spritesheet + metadata;
-7. inspect the actual whole-character animation rather than continue skeleton-only refinement.
+- eight generated frames from the **complete** `exilada_master.png` state;
+- transparent RGBA complete-character frames;
+- one `4×2` spritesheet (`2048×1024`, `512×512` cells);
+- preview GIF and metadata;
+- stable enough cell framing/pivot to demonstrate ordinary spritesheet playback.
 
-This is a **playable proof**, not final production approval.
+Therefore the following question is now answered **YES**:
 
-### Exact current operator action
+> Can the current toolchain generate and package a complete-character baked spritesheet instead of runtime-assembled layers?
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Yes. The export/packing architecture works.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\34_run_exilada_complete_character_walk8_playable_proof.ps1"
-```
+### Runner 34 visible result
 
-Expected terminal marker:
+The current Moore+SSD pose-only temporal authoring route does **not** satisfy the complete-motion requirement:
 
-`G3S-COMPLETE-WALK8: COMPLETE CHARACTER SPRITESHEET READY FOR QA`
+- Exilada identity is retained surprisingly well across the sequence;
+- broad body pose response is visible;
+- hair mass remains recognizable but is largely frozen/warped rather than showing convincing inertial secondary motion;
+- base cloth changes shape but does not yet behave as believable cloth motion;
+- intentional soft-tissue/jiggle motion is not reliably readable;
+- wrist chain is comparatively persistent but mostly static;
+- ankle restraint/chain becomes unstable, detaches/mutates into dark stepped artifacts and merges with cloth/leg regions in the middle frames;
+- lower-limb/foot topology still degrades in the most displaced phases;
+- later frames converge toward similar standing poses, and loop closure remains weak.
 
-Expected workspace:
+This is a **route-level temporal FAIL**, not a spritesheet-format failure.
 
-`Z:\AI\SpriteSheetDiffusionSpike\exilada_initial_complete_walk8_playable_proof`
+## Primary diagnosis after runner 34
 
-Primary outputs:
+The current driver supplies **body OpenPose geometry only**. It does not explicitly describe the desired trajectories or inertial behavior of hair, cloth, soft tissue, chains or other secondary masses.
 
-- generated complete-character contact sheet;
-- generated complete-character GIF;
-- transparent `frames_rgba`;
-- `spritesheet\exilada_initial_walk8_complete_spritesheet.png`;
-- `spritesheet\exilada_initial_walk8_complete_spritesheet_preview.gif`;
-- `spritesheet\exilada_initial_walk8_complete_spritesheet.json`.
+The Moore/AnimateAnyone temporal prior is not sufficient to infer those systems reliably from the single complete master plus body pose maps.
 
-## Runner 34 QA rule
+Therefore further pure skeleton tweaking or CFG/seed/resolution sweeps are not the next discriminant.
 
-Judge the character as one baked temporal object. PASS for further development requires enough coherence to prove the route is worth continuing, especially:
+## NEXT GATE — COMPLETE-MOTION DRIVER
 
-- recognizable Exilada identity;
-- readable locomotion;
-- plausible whole-body secondary motion;
-- hair not frozen or arbitrarily changing mass;
-- base cloth/bindings moving coherently;
-- shackles/chains/accessories remaining attached to the correct side and moving plausibly;
-- no catastrophic anatomy or frame-to-frame identity break;
-- spritesheet cells and pivot remaining stable enough for runtime playback.
+The next visible-authoring experiment must provide **richer whole-character motion control** offline while preserving the complete-frame runtime architecture.
 
-The proof does **not** require final walk polish or final armor-variation architecture.
+The motion driver must explicitly contain or constrain, at minimum:
+
+- body pose and weight transfer;
+- hair mass motion/inertia;
+- base-cloth motion;
+- shackles/chains/restraint motion;
+- soft-tissue/jiggle motion where visually required;
+- full moving silhouette/occlusion information.
+
+A hidden modular rig, proxy, simulation or driving video is allowed as an **offline motion-control source**. It is not the final art and does not imply runtime layer assembly.
+
+Appearance reference remains `exilada_master.png`; the new control source supplies richer motion, not a replacement design.
+
+## Immediate QA artifact
+
+A native-gameplay-scale preview of the runner-34 sheet should be judged at approximately `128 px` character height before deciding how much of the visible artifact survives at final scale.
 
 ## Historical / closed assumptions
 
@@ -149,4 +155,4 @@ The proof does **not** require final walk polish or final armor-variation archit
 
 ## No cleanup
 
-Retain SSD environment/models and motion work. They are required for runner 34.
+Retain SSD environment/models, runner-34 output and motion work. They are evidence and inputs for the next complete-motion-driver test.
