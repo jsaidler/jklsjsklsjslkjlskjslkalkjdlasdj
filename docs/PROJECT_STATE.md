@@ -41,17 +41,11 @@ True isometric multi-directional character production remains closed unless expl
 
 Runtime does not require a 3D skeleton, MPFB, segmented puppet, diffusion model or per-frame generation.
 
-## Canonical Exilada references
-
-Complete design/master reference:
+## Canonical Exilada reference
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Earlier approved body-base artifact remains retained for provenance:
-
-`assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
-
-The active SSD spike uses the **complete master** as appearance reference.
+The active SSD spike uses the complete master as appearance reference.
 
 ## Retained offline motion source
 
@@ -61,16 +55,16 @@ The active SSD spike uses the **complete master** as appearance reference.
 - C1A skeleton walk PASS/CLOSED;
 - approved eight-state cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
 
-This may be reused as offline pose/motion control only.
+This may be reused only as offline pose/motion control.
 
-## Closed / historical visible routes
+## Historical/closed visible routes
 
-- direct visible 3D -> final pixel art — CLOSED;
-- nearest-segment rigid body partition — CLOSED;
+- visible 3D -> final pixel art — CLOSED;
+- nearest-segment rigid partition — CLOSED;
 - whole-body chain/cage warp -> gait — CLOSED;
 - MPFB skinned body as mandatory guide — CLOSED;
-- independent Flux2 full-body redraw per frame — FAIL/CLOSED;
-- segmented 2D puppet runner 23 — PAUSED/HISTORICAL, NOT CURRENT.
+- Flux2 independent full-body redraw per frame — FAIL/CLOSED;
+- segmented 2D puppet runner 23 — PAUSED/HISTORICAL.
 
 ## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION
 
@@ -78,41 +72,32 @@ Canonical doc:
 
 `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-Goal:
+Goal: determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence strongly enough that accepted frames can be frozen into conventional spritesheets.
 
-Determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that accepted frames can be frozen into conventional spritesheets.
+### Upstream verified layout
 
-### Verified upstream layout
-
-Repo:
-
-`chenganhsieh/Sprite-Sheet-Diffusion`
+Repo: `chenganhsieh/Sprite-Sheet-Diffusion`
 
 - inference: `ModelTraining/inference.py`;
 - config: `ModelTraining/configs/prompts/inference.yaml`;
-- real upstream dependency file: `ModelTraining/requirements.txt`;
-- there is no root `requirements.txt` despite the README command;
-- config requires SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
+- actual dependency file: `ModelTraining/requirements.txt`;
+- no root requirements file despite README command;
+- model paths required later: SD1.5 base, VAE, CLIP image encoder, SSD denoising/reference UNets, AnimateAnyone pose guider and motion module.
 
 ### Environment gate — PASS
 
-Workspace:
+Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
-`Z:\AI\SpriteSheetDiffusionSpike`
-
-Actual user result:
-
-- upstream clone: SUCCESS;
-- Miniconda: SUCCESS;
+- clone: PASS;
+- Miniconda: PASS;
 - `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
 - env `ssd`: PASS;
-- Python: `3.10.21`;
-- pip: `26.2.1`;
-- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
+- Python `3.10.21`;
+- pip `26.2.1`;
+- environment marker written;
+- no model weights downloaded.
 
-No model weights were downloaded by the environment gate.
-
-## CURRENT RUNNER — Windows inference dependencies
+## CURRENT GATE — Windows inference dependencies
 
 Requirements lock:
 
@@ -122,15 +107,33 @@ Runner:
 
 `tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
 
-Key compatibility decisions:
+### First run — FAIL due runner control-flow bug
 
-- install `torch==2.0.1` + `torchvision==0.15.2` from official CUDA 11.8 wheels;
-- do not blindly install the full mixed training/UI upstream requirements;
-- defer optional `xformers` for the first proof;
-- use `av==12.0.0` on Windows because upstream `av==11.0.0` is source-only on PyPI and the required APIs are compatible;
-- include `matplotlib`/`scikit-image` because the imported local OpenPose graph requires them.
+The first runner 25 execution aborted at its old Torch preflight probe with `NativeCommandError / RemoteException`.
 
-Runner 25 performs package install, `pip check`, CUDA probe and a real import of upstream `ModelTraining/inference.py` without loading models. It writes local dependency marker/probe/freeze files and downloads no checkpoints.
+Root cause was PowerShell-native process handling:
+
+- global `$ErrorActionPreference='Stop'`;
+- expected missing-Torch traceback written to native STDERR;
+- `2>&1` redirected STDERR into the PowerShell pipeline;
+- Windows PowerShell terminated before `$LASTEXITCODE` could be inspected.
+
+This is not a Torch/CUDA/SSD failure.
+
+### Scripting rule now locked
+
+Expected-failure native probes must not be used as raw control flow under `ErrorActionPreference=Stop`. Native calls must isolate STDERR/error preference and explicitly inspect exit codes. Expected Python probes should catch exceptions and emit structured JSON.
+
+### Runner 25 — FIXED / RETRY READY
+
+The runner now:
+
+- resolves env Python directly rather than repeatedly using `conda run`;
+- wraps all native calls so native STDERR cannot prematurely terminate PowerShell;
+- performs Torch preflight via a clean JSON probe;
+- repairs incompatible Torch deterministically from official CUDA 11.8 wheels;
+- performs the real SSD `inference.py` import through a structured diagnostic probe;
+- downloads no models.
 
 ## Current exact operator action
 
@@ -144,12 +147,17 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 PASS target:
 
 - `SSD-DEPS: PASS`;
-- CUDA available;
-- torch 2.0.1 / CUDA build 11.8;
-- RTX/NVIDIA GPU reported;
+- torch 2.0.1 / torchvision 0.15.2;
+- CUDA build 11.8;
+- RTX/NVIDIA GPU detected;
+- `pip check` PASS;
 - real SSD inference import graph PASS.
 
-After dependency PASS, prepare the separate model/checkpoint download gate. No model download before then.
+If it fails, use the clean runner message plus `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_probe.json`; do not improvise package/model installation.
+
+## Next after PASS
+
+Prepare a separate model/checkpoint download gate with exact sources, paths and verification. No model download before dependency PASS.
 
 ## No cleanup
 
