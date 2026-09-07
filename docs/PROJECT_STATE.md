@@ -9,14 +9,15 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 1. `docs/PROJECT_STATE.md`
 2. `docs/G1_CAMERA_SCALE_LOG.md`
 3. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-4. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-5. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-6. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-7. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-8. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-9. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-10. `docs/G3S_B4_HAIR_LOG.md`
-11. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
+5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
+6. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
+7. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
+8. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+9. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+10. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+11. `docs/G3S_B4_HAIR_LOG.md`
+12. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -28,34 +29,47 @@ Normal operator loop after an approved runner exists:
 
 ## Game / presentation — LOCKED FOR FEASIBILITY
 
-The project originally considered true isometric 2D presentation. That direction was deliberately abandoned because it multiplied view families, pose coverage, occlusion cases and animation production cost.
+True isometric character production was deliberately abandoned because it multiplies view families, pose coverage, occlusion cases and animation cost.
 
 The locked gameplay presentation is an **elevated 2D arcade beat'em-up / belt-scroller / false 3D**:
 
 - fixed orthographic camera;
-- `640×360` native raster;
+- native raster `640×360`;
 - pitch `26 deg`;
-- protagonist standing body height about `128 px`;
-- walkable gameplay depth band retained;
-- first visible character family is screen-left front-three-quarter;
-- movement through gameplay depth does not require north/south/isometric sprite families;
-- screen-right is deferred until the left family is proven.
+- protagonist standing body about `128 px`;
+- walkable gameplay-depth band retained;
+- first visible family screen-left/front-three-quarter;
+- movement through gameplay depth does not require north/south/isometric sprite families.
 
-Any route that silently recreates isometric/multi-directional complexity is architecture drift.
+Any route that silently recreates isometric/multi-directional character complexity is architecture drift.
 
-## Canonical Exilada body — PASS/CLOSED
+## Final runtime animation representation — LOCKED
 
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
+The game uses conventional 2D sprite animation:
+
+`approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime playback`
+
+Actions are deterministic frame sequences arranged in rows/blocks or equivalent atlas regions. One huge PNG is not required; grouped sheets are acceptable.
+
+Runtime does not require a 3D skeleton, segmented-body puppet, diffusion model or per-frame generation.
+
+## Canonical Exilada references
+
+Design/master reference:
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+Approved earlier body-base artifact remains retained for provenance:
+
+`assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`
+
 - `37×128` RGBA;
 - PNG SHA256 `702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858`;
-- raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
-- screen-left front-three-quarter family.
+- screen-left/front-three-quarter family.
 
-## Hair — DEFERRED
+For the active SSD spike, the **complete Exilada master** is the intended appearance reference; the old body-only/hair-deferred staging is not a prerequisite for this direct spritesheet-source test.
 
-B4 remains paused by user. Do not resume automatically.
-
-## Motion backbone — PASS/RETAINED
+## Motion backbone — PASS/RETAINED AS OFFLINE SOURCE
 
 - G2 = PASS/CLOSED;
 - CMU `105_34 NormalWalk`;
@@ -68,84 +82,78 @@ Approval:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
 
-## Closed visible routes
+This work may be reused as offline pose/motion control. It is not a runtime dependency.
+
+## Closed / superseded visible routes
 
 - direct visible 3D -> final pixel art — CLOSED;
-- C0 V1 nearest-segment exclusive hard partition + exposed independent rigid parts — CLOSED;
-- single-still continuous full-body chain/cage warp -> gait — CLOSED;
-- MPFB skinned body as mandatory hidden animation guide — CLOSED;
-- independent full-body generative redraw for each walk frame — CLOSED after C1B Flux2 review;
+- C0 V1 nearest-segment hard partition / exposed rigid pieces — CLOSED;
+- single-still continuous chain/cage warp -> gait — CLOSED;
+- MPFB skinned body as mandatory hidden guide — CLOSED;
+- independent full-body Flux2 redraw for each walk frame — FAIL/CLOSED;
+- segmented 2D skeletal puppet — **PAUSED/HISTORICAL, NOT CURRENT**;
 - implicit return to isometric/multi-directional character coverage — CLOSED unless presentation is explicitly reopened.
 
-## C1B Flux2 per-frame redraw — FAIL/CLOSED
+## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION SPIKE
 
-Reviewed artifacts:
+Canonical doc:
 
-- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
-- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
+`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-Failure: face, skin tone, anatomy, proportions, silhouette/view and pixel treatment drifted across frames. Runner 22 is intentionally disabled. No new model/runtime was installed by that gate; no cleanup applies.
+Goal:
 
-## CURRENT — C1B MINIMAL SEGMENTED 2D PUPPET — RUNNER READY
+Determine whether **Sprite Sheet Diffusion (SSD)** can locally generate a coherent Exilada action sequence from the master plus pose/motion guidance strongly enough that the accepted frames can be frozen into conventional spritesheets.
 
-Architecture:
+### Upstream verified facts
 
-`real mocap -> approved hidden skeleton -> persistent B3B-derived 2D part set -> bind landmarks + deliberate overlap -> projected bone transforms -> camera-space depth sort -> composited sprite -> QA`
+Upstream repo:
 
-The hidden skeleton owns motion/spatial control only. Final visible pixels remain persistent 2D assets.
+`chenganhsieh/Sprite-Sheet-Diffusion`
 
-Current implementation:
+Actual implementation facts:
 
-- doc: `docs/G3S_C1B_SEGMENTED_PUPPET.md`;
-- spec: `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json` revision `MINIMAL_BEATEMUP_SEGMENTED_PUPPET_V2`;
-- builder: `tools/structured-2d-character-pipeline/g3s_c1b_build_segmented_puppet.py`;
-- runner: `tools/structured-2d-character-pipeline/23_run_g3s_c1b_segmented_puppet_walk.ps1`.
+- README requests Python 3.10 conda environment;
+- README references `requirements.txt`, but the repository does **not** contain that root file;
+- actual inference entry point: `ModelTraining/inference.py`;
+- actual config: `ModelTraining/configs/prompts/inference.yaml`;
+- config requires SD1.5 base model in addition to SSD/AnimateAnyone/VAE/CLIP components.
 
-Workspace:
+### Actual local result so far
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet`
+Workspace intended:
 
-### Minimal persistent part set
+`Z:\AI\SpriteSheetDiffusionSpike`
 
-- `head_neck`;
-- one continuous `core` for torso + pelvis;
-- bilateral upper arms, forearms and hands;
-- bilateral thighs, shins and feet.
+Clone result:
 
-Torso and pelvis intentionally remain one core in this first proof to avoid an unnecessary waist seam.
+- upstream clone completed successfully;
+- 887/887 objects received;
+- approximately 289.63 MiB transferred.
 
-### Difference from C0 V1
+Environment bootstrap failures:
 
-The builder does not use an exclusive nearest-segment ownership partition. It fits bind landmarks to the actual B3B alpha silhouette, builds overlapping capsule regions for neighboring limb pieces, restores shoulder/hip/neck cap pixels into the core, preserves elbow/knee/wrist/ankle overlap and draws parts by C1A camera-space depth.
+- `conda` is not installed / not on PATH;
+- `conda create -n ssd python=3.10 -y` failed because command was not found;
+- `conda activate ssd` failed for the same reason;
+- prior instruction `cd /d ...` was wrong for PowerShell (`/d` is CMD syntax);
+- `pip install -r requirements.txt` failed from `C:\Users\jsaid` and the upstream repo independently lacks the referenced root requirements file.
 
-### Simplification locks
+These are installation-procedure defects, not an SSD model-quality failure.
 
-- one screen-left front-three-quarter visible family only;
-- same persistent B3B-derived part assets in all eight states;
-- no isometric/north/south sprite families;
-- no per-frame generation;
-- no MPFB body;
-- no preemptive part variants;
-- no model/API/download;
-- no manual user frame repair;
-- hair deferred.
+## Current exact next gate
 
-## Current exact operator action
+**Install Miniconda and create only the isolated Python 3.10 environment.**
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Do not install the large Python stack or download model weights until this passes.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\23_run_g3s_c1b_segmented_puppet_walk.ps1"
-```
+PASS requires:
 
-Primary review outputs:
+- `conda.exe` located;
+- env `ssd` created;
+- `conda run -n ssd python --version` reports Python 3.10.x.
 
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet\g3s_c1b_puppet_walk_zoom.gif`;
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_segmented_puppet\g3s_c1b_puppet_contact_sheet.png`;
-- debug if needed: `g3s_c1b_puppet_contact_sheet_skeleton_overlay.png`;
-- part inspection: `g3s_c1b_segmented_part_atlas.png`.
+## No cleanup yet
 
-## Review decision
+SSD is ACTIVE, not discarded. Do not delete `Z:\AI\SpriteSheetDiffusionSpike`.
 
-Judge only whether this reads as **the same B3B doll moving**. If a concrete joint/projection defect appears, fix that specific part/binding. Do not change the presentation or add directional/variant complexity preemptively.
+If the route is later explicitly closed, cleanup is documented in `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`.
