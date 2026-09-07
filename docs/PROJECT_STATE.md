@@ -111,7 +111,7 @@ Current manifest status:
 
 Do not run runner 28 again and do not fake compatibility by loading the wrong checkpoint loosely into SSD's custom PoseGuider.
 
-## CURRENT GATE — Moore-compatible empirical fallback
+## Moore-compatible empirical fallback — RUNNER 29 TECHNICAL PASS / VISUAL QA PENDING
 
 Purpose: salvage a meaningful local test using only architecture/checkpoint combinations that actually match.
 
@@ -133,26 +133,50 @@ Runner:
 
 `tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
 
-Runner 29 reuses all heavyweight models already present and fetches only Moore source code. It performs checkpoint-signature/graph compatibility checks before generation and labels the result `exact_upstream_ssd: false`.
+### Runner 29 execution result — 2026-09-07
+
+Technical execution completed successfully:
+
+- walk8 canonical input rebuilt: PASS;
+- Moore source pinned to `a914ef38aae3733c2f02f29853dd0593372e0cc9`;
+- SSD denoising/reference UNets accepted by the Moore-compatible graph;
+- denoising checkpoint produced **0 unexpected keys**;
+- `588` missing denoising keys were accepted under Moore's intended `strict=False` load;
+- those missing keys are not random/uninitialized: `UNet3DConditionModel.from_pretrained_2d()` has already loaded the SD1.5 base weights plus the separate motion module before the SSD denoising checkpoint is overlaid;
+- the upstream SSD inference code likewise loads its denoising checkpoint with `strict=False`;
+- 8 frames generated at `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16;
+- diffusion loop completed `25/25` in about `42 s` on the validated RTX 3060 environment;
+- output marker status: `PASS_OUTPUT_READY_FOR_VISUAL_QA`.
+
+Artifacts:
+
+- frames: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\frames`;
+- contact sheet: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`;
+- GIF: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`;
+- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
+
+The warnings about unused SD1.5 output-layer weights, TypedStorage deprecation and direct `in_channels` access are non-fatal compatibility/deprecation warnings and did not prevent generation.
+
+**Technical PASS is not visual approval.** No expansion to additional actions or spritesheet packing is authorized yet.
 
 ## Exact current operator action
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Share for visual QA:
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\29_run_ssd_moore_compat_exilada_walk8.ps1"
-```
+1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`
+2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`
 
-Target:
+Visual QA must judge:
 
-- `SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`;
-- 8 PNG frames;
-- contact sheet;
-- GIF;
-- `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
+- Exilada identity persistence;
+- anatomy/proportions;
+- long hair consistency;
+- cloth/shackles/chains consistency;
+- pose obedience to the approved C1A eight-state walk;
+- temporal coherence;
+- whether the output is useful enough to justify further spritesheet production.
 
-Technical success is not visual approval. Review identity, anatomy/proportions, long hair, cloth/shackles/chains, pose obedience and temporal coherence before any expansion to more actions or sheet packing.
+Do not rerun or retune runner 29 before reviewing these existing outputs unless visual QA identifies a specific parameter/control defect worth isolating.
 
 ## Exact SSD future condition
 
