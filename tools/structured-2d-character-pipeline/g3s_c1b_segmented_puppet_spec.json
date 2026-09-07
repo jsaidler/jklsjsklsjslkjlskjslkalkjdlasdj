@@ -1,0 +1,78 @@
+{
+  "gate": "G3S-C1B",
+  "revision": "SEGMENTED_2D_SKELETAL_PUPPET_V1",
+  "status": "ARCHITECTURE_LOCKED_IMPLEMENTATION_NEXT",
+  "date": "2026-09-06",
+  "purpose": "animate one persistent Exilada body by binding reusable native-2D body parts to the approved hidden 3D skeleton instead of regenerating the entire woman per frame",
+  "inputs": {
+    "canonical_body": "assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png",
+    "canonical_body_png_sha256": "702e2d95325049b5d99ea66db4fbbb9b41d6d24813efb0b1c3a37e112b1c2858",
+    "skeleton_approval": "tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json",
+    "skeleton_guide_local": "Z:\\AI\\RogueliteCharacterPipeline\\g3s_c1_skeleton_walk\\g3s_c1_skeleton_walk_guide.json"
+  },
+  "architecture": "persistent 2D body-part sprites -> camera-facing 2.5D billboard parts -> bind pivots to 3D skeleton joints -> orient/scale to projected bones -> depth-sort from skeleton camera-space depth -> composite native 2D sprite",
+  "persistent_parts": [
+    "head_neck",
+    "torso",
+    "pelvis",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+    "right_thigh",
+    "right_shin",
+    "right_foot"
+  ],
+  "joint_rules": {
+    "nearest_segment_partition_forbidden": true,
+    "independent_rigid_rotation_without_overlap_forbidden": true,
+    "each_part_has_explicit_anatomical_pivot": true,
+    "adjacent_parts_must_overlap_under_joint": true,
+    "joint_cover_or_cap_allowed": true,
+    "torso_pelvis_connection_must_remain_continuous": true
+  },
+  "projection_rules": {
+    "rig_world_transform_is_not_modified_for_facing": true,
+    "screen_family": "left-facing front-three-quarter",
+    "bone_projection_controls_position_rotation_and_length": true,
+    "camera_space_depth_controls_draw_order": true,
+    "foreshortening_may_select_frozen_part_variant": true,
+    "full_body_per_frame_generation_forbidden": true
+  },
+  "variant_policy": {
+    "principle": "reuse the same frozen part artwork wherever possible; add a small authored variant set only when a single flat part cannot represent a materially different projected orientation",
+    "allowed_variant_examples": [
+      "near_vs_far hand/foot",
+      "foreshortened thigh/shin/forearm",
+      "pelvis lead-side variant if required",
+      "torso counter-rotation variant if required"
+    ],
+    "variants_are_persistent_assets_not_frame_specific_redraws": true
+  },
+  "hard_locks": {
+    "final_visible_owner": "native_2d_parts",
+    "hidden_3d_visible_rgb_owner": false,
+    "skinned_human_mesh_required": false,
+    "per_frame_diffusion_owner": false,
+    "single_still_full_body_warp": false,
+    "manual_user_frame_repair": false,
+    "hair_in_scope": false
+  },
+  "first_proof": {
+    "scope": "body-only eight-state walk using the already-approved C1A cycle",
+    "required_outputs": [
+      "segmented part atlas",
+      "pivot/binding manifest",
+      "eight composited native-2D walk frames",
+      "in-place GIF",
+      "travel GIF",
+      "contact sheet with skeleton overlay option"
+    ],
+    "pass": "one persistent recognizable body survives the full walk without detached joints, identity drift, per-frame redesign or catastrophic depth ordering"
+  }
+}
