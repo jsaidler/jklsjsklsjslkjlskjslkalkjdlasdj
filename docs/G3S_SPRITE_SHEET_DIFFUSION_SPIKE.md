@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / FIRST REAL EXILADA WALK8 RUNNER READY**
+Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / RUNNER 28 PATH-ARGUMENT BUG FIXED / RETRY REQUIRED**
 
 ## Decision
 
@@ -50,29 +50,21 @@ Latest user-supplied support result:
 
 ## Correct role of the downloaded AIs
 
-The user correctly challenged the earlier instruction that implied he had to provide eight pose PNGs manually.
-
-That instruction was wrong.
-
 ### SSD
 
-**Sprite Sheet Diffusion is the AI that generates the visible Exilada frames.** It consumes:
-
-- an appearance/reference image;
-- a reference pose for that image;
-- a target pose sequence.
+**Sprite Sheet Diffusion generates the visible Exilada frames.** It consumes an appearance/reference image, a reference pose for that image and a target pose sequence.
 
 ### DWPose
 
 **DWPose is the downloaded AI pose extractor.** It converts RGB character/action images or driving video frames into body/hand/face pose maps.
 
-For this first walk proof, DWPose is used automatically to extract the pose of the actual `exilada_master.png`, so the appearance reference has a matching pose-control image.
+For the first walk proof, DWPose extracts the pose of `exilada_master.png`, so the appearance reference has a matching pose-control image.
 
 ### C1A walk guide
 
-The eight walk targets already exist as exact project-owned motion control. Re-running an AI detector over those eight states would add detection error for no benefit. Therefore those target maps are rendered deterministically from the approved C1A joint coordinates using the SSD repo's own OpenPose-style drawing convention.
+The eight walk targets already exist as exact project-owned motion control. Re-running an AI detector over those eight states would add detection error for no benefit. Therefore those target maps are rendered deterministically from approved C1A joint coordinates using the SSD repo's OpenPose-style drawing convention.
 
-This is the correct split:
+Correct split:
 
 `Exilada master --DWPose--> reference pose`
 
@@ -105,30 +97,67 @@ Existing C1A review PNGs must not be used as SSD control images because they con
 
 Upstream `ModelTraining/inference.py` assumes the first target pose is also the reference-image pose. That assumption is false for our master: the Exilada master is standing while target frame 1 is `left_contact`.
 
-Project runner 28 therefore leaves upstream `inference.py` untouched and generates a deterministic local copy with one narrow patch: a separate `reference_pose_path` is read from config while the target list stays exactly eight walk frames.
+Project runner 28 leaves upstream `inference.py` untouched and generates a deterministic local copy with one narrow patch: a separate `reference_pose_path` is read from config while the target list stays exactly eight walk frames.
 
-## First real inference implementation — READY
-
-Helper:
-
-`tools/structured-2d-character-pipeline/g3s_ssd_prepare_walk8.py`
+## Runner 28 first execution — FAIL due path argument corruption
 
 Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-Runner 28 automatically:
+Actual first execution reached:
+
+`[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
+
+then Python reported:
+
+`can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
+
+and the runner ended:
+
+`SSD-WALK8: FAIL - input preparation exited with code 2`
+
+This is a **runner defect**, not an SSD, DWPose, CUDA or model-quality failure.
+
+### Root cause
+
+Windows PowerShell 5.1 `Start-Process -ArgumentList` was given a raw string array containing the helper path under:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite\...`
+
+The array was flattened into a command line without preserving the whitespace-bearing script path as one argv item. Python therefore received only `D:\GOOGLE` as the script path.
+
+## Native process rules — LOCKED
+
+Existing rule remains: expected native failures must not be raw control flow under `$ErrorActionPreference='Stop'`; use structured diagnostics and explicit exit-code handling.
+
+Additional Windows argument-boundary rule:
+
+1. **never pass a raw string array containing whitespace-bearing paths to Windows PowerShell 5.1 `Start-Process -ArgumentList`;**
+2. build one explicitly quoted argument line, or use another transport that preserves argv boundaries;
+3. any runner that depends on space-bearing paths must preflight argv transport before expensive/model work;
+4. `D:\GOOGLE DRIVE\DEV\Roguelite` and the canonical Exilada master path are regression-test inputs for runner 28.
+
+## Runner 28 — FIXED / RETRY REQUIRED
+
+Runner 28 now:
 
 1. verifies environment/dependency/core-model/support PASS markers;
 2. verifies the canonical C1A guide and Exilada master;
-3. runs downloaded DWPose on the master and saves a 512×512 reference-pose map;
-4. converts the eight approved C1A states to clean 512×512 OpenPose-style body maps;
-5. writes a dedicated SSD config;
-6. creates a local patched inference copy without overwriting upstream code;
-7. runs SSD at `512×512`, 8 frames, 25 steps, CFG 3.5, fp16, FILM disabled;
-8. verifies exactly eight generated PNGs;
-9. creates an unaltered 4×2 contact sheet and review GIF;
-10. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+3. routes every Python child process through one controlled invocation helper;
+4. explicitly quotes whitespace-bearing arguments before `Start-Process`;
+5. uses PowerShell splatting instead of fragile line-continuation syntax;
+6. runs a tiny Python argv transport preflight and confirms the full project-root and master paths arrive intact;
+7. refuses to continue if that preflight fails;
+8. runs DWPose on the master and saves a 512×512 reference-pose map;
+9. converts the eight approved C1A states to clean 512×512 OpenPose-style body maps;
+10. writes a dedicated SSD config and local patched inference copy;
+11. runs SSD at `512×512`, 8 frames, 25 steps, CFG 3.5, fp16, FILM disabled;
+12. verifies exactly eight generated PNGs;
+13. creates an unaltered 4×2 contact sheet and review GIF;
+14. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+
+No reinstall or redownload is required. The failed first run did not invalidate any prior PASS gate.
 
 ## Current exact operator action
 
@@ -138,6 +167,12 @@ git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
 ```
+
+Expected early sequence after the fix:
+
+- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
+- `[OK] Native argument quoting preflight PASS.`
+- `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 ## PASS semantics
 
@@ -154,10 +189,6 @@ Visual PASS requires review of:
 - suitability for native spritesheet production.
 
 Only after visual PASS do we proceed to alpha cleanup, pivot/root alignment and sheet packing.
-
-## Native-process scripting rule — LOCKED
-
-Subsequent PowerShell runners must not use expected native failure as raw control flow under `$ErrorActionPreference='Stop'`. Use controlled process execution, structured diagnostics and explicit exit-code handling.
 
 ## Explicit exclusions
 
