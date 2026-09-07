@@ -10,11 +10,12 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 3. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
 4. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-5. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
-6. `docs/G3S_C0_BODY_MOTION_PROOF.md`
-7. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
-8. `docs/G3S_B4_HAIR_LOG.md`
-9. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+5. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
+6. `docs/G3S_STRUCTURED_2D_VISIBLE_REPRESENTATION.md`
+7. `docs/G3S_C0_BODY_MOTION_PROOF.md`
+8. `docs/G3S_B3B_NATIVE_2D_BODY_SOURCE_LOG.md`
+9. `docs/G3S_B4_HAIR_LOG.md`
+10. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -31,12 +32,6 @@ Normal operator loop after an approved runner exists:
 - true modern pixel art at native gameplay raster;
 - `640×360`, orthographic, pitch `26°`, protagonist standing body height approximately `128 px`.
 
-## Final animation architecture — LOCKED
-
-`real/captured motion -> hidden skeleton/rig -> pose/laterality/depth/contact/root control -> complete visible 2D pose assets -> deterministic sprite playback -> QA`
-
-Hidden 3D is the skeleton/armature. It owns motion, bone/joint transforms, anatomical side identity, near/far/depth order, contact/root travel and sockets. It does not require a skinned human body mesh and does not own final visible RGB, alpha, anatomy or silhouette.
-
 ## Canonical Exilada body — PASS/CLOSED
 
 - `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
@@ -45,123 +40,92 @@ Hidden 3D is the skeleton/armature. It owns motion, bone/joint transforms, anato
 - raw RGBA SHA256 `818f0538a145917eac921ad708b3cdf30f87b2c76bc1413aa59305556af7f25c`;
 - screen-left front-three-quarter family.
 
-B3B is identity/body-style reference only. It is never warped into arbitrary gait poses.
-
-## Closed routes
-
-- direct visible 3D -> final pixel art — CLOSED;
-- single B3B still -> projected joints -> cutout/warp/cage -> full walk — CLOSED;
-- MPFB skinned body as mandatory hidden animation guide — CLOSED.
-
 ## Hair — DEFERRED
 
 B4 remains paused by user. Do not resume automatically.
 
-## Motion infrastructure — RETAINED
+## Motion backbone — PASS/RETAINED
 
 - G2 = PASS/CLOSED;
-- source motion = CMU `105_34 NormalWalk`;
-- source armature = `G2_CANONICAL_RIG`;
-- local blend = `Z:\AI\RogueliteCharacterPipeline\g2\g2_motion_topology.blend`.
+- CMU `105_34 NormalWalk`;
+- `G2_CANONICAL_RIG`;
+- C1A skeleton walk = PASS/CLOSED;
+- approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`;
+- projected root travel approximately `-43.77 px` screen-left.
 
-## G3S-C1A skeleton walk — PASS/CLOSED
-
-Approved cycle:
-
-`1588 left_contact -> 1598 left_down -> 1608 left_passing -> 1618 left_up -> 1628 right_contact -> 1638 right_down -> 1648 right_passing -> 1658 right_up`
-
-Approval:
+C1A approval:
 
 `tools/structured-2d-character-pipeline/g3s_c1a_skeleton_walk_approval.json`
 
-Reviewed user-supplied artifacts:
+## Closed visible routes
 
-- contact sheet SHA256 `672c8f9cb419cb8aa317447801931ce76da07b101b766c3f616bb2c25a39c2cd`;
-- zoom GIF SHA256 `9a61ae7414be04ef4a89d8f83127e73d58e46da2075f37e23b7b048864286970`;
-- projected root travel approximately `-43.77 px` screen-left.
+- direct visible 3D -> final pixel art — CLOSED;
+- single B3B still -> nearest-segment hard partition / independent rigid parts -> full walk — CLOSED in its C0 V1 form;
+- single B3B still -> continuous full-body chain/cage warp -> full walk — CLOSED;
+- MPFB skinned body as mandatory hidden animation guide — CLOSED;
+- independent full-body generative redraw for each walk frame — CLOSED after C1B Flux2 visual review.
 
-Visual review PASS:
+## C1B Flux2 per-frame redraw — FAIL/CLOSED
 
-- coherent eight-state gait;
-- correct left/right progression;
-- intact limb chains;
-- support-foot progression;
-- readable pelvis/trunk/leg relationship;
-- laterality/near-far readability;
-- canonical screen-left direction.
+Reviewed artifacts:
 
-Earlier C1A camera-selection failure is `CLOSED_RESOLVED_AFTER_SUCCESSFUL_RERUN` in:
+- GIF SHA256 `edc4216172a578948bef61967d3773377499c2ce5e7053867fdf75c4f41d99ee`;
+- contact sheet SHA256 `8df1d1bfc281c6cc97c26faef47dba1cec44330d2348d6daaa6f4877b41beb4e`.
 
-`tools/structured-2d-character-pipeline/g3s_c1a_skeleton_camera_selection_failure.json`
+Failure: visible identity, skin tone, proportions, silhouette, view and pixel treatment changed across frames. The sequence does not represent one persistent Exilada.
 
-No model/API/download was used by C1A; no cleanup applies.
+Failure marker:
 
-## CURRENT — G3S-C1B visible Exilada walk proof
+`tools/structured-2d-character-pipeline/g3s_c1b_flux2_visual_failure.json`
 
-The current goal is no longer another hidden guide. It is to show the bald Exilada body visibly walking through all eight approved gait states.
+Runner 22 is intentionally disabled. No new model/runtime was installed by this gate; no cleanup applies.
 
-Current bounded path:
+## CURRENT — C1B SEGMENTED 2D SKELETAL PUPPET
 
-`C1A approved skeleton -> exact B3B identity/style reference + per-state skeleton pose control -> existing retained local FLUX.2 Klein -> 8 complete visible body redraws -> GIF/contact sheet review`
+The corrected visible animation architecture is:
 
-This is a **visual proof gate**, not automatic production promotion.
+`real mocap -> approved hidden 3D skeleton -> persistent native-2D body-part atlas -> explicit anatomical pivots/bindings -> projected bone transforms -> camera-space depth sort -> composited sprite -> QA`
 
-Existing local stack only:
+The hidden 3D owns motion/spatial control only. Final visible pixels are persistent 2D parts.
 
-`Z:\AI\Flux2RefControlSpike`
+Current design docs/spec:
 
-Required retained files:
+- `docs/G3S_C1B_SEGMENTED_PUPPET.md`;
+- `tools/structured-2d-character-pipeline/g3s_c1b_segmented_puppet_spec.json`.
 
-- `flux-2-klein-base-4b-fp8.safetensors`;
-- `qwen_3_4b.safetensors`;
-- `flux2-vae.safetensors`.
+Initial parts:
 
-No download and no paid API are allowed by the runner.
+- head/neck;
+- torso;
+- pelvis;
+- bilateral upper arms, forearms, hands;
+- bilateral thighs, shins, feet.
 
-Current files:
+### Non-negotiable difference from failed C0 V1
 
-- `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_flux2_walk_spec.json`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_prepare_flux2_walk_inputs.py`;
-- `tools/structured-2d-character-pipeline/g3s_c1b_build_flux2_walk_review.py`;
-- `tools/structured-2d-character-pipeline/22_run_g3s_c1b_flux2_walk_visual_proof.ps1`.
+Do not use nearest-segment pixel assignment and independent rigid rotation with exposed joints.
 
-Workspace:
+The current puppet requires:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof`
+- explicit anatomical pivots;
+- deliberate overlap under joints;
+- continuous torso/pelvis connection;
+- optional joint cover/cap sprites;
+- position/rotation/projected length from the hidden skeleton;
+- depth draw order from camera-space skeleton depth;
+- small persistent foreshortening/orientation variants only where one flat part cannot represent the projection.
 
-Expected outputs:
+Variants are reusable source assets, not frame-specific redraws.
 
-- `g3s_c1b_exilada_walk_visual_proof.gif`;
-- `g3s_c1b_exilada_walk_contact_sheet.png`;
-- `g3s_c1b_review.json`;
-- eight full-resolution generated candidate frames.
+## Next implementation
 
-Hard locks:
+Implement one runner for the full body-only eight-state walk proof. It must generate:
 
-- no static-body warp/cutout/cage;
-- no hidden-3D visible pixels;
-- no hair/clothing/restraints/accessories/weapons;
-- no manual frame repair demanded from the user;
-- no automatic production promotion;
-- `96×160` reductions are review-only inspection images.
+- segmented part atlas;
+- binding/pivot manifest;
+- eight composited body frames;
+- in-place GIF;
+- travel GIF;
+- review contact sheet with optional skeleton overlay.
 
-## Current exact operator action
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\22_run_g3s_c1b_flux2_walk_visual_proof.ps1"
-```
-
-If successful, inspect/share:
-
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof\g3s_c1b_exilada_walk_visual_proof.gif`;
-- `Z:\AI\RogueliteCharacterPipeline\g3s_c1b_flux2_walk_visual_proof\g3s_c1b_exilada_walk_contact_sheet.png`.
-
-If it fails, share the complete console output.
-
-## After C1B review
-
-If the eight visible frames read as the same coherent woman walking, freeze/author the accepted native persistent 2D walk family under the production-art rules. Hair and other layers return only after body locomotion is viable.
+No model/API/download is required for the initial segmented-puppet proof. Hair stays deferred.
