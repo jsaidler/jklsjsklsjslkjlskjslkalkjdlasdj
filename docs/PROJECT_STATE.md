@@ -72,15 +72,7 @@ Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
 Goal: determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence strongly enough that accepted frames can be frozen into conventional spritesheets.
 
-### Upstream verified layout
-
-Repo: `chenganhsieh/Sprite-Sheet-Diffusion`
-
-- inference: `ModelTraining/inference.py`;
-- config: `ModelTraining/configs/prompts/inference.yaml`;
-- actual dependency file: `ModelTraining/requirements.txt`;
-- no root requirements file despite README command;
-- default `pretrained_model` layout is compatible with the current model bootstrap plan.
+The user has now explicitly required the workstation setup to include **all assets genuinely useful/necessary for the best practical spritesheet-authoring workflow**, not only the smallest smoke-test set. This does not mean downloading unrelated audio/portrait or legally unsuitable legacy assets.
 
 ## Environment gate — PASS
 
@@ -95,7 +87,7 @@ Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
 ## Windows inference dependency gate — PASS
 
-Validated user console on 2026-09-07:
+Validated user console:
 
 - `SSD-DEPS: PASS`;
 - GPU `NVIDIA GeForce RTX 3060`;
@@ -107,7 +99,7 @@ Validated user console on 2026-09-07:
 
 The earlier runner 25 `NativeCommandError` was a PowerShell control-flow defect and is closed. Subsequent runners must use controlled native-process execution and structured Python diagnostics.
 
-## CURRENT GATE — model/checkpoint download
+## CURRENT GATE — core generation model download IN PROGRESS
 
 Manifest:
 
@@ -121,43 +113,94 @@ Destination:
 
 `Z:\AI\SpriteSheetDiffusionSpike\repo\ModelTraining\pretrained_model`
 
-Estimated download: **~13.7 GB**.
+Estimated core download: **~13.7 GB**.
 
-Minimal set:
+Core generation set:
 
-- SD1.5 UNet config + weights;
-- Stability AI MSE VAE config + safetensors;
-- Lambda CLIP vision encoder config + weights;
-- SSD fine-tuned `denoising_unet.pth` + `reference_unet.pth`;
-- AnimateAnyone baseline `pose_guider.pth` + `motion_module.pth`.
+- SD1.5 UNet;
+- MSE VAE;
+- CLIP vision image encoder;
+- SSD fine-tuned denoising/reference UNets;
+- AnimateAnyone pose guider + motion module.
 
-Known large-file SHA256 values are enforced by the manifest. Downloads use resumable `.part` files and do not create a duplicate Hugging Face model cache.
+The user reported on 2026-09-07 that runner 26 **is currently downloading**. Do not interrupt it. Let it complete and report `SSD-MODELS: PASS` or a controlled failure.
 
-Intentionally deferred because they are not required for the first selected inference path:
+## Production-support asset gate — PREPARED / QUEUED AFTER RUNNER 26
 
-- wav2vec2;
-- DWPose detector weights;
-- FILM frame interpolation model;
-- xformers.
+Manifest:
 
-## Current exact operator action
+`tools/structured-2d-character-pipeline/ssd_authoring_support_manifest.json`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/27_download_ssd_authoring_support.ps1`
+
+Additional download: approximately **0.42 GB**.
+
+It adds:
+
+- DWPose YOLOX detector `models/openpose/yolox_l.onnx`;
+- DWPose whole-body pose model `models/openpose/dw-ll_ucoco_384.onnx`;
+- FILM interpolation `pretrained_model/film_net_fp16.pt`.
+
+Runner 27 also verifies the MediaPipe face/pose task files already bundled in the upstream clone and structurally loads DWPose through OpenCV DNN plus FILM through TorchScript.
+
+### Why these are included
+
+- **DWPose** gives us a practical route from arbitrary driving footage/actions to body/hand/face pose maps for future walk/run/attack/dodge/hit/death production, instead of requiring manual pose-image authoring for every action.
+- **FILM** keeps upstream interpolation available as an optional production tool. It is not the default for final sprite frames because interpolation can damage crisp pixel silhouettes; every interpolated frame must pass QA.
+
+## Explicit exclusions from the full spritesheet-authoring kit
+
+- `wav2vec2` and AniPortrait audio models — unrelated to spritesheet action generation;
+- legacy CMU OpenPose body/hand/face weights — not used because the bundled OpenPose path is explicitly non-commercial-use-only and DWPose is the preferred whole-body detector path;
+- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
+- `xformers` — not a model download; only add later if measured RTX 3060 VRAM behavior proves it necessary through a compatibility-tested optimization gate.
+
+## Current exact operator sequence
+
+### Now
+
+Do nothing to the already-running model download. Wait for runner 26 to finish.
+
+### After `SSD-MODELS: PASS`
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\26_download_ssd_models.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\27_download_ssd_authoring_support.ps1"
 ```
 
-PASS target:
+Support PASS target:
 
-- `SSD-MODELS: PASS`;
-- all manifest files verified;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_models_bootstrap.json` written.
+- `SSD-SUPPORT: PASS`;
+- DWPose available;
+- FILM available;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json` written;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json` written.
 
-## Next after model PASS
+## Next after support PASS
 
-Prepare input/config + first **8-frame Exilada walk inference** using the complete master and an approved 8-state pose sequence. No large multi-action sheet until temporal identity is proven.
+Prepare the first **8-frame Exilada walk inference** using:
+
+- complete `exilada_master.png`;
+- approved eight-state walk pose sequence;
+- SSD core generation weights;
+- DWPose available for future arbitrary action extraction, but not required for the already-approved walk poses;
+- FILM disabled by default for the first identity/temporal-coherence proof.
+
+First quality questions:
+
+- identity persistence;
+- anatomy/proportion persistence;
+- hair/clothing/equipment persistence;
+- pose obedience;
+- temporal coherence;
+- RTX 3060 12 GB memory fit;
+- clean conversion of generated RGB/background to transparent native sprite frames.
+
+Only after this passes do we expand to conventional multi-action sheets and automate sheet packing, alpha cleanup and runtime metadata.
 
 ## No cleanup
 
