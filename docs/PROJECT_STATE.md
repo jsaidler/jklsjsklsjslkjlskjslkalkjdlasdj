@@ -116,12 +116,6 @@ Observed manifest:
 - elapsed `1746.69 s` (~29m07s);
 - output SHA256 `2bbbf3bd0c5b0db46bc1e9d33abd003b7f3627c8fba7880f45d62724f6ab233f`.
 
-Canonical evidence:
-
-- `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
-- `Z:\AI\WanAnimate2\w1_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1_api_prompt.json`
-
 ### W1 visual diagnosis — MOTION/RAW-VIDEO CLASS PASS, PRODUCTION APPEARANCE CONFIGURATION FAIL
 
 Positive evidence:
@@ -186,14 +180,35 @@ Expected outputs:
 - `Z:\AI\WanAnimate2\w1a_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1a_api_prompt.json`
 
-After W1A, compare directly against W1 strength 1.0. If appearance improves materially without unacceptable motion loss, continue reference-strength calibration inside this same branch before W2. If not, the next diagnostic variable will be chosen from native conditioning semantics, not by switching models.
+After W1A, compare directly against W1 strength 1.0.
+
+## Framing/crop gate — LOCKED FOR IMMEDIATELY AFTER W1A
+
+The crop is a production blocker and must be solved before W2. It must **not** be "fixed" by cropping or repositioning the generated output after inference, because lost head/body pixels cannot be recovered that way.
+
+Evidence from W0 and W1 indicates the same late-frame crop trajectory with two completely different target characters, so treat framing primarily as a property of the driving-video geometry/input contract.
+
+After W1A establishes which reference strength is preferable, run a dedicated one-variable framing test using that winning appearance setting. The driving video will be automatically normalized before Wan:
+
+1. detect/track the performer automatically over the whole clip;
+2. derive a temporally stable/smoothed subject box rather than a per-frame jittering crop;
+3. fit the **entire visible body plus safety margin** inside a fixed `640×800` canvas;
+4. preserve aspect ratio and use padding/letterboxing instead of destructive center-cropping;
+5. keep constant or smoothly varying subject scale/center so the model never receives a driver whose head/feet leave the conditioning canvas;
+6. no manual masks, keyframes, crop fixes or per-frame intervention.
+
+This automatic driver-framing normalization is allowed by the production contract and will be mandatory for arbitrary Internet drivers if validated.
+
+Only after the crop/framing gate is solved do we run the planned art-direction prompt experiment (1980s barbarian/sword-and-sorcery influence, more torn fabric/body exposure) and then W2 target walking footage.
 
 ## Wan exhaustion sequence
 
 - **W0** official baseline — **PASS_BASELINE**.
 - **W1** Exilada + official driver at reference strength 1.0 — **CONFIGURATION FAIL for production appearance; motion/secondary-response evidence positive**.
 - **W1A** same W1 with reference strength 1.5 — **CURRENT**.
-- **W2** target Internet walking driver — after appearance conditioning is understood well enough.
+- **FRAMING GATE** — automatic full-body driver normalization, immediately after W1A.
+- **ART-DIRECTION PROMPT GATE** — after framing is controlled.
+- **W2** target Internet walking driver.
 - **W3** secondary-motion stress footage.
 - **W4** finite high-leverage variants only if still needed.
 
