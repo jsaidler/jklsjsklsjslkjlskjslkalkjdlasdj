@@ -1,0 +1,45 @@
+{
+  "revision": "SSD_AUTHORING_SUPPORT_V1",
+  "status": "ACTIVE",
+  "estimated_download_gb": 0.42,
+  "destination_root_relative_to_modeltraining": ".",
+  "purpose": "Production-support assets for robust arbitrary-action pose extraction and optional frame interpolation after the core SSD generation stack is installed.",
+  "notes": [
+    "DWPose is the preferred whole-body pose extractor for driving-video/action preparation.",
+    "The legacy CMU OpenPose body/hand/face weight set is intentionally not downloaded because the bundled OpenPose preprocessor is explicitly non-commercial-only and DWPose supersedes it for this project.",
+    "FILM is downloaded so interpolation is available when useful, but it is not the default for final sprite timing because generated in-betweens can soften or distort pixel-art silhouettes.",
+    "MediaPipe face/pose task assets required by the repo are already committed inside the upstream clone and are verified by runner 27 rather than downloaded again.",
+    "wav2vec2 and AniPortrait audio models remain excluded because audio-driven portrait animation is unrelated to character spritesheet authoring."
+  ],
+  "files": [
+    {
+      "id": "dwpose_detector_yolox_l",
+      "source": "https://huggingface.co/yzd-v/DWPose/resolve/main/yolox_l.onnx",
+      "destination": "models/openpose/yolox_l.onnx",
+      "expected_sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+      "expected_min_bytes": 210000000,
+      "license_family": "Apache-2.0"
+    },
+    {
+      "id": "dwpose_wholebody_dw_ll_ucoco_384",
+      "source": "https://huggingface.co/yzd-v/DWPose/resolve/main/dw-ll_ucoco_384.onnx",
+      "destination": "models/openpose/dw-ll_ucoco_384.onnx",
+      "expected_sha256": "724f4ff2439ed61afb86fb8a1951ec39c6220682803b4a8bd4f598cd913b1843",
+      "expected_min_bytes": 130000000,
+      "license_family": "Apache-2.0"
+    },
+    {
+      "id": "film_frame_interpolation_fp16",
+      "source": "https://huggingface.co/ZJYang/AniPortrait/resolve/main/film_net_fp16.pt",
+      "destination": "pretrained_model/film_net_fp16.pt",
+      "expected_sha256": "f0c8314674a6ba97787584fb04d59df9c6051ad5b735c89704f60801eece34d1",
+      "expected_min_bytes": 68000000,
+      "license_family": "Apache-2.0"
+    }
+  ],
+  "repo_bundled_assets_to_verify": [
+    "utils/mp_models/blaze_face_short_range.tflite",
+    "utils/mp_models/face_landmarker_v2_with_blendshapes.task",
+    "utils/mp_models/pose_landmarker_heavy.task"
+  ]
+}
