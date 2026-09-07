@@ -25,70 +25,82 @@ Current workspaces:
 - `Z:\AI\SpriteSheetDiffusionSpike`
 - Wan: `Z:\AI\WanAnimate2`
 
-`D:\AI` is stale/historical and must not be used by current scripts.
+`D:\AI` is stale/historical.
 
-## Runtime lock
+## Runtime / character contract — LOCKED
 
-Final runtime is ordinary playback of complete-character spritesheets. No runtime body/hair/clothing/equipment layer assembly.
-
-## Complete-character generation contract — LOCKED
-
-Use two separate references: Exilada master for appearance/state and arbitrary real driving video for motion/performance. The production model must infer body dynamics, jiggle, long-hair inertia, cloth/material response, wind and restraint/accessory behavior automatically. No routine manual animation repair is allowed.
+Final runtime uses complete-character spritesheets. The production model receives Exilada appearance/state separately from arbitrary raw driving video and must automatically infer body dynamics, jiggle, long-hair inertia, cloth/material/wind response and restraints/accessories. Routine manual repair is forbidden.
 
 ## Candidate order
 
 1. Wan-Animate-2 — exhaust first.
 2. SCAIL-2 — only after Wan reaches `EXHAUSTED_FAIL`.
 
-## Wan W0 model set — LOCKED
+## Active Wan Base-BF16 model set
 
-- `wan_animate_2_bf16.safetensors` — ~32.8 GB
-- `umt5_xxl_fp16.safetensors` — ~11.4 GB
-- `clip_vision_h.safetensors` — ~1.26 GB
-- `Wan2_1_VAE_bf16.safetensors` — ~0.254 GB
+- `wan_animate_2_bf16.safetensors` ~32.8 GB
+- `umt5_xxl_fp16.safetensors` ~11.4 GB
+- `clip_vision_h.safetensors` ~1.26 GB
+- `Wan2_1_VAE_bf16.safetensors` ~0.254 GB
 
-Total ~45.7 GB. Do not retain Base INT8, Distilled BF16/INT8, LightX2V LoRA or UMT5 FP8 for W0.
+Lower precision/Distilled variants are not retained in advance.
 
-## Runner 35 — PASS 2026-09-07
+## Runner 35 — PASS
 
-`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
+BF16 assets and native ComfyUI schemas are present under `Z:\AI\WanAnimate2`.
 
-Observed:
-
-- `WAN BF16 SCHEMA PREFLIGHT: PASS`
-- `RUNNER35-WAN-BF16-PREP: PASS — READY TO AUTHOR W0 WORKFLOW`
-
-BF16 assets and installed node schemas are present under `Z:\AI\WanAnimate2`.
-
-## CURRENT GATE — RUNNER 36 / W0 BF16 RETRY
+## Runner 36 / W0 — PASS_BASELINE
 
 Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-Builder: `tools/wan-animate2-spike/build_and_run_w0.py`
+Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `hostbuf_file_reader_read failed`.
 
-Locked W0 settings remain official upstream demo1 + Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16 at `640×800`, 37 frames, 16 fps, 20 steps, seed 0, Euler/simple, shift 5.0, driving/reference strength 1.0.
+Attempt 2 changed only the ComfyUI launch flag `--disable-pinned-memory` and completed successfully.
 
-### W0 attempt 1 — INFRASTRUCTURE FAIL
+Successful W0 facts:
 
-The first inference failed after ~74 seconds with:
+- official upstream demo1 reference + driver;
+- Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
+- `640×800`, 37 frames, 16 fps;
+- 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- elapsed ~1896.94 s (~31m37s).
 
-`RuntimeError: hostbuf_file_reader_read failed`
+Evidence:
 
-Trace: `comfy_aimdo/host_buffer.py -> read_file_to_device`.
+- `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
+- `Z:\AI\WanAnimate2\w0_run_manifest.json`
+- `Z:\AI\WanAnimate2\w0_api_prompt.json`
+- `Z:\AI\WanAnimate2\object_info_w0_live.json`
 
-Classify strictly as **ComfyUI host-buffer/pinned-memory infrastructure failure**. No visual output was evaluated, so this says nothing about Wan model quality.
+Visual result is good enough to pass the integration baseline: substantial movement transfer, stable cat identity/costume, no catastrophic topology collapse. Some blur/framing movement exists. This is not yet proof of Exilada/project fitness.
 
-### W0 attempt 2 — exact one-variable retry
+## CURRENT GATE — RUNNER 37 / W1 EXILADA
 
-Current runner starts a fresh managed ComfyUI process with:
+Runner:
 
-`--disable-pinned-memory`
+`tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
 
-Everything else is unchanged. This flag is an official current ComfyUI CLI option and is a documented workaround for contemporary Wan/ComfyUI host-buffer failures.
+Executor:
 
-The runner will stop the previous managed server recorded in `Z:\AI\WanAnimate2\.wan_animate2_spike.pid` so the flag definitely takes effect. It refuses to kill an unmanaged process if port 8188 is occupied without the matching managed PID.
+`tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
 
-Do not add `--disable-dynamic-vram`, lower resolution/frame count or quantize yet. If this retry fails, inspect the next traceback first and change only one additional execution variable.
+W1 is derived from the exact successful W0 API prompt.
+
+Because the W0 positive prompt literally describes the official cat, the target appearance package changes coherently:
+
+- `LoadImage` reference -> `exilada_master.png`;
+- positive appearance description -> canonical Exilada description;
+- output prefix.
+
+Everything else remains identical to successful W0: official driving video, Base BF16 stack, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, conditioning strengths and negative prompt. ComfyUI continues to launch with `--disable-pinned-memory`.
+
+Expected output:
+
+- `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
+- `Z:\AI\WanAnimate2\w1_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1_api_prompt.json`
+
+Judge W1 on Exilada identity/body proportions, complete initial-state preservation, long hair, ragged cloth, soft-body response, shackles/chains, motion adherence, topology, driver leakage and especially preservation of the approved discrete pixel/game-art language.
 
 ## Exact operator action
 
@@ -96,20 +108,17 @@ Do not add `--disable-dynamic-vram`, lower resolution/frame count or quantize ye
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\36_run_wan_animate2_bf16_w0.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\37_run_wan_animate2_bf16_w1_exilada.ps1"
 ```
 
-Expected success marker:
+After W1 completes, share `w1_exilada_official_driver.mp4` and `w1_run_manifest.json`.
 
-`RUNNER36-WAN-W0: PASS — OFFICIAL BF16 BASELINE GENERATED`
+## Wan sequence after W1
 
-Expected output:
-
-- `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
-- `Z:\AI\WanAnimate2\w0_run_manifest.json`
-
-W0 must be visually accepted before W1 uses `exilada_master.png`.
+- W2: Internet walking driver.
+- W3: secondary-motion stress footage.
+- W4: finite high-leverage variants only if needed.
 
 ## Cleanup discipline
 
-Unused large models/materials must not accumulate. Keep the active BF16 route while Wan is being exhausted. Retain the SSD workspace only as comparison/fallback evidence until Wan passes W0 or SSD research is explicitly abandoned.
+Unused large models/materials must not accumulate. Keep the active BF16 route while Wan is being exhausted. Keep `Z:\AI\SpriteSheetDiffusionSpike` temporarily as comparison/fallback evidence until Wan reaches a useful production verdict.
