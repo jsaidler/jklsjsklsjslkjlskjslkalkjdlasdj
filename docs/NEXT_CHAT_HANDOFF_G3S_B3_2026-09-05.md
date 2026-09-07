@@ -32,6 +32,8 @@ Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
 Purpose: generate a coherent Exilada action sequence from the complete master plus pose/motion guidance, then freeze approved frames into ordinary spritesheets.
 
+User clarification on 2026-09-07: the local setup must include **all assets genuinely useful/necessary for the best practical spritesheet-authoring workflow**, not only the smallest smoke-test set. Unrelated audio/portrait assets and legally unsuitable legacy OpenPose weights remain excluded.
+
 ## Local state — ENV + DEPENDENCIES PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
@@ -43,7 +45,7 @@ Environment:
 - Python `3.10.21`;
 - pip `26.2.1`.
 
-Dependency gate validated by user:
+Dependency gate:
 
 - `SSD-DEPS: PASS`;
 - GPU `NVIDIA GeForce RTX 3060`;
@@ -53,9 +55,9 @@ Dependency gate validated by user:
 - marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
 - freeze `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`.
 
-The previous PowerShell `NativeCommandError` class is explicitly locked out of future runner design: expected native failures cannot be raw control flow under `ErrorActionPreference=Stop`.
+Native-process rule remains locked: expected native failures cannot be raw control flow under `ErrorActionPreference=Stop`; use structured probes and explicit exit handling.
 
-## CURRENT — model download runner ready
+## CURRENT — runner 26 core model download IN PROGRESS
 
 Manifest:
 
@@ -69,9 +71,9 @@ Destination:
 
 `Z:\AI\SpriteSheetDiffusionSpike\repo\ModelTraining\pretrained_model`
 
-Estimated download: ~13.7 GB.
+Core generation download: ~13.7 GB.
 
-Minimal set:
+Includes:
 
 - SD1.5 UNet;
 - MSE VAE;
@@ -79,37 +81,75 @@ Minimal set:
 - SSD fine-tuned denoising/reference UNets;
 - AnimateAnyone pose guider + motion module.
 
-Known large-file hashes are enforced. Downloads use resumable `.part` files and avoid a duplicate Hugging Face cache copy.
+**Actual current operator state:** user reports runner 26 is downloading now. Do not interrupt it. Wait for `SSD-MODELS: PASS` or a controlled failure.
 
-Intentionally deferred:
+## QUEUED AFTER runner 26 PASS — full production-authoring support
 
-- wav2vec2;
-- DWPose detector models;
-- FILM interpolation model;
-- xformers.
+Manifest:
+
+`tools/structured-2d-character-pipeline/ssd_authoring_support_manifest.json`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/27_download_ssd_authoring_support.ps1`
+
+Additional download: ~0.42 GB.
+
+Adds:
+
+- DWPose detector `ModelTraining/models/openpose/yolox_l.onnx`;
+- DWPose whole-body model `ModelTraining/models/openpose/dw-ll_ucoco_384.onnx`;
+- FILM interpolation `ModelTraining/pretrained_model/film_net_fp16.pt`.
+
+Runner 27 also verifies upstream-bundled MediaPipe task assets and structurally loads the DWPose ONNX models and FILM TorchScript model without running SSD inference.
+
+### Why
+
+- DWPose allows arbitrary driving-video/actions to be converted into whole-body pose maps for future walk/run/attack/dodge/hit/death rows.
+- FILM is available for optional in-between generation but is **not** the default for final sprite timing because interpolated frames may soften/deform crisp pixel silhouettes.
+
+## Explicit exclusions
+
+Do not add unless a later measured gate establishes a need:
+
+- wav2vec2 / audio-driven AniPortrait models — unrelated;
+- legacy CMU OpenPose body/hand/face weights — bundled preprocessor is explicitly non-commercial-use-only; DWPose is preferred;
+- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
+- xformers — optimization only; install later only if actual VRAM measurements require it.
 
 ## Exact next operator action
+
+### Right now
+
+Let runner 26 finish. No new command while it is downloading.
+
+### After `SSD-MODELS: PASS`
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\26_download_ssd_models.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\27_download_ssd_authoring_support.ps1"
 ```
 
-PASS target:
+Support PASS target:
 
-- `SSD-MODELS: PASS`;
-- verified model-set marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_models_bootstrap.json`.
+- `SSD-SUPPORT: PASS`;
+- DWPose available;
+- FILM available;
+- `ssd_authoring_support_bootstrap.json` + `ssd_authoring_support_probe.json` written.
 
-## After model PASS
+## After support PASS
 
-Prepare the first 8-frame Exilada walk smoke test:
+First real SSD proof:
 
-- complete `exilada_master.png` as reference;
+- complete `exilada_master.png`;
 - approved 8-state walk pose sequence;
-- no large multi-action sheet yet;
-- first question is identity/temporal consistency, then sheet packing.
+- 8 frames;
+- FILM disabled initially;
+- validate identity, anatomy, hair/equipment persistence, pose obedience, temporal coherence, 12 GB VRAM fit and clean alpha/background conversion.
+
+Only after this passes do we expand to multi-action sheet production and automate packing/alpha/pivots/events.
 
 ## Historical routes
 
