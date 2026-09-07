@@ -1,6 +1,6 @@
 param(
     [string]$ProjectRepoRoot = 'D:\GOOGLE DRIVE\DEV\Roguelite',
-    [string]$Workspace = 'D:\AI\WanAnimate2',
+    [string]$Workspace = 'Z:\AI\WanAnimate2',
     [int]$Port = 8188,
     [int]$MinFreeGB = 70
 )
@@ -22,6 +22,7 @@ foreach ($f in @($Bootstrap,$Inspect,$Master)) {
 
 Write-Host ''
 Write-Host 'Roguelite Runner 35 — Wan-Animate-2 Base BF16 / W0 preparation' -ForegroundColor Cyan
+Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
 Write-Host '[MODEL] Base BF16 32.8 GB — no INT8, no Distilled, no LightX2V LoRA.' -ForegroundColor Green
 Write-Host '[TEXT] UMT5 XXL FP16 11.4 GB — FP8 text encoder deliberately excluded for the reference-quality baseline.' -ForegroundColor Green
 Write-Host '[AUX] CLIP Vision H + Wan VAE BF16.' -ForegroundColor Green
