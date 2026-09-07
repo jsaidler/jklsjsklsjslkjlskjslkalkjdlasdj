@@ -2,7 +2,7 @@
 
 Status date: **2026-09-06**
 
-Gate status: **ACTIVE — LOCAL SSD INSTALLATION / ENVIRONMENT BOOTSTRAP**
+Gate status: **ACTIVE — LOCAL SSD INSTALLATION / ENVIRONMENT BOOTSTRAP RUNNER READY**
 
 ## Decision
 
@@ -95,6 +95,8 @@ Actual user result on 2026-09-06:
 - `cd /d ...`: FAIL because `/d` is CMD syntax, not PowerShell syntax;
 - `pip install -r requirements.txt`: FAIL because shell remained in `C:\Users\jsaid` and, independently, upstream does not provide the referenced root requirements file.
 
+These are bootstrap/procedure failures, not an SSD inference/model-quality failure.
+
 ## Correct PowerShell rule
 
 Use:
@@ -109,21 +111,34 @@ Do not use CMD-only `cd /d` in PowerShell.
 
 Because conda is absent and the upstream explicitly targets a Python 3.10 conda environment, the spike will install **Miniconda** and create an isolated environment named `ssd`.
 
-To avoid PowerShell activation/path problems, operational scripts should prefer:
+To avoid PowerShell activation/path problems, project automation uses:
 
 `conda run -n ssd <command>`
 
 over relying on `conda activate` in the current shell.
 
+## Environment bootstrap runner
+
+Runner:
+
+`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
+
+The runner:
+
+1. verifies the existing upstream clone and actual `ModelTraining/inference.py` / config paths;
+2. locates an existing `conda.exe` if present;
+3. if absent, installs `Anaconda.Miniconda3` through WinGet in user scope;
+4. locates `conda.exe` without requiring a PowerShell PATH refresh;
+5. creates env `ssd` with Python 3.10 + pip;
+6. verifies Python 3.10 and pip through `conda run`;
+7. writes local proof marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
+8. intentionally downloads **no model weights** and installs **no large SSD dependency stack** in this gate.
+
 ## Current exact next gate
 
 **Environment bootstrap only.**
 
-1. install Miniconda if missing;
-2. locate `conda.exe` deterministically;
-3. create `ssd` with Python 3.10;
-4. verify `python --version` inside the environment;
-5. do not download model weights or install the large dependency stack until this gate passes.
+Run the committed runner. Do not download model weights or install the large dependency stack until it passes.
 
 ## PASS
 
@@ -131,7 +146,8 @@ Environment bootstrap PASS requires:
 
 - `conda.exe` resolvable;
 - environment `ssd` exists;
-- `conda run -n ssd python --version` reports Python 3.10.x.
+- `conda run -n ssd python --version` reports Python 3.10.x;
+- local bootstrap marker is written.
 
 ## FAIL
 
