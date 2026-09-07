@@ -57,53 +57,25 @@ Visual W0: meaningful raw-video motion transfer, stable official-character ident
 
 ## Runner 37 / W1 — COMPLETE
 
-Runner:
-
-`tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
-
 Evidence:
 
 - `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
 - `Z:\AI\WanAnimate2\w1_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1_api_prompt.json`
 
-Observed run:
+Diagnosis:
 
-- `INFERENCE_COMPLETE`;
-- same W0 official driver and Base-BF16 execution settings;
-- Exilada reference SHA256 `e8422ec9c7125eec8bf534e13cf0ceac9c2ade5e6e2f18cf26cd8f22e59755ab`;
-- 37 frames / 16 fps / 20 steps / seed 0;
-- pose strength 1.0 / reference strength 1.0;
-- elapsed 1746.69 s (~29m07s).
-
-### W1 diagnosis
-
-Positive:
-
-- substantial cross-identity motion transfer;
-- no visible cat identity/costume leakage;
-- long black hair visibly changes silhouette/trails over time, proving non-rigid inference beyond skeleton-only control;
-- ragged hip cloth changes drape;
-- coarse Exilada identity/state survives.
-
-Insufficient for production:
-
-- smooth/painterly output instead of discrete modern pixel/game-art;
+- strong cross-identity/raw-video motion transfer;
+- long hair and hip cloth show inferred non-rigid motion;
+- no cat appearance leakage;
+- smooth/painterly art-language drift;
 - face/body/reference-detail drift;
-- wrist restraints/chain largely lost; ankle chain morphs;
-- some hand/foot blur/stretch and a detached transient artifact;
-- later crop is inherited from the official driver/W0 framing trend, not Exilada-specific;
-- official driver cannot decide walking/jiggle/strong cloth-wind quality.
+- restraint/chain loss/morphing;
+- some hand/foot blur/stretch and a transient artifact;
+- later head/upper-body crop follows the same tendency in W0, therefore treat it primarily as driver/framing behavior;
+- official driver does not decide final walking/jiggle/wind performance.
 
-Classification:
-
-**W1 = production-appearance CONFIGURATION FAIL, but strong positive evidence for the raw-video motion/secondary-response architecture. Wan remains active.**
-
-## Native control discovered
-
-Current native ComfyUI `WanAnimate2ToVideo` documents `reference_image_strength` default 1.0 and states that values above 1.0 tighten reference/appearance adherence. This is separate from `pose_strength`.
-
-Therefore do not jump to W2/model switching yet. First isolate whether native reference strength fixes the exact W1 failure.
+Classification: **production-appearance CONFIGURATION FAIL with strong positive raw-video motion evidence. Wan remains active.**
 
 ## CURRENT GATE — RUNNER 38 / W1A REFERENCE STRENGTH 1.5
 
@@ -119,16 +91,7 @@ One changed variable only:
 
 `reference_image_strength: 1.0 -> 1.5`
 
-Everything else remains exact W1:
-
-- Exilada reference/prompt;
-- official driver;
-- Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
-- `640×800`, 37 frames, 16 fps, 20 steps;
-- CFG 1.0, Euler/simple, shift 5.0, seed 0;
-- pose strength 1.0;
-- negative prompt;
-- `--disable-pinned-memory`.
+Everything else remains exact W1: Exilada reference/prompt, official driver, Base BF16 stack, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, negative prompt and `--disable-pinned-memory`.
 
 Expected output:
 
@@ -136,9 +99,29 @@ Expected output:
 - `Z:\AI\WanAnimate2\w1a_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1a_api_prompt.json`
 
-Compare W1 vs W1A primarily on identity/style/accessory persistence, then verify motion did not materially degrade.
+## NEXT GATE AFTER W1A — AUTOMATIC FRAMING/CROP NORMALIZATION
 
-## Exact operator action
+The crop must be solved before W2. Do not repair generated output after the fact.
+
+Use the winning W1/W1A appearance setting, keep Wan/model/seed/settings unchanged, and change only the driving-video geometry through automatic preprocessing:
+
+1. detect/track performer automatically;
+2. derive a stable/smoothed full-clip subject box;
+3. fit the whole visible body plus safety margin inside a fixed `640×800` canvas;
+4. preserve aspect ratio;
+5. pad/letterbox rather than destructive center-crop;
+6. use constant or smoothly varying subject scale/center;
+7. no manual masks, keyframes or per-frame crop corrections.
+
+Success criterion: head and feet remain visible throughout while motion transfer remains materially intact.
+
+If validated, this normalization becomes mandatory preprocessing for Internet driving clips.
+
+## AFTER FRAMING — ART-DIRECTION PROMPT TEST
+
+Only after the crop is controlled, test the approved visual refinement separately: stronger 1980s barbarian/sword-and-sorcery influence, more torn fabric and more body exposure. Do not mix this with the framing experiment.
+
+## Exact operator action now
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
@@ -147,12 +130,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\38_run_wan_animate2_bf16_w1a_refstrength15.ps1"
 ```
 
-## Wan sequence after W1A
+## Wan sequence
 
-- if reference strength improves appearance, continue a small controlled reference-strength calibration before changing driver;
-- then W2: target Internet walking driver;
-- W3: secondary-motion stress footage;
-- W4: only finite high-leverage variants still justified by evidence.
+- W0: PASS_BASELINE.
+- W1: appearance CONFIGURATION FAIL, motion evidence positive.
+- W1A: CURRENT.
+- framing/crop normalization: NEXT.
+- art-direction prompt gate.
+- W2: Internet walking driver.
+- W3: secondary-motion stress footage.
+- W4: finite high-leverage variants only.
 
 ## Cleanup discipline
 
