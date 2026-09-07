@@ -19,170 +19,205 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 Every state-changing project action updates thematic docs, this file and the active handoff before completion is reported.
 
-Do not reconstruct a candidate route from memory when a prior test exists in Git history or canonical docs.
+## Model exhaustion protocol — LOCKED
 
-## Model exhaustion protocol — LOCKED 2026-09-07
+A bad output from one configuration is not enough to declare a model family incapable.
 
-A bad output from one configuration is **not** sufficient to declare the underlying model/model family incapable.
+Classify failures as:
 
-Before switching models, classify the result correctly:
-
-- **INFRASTRUCTURE FAIL** — install/runtime/loader/OOM/path/dependency problem; fix infrastructure and rerun;
-- **INTEGRATION FAIL** — wrong graph, incompatible checkpoint, preprocessing, registration, loader semantics or input contract; fix integration and rerun;
-- **CONFIGURATION FAIL** — one validated configuration does not meet quality/motion/style requirements; continue controlled testing;
-- **BLOCKED** — exact intended route cannot currently be reproduced because a required checkpoint/component is unavailable or hardware makes it impractical;
-- **MODEL/TASK FAIL** — only after an official/reference baseline is reproduced where possible, the task input contract is validated, meaningful parameters are tested systematically with fixed seeds, and the same decisive failure persists across multiple valid configurations.
+- `INFRASTRUCTURE FAIL` — install/runtime/loader/OOM/path/dependency;
+- `INTEGRATION FAIL` — wrong graph/checkpoint/preprocessing/input contract;
+- `CONFIGURATION FAIL` — valid run, inadequate tested settings;
+- `BLOCKED` — exact intended route cannot currently be reproduced;
+- `MODEL/TASK FAIL` — repeated decisive failure only after baseline/integration/input/meaningful parameter checks.
 
 Rules:
 
-1. Prefer one model/route at a time until its meaningful options are exhausted.
-2. First reproduce an official/reference baseline in the same local integration whenever practical.
-3. Then test the project task with the easiest valid matched input before adding the full Exilada complexity.
-4. Change one meaningful variable at a time and keep seed/input fixed when comparing settings; controlled sweeps are diagnostics, not seed fishing.
-5. Separate motion adherence, identity, topology, secondary motion and art-language failures so one class is not blamed on the wrong component.
-6. Do not delete a model workspace merely because one configuration failed. Cleanup occurs only after a genuine MODEL/TASK FAIL, an explicit abandonment decision, or a BLOCKED route whose files are no longer useful.
+1. exhaust one relevant model family before switching;
+2. reproduce official/reference baseline first where practical;
+3. change one meaningful variable at a time with fixed input/seed;
+4. separate motion, identity, topology, secondary motion and art-language failures;
+5. no random seed fishing;
+6. no manual rescue;
+7. do not delete the currently investigated model after one bad configuration.
 
-This supersedes earlier premature model-level rejection language.
+## Disk/model cleanup rule — LOCKED / USER RECONFIRMED 2026-09-07
+
+Do not accumulate unused large checkpoints/materials.
+
+- Keep only model variants that belong to the current diagnostic hypothesis.
+- When a variant is superseded and no longer needed, remove its local weights/materials.
+- Preserve small manifests, logs and result evidence.
+- Shared dependencies are retained only while an active route uses them.
+- A model family under active exhaustion is not deleted after one poor output.
+- Download a later comparison variant only when its gate is actually reached.
 
 ## Game / presentation — LOCKED
 
 - elevated 2D arcade beat'em-up / belt-scroller / false 3D;
-- fixed orthographic camera;
+- fixed orthographic gameplay camera;
 - native raster `640×360`;
 - pitch `26 deg`;
 - protagonist about `128 px` tall;
-- first canonical locomotion family is screen-left / mostly lateral-three-quarter;
-- `72 deg` azimuth from travel heading remains the current facing baseline (`90 deg` = pure side), but a raw-video model may use its own viewpoint control to preserve that game-facing intent.
+- first locomotion family screen-left / mostly lateral-three-quarter;
+- `72 deg` remains the current intended game-facing baseline.
 
 ## Runtime animation architecture — LOCKED
 
-The runtime plays **complete precomposed character frames**:
+Runtime consumes only **complete precomposed character frames**:
 
-`complete frames -> complete-character spritesheet PNG(s) + metadata -> ordinary sprite playback`
+`complete authored frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
 
-Runtime construction of the visible character from body/hair/clothing/equipment layers is **ABOLISHED/CLOSED**.
+Runtime construction from body/hair/clothing/equipment layers is abolished.
 
-Every exported frame must already contain the whole visible state and all baked motion, including where present:
+Every exported frame must already bake:
 
-- body locomotion;
-- soft-tissue/jiggle;
+- body motion;
+- soft-tissue/jiggle where appropriate;
 - hair motion;
-- base clothing/bindings motion;
-- shackles/chains/restraints/accessories motion;
+- clothing/bindings motion;
+- shackles/chains/restraints/accessories;
 - final occlusion.
 
-## Canonical Exilada initial-state master
+## Exilada appearance reference — LOCKED
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master is the **complete initial-state appearance reference** for current animation work.
+This is the complete initial-state appearance reference.
 
-## Complete-character generation contract — LOCKED 2026-09-07
+## Complete-character generation contract — LOCKED
 
-The final production model must use **two distinct references**:
+Production animation uses two distinct references:
 
-1. `exilada_master.png` for the target character's complete appearance/state;
-2. a real driving video for motion/performance.
+1. Exilada master for complete target appearance/state;
+2. arbitrary real driving video for movement/performance.
 
-The driving performer may come from arbitrary Internet video and does **not** need to wear matching clothing or resemble the Exilada.
+The driving performer may come from Internet video and does not need matching clothing, hair or body type.
 
-The production model must go beyond a body skeleton and automatically infer convincing:
+The production model must consume richer motion information than a body skeleton and automatically infer convincing:
 
-- body weight transfer and locomotion;
+- locomotion/weight transfer;
 - soft-body/jiggle response;
 - long-hair inertia/follow-through;
-- cloth lag/deformation/material behavior;
-- wind response where appropriate;
+- cloth deformation/lag/material response;
+- wind response where present;
 - chain/restraint/accessory dynamics.
 
-**Manual animation work is outside the production contract.** No manual keyframing, rigging, cloth/hair simulation, frame repainting, per-frame cleanup, hand compositing or manual mask correction may be required. Fully automatic preprocessing is allowed.
+No manual keyframing, rigging, cloth/hair simulation, manual masks, frame repainting, per-frame cleanup, hand compositing or other routine manual animation repair is allowed. Automatic preprocessing is allowed.
 
-Canonical screening/protocol:
+## Runner 34 — retained evidence
 
-`docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
+`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-## Moore / SSD status — RESEARCH ONLY FOR THIS FINAL CONTRACT
+Runner 34 proved:
 
-Runner 34 proved that complete-character spritesheet generation/packing works, and also showed that the current Moore-compatible SSD route preserves Exilada identity reasonably while following body pose to a degree.
+- complete-character generation/packing architecture: **PASS**;
+- RGBA frames/spritesheet/runtime playback: **PASS**;
+- current Moore+SSD pose-only result quality: **not sufficient**.
 
-However the current Moore/AnimateAnyone conditioning path receives body pose information rather than the full raw driving video. Under the newly locked production contract this makes it **structurally insufficient as the final complete-motion author**, because the conditioning signal discards the non-rigid motion classes we explicitly require: hair, cloth, jiggle, wind and accessory dynamics.
+Moore/AnimateAnyone pose-only conditioning is now research-only for the final contract because it discards the raw-video non-rigid dynamics required for hair, cloth, jiggle, wind and accessories.
 
-Therefore:
+Exact upstream SSD remains independently `BLOCKED` by the unavailable custom pose-guider checkpoint.
 
-- do not call Moore/SSD a useless model;
-- do not spend the next production gate on further body-pose tuning;
-- retain it as appearance/pose-transfer evidence and historical research;
-- exact public SSD remains separately BLOCKED by the missing custom pose-guider checkpoint.
+## Raw-video candidate ranking
 
-## Wan-Animate-2 historical test — CONFIGURATION FAIL, NOT EXHAUSTED
+1. **Wan-Animate-2** — exhaust first.
+2. **SCAIL-2** — next open/local candidate only after Wan reaches `EXHAUSTED_FAIL`.
+3. DreamActor-M2 — relevant benchmark but no current public self-hostable production route confirmed.
+4. Kling Motion Control — hosted benchmark only.
 
-Wan-Animate-2 is in the **correct architectural class** because it directly consumes a reference image plus the raw driving video and was specifically designed to avoid intermediate motion extractors.
+Do not install another pose-only model as the next production candidate.
 
-The 2026-09-04 local test remains valid evidence that the tested setup was poor for the project: weak motion transfer and a painted/smoothed visual result.
+## Wan-Animate-2 — CURRENT ACTIVE MODEL FAMILY
 
-But the previous global rejection was premature. A new audit found a material mismatch between that test and upstream Base defaults:
+The old 2026-09-04 Base INT8 run remains valid negative evidence for that constrained configuration, but not proof that the model family is exhausted.
 
-- historical project test: approximately `384×576`, `17` frames, seed `42`;
-- current upstream Base config: `640×800`, `37` frames, `16 fps`, `20` steps, base seed `0`;
-- upstream Base Diffusers example also uses `640×800` and 40 inference steps.
+Historical local test approximately used:
 
-The model therefore was **not exhausted** under a controlled protocol.
+- Base INT8 ConvRot;
+- UMT5 FP8;
+- `384×576`;
+- `17` frames;
+- seed `42`;
+- 20 steps.
 
-The isolated Wan workspace was deleted under the earlier premature cleanup decision and must be rebuilt if/when the exhaustion run begins.
+The upstream Base route is materially different. Current repository semantics include Base BF16, `640×800`, `37` frames, 16 fps, 20 steps, base seed `0`; the upstream Diffusers example also demonstrates Base BF16 at `640×800` with 40 steps.
 
-## SCAIL-2 — SELECTED FALLBACK CANDIDATE, NOT YET INSTALLED
+## Checkpoint-quality decision — LOCKED 2026-09-07
 
-SCAIL-2 is the strongest currently identified open/local alternative if Wan reaches a documented `EXHAUSTED_FAIL`.
+Hardware no longer chooses the checkpoint.
 
-Why it qualifies:
+Canonical W0 model set is the highest-quality Base route available in the ComfyUI repack:
 
-- reference image + end-to-end raw driving video;
-- explicitly bypasses pose/skeleton intermediates;
-- open weights/code;
-- native ComfyUI integration exists;
-- automatic SAM3 mask generation is compatible with the no-manual-work rule;
-- official end-to-end driving supports 512p/704p;
-- community GGUF Q4_K_M around 10.9 GB makes a 12 GB local proof plausible.
+- `wan_animate_2_bf16.safetensors` — about 32.8 GB;
+- `umt5_xxl_fp16.safetensors` — about 11.4 GB;
+- `clip_vision_h.safetensors` — about 1.26 GB;
+- `Wan2_1_VAE_bf16.safetensors` — about 0.254 GB.
 
-Do not install it yet. First exhaust Wan-Animate-2 because switching before a finite Wan exhaustion pass would repeat the workflow error the user explicitly rejected.
+Total model payload: approximately **45.7 GB**.
 
-## External benchmarks, not current production dependencies
+Not part of W0 and intentionally removed if found:
 
-- **DreamActor-M2**: excellent architectural match and strong reported end-to-end RGB-driven results, but no public self-hostable weights currently available; hosted/closed access only.
-- **Kling Video 3.0 Motion Control**: architecturally relevant reference-image + motion-video system, but closed/hosted and outside the current local/free/self-hosted constraint.
+- `wan_animate_2_int8_convrot.safetensors`;
+- `wan_animate_2_distill_bf16.safetensors`;
+- `wan_animate_2_distill_int8_convrot.safetensors`;
+- LightX2V distillation LoRA;
+- `umt5_xxl_fp8_e4m3fn_scaled.safetensors`.
 
-## CURRENT GATE — WAN-ANIMATE-2 MODEL EXHAUSTION, NO MANUAL RESCUE
+If W0 later proves that the 48 GB RAM / 12 GB VRAM machine cannot execute this exact set, reduce **execution** one controlled variable at a time. Do not pre-emptively replace the Base BF16 checkpoint with a lower-precision main model.
 
-Do not switch to another model before completing the finite Wan protocol documented in `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`.
+## Runner 35 — ACTIVE PREPARATION GATE
 
-Required order:
+Runner:
 
-1. **W0 official baseline** — official Wan reference + official Wan driving video in our local implementation, as close to upstream Base semantics as hardware permits.
-2. **W1 Exilada cross-identity** — same driver/settings; only replace the reference with `exilada_master.png`.
-3. **W2 target walking video** — use a clean real Internet walking clip; no costume match required.
-4. **W3 secondary-motion stress** — use a raw video with visible body bounce and non-rigid dynamics such as hair, loose cloth or wind.
-5. **W4 finite high-leverage variants** — Base vs Distilled, upstream vs hardware-safe resolution/frame window, one justified quantization tier, documented viewpoint/reference controls. Fixed seed unless stochasticity is explicitly under test.
+`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
 
-No manual alignment, manual masks, rigging, keyframes, cloth/hair animation, repainting, compositing or frame repair is permitted.
+It performs only setup/preflight, not inference:
 
-After W4 classify Wan as either:
+1. verifies at least 70 GB free on the workspace drive;
+2. rebuilds/restores isolated `D:\AI\WanAnimate2` ComfyUI;
+3. removes superseded Wan INT8/Distilled/LoRA/FP8 model material if found;
+4. downloads only the canonical ~45.7 GB BF16/FP16 model set;
+5. downloads upstream `examples/demo1/reference.png` and `template.mp4` for W0;
+6. copies `exilada_master.png` for future W1;
+7. removes completed Hugging Face/Xet download cache after target files are present;
+8. starts ComfyUI headlessly and records the exact installed `WanAnimate2ToVideo`/loader schemas;
+9. stops before inference so the W0 workflow can be authored from the actual fresh node contract rather than guessed widget semantics.
 
-- `PASS_CANDIDATE`, or
-- `EXHAUSTED_FAIL`.
+Expected proof files:
 
-Only then move to SCAIL-2.
+- `D:\AI\WanAnimate2\wan_bf16_route.json`;
+- `D:\AI\WanAnimate2\object_info_wan_bf16.json`.
 
-## Historical / closed assumptions
+Expected final marker:
 
-- runtime visible-character layer assembly — ABOLISHED/CLOSED;
-- visible 3D -> final pixel art — CLOSED;
-- manual hidden-3D secondary animation as production requirement — CLOSED by no-manual contract;
-- nearest-segment rigid partition — CLOSED;
-- whole-body chain/cage warp — CLOSED;
-- MPFB body as mandatory guide — CLOSED;
-- body-pose-only diffusion as final complete-motion production foundation — CLOSED;
-- exact-upstream SSD public recreation — BLOCKED by missing pose-guider checkpoint.
+`RUNNER35-WAN-BF16-PREP: PASS — READY TO AUTHOR W0 WORKFLOW`
 
-## Retention / cleanup
+## Wan exhaustion sequence after preparation
 
-Retain runner-34 outputs and SSD evidence as research history. Do not clean up a currently tested raw-video model merely because one configuration fails; apply the exhaustion protocol first.
+- **W0** official upstream reference + official driving video;
+- **W1** same known-good driver/settings, replace only reference with Exilada master;
+- **W2** clean real Internet walking clip;
+- **W3** real secondary-motion stress video with body bounce/hair/cloth/wind;
+- **W4** finite hypothesis-driven variants only (Base vs Distilled, hardware-safe window, one justified quantization, documented viewpoint/reference controls).
+
+After W4: `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
+
+## Retention decision for SSD workspace
+
+Do **not** delete `Z:\AI\SpriteSheetDiffusionSpike` yet.
+
+Reason: it remains a small number of retained comparison/evidence assets and a fallback research branch while Wan has not passed W0. Deleting it now would repeat the earlier premature-workspace-cleanup mistake.
+
+Once Wan establishes a viable production candidate or the project explicitly abandons SSD research, delete its large model/runtime material while preserving small result evidence.
+
+## Exact current operator action
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\35_prepare_wan_animate2_bf16_w0.ps1"
+```
+
+This command downloads about **45.7 GB** of canonical model payload plus ComfyUI/runtime overhead. It intentionally does not run the expensive BF16 inference yet.
