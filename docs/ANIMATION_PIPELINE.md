@@ -2,259 +2,218 @@
 
 Status date: **2026-09-07**
 
-Status: **RAW-VIDEO DUAL-REFERENCE COMPLETE-CHARACTER GENERATION IS THE ACTIVE PRODUCTION CLASS. BODY-POSE-ONLY AND MANUAL RIG/SIMULATION ROUTES ARE RESEARCH-ONLY FOR FINAL PRODUCTION. WAN-ANIMATE-2 MUST BE EXHAUSTED BEFORE SWITCHING; SCAIL-2 IS NEXT OPEN/LOCAL CANDIDATE.**
+Status: **RAW-VIDEO DUAL-REFERENCE COMPLETE-CHARACTER GENERATION IS THE ACTIVE PRODUCTION CLASS. WAN-ANIMATE-2 BASE BF16 MUST BE EXHAUSTED BEFORE SWITCHING; SCAIL-2 IS NEXT OPEN/LOCAL CANDIDATE.**
 
 Canonical screening/protocol:
 
 `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
 
-Canonical end-to-end project state:
+Canonical state:
 
 `docs/PROJECT_STATE.md`
 
 ## Hard production constraints
 
-The animation pipeline must:
+The production animation pipeline must:
 
-- start from `assets/source/characters/exilada/reference/exilada_master.png` as the complete initial-state appearance reference;
-- accept a **separate real driving video** for motion/performance;
-- allow the driving performer to differ completely in identity, clothing, hair and accessories;
-- preserve the Exilada's face, body proportions, hair mass, clothing state, scars/restraints and accessories across the sequence;
-- infer full-body locomotion automatically;
-- infer jiggle/soft-body motion automatically;
-- infer hair inertia/follow-through automatically;
-- infer cloth/material/wind response automatically;
-- infer restraint/chain/accessory dynamics automatically;
-- require no manual keyframing, rigging, cloth/hair simulation, per-frame repainting, manual masks or frame cleanup;
-- run through scripted/reproducible tooling on Windows 11 / RTX 3060 12 GB / ~48 GB RAM where possible;
-- prefer free/local/self-hosted tools and assets unless explicitly approved otherwise;
-- scale to many actions, characters, equipment states and world conditions;
-- output complete visible frames ready for spritesheet packing.
+- use `assets/source/characters/exilada/reference/exilada_master.png` as complete appearance/state reference;
+- accept a separate real driving video for movement/performance;
+- allow the driver performer to differ completely in identity, clothing, hair and accessories;
+- preserve Exilada identity, proportions, hair mass, clothing, scars/restraints and accessories;
+- infer locomotion, jiggle/soft motion, hair inertia, cloth/material/wind response and restraint/accessory motion automatically;
+- require no manual rigging, keyframing, simulation, masks, repainting, per-frame cleanup or hand compositing;
+- allow fully automatic preprocessing/postprocessing;
+- output complete visible frames ready for spritesheet packing;
+- run reproducibly through scripted local tooling where practical.
 
-## Final runtime contract
-
-Runtime representation:
+## Runtime contract — LOCKED
 
 `complete generated frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
 
-The runtime never assembles the visible character from body/hair/clothing/equipment layers.
+The runtime never assembles visible body/hair/clothing/equipment layers.
 
 ## No-manual rule — LOCKED
 
-The production solution may use automatic preprocessing and automatic postprocessing, but may not require recurring artistic/manual animation work.
+Allowed:
 
-Allowed automatic operations:
+- automatic crop/resize/frame sampling;
+- automatic segmentation/masks;
+- automatic background removal;
+- automatic alpha cleanup;
+- automatic spritesheet packing;
+- scripted QA/metadata;
+- scripted inference settings.
 
-- resize/crop/frame sampling;
-- auto segmentation/mask generation;
-- auto background removal;
-- auto alpha cleanup that does not involve hand painting;
-- automated spritesheet packing;
-- automated temporal/identity QA;
-- scripted inference parameterization.
-
-Disallowed required operations:
+Disallowed as required production work:
 
 - manual rigging/weight painting;
-- manual keyframes;
-- manual hair bones;
-- manual cloth simulation;
-- manual chain simulation;
+- keyframes;
+- hair bones;
+- cloth/chain simulation setup or repair;
 - manual pose alignment;
 - manual mask fixes;
-- per-frame repainting;
+- frame repainting;
 - hand compositing/cleanup.
 
-## Motion-source rule — UPDATED
+## Motion-source rule — LOCKED
 
 Final production motion must come from **real driving video consumed in a richer form than body skeleton alone**.
 
-Internet video is acceptable. Costume matching is not required.
+Internet footage is acceptable. Costume matching is not required.
 
-The model is expected to infer target-specific secondary behavior from raw spatiotemporal information plus learned priors.
-
-A skeleton, SMPL sequence or mocap may still be used for diagnostics/research, but cannot be the sole production motion signal because it discards non-rigid information such as hair, cloth, body soft motion, wind and accessory trajectories.
+Pose/SMPL/mocap may remain diagnostic inputs, but cannot be the sole production motion signal because they discard non-rigid temporal information.
 
 ## Model-exhaustion protocol — LOCKED
 
 Do not change model families after a single ugly generation.
 
-Classify failures as:
-
-- infrastructure;
-- integration;
-- configuration;
-- blocked;
-- exhausted model/task failure.
-
 Before `EXHAUSTED_FAIL`:
 
 1. reproduce official/reference behavior where practical;
-2. validate local loader/checkpoint/input semantics;
-3. test the project cross-identity case in controlled stages;
+2. validate local checkpoint/loader/input semantics;
+3. test cross-identity in controlled stages;
 4. change one high-leverage variable at a time;
-5. keep seed/input fixed unless stochasticity is itself under test;
+5. keep seed/input fixed unless stochasticity itself is tested;
 6. prohibit manual rescue;
 7. require the decisive failure to persist across a finite valid matrix.
 
-## Historical direct-frame diffusion research — FROZEN
+## Historical research
 
-### RefControl V1
+RefControl, Qwen edit, hidden-rig and Moore/SSD work remain research evidence. Runner 34 proved complete-character generation/packing but its pose-only motion path does not satisfy the final raw-video contract.
 
-Strength: strongest Exilada identity retention among early direct-frame tests; controls produced different poses.
+Exact public SSD remains separately `BLOCKED` by the absent custom pose-guider checkpoint.
 
-Failures: feet/toes, arms, body drift, chain/shackle topology.
+## Current production-class candidate — Wan-Animate-2
 
-Verdict: research reference only.
+Wan-Animate-2 directly consumes a reference image and raw driving video, so it belongs to the required model class.
 
-### RefControl V2
+Historical 2026-09-04 project run:
 
-Improved feet/arms/body stability; opposite gait phases collapsed.
+- Base INT8;
+- UMT5 FP8;
+- about `384×576`;
+- 17 frames;
+- seed 42;
+- weak locomotion transfer;
+- smooth/painted output.
 
-Verdict: FAIL configuration/research route.
+That configuration failed but did not exhaust the model family.
 
-### RefControl V3
+## W0 checkpoint-quality lock — 2026-09-07
 
-Recovered pose differentiation but produced catastrophic extra-leg/extra-foot topology in one phase.
+The RTX 3060 does not choose the checkpoint.
 
-Verdict: direct per-frame route rejected for production.
+Canonical reference-quality W0 set:
 
-### Qwen-Image-Edit-2509
+- `wan_animate_2_bf16.safetensors` — ~32.8 GB;
+- `umt5_xxl_fp16.safetensors` — ~11.4 GB;
+- `clip_vision_h.safetensors` — ~1.26 GB;
+- `Wan2_1_VAE_bf16.safetensors` — ~0.254 GB.
 
-Paused/research-only. A good isolated pose would not solve the complete temporal/non-rigid production contract.
+Total ~45.7 GB.
 
-## Deterministic rig / hidden 3D history — SUPERSEDED AS PRODUCTION FOUNDATION
+Do not retain in the active W0 workspace:
 
-The project previously favored:
+- Base INT8;
+- Distilled BF16;
+- Distilled INT8;
+- LightX2V distillation LoRA;
+- UMT5 FP8.
 
-`real/procedural motion -> deterministic rig/topology -> deterministic secondary attachments -> semantic passes -> pixel translation`
+Those variants are downloaded later only if W4 explicitly tests them.
 
-That path remains useful research infrastructure and topology diagnosis, but it is no longer the final production recommendation because the user explicitly rejects workflows that require manual rigging/simulation/animation work and wants the generative model to infer the complete animated character automatically.
+## Execution-concession order
 
-Historical benefits such as stable sockets/topology are acknowledged, but they do not outweigh the no-manual production contract.
+If 12 GB VRAM + 48 GB RAM cannot execute the reference set, reduce one variable at a time:
 
-## Moore / AnimateAnyone / SSD research status
+1. offload/cache behavior;
+2. temporal window;
+3. spatial resolution;
+4. text-encoder precision;
+5. main-model quantization only as a later explicit comparison.
 
-The current Moore-compatible SSD route:
+Do not pre-emptively degrade the Base BF16 transformer.
 
-`Moore AnimateAnyone graph + Moore baseline pose guider/motion module + released SSD reference/denoising UNets`
+## W0 upstream references
 
-is not exact published Sprite Sheet Diffusion because the custom SSD pose-guider checkpoint is absent from the public release available to the project.
+Official demo inputs:
 
-Runner 34 proved:
+- `examples/demo1/reference.png`;
+- `examples/demo1/template.mp4`.
 
-- complete-character frames can be generated/packed as a spritesheet;
-- Exilada identity can persist reasonably;
-- broad body pose can transfer to a degree.
+Repository Base YAML documents roughly `640×800`, 37 frames, 16 fps, 20 steps, seed 0. Upstream Diffusers separately demonstrates Base BF16 at `640×800` with 40 steps. Each W0 attempt must state which documented path it follows.
 
-Runner 34 also showed poor hair/cloth/jiggle/chain temporal behavior.
+## Runner 35 — ACTIVE PREPARATION
 
-Under the new production contract the more decisive limitation is architectural: body-pose conditioning is not the complete raw spatiotemporal signal required for automatic secondary dynamics.
+`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
 
-Therefore Moore/SSD is research-only as the final authoring foundation. Do not spend the next production gate tuning its body skeleton.
+Runner 35:
 
-## Current production-class candidate 1 — Wan-Animate-2
+- requires 70 GB free-space headroom;
+- rebuilds/restores isolated `D:\AI\WanAnimate2`;
+- removes superseded Wan INT8/Distilled/LoRA/FP8 files if found;
+- downloads only the ~45.7 GB BF16/FP16 W0 set;
+- downloads official demo1 inputs;
+- copies Exilada master for W1;
+- removes completed HF/Xet cache;
+- launches ComfyUI headlessly;
+- saves exact installed node schemas;
+- stops before inference.
 
-Wan-Animate-2 directly consumes:
+Expected marker:
 
-- a reference character image;
-- a raw driving video.
+`RUNNER35-WAN-BF16-PREP: PASS — READY TO AUTHOR W0 WORKFLOW`
 
-It explicitly eliminates intermediate motion extractors, placing it in the correct class for the target problem.
+This schema-first stop prevents stale-template/widget assumptions.
 
-The historical 2026-09-04 project run failed in its tested configuration, but the model was not exhausted.
-
-Audit finding:
-
-- old project run ≈ `384×576`, `17` frames, seed `42`;
-- upstream Base config = `640×800`, `37` frames, `16 fps`, `20` steps, base seed `0`;
-- upstream Diffusers Base example = `640×800`, 40 steps.
-
-Therefore the prior result is configuration evidence, not a final family verdict.
-
-The old isolated Wan workspace was deleted. A rebuild is permitted only under the finite exhaustion protocol.
-
-### Wan exhaustion stages
+## Wan exhaustion stages after Runner 35
 
 - **W0:** official reference + official driver baseline;
-- **W1:** same known-good driver, Exilada appearance reference only;
+- **W1:** same driver/settings, Exilada reference only;
 - **W2:** clean real Internet walking driver;
-- **W3:** raw-video stress with visible non-rigid dynamics (hair/cloth/wind/body bounce);
-- **W4:** finite hypothesis-driven variants only: Base vs Distilled, upstream vs hardware-safe window, one justified quantization tier, documented viewpoint control.
+- **W3:** non-rigid secondary-motion stress driver;
+- **W4:** finite hypothesis-driven variants only.
 
-No manual rescue and no seed fishing.
+After W4: `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
-## Next production-class candidate — SCAIL-2
+## SCAIL-2 — NEXT ONLY IF WAN EXHAUSTS
 
-If Wan reaches `EXHAUSTED_FAIL`, test SCAIL-2 next.
-
-Why:
-
-- open-source end-to-end character animation;
-- reference image + raw driving video;
-- explicitly bypasses skeleton/intermediate motion representations;
-- native ComfyUI path;
-- automatic SAM3 mask generation can keep the workflow hands-off;
-- end-to-end 512p/704p support;
-- community Q4_K_M GGUF around 10.9 GB gives a plausible RTX 3060 12 GB path.
-
-Do not install before Wan exhaustion closes.
-
-## External benchmark models
-
-### DreamActor-M2
-
-Pose-free/raw-RGB end-to-end character animation with strong reported benchmark results and fine-grained complex-motion handling.
-
-Not a current production dependency because no public self-hostable weights are available from the research release.
-
-### Kling Video 3.0 Motion Control
-
-Reference image + motion-reference video and strong hosted motion-control capabilities.
-
-Not a current production dependency because it is closed/hosted and outside the locked local/free/self-hosted preference.
-
-## Disqualified final-production classes
-
-Unless materially redesigned to accept rich end-to-end motion rather than body pose only:
-
-- AnimateAnyone / Moore pose-only;
-- current public SSD reconstruction;
-- MimicMotion;
-- UniAnimate-style pose pipelines;
-- Animate-X pose representation route;
-- Champ SMPL/depth/normal/semantic route;
-- MTVCrafter SMPL/3D-motion-token route;
-- manual 2D puppet animation;
-- manual hidden-3D rig/cloth/hair/chain animation.
-
-They may still provide diagnostic ideas or data, but they do not satisfy the final contract.
+SCAIL-2 remains the next selected open/local candidate because it also supports end-to-end raw-video character animation. Do not install it before Wan closes.
 
 ## Mandatory complete-sequence QA
 
-Judge every production-class candidate on the entire generated sequence:
+Judge the whole sequence on:
 
-1. Exilada identity/face/body proportions;
-2. body motion adherence/grounding;
+1. Exilada identity/proportions;
+2. motion adherence/grounding;
 3. limb/hands/feet topology;
-4. hair mass persistence and secondary motion;
-5. cloth topology and material response;
-6. body jiggle/soft response;
-7. chains/restraints/accessories attachment coherence;
-8. no leakage of the driver's identity/clothing/body shape;
-9. stable camera/background suitable for automatic extraction;
-10. game-art language at ~128 px gameplay height;
-11. loop/segment suitability for spritesheet packing;
+4. hair persistence/inertia;
+5. cloth topology/material behavior;
+6. jiggle/soft response;
+7. chains/restraints/accessory coherence;
+8. no driver identity/costume/body leakage;
+9. stable camera/background for extraction;
+10. game-art readability near 128 px;
+11. automatic loop/segment/spritesheet suitability;
 12. zero manual repair.
 
-## Immediate next implementation sequence
+## Cleanup discipline — LOCKED
 
-Do not implement another pose-only runner.
+Do not accumulate unused large model variants/materials.
 
-Do not install SCAIL-2 yet.
+- Keep only files tied to active hypotheses.
+- Remove superseded local model-specific files.
+- Preserve small logs/manifests/results.
+- Do not delete the current Wan BF16 route after one poor run.
+- Keep SSD comparison evidence until Wan W0 is established or SSD research is explicitly abandoned.
 
-Next:
+## Immediate next operator action
 
-`Wan rebuild preflight -> W0 official baseline -> W1 Exilada cross-identity -> W2 Internet walking driver -> W3 secondary-motion stress -> W4 finite variants -> PASS_CANDIDATE or EXHAUSTED_FAIL`
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-Before any Wan model download, enumerate exact files, approximate sizes, required disk, workspace layout and hardware deviations.
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\35_prepare_wan_animate2_bf16_w0.ps1"
+```
+
+After it passes, use the captured schema to author and run W0. Do not run the historical 384×576/17-frame INT8 scripts.
