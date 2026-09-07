@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — EXACT UPSTREAM SSD BLOCKED BY UNRELEASED CUSTOM POSE GUIDER / MOORE-COMPAT FALLBACK RUNNER 29 READY**
+Gate status: **ACTIVE — EXACT UPSTREAM SSD BLOCKED / MOORE-COMPAT RUNNER 29 TECHNICAL PASS / VISUAL QA PENDING**
 
 ## Decision
 
@@ -134,59 +134,82 @@ Status:
 
 The baseline AnimateAnyone pose guider is retained only as a **fallback-compatible Moore asset**, not as an exact SSD pose-guider checkpoint.
 
-## Current empirical salvage route — Moore-compatible graph + released SSD UNets
+## Moore-compatible empirical salvage route — TECHNICAL PASS
 
-Because the missing checkpoint prevents exact SSD inference, the next bounded validation uses a technically coherent graph whose pose guider actually matches the available checkpoint:
+Because the missing checkpoint prevents exact SSD inference, the bounded validation uses a technically coherent graph whose pose guider actually matches the available checkpoint:
 
 `Moore-AnimateAnyone graph + baseline Moore PoseGuider/motion module + released SSD fine-tuned denoising/reference UNets`
 
-This is **not** claimed to be the exact published SSD graph. It is an empirical salvage test answering a narrower practical question: do the released SSD fine-tuned UNets still provide useful sprite-character generation when run in the compatible original AnimateAnyone graph they evolved from?
+This is **not** claimed to be the exact published SSD graph. It answers a narrower practical question: do the released SSD fine-tuned UNets still provide useful sprite-character generation when run in the compatible original AnimateAnyone graph they evolved from?
 
 Pinned Moore source commit:
 
 `a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
-New helper:
+Helper:
 
 `tools/structured-2d-character-pipeline/g3s_ssd_moore_compat_walk8.py`
 
-New runner:
+Runner:
 
 `tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
 
-Runner 29:
+### Runner 29 result — 2026-09-07
 
-1. validates all existing environment/model/support PASS markers;
-2. rebuilds the canonical Exilada master + C1A walk8 input package;
-3. fetches only the pinned Moore-AnimateAnyone source code under `Z:\AI\SpriteSheetDiffusionSpike\moore_animateanyone`;
-4. reuses the already-downloaded VAE, SD1.5 base, CLIP encoder, released SSD denoising/reference UNets, baseline pose guider and motion module;
-5. verifies the pose-guider checkpoint has the Moore `conv_in/blocks/conv_out` signature;
-6. instantiates the matching Moore PoseGuider and Moore UNet/pipeline graph;
-7. loads the SSD denoising UNet with Moore's own `strict=False` convention but refuses unexpected checkpoint keys;
-8. loads the SSD reference UNet and baseline pose guider strictly;
-9. generates 8 frames at `512×512`, 25 steps, CFG 3.5, seed 42, fp16;
-10. writes PNG frames, contact sheet, GIF and a result marker explicitly labelled `exact_upstream_ssd: false`.
+Execution reached the intended terminal marker:
 
-No heavyweight model redownload or environment reinstall is required. Runner 29 downloads only the Moore source code.
+`SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`
 
-## Current exact operator action
+Confirmed from the operator log:
 
-Do **not** run runner 28 again.
+- canonical Exilada master + C1A walk8 input package rebuilt successfully;
+- pinned Moore source fetched/reset successfully;
+- model loading completed;
+- released SSD reference UNet loaded strictly;
+- released SSD denoising UNet produced **0 unexpected keys** under the Moore graph;
+- denoising load reported `588` missing keys under Moore's intended `strict=False` convention;
+- those missing keys do not imply random weights: Moore `UNet3DConditionModel.from_pretrained_2d()` first loads the SD1.5 spatial weights and separately merges the motion-module checkpoint before the fine-tuned denoising checkpoint is overlaid;
+- upstream SSD inference itself also loads `denoising_unet.pth` with `strict=False`, so partial overlay is part of the source model-loading design;
+- pose guider loaded strictly using the matching baseline Moore architecture;
+- generation completed: 8 frames, `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16;
+- diffusion completed `25/25` in approximately `42 s` on the RTX 3060;
+- PNG frames, contact sheet, GIF and result marker were written.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Non-fatal warnings observed:
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\29_run_ssd_moore_compat_exilada_walk8.ps1"
-```
+- unused SD1.5 `conv_norm_out` / `conv_out` weights during model initialization;
+- Torch `TypedStorage` deprecation warning;
+- future deprecation warning for direct `denoising_unet.in_channels` access.
 
-Technical PASS target:
+None prevented inference or output generation.
 
-- `SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`;
-- eight generated PNGs;
-- contact sheet;
-- GIF;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
+Artifacts:
+
+- `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\frames`;
+- `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`;
+- `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`;
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
+
+Runner 29 is therefore **TECHNICAL PASS / OUTPUT READY**, not visual PASS.
+
+## Current exact operator action — VISUAL QA
+
+Share the existing contact sheet and GIF for review. Do not rerun or retune before examining them:
+
+1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`
+2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`
+
+Visual QA must judge:
+
+- Exilada identity persistence;
+- anatomy/proportions;
+- long hair consistency;
+- cloth/shackles/chains consistency;
+- pose obedience to C1A;
+- temporal coherence;
+- whether the output is useful enough to justify further spritesheet production.
+
+No additional action family, resolution sweep, parameter tuning, FILM interpolation or spritesheet packing is authorized until this visual gate is closed.
 
 ## PASS semantics
 
@@ -200,7 +223,7 @@ A technical runner PASS is only output-ready status. Visual QA must judge:
 - temporal coherence;
 - whether output is useful enough to justify further spritesheet production.
 
-If runner 29 fails, diagnose that exact failure. Do not paper over architecture/state-dict mismatches with `strict=False` unless the source architecture itself explicitly requires it and the compatibility probe supports it.
+If the visual result fails, diagnose the failure category first. Do not paper over architecture/state-dict mismatches with `strict=False` unless the source architecture itself explicitly requires it and the compatibility probe supports it.
 
 ## Exact SSD route status
 
