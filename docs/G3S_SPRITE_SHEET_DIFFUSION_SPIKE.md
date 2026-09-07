@@ -1,8 +1,8 @@
 # G3S — Sprite Sheet Diffusion validation spike
 
-Status date: **2026-09-06**
+Status date: **2026-09-07**
 
-Gate status: **ACTIVE — LOCAL SSD INSTALLATION / ENVIRONMENT BOOTSTRAP RUNNER READY**
+Gate status: **ACTIVE — LOCAL SSD INSTALLATION / ENVIRONMENT BOOTSTRAP BLOCKED ONLY ON ANACONDA TOS OPT-IN**
 
 ## Decision
 
@@ -76,46 +76,52 @@ The Moore baseline includes Python 3.10-era versions including Torch 2.0.1 / tor
 
 ## Local workspace
 
-Expected workspace:
+Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
-Expected upstream clone:
+Upstream clone:
 
 `Z:\AI\SpriteSheetDiffusionSpike\repo`
 
-Actual user result on 2026-09-06:
+## Actual bootstrap history
+
+Initial user result:
 
 - upstream clone: **SUCCESS**;
-- received 887/887 objects;
+- 887/887 objects received;
 - approximately 289.63 MiB transferred;
-- `conda`: **NOT INSTALLED / NOT ON PATH**;
-- `conda create -n ssd python=3.10 -y`: FAIL because command not found;
-- `conda activate ssd`: FAIL because command not found;
-- `cd /d ...`: FAIL because `/d` is CMD syntax, not PowerShell syntax;
-- `pip install -r requirements.txt`: FAIL because shell remained in `C:\Users\jsaid` and, independently, upstream does not provide the referenced root requirements file.
+- `conda` initially not installed / not on PATH;
+- `cd /d ...` failed because `/d` is CMD syntax, not PowerShell;
+- `pip install -r requirements.txt` failed from `C:\Users\jsaid` and the upstream root requirements file is absent.
 
-These are bootstrap/procedure failures, not an SSD inference/model-quality failure.
+Bootstrap runner was then added:
 
-## Correct PowerShell rule
+`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-Use:
+Latest actual user result on 2026-09-07:
 
-```powershell
-Set-Location "Z:\AI\SpriteSheetDiffusionSpike\repo"
-```
+- Miniconda installation: **SUCCESS**;
+- resolved `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
+- `conda create -n ssd python=3.10 pip -y`: **BLOCKED BEFORE PACKAGE TRANSACTION**;
+- blocker: `CondaToSNonInteractiveError` because Anaconda Terms of Service were not yet accepted for default channels:
+  - `https://repo.anaconda.com/pkgs/main`;
+  - `https://repo.anaconda.com/pkgs/r`;
+  - `https://repo.anaconda.com/pkgs/msys2`.
 
-Do not use CMD-only `cd /d` in PowerShell.
+This is not an SSD/model failure. The environment has not yet been created.
 
-## Environment decision
+## ToS handling decision — EXPLICIT OPT-IN ONLY
 
-Because conda is absent and the upstream explicitly targets a Python 3.10 conda environment, the spike will install **Miniconda** and create an isolated environment named `ssd`.
+The project runner must **not silently accept legal terms on the user's behalf**.
 
-To avoid PowerShell activation/path problems, project automation uses:
+Runner 24 now supports:
 
-`conda run -n ssd <command>`
+`-AcceptAnacondaTos`
 
-over relying on `conda activate` in the current shell.
+Supplying that switch is the user's explicit opt-in to let the runner execute the exact `conda tos accept` commands for the three required default channels before creating the environment.
+
+Without that switch, if environment creation is needed, runner 24 stops and prints the required action rather than accepting terms automatically.
 
 ## Environment bootstrap runner
 
@@ -123,22 +129,34 @@ Runner:
 
 `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-The runner:
+Current behavior:
 
-1. verifies the existing upstream clone and actual `ModelTraining/inference.py` / config paths;
-2. locates an existing `conda.exe` if present;
-3. if absent, installs `Anaconda.Miniconda3` through WinGet in user scope;
-4. locates `conda.exe` without requiring a PowerShell PATH refresh;
+1. verifies the existing upstream clone and actual inference/config paths;
+2. locates existing `conda.exe` or installs Miniconda through WinGet if absent;
+3. probes for an already-working `ssd` Python 3.10 environment;
+4. if no environment exists, requires explicit `-AcceptAnacondaTos` before accepting Anaconda default-channel terms;
 5. creates env `ssd` with Python 3.10 + pip;
 6. verifies Python 3.10 and pip through `conda run`;
-7. writes local proof marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
-8. intentionally downloads **no model weights** and installs **no large SSD dependency stack** in this gate.
+7. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
+8. downloads **no model weights** and installs **no large SSD dependency stack** in this gate.
 
 ## Current exact next gate
 
 **Environment bootstrap only.**
 
-Run the committed runner. Do not download model weights or install the large dependency stack until it passes.
+If the user agrees to the Anaconda Terms of Service for the three channels above, run:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
+  -AcceptAnacondaTos
+```
+
+Using `-AcceptAnacondaTos` is explicit acceptance authorization for the runner; it is not implied by project participation.
+
+Do not download model weights or install the large dependency stack until this environment gate passes.
 
 ## PASS
 
@@ -151,7 +169,7 @@ Environment bootstrap PASS requires:
 
 ## FAIL
 
-Environment bootstrap FAIL if Miniconda cannot be installed/located or Python 3.10 environment creation fails.
+Environment bootstrap FAIL if Terms are not accepted, Miniconda cannot be used, or Python 3.10 environment creation fails.
 
 ## Later model assets — NOT YET DOWNLOADED
 
@@ -175,10 +193,10 @@ Workspace:
 Remove-Item -LiteralPath "Z:\AI\SpriteSheetDiffusionSpike" -Recurse -Force -ErrorAction SilentlyContinue
 ```
 
-Environment:
+Environment, if later created:
 
 ```powershell
-conda env remove -n ssd -y
+& "C:\Users\jsaid\miniconda3\Scripts\conda.exe" env remove -n ssd -y
 ```
 
 This cleanup applies only if the SSD route is explicitly closed.
