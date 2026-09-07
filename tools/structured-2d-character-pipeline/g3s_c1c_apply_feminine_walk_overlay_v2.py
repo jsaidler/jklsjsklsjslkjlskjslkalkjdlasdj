@@ -117,22 +117,13 @@ def main() -> int:
 
     pelvis_ys = [float(frame["joints"]["pelvis"]["y"]) for frame in frames]
     median_pelvis_y = median(pelvis_ys)
-    head_offsets_x = [
-        float(frame["joints"]["head"]["x"]) - float(frame["joints"]["neck"]["x"])
-        for frame in frames
-    ]
-    head_offsets_y = [
-        float(frame["joints"]["head"]["y"]) - float(frame["joints"]["neck"]["y"])
-        for frame in frames
-    ]
+    head_offsets_x = [float(frame["joints"]["head"]["x"]) - float(frame["joints"]["neck"]["x"]) for frame in frames]
+    head_offsets_y = [float(frame["joints"]["head"]["y"]) - float(frame["joints"]["neck"]["y"]) for frame in frames]
     median_head_dx = median(head_offsets_x)
     median_head_dy = median(head_offsets_y)
 
     out = copy.deepcopy(source)
-    out["purpose"] = (
-        "C1C gameplay walk overlay V2: subtle feminine locomotion art direction "
-        "on approved 72-degree facing; real gait timing/support retained"
-    )
+    out["purpose"] = "C1C gameplay walk overlay V2: subtle feminine locomotion art direction on approved 72-degree facing; real gait timing/support retained"
     out["status"] = "REVIEW_REQUIRED"
     out["c1c_gameplay_overlay"] = {
         "revision": "GAMEPLAY_WALK_OVERLAY_V2_FEMININE",
@@ -156,7 +147,6 @@ def main() -> int:
         if phase not in params["phase_weight"]:
             fail(f"unknown gait phase in event: {event}")
         phase_weight = float(params["phase_weight"][phase])
-
         pelvis_x = float(original["pelvis"]["x"])
         pelvis_y = float(original["pelvis"]["y"])
 
@@ -188,10 +178,7 @@ def main() -> int:
         joints[f"{swing}_hip"]["x"] = float(joints[f"{swing}_hip"]["x"]) - yaw_split * 0.5
         joints[f"{support}_hip"]["x"] = float(joints[f"{support}_hip"]["x"]) + yaw_split * 0.5
         for side in (support, swing):
-            dx = (
-                float(joints[f"{side}_hip"]["x"])
-                - (pelvis_x + (float(original[f"{side}_hip"]["x"]) - pelvis_x) * params["stride_x_scale"]["hip"])
-            )
+            dx = float(joints[f"{side}_hip"]["x"]) - (pelvis_x + (float(original[f"{side}_hip"]["x"]) - pelvis_x) * params["stride_x_scale"]["hip"])
             for part, weight in (("knee", 0.52), ("ankle", 0.16), ("toe", 0.10)):
                 joints[f"{side}_{part}"]["x"] = float(joints[f"{side}_{part}"]["x"]) + dx * weight
 
@@ -216,12 +203,7 @@ def main() -> int:
         head_y = float(joints["head"]["y"])
         pelvis_y_after_bob = float(joints["pelvis"]["y"])
         torso_height = max(1.0, pelvis_y_after_bob - head_y)
-        torso_names = [
-            "chest", "neck", "head",
-            "left_shoulder", "right_shoulder",
-            "left_elbow", "right_elbow",
-            "left_wrist", "right_wrist",
-        ]
+        torso_names = ["chest", "neck", "head", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist"]
         for name in torso_names:
             y = float(joints[name]["y"])
             fraction_up = max(0.0, min(1.0, (pelvis_y_after_bob - y) / torso_height))
@@ -249,7 +231,6 @@ def main() -> int:
         joints["head"]["y"] = neck_y + lerp(current_dy, median_head_dy, t)
 
         update_chain_metrics(frame)
-
         transformed_metrics.append({
             "index": index,
             "event": event,
@@ -270,12 +251,13 @@ def main() -> int:
     if float(out.get("root_travel_total_dx_px", 0.0)) >= 0:
         fail("source guide no longer projects forward travel screen-left")
 
-    hip_diffs = [
-        abs(float(f["joints"]["left_hip"]["y"]) - float(f["joints"]["right_hip"]["y"]))
-        for f in out["frames"]
-    ]
-    if max(hip_diffs) > 8.0:
-        fail(f"V2 pelvic obliquity exceeded safety limit: {max(hip_diffs):.2f}px")
+    source_hip_diffs = [abs(float(f["joints"]["left_hip"]["y"]) - float(f["joints"]["right_hip"]["y"])) for f in source["frames"]]
+    authored_hip_diffs = [abs(float(f["joints"]["left_hip"]["y"]) - float(f["joints"]["right_hip"]["y"])) for f in out["frames"]]
+    added_hip_separation = [max(0.0, authored - baseline) for authored, baseline in zip(authored_hip_diffs, source_hip_diffs)]
+    max_added = max(added_hip_separation)
+    max_allowed_added = float(params["pelvic_obliquity_total_px"]) + 0.25
+    if max_added > max_allowed_added:
+        fail(f"V2 authored pelvic obliquity exceeded additive safety limit: {max_added:.2f}px > {max_allowed_added:.2f}px")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     marker_path.parent.mkdir(parents=True, exist_ok=True)
@@ -290,13 +272,19 @@ def main() -> int:
         "output_guide": str(output_path),
         "facing_azimuth_deg": 72.0,
         "parameters": params,
-        "max_projected_hip_y_difference_px": max(hip_diffs),
+        "max_source_projected_hip_y_difference_px": max(source_hip_diffs),
+        "max_authored_projected_hip_y_difference_px": max(authored_hip_diffs),
+        "max_added_projected_hip_y_separation_px": max_added,
+        "max_allowed_added_projected_hip_y_separation_px": max_allowed_added,
         "transformed_metrics": transformed_metrics,
         "visual_qa_required": True,
     }
     marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
 
     print("G3S-C1C-FEMININE-V2: PASS_OUTPUT_READY_FOR_SKELETON_VISUAL_QA")
+    print(f"MAX SOURCE HIP Y DIFF:   {max(source_hip_diffs):.2f}px")
+    print(f"MAX AUTHORED HIP Y DIFF: {max(authored_hip_diffs):.2f}px")
+    print(f"MAX ADDED HIP Y DIFF:    {max_added:.2f}px")
     print(f"SOURCE: {input_path}")
     print(f"GUIDE:  {output_path}")
     print(f"MARKER: {marker_path}")
