@@ -13,6 +13,22 @@ Select only model classes capable of generating the Exilada as a **complete anim
 
 The driving performer does not need matching clothing, hair, body type or identity and may come from Internet video.
 
+## Local workspace lock — 2026-09-07
+
+Project repository:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite`
+
+AI/model workspace root:
+
+`Z:\AI`
+
+Active Wan workspace:
+
+`Z:\AI\WanAnimate2`
+
+`D:\AI` is stale/historical and must not be used by current tooling. The first BF16 W0 preparation attempt failed before installation because an old hard-code still referenced `D:\AI`. This is classified strictly as an **INFRASTRUCTURE/PATH FAIL** and carries no model-quality conclusion. Runner/bootstrap/inspect were corrected to use `Z:\AI\WanAnimate2`, with comfy-cli working directory derived from the configured workspace parent.
+
 ## Hard production contract — LOCKED
 
 A production candidate must:
@@ -134,8 +150,8 @@ Do not begin W1 with Exilada until W0 establishes credible local motion transfer
 
 Runner 35:
 
-1. requires 70 GB free-space headroom;
-2. rebuilds/restores isolated `D:\AI\WanAnimate2`;
+1. requires 70 GB free-space headroom on `Z:`;
+2. rebuilds/restores isolated `Z:\AI\WanAnimate2`;
 3. cleans superseded Wan INT8/Distilled/LoRA/FP8 assets;
 4. downloads only the canonical ~45.7 GB W0 set;
 5. downloads official demo1 inputs;
