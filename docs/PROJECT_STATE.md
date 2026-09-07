@@ -46,7 +46,7 @@ The complete-character generation contract is:
 
 ## Model exhaustion protocol — LOCKED
 
-A single bad run does not kill a model family. Distinguish infrastructure, integration, configuration and model/task failures. Exhaust one relevant family before switching. No random seed fishing and no manual rescue.
+A single bad run does not kill a model family. Distinguish infrastructure, integration, configuration and model/task failures. Exhaust one relevant family before switching. Change one high-leverage variable at a time with fixed seed/input. No random seed fishing and no manual rescue.
 
 ## Disk/model cleanup rule — LOCKED
 
@@ -59,7 +59,7 @@ Do not accumulate unused large checkpoints/materials. Keep only variants tied to
 
 Moore/AnimateAnyone pose-only and the current Moore+SSD compatibility route remain research evidence only for the final raw-video contract. Exact public SSD remains independently `BLOCKED` by the absent custom SSD pose-guider checkpoint.
 
-## Wan canonical W0 model set
+## Wan canonical Base-BF16 model set
 
 - `wan_animate_2_bf16.safetensors` — ~32.8 GB
 - `umt5_xxl_fp16.safetensors` — ~11.4 GB
@@ -80,103 +80,128 @@ Result: **PASS**. BF16 assets installed and native ComfyUI schema captured under
 
 `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
 
-Builder: `tools/wan-animate2-spike/build_and_run_w0.py`
+Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `RuntimeError: hostbuf_file_reader_read failed`; infrastructure only.
 
-### Attempt 1
+Attempt 2 changed one execution variable only: ComfyUI launched with `--disable-pinned-memory`.
 
-Infrastructure failure only:
+Result: **PASS_BASELINE**.
 
-`RuntimeError: hostbuf_file_reader_read failed`
+Successful W0 facts:
 
-inside `comfy_aimdo/host_buffer.py` during host-buffer/dynamic weight streaming.
+- official demo1 reference + official raw driver;
+- Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
+- `640×800`, 37 frames, 16 fps;
+- 20 steps, CFG `1.0`, Euler/simple, shift `5.0`, seed `0`;
+- pose/reference strengths `1.0`;
+- elapsed ~`1896.94 s` (~31m37s).
 
-### Attempt 2
+Visual W0: substantial motion transfer, stable cat/species identity and costume, no catastrophic topology collapse. Some blur/framing movement exists but integration is credible.
 
-The runner changed exactly one execution variable: ComfyUI started with `--disable-pinned-memory`.
+## Runner 37 — W1 EXILADA CROSS-IDENTITY COMPLETE
 
-Result: **PASS — official Base-BF16 W0 generated.**
+Runner: `tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
 
-Observed W0 manifest facts:
+Executor: `tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
 
-- Base BF16 main model;
-- UMT5 XXL FP16;
-- CLIP Vision H;
-- Wan VAE BF16;
-- official upstream demo1 reference + official demo1 driving video;
-- `640×800`;
-- 37 frames;
-- 16 fps;
-- 20 steps;
-- CFG `1.0`;
-- Euler/simple;
-- shift `5.0`;
-- seed `0`;
-- pose/reference strength `1.0`;
-- elapsed inference ~`1896.94 s` (~31m37s).
+Observed manifest:
+
+- status `INFERENCE_COMPLETE`;
+- Exilada reference SHA256 `e8422ec9c7125eec8bf534e13cf0ceac9c2ade5e6e2f18cf26cd8f22e59755ab`;
+- same official W0 driver;
+- Base BF16 stack unchanged;
+- `640×800`, 37 frames, 16 fps, 20 steps;
+- CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- pose strength 1.0;
+- reference-image strength 1.0;
+- elapsed `1746.69 s` (~29m07s);
+- output SHA256 `2bbbf3bd0c5b0db46bc1e9d33abd003b7f3627c8fba7880f45d62724f6ab233f`.
 
 Canonical evidence:
-
-- `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
-- `Z:\AI\WanAnimate2\w0_run_manifest.json`
-- `Z:\AI\WanAnimate2\w0_api_prompt.json`
-- `Z:\AI\WanAnimate2\object_info_w0_live.json`
-
-### Visual W0 diagnosis — PASS_BASELINE
-
-The uploaded W0 video shows a coherent complete character over all 37 frames with substantial transferred body/arm motion, persistent face/species identity, persistent uniform/bow/skirt design and no catastrophic limb/topology collapse. Some motion blur and framing/crop movement are visible, but not enough to invalidate the integration baseline.
-
-W0 therefore proves that the local Base-BF16/raw-driving-video path is operational and capable of meaningful motion transfer.
-
-W0 does **not** yet prove the project task: it does not test Exilada identity, pixel/game-art preservation, long black hair, ragged cloth, soft-body response or chains/restraints.
-
-## Runner 37 — CURRENT GATE: W1 EXILADA CROSS-IDENTITY
-
-Runner:
-
-`tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
-
-Executor:
-
-`tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
-
-W1 is derived directly from the successful W0 API prompt. It preserves the successful official driver and all execution/model settings, including the `--disable-pinned-memory` workaround.
-
-The W0 target appearance package must change as a unit because the W0 positive prompt literally describes the official cat character. W1 therefore changes:
-
-- reference image -> `exilada_master.png`;
-- positive appearance description -> matching canonical Exilada description;
-- output prefix only.
-
-It keeps unchanged:
-
-- official W0 driving video;
-- Base BF16 / UMT5 FP16 / CLIP Vision H / VAE BF16;
-- `640×800`, 37 frames, 16 fps;
-- 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
-- pose/reference strengths;
-- W0 negative prompt.
-
-Expected outputs:
 
 - `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
 - `Z:\AI\WanAnimate2\w1_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1_api_prompt.json`
 
-W1 QA must judge complete initial-state preservation, face/body identity, long-hair mass and inertia, ragged cloth behavior, shackles/chains, driver leakage, topology, motion adherence and whether the approved pixel/game-art language survives rather than becoming smooth/painterly.
+### W1 visual diagnosis — MOTION/RAW-VIDEO CLASS PASS, PRODUCTION APPEARANCE CONFIGURATION FAIL
+
+Positive evidence:
+
+- cross-identity raw-video motion transfer is clearly substantial;
+- no cat identity/costume leaks into the Exilada;
+- long black hair is not frozen: its silhouette and trailing mass change over time, demonstrating inferred non-rigid secondary response beyond a skeleton-only driver;
+- ragged hip cloth changes drape with pose/motion;
+- the general Exilada package survives at coarse level: adult woman, brown/olive skin, long black hair, minimal beige wraps, barefoot state, wounds/wear and at least one ankle restraint/chain remain recognizable.
+
+Current failures:
+
+- output is smooth/painterly rather than the required discrete modern pixel/game-art language, despite the explicit positive prompt;
+- face and body details drift; proportions become more generically muscular/illustrative than the approved target;
+- restraints/accessories are incomplete: wrist restraint/chain information largely disappears and the surviving ankle chain morphs;
+- some hand/foot blur/stretching and one detached transient artifact are visible;
+- complete framing is not reliable in this official driver: later frames crop the head/upper body. The same crop trend exists in W0, so this is inherited driver/framing behavior rather than an Exilada-specific failure;
+- the official cat driver is not suitable to judge target locomotion, jiggle or strong cloth/wind stress conclusively.
+
+Therefore W1 does **not** reject Wan. It proves the correct model class is operational but shows that appearance/reference adherence at native strength `1.0` is not production-ready.
+
+## Native reference-strength finding — HIGH-LEVERAGE CONTROL
+
+The installed/current native ComfyUI `WanAnimate2ToVideo` schema documents:
+
+- `reference_image_strength` default `1.0`;
+- values above `1.0` tighten generated-frame attention to the reference latent and reduce appearance drift;
+- `pose_strength` separately owns driving-motion influence.
+
+This gives a direct one-variable diagnostic for the exact W1 failure before changing driver/model family.
+
+## Runner 38 — CURRENT GATE: W1A REFERENCE STRENGTH 1.5
+
+Runner:
+
+`tools/structured-2d-character-pipeline/38_run_wan_animate2_bf16_w1a_refstrength15.ps1`
+
+Executor:
+
+`tools/wan-animate2-spike/run_w1a_reference_strength.py`
+
+W1A is derived from the exact completed W1 prompt and changes exactly one model-conditioning variable:
+
+`reference_image_strength: 1.0 -> 1.5`
+
+Everything else is held fixed:
+
+- Exilada reference image and positive prompt;
+- official W0/W1 driver;
+- Base BF16 / UMT5 FP16 / CLIP Vision H / VAE BF16;
+- `640×800`, 37 frames, 16 fps;
+- 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- pose strength 1.0;
+- negative prompt;
+- `--disable-pinned-memory` runtime workaround.
+
+Hypothesis: a moderate native reference-strength increase should tighten identity, hair/clothing/accessory persistence and possibly preserve more of the reference art language without materially damaging motion transfer.
+
+Expected outputs:
+
+- `Z:\AI\WanAnimate2\w1a_exilada_refstrength15.mp4`
+- `Z:\AI\WanAnimate2\w1a_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1a_api_prompt.json`
+
+After W1A, compare directly against W1 strength 1.0. If appearance improves materially without unacceptable motion loss, continue reference-strength calibration inside this same branch before W2. If not, the next diagnostic variable will be chosen from native conditioning semantics, not by switching models.
 
 ## Wan exhaustion sequence
 
 - **W0** official baseline — **PASS_BASELINE**.
-- **W1** Exilada + same official driver — **CURRENT**.
-- **W2** target Internet walking driver.
+- **W1** Exilada + official driver at reference strength 1.0 — **CONFIGURATION FAIL for production appearance; motion/secondary-response evidence positive**.
+- **W1A** same W1 with reference strength 1.5 — **CURRENT**.
+- **W2** target Internet walking driver — after appearance conditioning is understood well enough.
 - **W3** secondary-motion stress footage.
-- **W4** finite high-leverage variants only if needed.
+- **W4** finite high-leverage variants only if still needed.
 
 After W4: `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
 ## SSD retention
 
-Keep `Z:\AI\SpriteSheetDiffusionSpike` for now as comparison/fallback evidence. Do not delete it merely because Wan W0 passed; decide cleanup only after Wan reaches a useful production verdict.
+Keep `Z:\AI\SpriteSheetDiffusionSpike` for now as comparison/fallback evidence. Do not delete it while Wan remains under active exhaustion.
 
 ## Exact current operator action
 
@@ -184,5 +209,5 @@ Keep `Z:\AI\SpriteSheetDiffusionSpike` for now as comparison/fallback evidence. 
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\37_run_wan_animate2_bf16_w1_exilada.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\38_run_wan_animate2_bf16_w1a_refstrength15.ps1"
 ```
