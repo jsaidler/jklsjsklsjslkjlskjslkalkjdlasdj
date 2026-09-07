@@ -51,56 +51,92 @@ BF16 assets and native ComfyUI schemas are present under `Z:\AI\WanAnimate2`.
 
 ## Runner 36 / W0 — PASS_BASELINE
 
-Runner: `tools/structured-2d-character-pipeline/36_run_wan_animate2_bf16_w0.ps1`
+Official demo1 reference + raw driver completed at `640×800`, 37 frames, 16 fps, 20 steps, seed 0 using Base BF16. The first attempt hit `hostbuf_file_reader_read failed`; relaunching ComfyUI with only `--disable-pinned-memory` fixed the infrastructure issue.
 
-Attempt 1 failed in ComfyUI AIMDO host-buffer streaming with `hostbuf_file_reader_read failed`.
+Visual W0: meaningful raw-video motion transfer, stable official-character identity/costume, no catastrophic topology collapse.
 
-Attempt 2 changed only the ComfyUI launch flag `--disable-pinned-memory` and completed successfully.
-
-Successful W0 facts:
-
-- official upstream demo1 reference + driver;
-- Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
-- `640×800`, 37 frames, 16 fps;
-- 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
-- elapsed ~1896.94 s (~31m37s).
-
-Evidence:
-
-- `Z:\AI\WanAnimate2\w0_official_baseline.mp4`
-- `Z:\AI\WanAnimate2\w0_run_manifest.json`
-- `Z:\AI\WanAnimate2\w0_api_prompt.json`
-- `Z:\AI\WanAnimate2\object_info_w0_live.json`
-
-Visual result is good enough to pass the integration baseline: substantial movement transfer, stable cat identity/costume, no catastrophic topology collapse. Some blur/framing movement exists. This is not yet proof of Exilada/project fitness.
-
-## CURRENT GATE — RUNNER 37 / W1 EXILADA
+## Runner 37 / W1 — COMPLETE
 
 Runner:
 
 `tools/structured-2d-character-pipeline/37_run_wan_animate2_bf16_w1_exilada.ps1`
 
-Executor:
-
-`tools/wan-animate2-spike/run_w1_from_w0_prompt.py`
-
-W1 is derived from the exact successful W0 API prompt.
-
-Because the W0 positive prompt literally describes the official cat, the target appearance package changes coherently:
-
-- `LoadImage` reference -> `exilada_master.png`;
-- positive appearance description -> canonical Exilada description;
-- output prefix.
-
-Everything else remains identical to successful W0: official driving video, Base BF16 stack, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, conditioning strengths and negative prompt. ComfyUI continues to launch with `--disable-pinned-memory`.
-
-Expected output:
+Evidence:
 
 - `Z:\AI\WanAnimate2\w1_exilada_official_driver.mp4`
 - `Z:\AI\WanAnimate2\w1_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1_api_prompt.json`
 
-Judge W1 on Exilada identity/body proportions, complete initial-state preservation, long hair, ragged cloth, soft-body response, shackles/chains, motion adherence, topology, driver leakage and especially preservation of the approved discrete pixel/game-art language.
+Observed run:
+
+- `INFERENCE_COMPLETE`;
+- same W0 official driver and Base-BF16 execution settings;
+- Exilada reference SHA256 `e8422ec9c7125eec8bf534e13cf0ceac9c2ade5e6e2f18cf26cd8f22e59755ab`;
+- 37 frames / 16 fps / 20 steps / seed 0;
+- pose strength 1.0 / reference strength 1.0;
+- elapsed 1746.69 s (~29m07s).
+
+### W1 diagnosis
+
+Positive:
+
+- substantial cross-identity motion transfer;
+- no visible cat identity/costume leakage;
+- long black hair visibly changes silhouette/trails over time, proving non-rigid inference beyond skeleton-only control;
+- ragged hip cloth changes drape;
+- coarse Exilada identity/state survives.
+
+Insufficient for production:
+
+- smooth/painterly output instead of discrete modern pixel/game-art;
+- face/body/reference-detail drift;
+- wrist restraints/chain largely lost; ankle chain morphs;
+- some hand/foot blur/stretch and a detached transient artifact;
+- later crop is inherited from the official driver/W0 framing trend, not Exilada-specific;
+- official driver cannot decide walking/jiggle/strong cloth-wind quality.
+
+Classification:
+
+**W1 = production-appearance CONFIGURATION FAIL, but strong positive evidence for the raw-video motion/secondary-response architecture. Wan remains active.**
+
+## Native control discovered
+
+Current native ComfyUI `WanAnimate2ToVideo` documents `reference_image_strength` default 1.0 and states that values above 1.0 tighten reference/appearance adherence. This is separate from `pose_strength`.
+
+Therefore do not jump to W2/model switching yet. First isolate whether native reference strength fixes the exact W1 failure.
+
+## CURRENT GATE — RUNNER 38 / W1A REFERENCE STRENGTH 1.5
+
+Runner:
+
+`tools/structured-2d-character-pipeline/38_run_wan_animate2_bf16_w1a_refstrength15.ps1`
+
+Executor:
+
+`tools/wan-animate2-spike/run_w1a_reference_strength.py`
+
+One changed variable only:
+
+`reference_image_strength: 1.0 -> 1.5`
+
+Everything else remains exact W1:
+
+- Exilada reference/prompt;
+- official driver;
+- Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
+- `640×800`, 37 frames, 16 fps, 20 steps;
+- CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- pose strength 1.0;
+- negative prompt;
+- `--disable-pinned-memory`.
+
+Expected output:
+
+- `Z:\AI\WanAnimate2\w1a_exilada_refstrength15.mp4`
+- `Z:\AI\WanAnimate2\w1a_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1a_api_prompt.json`
+
+Compare W1 vs W1A primarily on identity/style/accessory persistence, then verify motion did not materially degrade.
 
 ## Exact operator action
 
@@ -108,16 +144,15 @@ Judge W1 on Exilada identity/body proportions, complete initial-state preservati
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\37_run_wan_animate2_bf16_w1_exilada.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\38_run_wan_animate2_bf16_w1a_refstrength15.ps1"
 ```
 
-After W1 completes, share `w1_exilada_official_driver.mp4` and `w1_run_manifest.json`.
+## Wan sequence after W1A
 
-## Wan sequence after W1
-
-- W2: Internet walking driver.
-- W3: secondary-motion stress footage.
-- W4: finite high-leverage variants only if needed.
+- if reference strength improves appearance, continue a small controlled reference-strength calibration before changing driver;
+- then W2: target Internet walking driver;
+- W3: secondary-motion stress footage;
+- W4: only finite high-leverage variants still justified by evidence.
 
 ## Cleanup discipline
 
