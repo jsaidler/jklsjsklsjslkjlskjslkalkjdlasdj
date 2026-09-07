@@ -2,13 +2,13 @@
 
 Status date: **2026-09-06**
 
-Status: **CANONICAL / LOCKED — BELT-SCROLLER SEGMENTED 2D PUPPET**
+Status: **CANONICAL / LOCKED — CONVENTIONAL 2D SPRITESHEET RUNTIME; SSD SOURCE-AUTHORING SPIKE ACTIVE**
 
-## Presentation constraint that makes the animation feasible
+## Presentation constraint that makes animation feasible
 
 The project is **not** targeting true isometric multi-directional character animation.
 
-That option was deliberately abandoned in favor of an elevated arcade beat'em-up / belt-scroller presentation because it radically reduces the visible character problem while preserving a walkable depth band.
+That option was deliberately abandoned in favor of an elevated arcade beat'em-up / belt-scroller presentation because it radically reduces character-production complexity while preserving a walkable gameplay-depth band.
 
 Locked presentation consequences:
 
@@ -16,109 +16,80 @@ Locked presentation consequences:
 - native raster `640×360`;
 - pitch `26 deg`;
 - protagonist standing body height about `128 px`;
-- first canonical visible family: screen-left front-three-quarter;
+- first canonical visible family: screen-left/front-three-quarter;
 - gameplay depth movement does not require north/south/isometric sprite families;
 - runtime world-depth movement and z-order are separate from visible facing;
-- do not multiply view families unless a later explicit gate proves one is necessary.
+- do not multiply view families unless an explicit later gate proves one necessary.
 
 This simplification is a production contract, not a temporary test convenience.
 
-## Final production architecture
+## Final runtime representation — LOCKED
 
-`real/captured motion -> hidden skeleton/rig -> persistent segmented native-2D body parts -> anatomical pivots/bindings -> projected bone transforms -> camera-space depth ordering -> deterministic 2D composition -> sprite playback -> QA`
+The game uses conventional 2D frame animation:
 
-The hidden 3D is a **skeleton/armature**, not a hidden character render.
+`approved 2D animation frames -> spritesheet PNG(s) + metadata -> ordinary sprite playback`
 
-The visible character is a constrained **2D skeletal puppet** assembled from persistent authored parts. The same visible pixels persist through motion; the body is not regenerated independently per frame.
+Each action is a deterministic frame sequence arranged in a row/block or an equivalent atlas region. A single giant PNG is not mandatory; grouped sheets such as locomotion/combat/damage/contextual are acceptable.
 
-### Hidden skeleton owns
+Runtime does **not** require:
 
-- real motion and skeletal topology;
-- complete bone/joint transforms for each sampled state;
-- anatomical left/right identity;
-- near/far chain identity from camera-space depth;
-- projected segment direction and length;
-- contact/support-foot timing;
-- pelvis/root travel;
-- sockets and attachment transforms;
-- secondary-motion driving data.
+- a 3D skeleton;
+- MPFB;
+- a segmented-body puppet;
+- diffusion;
+- per-frame generation.
 
-### Hidden skeleton does not own or require
+Any hidden rig, mocap, pose-control or image model belongs only to the **offline authoring pipeline**.
 
-- a skinned human body mesh;
-- detailed 3D anatomy;
-- final RGB or alpha;
-- final sprite silhouette;
-- final pixel-art clusters/value language.
+## Offline source-authoring principle
 
-Simple lines/capsules may be rendered only as debug visualization of bone data.
+The source-authoring method is allowed to change as long as the resulting approved frames are persistent 2D assets and the method does not silently recreate the complexity that the belt-scroller decision removed.
 
-### Visible 2D puppet owns
+Current authoring spike:
 
-- Exilada's persistent identity and anatomy;
-- head/neck, torso, pelvis and bilateral limb-part pixels;
-- joint overlap/cover pixels required to prevent visible gaps;
-- any small reusable orientation/foreshortening variant that later proves necessary;
-- hair/clothing/restraints/equipment as later separate persistent layers.
+**Sprite Sheet Diffusion (SSD)** using the Exilada master as appearance reference plus pose/motion control.
 
-## Simplification rule for the first walk proof
+Canonical spike document:
 
-Do not pre-emptively rebuild complexity that the belt-scroller decision removed.
+`docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
-The first segmented-body walk proof must use the smallest viable asset set:
+## Retained motion work
 
-- one screen-left body family;
-- one persistent part per major anatomical segment;
-- explicit pivots;
-- deliberate hidden overlap at shoulders, elbows, hips, knees and ankles;
-- skeleton-driven translation/rotation/projected length;
-- depth sorting from camera-space skeleton depth;
-- no generative redraw;
-- no extra direction families;
-- no foreshortening variants unless the first composed walk demonstrates a specific unavoidable failure.
+G2/C1A motion infrastructure remains useful as an **offline motion/pose source**:
 
-If a reusable part variant becomes necessary, it is added only for the failing projection case and then reused across frames/actions. Variants are not frame-specific redraws.
+- `G2_CANONICAL_RIG`;
+- CMU `105_34 NormalWalk`;
+- approved C1A eight-state walk cycle.
+
+It is not a runtime dependency and is not mandatory if a future spritesheet authoring tool provides a better direct action-generation workflow.
+
+## Historical segmented-puppet route
+
+The minimal segmented 2D puppet remains documented as a historical/experimental route, but it is **not the current production route** after the explicit decision to return to conventional spritesheet production.
+
+Do not continue runner 23 unless that route is explicitly reopened.
 
 ## Closed routes
 
-The following remain closed:
+The following remain closed unless explicitly reopened:
 
 - hidden 3D render -> final visible pixel art;
-- independent full-body generative redraw for each animation frame;
-- single B3B still -> nearest-segment hard partition + exposed rigid joints -> full gait;
-- single B3B still -> continuous whole-body chain/cage warp -> full gait;
-- MPFB skinned body as mandatory pose/anatomy/silhouette/depth guide;
-- reopening isometric/multi-directional animation complexity without an explicit presentation decision.
+- independent unconstrained full-body generative redraw for each frame (the failed Flux2 walk proof);
+- C0 V1 nearest-segment hard partition with exposed rigid joints;
+- single-still whole-body chain/cage warp -> gait;
+- MPFB skinned body as mandatory hidden guide;
+- implicit return to isometric/multi-directional character production.
 
-The B3B V4 body remains the approved visible identity/body-style source. Its original file remains unchanged.
+## Current validation question
 
-## C1A — skeleton walk cycle — PASS/CLOSED
+The active question is now simple:
 
-Approved states:
+> Can a local sprite-animation model generate a coherent action sequence of the Exilada from the approved master strongly enough that the resulting frames can be frozen into a conventional spritesheet?
 
-1. `1588` — left contact;
-2. `1598` — left down;
-3. `1608` — left passing;
-4. `1618` — left up;
-5. `1628` — right contact;
-6. `1638` — right down;
-7. `1648` — right passing;
-8. `1658` — right up.
+Current candidate under test: **Sprite Sheet Diffusion**.
 
-C1A uses `G2_CANONICAL_RIG` and CMU `105_34 NormalWalk`. It supplies motion/spatial control only.
+## Hair / clothing / equipment
 
-## C1B — current visible body animation source
+The user-supplied Exilada master may be used as the complete identity/design reference for spritesheet generation. Earlier body-only/hair-deferred staging remains historical context, but the SSD spike is allowed to test the complete master because its purpose is direct spritesheet source generation rather than layered puppet construction.
 
-C1B is now the segmented native-2D puppet proof.
-
-Current architecture:
-
-`C1A approved skeleton -> B3B-derived persistent body-part atlas -> binding manifest -> eight composed walk states -> GIF/contact-sheet review`
-
-The user is not expected to draw or repair frames manually.
-
-Hair remains deferred until the body locomotion puppet is proven.
-
-## Runtime
-
-Gameplay playback uses ordinary deterministic sprite/part animation plus root/contact metadata. Because the presentation is a belt-scroller rather than true isometric, movement through the gameplay depth band does not imply new directional character art. Screen-right handling is deferred until the left-facing family is viable.
+If the SSD route passes, modular runtime layering for hair/equipment is a later production optimization, not a prerequisite for proving the base spritesheet pipeline.
