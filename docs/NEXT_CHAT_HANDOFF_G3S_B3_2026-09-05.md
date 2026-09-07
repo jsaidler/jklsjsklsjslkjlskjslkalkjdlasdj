@@ -19,7 +19,8 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 - protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
 - no isometric north/south character-family multiplication;
-- final runtime = conventional deterministic spritesheet playback.
+- final runtime = conventional deterministic spritesheet playback;
+- runtime/world locomotion is separate from baked sprite root translation.
 
 ## Local authoring stack
 
@@ -35,11 +36,9 @@ Environment/support PASS:
 - released SSD denoising/reference UNets present;
 - baseline AnimateAnyone pose guider + motion module present.
 
-## Canonical walk8 inputs
+## Canonical C1A walk8
 
-No manual pose folder is needed.
-
-Approved C1A states:
+Approved states:
 
 1. 1588 — `left_contact`;
 2. 1598 — `left_down`;
@@ -54,112 +53,99 @@ Guide:
 
 `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`
 
-Runner 28 V3 successfully completed JSON path transport and input preparation, so DWPose reference-pose extraction + eight clean C1A target maps are operational.
+No manual pose folder is required.
 
-## Critical current fact — exact upstream SSD is BLOCKED
+## Exact upstream SSD — BLOCKED
 
-Runner 28 reached actual model initialization and failed at strict loading of `pose_guider.pth`.
+The public SSD release does not include the custom multi-scale `pose_guider.pth` required by the current SSD graph. The available Moore/AnimateAnyone baseline checkpoint is structurally incompatible with that custom pose guider.
 
-The downloaded baseline checkpoint is Moore/AnimateAnyone architecture:
+Runner 28 exact-upstream route remains BLOCKED/CLOSED. Do not run it again and do not fake compatibility with loose loading.
 
-`conv_in / blocks / conv_out`
+## Runner 29 Moore-compatible fallback — TECHNICAL PASS / VISUAL FAIL
 
-Current SSD expects its own custom multi-scale architecture:
-
-`conv_layers* / final_proj / cross_attn* / scale`
-
-SSD's modified UNet consumes multiple pose-feature scales; Moore's original UNet consumes one. The checkpoints are therefore not interchangeable.
-
-The SSD authors' public weights do not include the required custom trained pose guider. Upstream issue #3 reports the same missing-file blocker.
-
-Consequences:
-
-- runner 28 exact-upstream route is BLOCKED/CLOSED;
-- do not run it again;
-- do not load the baseline checkpoint `strict=False` into the custom SSD PoseGuider;
-- no CUDA/DWPose/environment reinstall is required;
-- `ssd_model_manifest.json` has been corrected so baseline pose guider is labelled fallback-only, not exact-SSD compatible.
-
-## Moore-compatible empirical fallback — RUNNER 29 TECHNICAL PASS
-
-Compatible route:
+Fallback route:
 
 `Moore-AnimateAnyone graph + baseline Moore pose guider/motion + released SSD fine-tuned denoising/reference UNets`
-
-This remains explicitly **not** the exact published SSD graph. It is a bounded empirical test of the useful released SSD weights.
 
 Pinned Moore commit:
 
 `a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
+Runner 29 generated all eight `512×512` frames successfully at 25 steps, CFG `3.5`, seed `42`, fp16. Model/checkpoint loading was technically coherent for the fallback graph.
+
+The supplied contact sheet/GIF then failed visual QA for production use:
+
+- Exilada identity remained partly stable;
+- pose progression was too weak;
+- contact/down/passing/up phases were not clearly differentiated;
+- lower legs/ankles/feet became unstable;
+- detached dark ground artifacts appeared;
+- apparent temporal stability came partly from under-animation.
+
+Therefore runner 29 is not approved for production expansion.
+
+## Concrete prep defect found after QA
+
+Current target-pose preparation maps locked C1A `640×360` coordinates to `512×512` using independent axis normalization:
+
+- X scale `0.8`;
+- Y scale `1.4222...`;
+- relative vertical stretch `1.7778×`.
+
+The target skeleton is therefore distorted and not explicitly registered to the master DWPose body footprint.
+
+This is the single bounded hypothesis selected for the next A/B test.
+
+## CURRENT GATE — runner 30 pose-registration discriminant
+
 Helper:
 
-`tools/structured-2d-character-pipeline/g3s_ssd_moore_compat_walk8.py`
+`tools/structured-2d-character-pipeline/g3s_ssd_align_walk8_poses.py`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
+`tools/structured-2d-character-pipeline/30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1`
 
-### Actual execution — 2026-09-07
+Runner 30:
 
-Runner 29 completed and printed:
+- rebuilds the same canonical Exilada + C1A package;
+- measures the DWPose body footprint from the master reference pose;
+- reconstructs all eight target poses directly from original C1A coordinates with one uniform scale;
+- registers pelvis X to reference-body center and lowest ankle Y to reference-body bottom;
+- removes target-pose root travel only for in-place sprite authoring;
+- hard-fails on clipping, duplicate maps or poor body-height registration;
+- emits a 3×3 pose-alignment review;
+- reruns the exact same Moore+SSD inference parameters as runner 29.
 
-`SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`
-
-Observed result:
-
-- canonical Exilada master + C1A walk8 package rebuilt: PASS;
-- Moore source pinned/reset successfully;
-- model initialization completed;
-- SSD denoising checkpoint: **0 unexpected Moore keys**;
-- `588` denoising keys missing under Moore `strict=False`;
-- this missing-key count does **not** mean random initialization: Moore `from_pretrained_2d()` already loads SD1.5 spatial weights plus the separate motion module, then runner 29 overlays the SSD denoising checkpoint;
-- upstream SSD inference also loads its denoising checkpoint using `strict=False`;
-- reference UNet and baseline Moore pose guider loaded strictly;
-- 8 frames generated at `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16;
-- diffusion pass completed in about `42 s`;
-- frame PNGs, contact sheet, GIF and marker were emitted.
-
-Artifacts:
-
-- frames: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\frames`;
-- sheet: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`;
-- GIF: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`;
-- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
-
-The logged SD1.5 unused-output-weight warning, TypedStorage deprecation warning and direct-`in_channels` future warning are non-fatal; generation completed.
-
-Runner 29 is therefore **TECHNICAL PASS / OUTPUT READY FOR VISUAL QA**. It is not a visual PASS.
+No crop, FILM, model swap, new action, CFG/seed sweep or resolution sweep is allowed.
 
 ## EXACT NEXT OPERATOR ACTION
 
-Do not rerun runner 29 yet.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-Share these two existing artifacts in the chat for visual review:
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1"
+```
 
-1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`
-2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`
+Expected terminal marker:
 
-Review must judge:
+`SSD-MOORE-POSE-ALIGNED: OUTPUT READY FOR A/B VISUAL QA`
 
-- identity persistence;
-- anatomy/proportions;
-- long hair;
-- cloth/shackles/chains;
-- obedience to the approved C1A eight-state gait;
-- temporal coherence;
-- practical usefulness for conventional spritesheet production.
+Then share these three artifacts:
 
-Only after visual QA should the project choose among:
+1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_pose_aligned_inputs\exilada_walk8_pose_alignment_review.png`
+2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat_pose_aligned\exilada_walk8_moore_compat_contact_sheet.png`
+3. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat_pose_aligned\exilada_walk8_moore_compat.gif`
 
-- PASS and expand the route;
-- bounded parameter/control correction and one discriminating rerun;
-- FAIL/CLOSE the Moore-compatible salvage route.
+## Decision rule
 
-Do not begin another model search, FILM interpolation, additional action generation, resolution sweep or sheet packing before closing this visual gate.
+Runner 30 passes only if it clearly improves **both** C1A pose readability and lower-limb/foot topology over runner 29, without materially degrading Exilada identity.
+
+If those two classes are not clearly better, close the Moore-compatible SSD salvage route instead of beginning parameter sweeps.
 
 ## Future exact SSD condition
 
-Exact SSD remains blocked until a trustworthy compatible custom pose-guider checkpoint is released/found, or the project explicitly decides to retrain the missing custom stage-1 pose stack.
+Exact SSD remains blocked until a trustworthy compatible custom pose-guider checkpoint is released/found, or the project explicitly decides to retrain the missing custom pose stack.
 
-SSD workspace remains active. No cleanup applies.
+No cleanup before runner 30 is reviewed.
