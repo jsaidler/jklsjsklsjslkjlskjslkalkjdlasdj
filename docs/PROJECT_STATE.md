@@ -19,6 +19,26 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 Every state-changing project action updates thematic docs, this file and the active handoff before completion is reported.
 
+## Local path topology — LOCKED 2026-09-07
+
+Project Git repository:
+
+`D:\GOOGLE DRIVE\DEV\Roguelite`
+
+AI/model workspace root:
+
+`Z:\AI`
+
+Known retained workspaces:
+
+- `Z:\AI\RogueliteCharacterPipeline`
+- `Z:\AI\SpriteSheetDiffusionSpike`
+- active Wan rebuild: `Z:\AI\WanAnimate2`
+
+**`D:\AI` is not a valid/current AI workspace root.** Current scripts must derive working directories from the configured workspace path and must not hard-code `D:\AI`.
+
+2026-09-07 infrastructure incident: the first BF16 Wan runner-35 preparation attempt failed before installation because `bootstrap.ps1` still contained the stale historical `D:\AI` / `D:\AI\WanAnimate2` hard-code. No inference was attempted and no model-quality conclusion is associated with that failure. Runner/bootstrap/inspect defaults were corrected to `Z:\AI\WanAnimate2`, with comfy-cli working directory derived dynamically from the workspace parent.
+
 ## Model exhaustion protocol — LOCKED
 
 A bad output from one configuration is not enough to declare a model family incapable.
@@ -172,10 +192,14 @@ Runner:
 
 `tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
 
+Active workspace:
+
+`Z:\AI\WanAnimate2`
+
 It performs only setup/preflight, not inference:
 
 1. verifies at least 70 GB free on the workspace drive;
-2. rebuilds/restores isolated `D:\AI\WanAnimate2` ComfyUI;
+2. rebuilds/restores isolated `Z:\AI\WanAnimate2` ComfyUI;
 3. removes superseded Wan INT8/Distilled/LoRA/FP8 model material if found;
 4. downloads only the canonical ~45.7 GB BF16/FP16 model set;
 5. downloads upstream `examples/demo1/reference.png` and `template.mp4` for W0;
@@ -186,8 +210,8 @@ It performs only setup/preflight, not inference:
 
 Expected proof files:
 
-- `D:\AI\WanAnimate2\wan_bf16_route.json`;
-- `D:\AI\WanAnimate2\object_info_wan_bf16.json`.
+- `Z:\AI\WanAnimate2\wan_bf16_route.json`;
+- `Z:\AI\WanAnimate2\object_info_wan_bf16.json`.
 
 Expected final marker:
 
@@ -207,9 +231,7 @@ After W4: `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
 Do **not** delete `Z:\AI\SpriteSheetDiffusionSpike` yet.
 
-Reason: it remains a small number of retained comparison/evidence assets and a fallback research branch while Wan has not passed W0. Deleting it now would repeat the earlier premature-workspace-cleanup mistake.
-
-Once Wan establishes a viable production candidate or the project explicitly abandons SSD research, delete its large model/runtime material while preserving small result evidence.
+Reason: it remains comparison/evidence and a fallback research branch while Wan has not passed W0. Once Wan establishes a viable production candidate or the project explicitly abandons SSD research, delete its large model/runtime material while preserving small result evidence.
 
 ## Exact current operator action
 
@@ -220,4 +242,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\35_prepare_wan_animate2_bf16_w0.ps1"
 ```
 
-This command downloads about **45.7 GB** of canonical model payload plus ComfyUI/runtime overhead. It intentionally does not run the expensive BF16 inference yet.
+The runner now defaults to `Z:\AI\WanAnimate2`. This command downloads about **45.7 GB** of canonical model payload plus ComfyUI/runtime overhead and intentionally stops before the expensive BF16 inference.
