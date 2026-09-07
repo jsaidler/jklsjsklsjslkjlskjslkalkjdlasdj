@@ -1,13 +1,15 @@
 {
-  "revision": "SSD_MINIMAL_INFERENCE_MODELS_V1",
-  "status": "ACTIVE",
+  "revision": "SSD_RELEASED_MODEL_SET_V2",
+  "status": "EXACT_UPSTREAM_INFERENCE_BLOCKED_POSE_GUIDER_UNRELEASED",
   "estimated_download_gb": 13.7,
   "minimum_free_space_gb": 18.0,
   "destination_root_relative_to_modeltraining": "pretrained_model",
   "notes": [
-    "This is the minimal model set required by ModelTraining/inference.py for the first SSD smoke test.",
-    "No wav2vec2, DWPose or FILM interpolation model is downloaded in this gate.",
-    "The first smoke test will use already-prepared pose images and will not use --accelerate."
+    "The released SSD denoising/reference UNets are present and valid.",
+    "The public SSD release does NOT include the custom multi-scale pose_guider.pth required by the repository's current inference.py and unet_3d.py graph.",
+    "The patrolli/AnimateAnyone pose_guider.pth is intentionally retained as a Moore-AnimateAnyone baseline asset, but it is NOT a drop-in checkpoint for exact upstream SSD Python inference.",
+    "Exact upstream SSD reproduction is blocked until the authors release the custom pose guider or an equivalent compatible checkpoint is found.",
+    "Project fallback runner 29 uses the original Moore-AnimateAnyone graph with the released SSD fine-tuned denoising/reference UNets plus the baseline pose guider and motion module. That fallback must not be described as the exact published SSD graph."
   ],
   "files": [
     {
@@ -67,11 +69,12 @@
       "expected_min_bytes": 3400000000
     },
     {
-      "id": "animateanyone_pose_guider",
+      "id": "animateanyone_pose_guider_baseline_fallback_only",
       "source": "https://huggingface.co/patrolli/AnimateAnyone/resolve/main/pose_guider.pth",
       "destination": "pose_guider.pth",
       "expected_sha256": "1a8b7c1b4db92980fd977b4fd003c1396bbae9a9cdea00c35d452136d5e4f488",
-      "expected_min_bytes": 4000000
+      "expected_min_bytes": 4000000,
+      "exact_ssd_compatible": false
     },
     {
       "id": "animateanyone_motion_module",
