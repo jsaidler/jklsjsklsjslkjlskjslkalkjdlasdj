@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **RUNNER 34 COMPLETE-CHARACTER EXPORT PASS / POSE-ONLY TEMPORAL QUALITY FAIL / RUNNER 35 WAN COMPLETE-MOTION PROOF ACTIVE**
+Gate status: **RUNNER 34 COMPLETE-CHARACTER EXPORT PASS / POSE-ONLY TEMPORAL QUALITY FAIL / WAN-ANIMATE-2 ALREADY REJECTED / NEXT ROUTE UNSELECTED**
 
 ## Runtime target — LOCKED
 
@@ -16,7 +16,7 @@ Runtime construction of the visible character from body/hair/clothing/equipment 
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-For the current work this master defines the entire initial visible character state. Hair, base clothing/bindings, restraints/shackles/chains and visible accessories are part of the animation requirement.
+For current work this master defines the entire initial visible character state. Hair, base clothing/bindings, restraints/shackles/chains and visible accessories are part of the animation requirement.
 
 ## Local SSD environment — PASS
 
@@ -82,7 +82,7 @@ Packer:
 
 `tools/structured-2d-character-pipeline/g3s_pack_complete_character_spritesheet.py`
 
-Configuration retained:
+Configuration:
 
 - full `exilada_master.png` appearance reference;
 - eight V2 poses at `72 deg`;
@@ -111,120 +111,73 @@ The spritesheet format itself is therefore no longer an unknown. The toolchain c
 
 Useful positives:
 
-- Exilada identity persists reasonably well through the sequence;
+- Exilada identity persists reasonably well;
 - torso/face/hair design remains recognizable;
 - broad body pose changes respond to the driver;
 - complete-frame packing/alignment is stable enough to demonstrate runtime playback.
 
-Failures against the locked complete-motion requirement:
+Failures:
 
-- hair mass is mostly frozen or locally warped; convincing lag/inertia is absent;
+- hair mass mostly frozen or locally warped; convincing lag/inertia absent;
 - base cloth changes shape but does not read as controlled physical cloth motion;
-- intentional jiggle/soft-tissue motion is not reliably readable;
-- wrist chain is comparatively persistent but mostly static;
-- ankle restraint/chain becomes unstable, detaches/mutates into dark stepped shapes and merges with cloth/leg regions in middle frames;
-- lower legs/feet still degrade under larger pose displacement;
+- intentional jiggle/soft-tissue motion not reliably readable;
+- wrist chain comparatively persistent but mostly static;
+- ankle restraint/chain unstable, detaching/mutating into dark stepped shapes;
+- lower legs/feet degrade under larger pose displacement;
 - later phases become too similar and loop closure is weak.
 
 This is a **temporal authoring failure**, not a failure of complete-character spritesheet architecture.
 
 ## Key diagnosis
 
-The Moore-compatible route is being controlled by body OpenPose geometry. That signal does not specify desired trajectories for hair, cloth, chains, soft tissue or other secondary masses.
+The Moore-compatible route is controlled by body OpenPose geometry. That signal does not specify desired trajectories for hair, cloth, chains, soft tissue or other secondary masses.
 
 The temporal prior alone is not reliable enough to invent those systems while preserving attachment ownership and physical continuity.
 
-Therefore the project should not spend the next iteration on broad CFG/seed/step/resolution tuning. The missing information class is **whole-character motion control**.
+Do not spend the next iteration on broad CFG/seed/step/resolution tuning.
 
-## Runner 35 — Wan-Animate-2 complete-motion proof — ACTIVE
+## Wan-Animate-2 — TESTED BEFORE THIS GATE / REJECTED / CLOSED
 
-Runner:
+Wan-Animate-2 was already tested locally on 2026-09-04 with the official Base INT8 ConvRot checkpoint.
 
-`tools/structured-2d-character-pipeline/35_run_exilada_wan_animate2_complete_motion_proof.ps1`
+The run completed and was visually rejectable on its merits. It preserved Exilada identity and coarse anatomy better than some earlier direct-diffusion experiments, but failed the production gate because:
 
-Driver builder:
+1. raw driving-video locomotion adherence was too weak;
+2. output lost the required modern-pixel-art language and read as smooth painted/video diffusion.
 
-`tools/structured-2d-character-pipeline/g3s_build_complete_motion_driver_v1.py`
+Therefore direct raw-video conditioning is **not an untested solution** to runner 34's missing secondary-motion signal. The exact Wan route is already closed.
 
-Wan workflow builder:
+Do not revive it with a synthetic richer driver, seed/CFG tuning, reference-strength changes, prompt cosmetics or post-generation pixel filtering.
 
-`tools/wan-animate2-spike/build_workflow_complete_motion.py`
+The isolated Wan model/runtime workspace was deleted after rejection. `tools/wan-animate2-spike/` remains source-level research history only.
 
-Wan spritesheet packer:
+## Erroneous runner-35 retry — WITHDRAWN
 
-`tools/structured-2d-character-pipeline/g3s_pack_wan_complete_character_spritesheet.py`
+A 2026-09-07 proposed Wan retry ignored the prior rejection/cleanup record. The newly-created runner/helper files were deleted from `main`. There is no active runner 35.
 
-### Why Wan-Animate-2 is the discriminant
+## Next experiment class — OPEN, constrained
 
-Unlike the runner-34 Moore/OpenPose route, Wan-Animate-2 directly consumes a **driving video**. The purpose of runner 35 is not to declare Wan a production solution in advance; it is to test whether a richer video control signal can materially improve complete-character temporal behavior.
+The next route must preserve the complete-character runtime architecture but be materially different from both:
 
-### Complete-motion driver V1
+- body-pose-only Moore+SSD;
+- generic/raw-video Wan-Animate-2.
 
-The runner creates a deterministic synthetic driver at `384×576`, `16 fps`, `17` frames:
+Required properties:
 
-- frames 1–16: one in-place loop sampled from runner-33 V2 body motion at locked `72 deg`;
-- frame 17: explicit duplicate of frame 1 for closure conditioning;
-- body motion and weight transfer;
-- delayed rear/front heavy-hair masses;
-- delayed base hip-wrap/cloth strips;
-- subtle soft-body/chest lag signal;
-- left-wrist shackle + broken-chain trajectory;
-- left-ankle shackle + broken-chain trajectory.
+- explicit or inspectable motion control;
+- coherent body/hair/cloth/jiggle/restraint motion;
+- stable attachment ownership/topology;
+- complete-frame output;
+- native/discrete pixel/game-art preservation;
+- scalability without routine manual frame-by-frame repair.
 
-The driver is **control-only** and is never visible game art. Its modular construction does not reopen runtime layer assembly.
-
-### Wan environment / model route
-
-Existing isolated workspace:
-
-`D:\AI\WanAnimate2`
-
-Runner 35 requires the existing official Base route:
-
-- `wan_animate_2_int8_convrot.safetensors`;
-- `umt5_xxl_fp8_e4m3fn_scaled.safetensors`;
-- `clip_vision_h.safetensors`;
-- `Wan2_1_VAE_bf16.safetensors`;
-- no distillation LoRA;
-- `384×576`;
-- 17 frames;
-- seed `42`;
-- Euler sampler;
-- shift `5`;
-- `20` steps;
-- CPU model cache for the 12 GB VRAM target.
-
-No automatic model download occurs in runner 35. Missing files are treated as infrastructure failure and must not be confused with a visual rejection of Wan.
-
-### Output contract
-
-Wan generates 17 frames. The final closure frame is retained as evidence but dropped from runtime playback. The first 16 are packed into:
-
-- complete RGBA frames;
-- `4×4` complete-character spritesheet;
-- full-resolution preview GIF;
-- approximate `128 px` gameplay preview GIF;
-- metadata with runtime character-layer assembly explicitly disabled.
-
-### Decision rule
-
-Runner 35 only earns continuation if it materially improves runner 34 in the specific missing classes:
-
-- hair inertia;
-- cloth lag;
-- subtle soft-body response;
-- chain/restraint ownership and trajectory;
-- lower-leg/foot stability;
-- Exilada identity;
-- loop coherence.
-
-A strong failure closes this branch without seed fishing, CFG sweeps or cosmetic prompt rescue.
+Historical post-Wan research found pixel-native skeleton/keyframe animation services and other explicit-control pixel-domain approaches more relevant than another generic video model, but no candidate is currently production-approved.
 
 ## Role of Moore-compatible SSD after runner 34
 
 Do not classify the route as useless: it preserves the master identity better than several earlier visible routes and follows body pose to some degree.
 
-But classify it correctly:
+Classify it correctly:
 
 > **useful appearance/pose transfer evidence; insufficient as the sole complete-motion author when driven only by OpenPose body maps.**
 
@@ -234,4 +187,4 @@ Armor, equipment, accessories, damage and exposure still need scalable offline v
 
 ## Cleanup
 
-No cleanup. Retain runner-34 outputs, SSD assets/environment, Wan workspace/models and all runner-35 outputs until the route decision is closed.
+Retain runner-34 outputs and current SSD evidence while this branch is still diagnostically useful. Do not recreate deleted Wan assets/workspace without an explicit new model-level gate and materially different justification.
