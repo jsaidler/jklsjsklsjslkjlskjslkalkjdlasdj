@@ -1,5 +1,5 @@
 param(
-    [string]$Workspace = 'D:\AI\WanAnimate2',
+    [string]$Workspace = 'Z:\AI\WanAnimate2',
     [string]$Master = 'D:\GOOGLE DRIVE\DEV\Roguelite\assets\source\characters\exilada\reference\exilada_master.png',
     [int]$MinFreeGB = 70
 )
@@ -8,30 +8,31 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Require-Command([string]$Name, [string]$Hint) {
-    if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
-        throw "$Name was not found.`n$Hint"
-    }
+    if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) { throw "$Name was not found.`n$Hint" }
 }
 
 function Find-ComfyRoot([string]$Base) {
-    $candidates = @($Base, (Join-Path $Base 'ComfyUI'))
-    foreach ($candidate in $candidates) {
-        if ((Test-Path (Join-Path $candidate 'main.py')) -and (Test-Path (Join-Path $candidate '.git'))) {
-            return $candidate
-        }
+    foreach ($candidate in @($Base, (Join-Path $Base 'ComfyUI'))) {
+        if ((Test-Path (Join-Path $candidate 'main.py')) -and (Test-Path (Join-Path $candidate '.git'))) { return $candidate }
     }
     return $null
 }
 
 function Find-WorkspacePython([string]$Base, [string]$ComfyRoot) {
-    $candidates = @((Join-Path $ComfyRoot '.venv\Scripts\python.exe'), (Join-Path $Base '.venv\Scripts\python.exe')) | Select-Object -Unique
-    foreach ($candidate in $candidates) { if (Test-Path $candidate) { return $candidate } }
+    foreach ($candidate in @((Join-Path $ComfyRoot '.venv\Scripts\python.exe'), (Join-Path $Base '.venv\Scripts\python.exe')) | Select-Object -Unique) {
+        if (Test-Path $candidate) { return $candidate }
+    }
     return $null
 }
 
 function Invoke-Comfy {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
-    Push-Location 'D:\AI'
+    $workingRoot = Split-Path -Parent $Workspace
+    if (-not $workingRoot) { throw "Cannot resolve workspace parent from: $Workspace" }
+    if (-not (Test-Path $workingRoot -PathType Container)) {
+        New-Item -ItemType Directory -Force -Path $workingRoot | Out-Null
+    }
+    Push-Location $workingRoot
     try {
         & py.exe -3.14 -m pipx run --spec comfy-cli comfy @Args
         if ($LASTEXITCODE -ne 0) { throw "comfy-cli failed: comfy $($Args -join ' ')" }
@@ -75,9 +76,7 @@ Write-Host '  Total model payload                         ~45.7 GB'
 Write-Host "  Required free-space floor for install/temp  ${MinFreeGB} GB"
 Write-Host ''
 
-if ($freeGB -lt $MinFreeGB) {
-    throw "Insufficient free space on $qualifier. Need at least $MinFreeGB GB before rebuilding the BF16 reference route."
-}
+if ($freeGB -lt $MinFreeGB) { throw "Insufficient free space on $qualifier. Need at least $MinFreeGB GB before rebuilding the BF16 reference route." }
 
 Write-Host 'Installing/updating pipx in the user Python...' -ForegroundColor Cyan
 & py.exe -3.14 -m pip install --user --upgrade pipx
@@ -114,8 +113,6 @@ $Lora = Join-Path $Models 'loras'
 $InputDir = Join-Path $ComfyRoot 'input'
 foreach ($p in @($Diffusion,$TextEnc,$ClipVision,$Vae,$Lora,$InputDir)) { New-Item -ItemType Directory -Force -Path $p | Out-Null }
 
-# Canonical cleanup: these are not part of the Base BF16 W0 route. Git history
-# retains the old experiment; local disk should not retain duplicate 16-33 GB weights.
 $Obsolete = @(
     (Join-Path $Diffusion 'wan_animate_2_int8_convrot.safetensors'),
     (Join-Path $Diffusion 'wan_animate_2_distill_bf16.safetensors'),
@@ -133,101 +130,39 @@ $TextModel = Join-Path $TextEnc 'umt5_xxl_fp16.safetensors'
 $ClipModel = Join-Path $ClipVision 'clip_vision_h.safetensors'
 $VaeModel = Join-Path $Vae 'Wan2_1_VAE_bf16.safetensors'
 
-if (-not (Test-Path $MainModel -PathType Leaf)) {
-    Write-Host 'Downloading Wan-Animate-2 BASE BF16 (32.8 GB)...' -ForegroundColor Cyan
-    Invoke-HF download Comfy-Org/Wan-Animate-2 diffusion_models/wan_animate_2_bf16.safetensors --local-dir $Models
-}
-if (-not (Test-Path $TextModel -PathType Leaf)) {
-    Write-Host 'Downloading UMT5 XXL FP16 (11.4 GB)...' -ForegroundColor Cyan
-    Invoke-HF download Comfy-Org/Wan-Animate-2 text_encoders/umt5_xxl_fp16.safetensors --local-dir $Models
-}
-if (-not (Test-Path $ClipModel -PathType Leaf)) {
-    Write-Host 'Downloading CLIP Vision H (1.26 GB)...' -ForegroundColor Cyan
-    Invoke-HF download Comfy-Org/Wan-Animate-2 clip_vision/clip_vision_h.safetensors --local-dir $Models
-}
-if (-not (Test-Path $VaeModel -PathType Leaf)) {
-    Write-Host 'Downloading Wan VAE BF16 (0.254 GB)...' -ForegroundColor Cyan
-    Invoke-HF download Comfy-Org/Wan-Animate-2 vae/Wan2_1_VAE_bf16.safetensors --local-dir $Models
-}
+if (-not (Test-Path $MainModel -PathType Leaf)) { Write-Host 'Downloading Wan-Animate-2 BASE BF16 (32.8 GB)...' -ForegroundColor Cyan; Invoke-HF download Comfy-Org/Wan-Animate-2 diffusion_models/wan_animate_2_bf16.safetensors --local-dir $Models }
+if (-not (Test-Path $TextModel -PathType Leaf)) { Write-Host 'Downloading UMT5 XXL FP16 (11.4 GB)...' -ForegroundColor Cyan; Invoke-HF download Comfy-Org/Wan-Animate-2 text_encoders/umt5_xxl_fp16.safetensors --local-dir $Models }
+if (-not (Test-Path $ClipModel -PathType Leaf)) { Write-Host 'Downloading CLIP Vision H (1.26 GB)...' -ForegroundColor Cyan; Invoke-HF download Comfy-Org/Wan-Animate-2 clip_vision/clip_vision_h.safetensors --local-dir $Models }
+if (-not (Test-Path $VaeModel -PathType Leaf)) { Write-Host 'Downloading Wan VAE BF16 (0.254 GB)...' -ForegroundColor Cyan; Invoke-HF download Comfy-Org/Wan-Animate-2 vae/Wan2_1_VAE_bf16.safetensors --local-dir $Models }
 
-foreach ($f in @($MainModel,$TextModel,$ClipModel,$VaeModel)) {
-    if (-not (Test-Path $f -PathType Leaf)) { throw "Required BF16 route asset missing after download: $f" }
-}
+foreach ($f in @($MainModel,$TextModel,$ClipModel,$VaeModel)) { if (-not (Test-Path $f -PathType Leaf)) { throw "Required BF16 route asset missing after download: $f" } }
 
 $W0Dir = Join-Path $InputDir 'wan_animate2_w0'
 New-Item -ItemType Directory -Force -Path $W0Dir | Out-Null
 $W0Reference = Join-Path $W0Dir 'official_demo1_reference.png'
 $W0Driver = Join-Path $W0Dir 'official_demo1_template.mp4'
-if (-not (Test-Path $W0Reference -PathType Leaf)) {
-    Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Wan-Video/Wan-Animate-2/main/examples/demo1/reference.png' -OutFile $W0Reference
-}
-if (-not (Test-Path $W0Driver -PathType Leaf)) {
-    Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Wan-Video/Wan-Animate-2/main/examples/demo1/template.mp4' -OutFile $W0Driver
-}
+if (-not (Test-Path $W0Reference -PathType Leaf)) { Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Wan-Video/Wan-Animate-2/main/examples/demo1/reference.png' -OutFile $W0Reference }
+if (-not (Test-Path $W0Driver -PathType Leaf)) { Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/Wan-Video/Wan-Animate-2/main/examples/demo1/template.mp4' -OutFile $W0Driver }
 
-if ($Master -and (Test-Path $Master -PathType Leaf)) {
-    Copy-Item -LiteralPath $Master -Destination (Join-Path $InputDir 'exilada_master.png') -Force
-} elseif ($Master) {
-    Write-Host "[WARN] Exilada master not copied because path is absent: $Master" -ForegroundColor Yellow
-}
+if ($Master -and (Test-Path $Master -PathType Leaf)) { Copy-Item -LiteralPath $Master -Destination (Join-Path $InputDir 'exilada_master.png') -Force }
+elseif ($Master) { Write-Host "[WARN] Exilada master not copied because path is absent: $Master" -ForegroundColor Yellow }
 
-# Remove obsolete old-spike inputs/materials if a prior workspace was partially restored.
-foreach ($oldInput in @(
-    (Join-Path $InputDir 'exilada_driver_17f.mp4'),
-    (Join-Path $InputDir 'exilada_complete_motion_driver_17f.mp4')
-)) {
-    if (Test-Path $oldInput -PathType Leaf) {
-        Write-Host "[CLEAN] Removing obsolete old-spike input: $oldInput" -ForegroundColor DarkYellow
-        Remove-Item -LiteralPath $oldInput -Force
-    }
+foreach ($oldInput in @((Join-Path $InputDir 'exilada_driver_17f.mp4'),(Join-Path $InputDir 'exilada_complete_motion_driver_17f.mp4'))) {
+    if (Test-Path $oldInput -PathType Leaf) { Write-Host "[CLEAN] Removing obsolete old-spike input: $oldInput" -ForegroundColor DarkYellow; Remove-Item -LiteralPath $oldInput -Force }
 }
 
 $manifest = [ordered]@{
-    gate = 'WAN_ANIMATE2_W0_BF16_REFERENCE_PREP'
-    status = 'ASSETS_READY_FOR_SCHEMA_PREFLIGHT'
-    route = 'base_bf16_reference'
-    workspace = $Workspace
-    comfy_root = $ComfyRoot
-    model = $MainModel
-    text_encoder = $TextModel
-    clip_vision = $ClipModel
-    vae = $VaeModel
-    lora = $null
-    distilled = $false
-    quantized_main_model = $false
-    official_w0_reference = $W0Reference
-    official_w0_driver = $W0Driver
-    upstream_repo_semantics = [ordered]@{
-        width = 640
-        height = 800
-        frame_num = 37
-        fps = 16
-        sample_steps_repo_yaml = 20
-        base_seed = 0
-    }
-    downloaded_bytes = [ordered]@{
-        model = (Get-Item $MainModel).Length
-        text_encoder = (Get-Item $TextModel).Length
-        clip_vision = (Get-Item $ClipModel).Length
-        vae = (Get-Item $VaeModel).Length
-    }
-    intentionally_absent = @(
-        'wan_animate_2_int8_convrot.safetensors',
-        'wan_animate_2_distill_bf16.safetensors',
-        'wan_animate_2_distill_int8_convrot.safetensors',
-        'lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors',
-        'umt5_xxl_fp8_e4m3fn_scaled.safetensors'
-    )
+    gate = 'WAN_ANIMATE2_W0_BF16_REFERENCE_PREP'; status = 'ASSETS_READY_FOR_SCHEMA_PREFLIGHT'; route = 'base_bf16_reference'; workspace = $Workspace; comfy_root = $ComfyRoot
+    model = $MainModel; text_encoder = $TextModel; clip_vision = $ClipModel; vae = $VaeModel; lora = $null; distilled = $false; quantized_main_model = $false
+    official_w0_reference = $W0Reference; official_w0_driver = $W0Driver
+    upstream_repo_semantics = [ordered]@{ width=640; height=800; frame_num=37; fps=16; sample_steps_repo_yaml=20; base_seed=0 }
+    downloaded_bytes = [ordered]@{ model=(Get-Item $MainModel).Length; text_encoder=(Get-Item $TextModel).Length; clip_vision=(Get-Item $ClipModel).Length; vae=(Get-Item $VaeModel).Length }
+    intentionally_absent = @('wan_animate_2_int8_convrot.safetensors','wan_animate_2_distill_bf16.safetensors','wan_animate_2_distill_int8_convrot.safetensors','lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors','umt5_xxl_fp8_e4m3fn_scaled.safetensors')
 }
 $ManifestPath = Join-Path $Workspace 'wan_bf16_route.json'
 $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ManifestPath -Encoding UTF8
 
-# Hugging Face/Xet cache is not a production dependency after verified target files
-# exist. Delete it so disk usage reflects the actual model set rather than duplicate cache.
-if (Test-Path $env:HF_HOME) {
-    Write-Host "[CLEAN] Removing completed Hugging Face download cache: $env:HF_HOME" -ForegroundColor DarkYellow
-    Remove-Item -LiteralPath $env:HF_HOME -Recurse -Force
-}
+if (Test-Path $env:HF_HOME) { Write-Host "[CLEAN] Removing completed Hugging Face download cache: $env:HF_HOME" -ForegroundColor DarkYellow; Remove-Item -LiteralPath $env:HF_HOME -Recurse -Force }
 
 Write-Host ''
 Write-Host 'WAN BF16 PREP: ASSETS READY FOR SCHEMA PREFLIGHT' -ForegroundColor Green
