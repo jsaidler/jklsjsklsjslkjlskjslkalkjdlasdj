@@ -2,30 +2,23 @@
 
 Status date: **2026-09-07**
 
-Gate status: **PAUSED AFTER RUNNER 30 — EXACT UPSTREAM SSD BLOCKED / MOORE-COMPAT TECHNICALLY VIABLE / VISIBLE OUTPUT STILL BELOW PRODUCTION / GAMEPLAY LOCOMOTION ART-DIRECTION GATE ACTIVE**
+Gate status: **COMPLETE-CHARACTER PLAYABLE PROOF ACTIVE / EXACT UPSTREAM SSD BLOCKED / MOORE-COMPAT TECHNICALLY VIABLE**
 
-## Decision
+## Runtime target — corrected/locked
 
-The final character-production target remains conventional persistent 2D animation assets:
+The runtime target is conventional playback of **complete-character spritesheets**:
 
-`approved frames -> spritesheet/atlas + metadata -> ordinary runtime playback`
+`complete authored frames -> complete-character spritesheet/atlas + metadata -> ordinary runtime playback`
 
-Diffusion remains an offline authoring candidate only. Runtime does not depend on it.
+Runtime construction of the visible character from body/hair/clothing/equipment layers is abolished. Offline authoring may internally use layers/rigs, but export is a fully composed character frame sequence.
 
-The current SSD/Moore-visible route is **paused**, not approved for production expansion. Do not continue parameter sweeps while the hidden gameplay locomotion itself is still undefined.
+## Initial Exilada reference
 
-## Presentation/runtime lock retained
+`assets/source/characters/exilada/reference/exilada_master.png`
 
-- elevated arcade beat'em-up / belt-scroller false 3D;
-- fixed orthographic gameplay camera;
-- native raster `640×360`;
-- pitch `26 deg`;
-- protagonist about `128 px` tall;
-- mostly lateral / three-quarter visible family;
-- exact horizontal locomotion-facing angle currently reopened under C1C review;
-- runtime root/world translation remains separate from sprite-frame playback.
+For the current proof this master defines the entire initial visible character state. Hair, base clothing/bindings, restraints/shackles/chains and visible accessories are part of what must be animated, not stripped away for the production artifact.
 
-## Local SSD environment / support — PASS
+## Local environment — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -34,35 +27,20 @@ Validated:
 - env `ssd`, Python `3.10.21`;
 - RTX 3060;
 - Torch `2.0.1+cu118` / CUDA 11.8;
-- DWPose available;
-- FILM available but not default;
-- SD1.5 UNet, VAE and CLIP image encoder present;
-- released SSD denoising/reference UNets present;
-- baseline AnimateAnyone pose guider + motion module present.
+- DWPose;
+- SD1.5 UNet/VAE/CLIP image encoder;
+- released SSD denoising/reference UNets;
+- baseline AnimateAnyone pose guider + motion module.
 
 ## Exact upstream SSD — BLOCKED
 
-Runner 28 reached real model initialization but failed because the public model release does not include the custom trained multi-scale `pose_guider.pth` required by current SSD code.
+The current upstream SSD graph requires a custom multi-scale `pose_guider.pth` that was not publicly released. The available baseline Moore/AnimateAnyone pose-guider checkpoint has a different architecture.
 
-Available baseline checkpoint architecture:
+Do not run the exact-upstream attempt again unless a trustworthy compatible custom pose-guider checkpoint becomes available or the project explicitly chooses to retrain it.
 
-`Moore/AnimateAnyone conv_in / blocks / conv_out`
+## Moore-compatible fallback
 
-Current SSD PoseGuider architecture:
-
-`conv_layers* / final_proj / cross_attn* / scale`
-
-The graphs are structurally different. Exact current-upstream SSD inference is not reproducible from the public checkpoint set.
-
-Do not run runner 28 again and do not fake compatibility by loading the baseline checkpoint loosely into SSD's custom PoseGuider.
-
-Manifest status:
-
-`EXACT_UPSTREAM_INFERENCE_BLOCKED_POSE_GUIDER_UNRELEASED`
-
-## Moore-compatible salvage graph
-
-Fallback:
+Working fallback:
 
 `Moore-AnimateAnyone graph + baseline Moore pose guider/motion module + released SSD fine-tuned denoising/reference UNets`
 
@@ -70,112 +48,99 @@ Pinned Moore commit:
 
 `a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
-This is explicitly **not** exact published SSD.
+This is explicitly not exact published SSD.
 
-## Runner 29 — TECHNICAL PASS / VISUAL FAIL
+## Runner 29
+
+Technical PASS / visual FAIL:
+
+- weak phase differentiation;
+- unstable lower legs/feet;
+- detached accessory artifacts;
+- insufficient locomotion.
+
+## Runner 30
+
+Runner 30 fixed a concrete pose-registration defect. Previous mapping from `640×360` to `512×512` stretched target geometry vertically by `1.7778×` relative to X. Uniform scaling + registration to the DWPose reference footprint materially improved pose response and lower-limb reconstruction.
+
+The result still fell below production quality, but it proved two useful facts:
+
+1. the Moore-compatible route can animate the complete master temporally;
+2. corrected pose registration materially improves control.
+
+Accessory/restraint instability remained visible, which is now treated correctly as a failure of complete-character temporal authoring rather than a future runtime-composition problem.
+
+## Motion driver status
+
+Runner 31 locked the gameplay facing at `72 deg`.
+
+Runner 32 V1 remained generic.
+
+Runner 33 V2 adds restrained feminine gameplay treatment but is not final locomotion approval. The user explicitly chose to generate the complete spritesheet now rather than keep micro-adjusting skeleton poses.
+
+Therefore runner-33 V2 is the **provisional eight-frame motion driver** for the current full-master proof.
+
+## CURRENT TEST — runner 34 complete-character spritesheet
 
 Runner:
 
-`tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
+`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-Technical result:
+Packer:
 
-- 8 frames at `512×512`;
-- 25 steps;
-- CFG `3.5`;
-- seed `42`;
-- fp16;
-- 0 unexpected Moore keys from SSD denoising checkpoint;
-- 588 missing keys accepted under the intended SD1.5 + motion-module initialization followed by partial checkpoint overlay;
-- reference UNet and baseline Moore pose guider loaded successfully.
+`tools/structured-2d-character-pipeline/g3s_pack_complete_character_spritesheet.py`
 
-Visual result failed production use:
+Runner 34 intentionally tests the problem as a whole:
 
-- poor C1A phase differentiation;
-- weak pose obedience;
-- unstable lower legs/ankles/feet;
-- detached dark accessory/ground artifacts;
-- insufficient locomotion despite moderate identity persistence.
+- appearance reference = full `exilada_master.png` initial state;
+- target motion = 8-frame V2 guide at `72 deg`;
+- inference = Moore-compatible SSD fallback;
+- generation = `512×512`, 8 frames, 25 steps, CFG `3.5`, seed `42`, fp16;
+- body movement and secondary motion are evaluated together;
+- neutral connected background is removed after inference;
+- output frames are stored as RGBA;
+- eight full-character cells are packed 4×2 into a spritesheet;
+- metadata records frame events, duration and stable pivot derived from reference-pose registration.
 
-## Runner 30 — pose-registration discriminant
+Expected output workspace:
 
-Runner:
+`Z:\AI\SpriteSheetDiffusionSpike\exilada_initial_complete_walk8_playable_proof`
 
-`tools/structured-2d-character-pipeline/30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1`
+## What counts as secondary-motion success/failure
 
-Runner 30 isolated and corrected a concrete runner-29 input defect. The earlier target-pose conversion mapped the locked `640×360` C1A coordinates to `512×512` with independent axis scales:
+The temporal model is currently given one complete appearance reference plus body pose controls. It is therefore being asked to produce plausible temporal behavior for non-skeletal visible masses from its video prior.
 
-- X `0.8`;
-- Y `1.4222...`;
-- relative vertical stretch `1.7778×`.
+That is deliberate. The proof asks whether this route can produce a coherent complete-character sequence in practice.
 
-Runner 30 instead:
+Judge:
 
-- rebuilt target poses from the original C1A joints using one uniform geometry scale;
-- registered target skeleton body scale/position to the DWPose reference-body footprint;
-- removed baked root travel for in-place authoring;
-- kept master/model/weights/resolution/steps/CFG/seed/fp16 unchanged.
+- body locomotion;
+- soft-tissue/jiggle response;
+- hair inertia/shape continuity;
+- base-cloth/binding response;
+- shackles/chains/restraint attachment and motion;
+- whole-character identity continuity.
 
-## Runner 30 visual QA — DIAGNOSTIC IMPROVEMENT / PRODUCTION FAIL
+If those secondary systems freeze, detach, change identity or migrate between anatomical sides, the complete-character route has failed that requirement. Do not excuse it as a missing runtime-layer system.
 
-The user-supplied runner-30 contact sheet/GIF showed a clear improvement over runner 29:
+## Spritesheet artifact
 
-- pose articulation became much more visible;
-- left/right progression improved;
-- leg/foot reconstruction was materially better;
-- therefore pose-scale registration was a real failure source.
+The packer creates:
 
-However the result remains **far below the intended game quality**:
+- eight transparent RGBA complete-character frames;
+- `exilada_initial_walk8_complete_spritesheet.png`;
+- playback GIF;
+- metadata JSON;
+- fixed cell geometry and pivot information.
 
-- walking lacks convincing naturality;
-- pose/body presentation is not yet tuned to the elevated belt-scroller's locomotion language;
-- several gait phases remain awkward rather than polished;
-- the complete master still produces unstable dangling restraints/accessory fragments;
-- the sequence is not suitable to freeze as production sprites.
+This is a playable/visual proof artifact, not final pixel-art production approval.
 
-Runner 30 is therefore **not a production PASS**. It is retained as a useful diagnostic proof that corrected pose geometry materially improves control.
+## Variation strategy — later
 
-## New diagnosis
+Armor, equipment, accessories, damage and exposure still need scalable variation. The solution will be designed after the initial complete-character animation route is proven.
 
-After runner 30, the remaining problem cannot be treated as an image-model parameter problem alone.
-
-C1A was approved as a **mechanical gait sanity proof** using generic CMU `105_34 NormalWalk` and a `45 deg` camera azimuth from travel heading. That does not mean it is the correct art-directed locomotion for the final game.
-
-The project was asking the visible authoring model to solve two things simultaneously:
-
-1. follow a pose sequence;
-2. invent the missing gameplay animation style.
-
-Runner 30 improved #1 enough to expose #2.
-
-Do not use CFG/seed/resolution/FILM sweeps to compensate for an unapproved locomotion master.
-
-## Current gate outside SSD — G3S-C1C gameplay locomotion master
-
-Canonical document:
-
-`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
-
-Current runner:
-
-`tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
-
-Runner 31 executes no diffusion. It compares the same validated human gait at `60`, `72` and `84 deg` azimuth from travel heading to find an appropriate mostly-lateral belt-scroller presentation before any gait styling is added.
-
-No SSD rerun is authorized until C1C approves the base gameplay locomotion pose family.
-
-## Layering implication
-
-Runner 30's detached/restraint artifacts reinforce the broader body-first production rule. The gait should be defined and validated on the body first; hair, clothing, bindings, shackles/chains and secondary masses remain downstream layer/authoring problems.
-
-This does not yet prove which visible body-authoring model will win. It does prove that a monolithic complete-master walk is not an acceptable substitute for motion design and layer stability.
-
-## Future SSD condition
-
-The Moore-compatible route may be revisited **only after** C1C provides an approved gameplay locomotion guide. At that point the next fair visible test should prioritize body motion rather than asking the complete accessory-heavy master to solve every layer at once.
-
-Exact upstream SSD remains blocked unless a trustworthy compatible custom pose-guider checkpoint becomes available or the project deliberately chooses to retrain the missing custom pose stack.
+The only locked constraint is that final runtime character animation remains complete-frame playback; variation may use offline modular production or bounded precomposed state families, but not runtime construction of the character from interchangeable body/equipment layers.
 
 ## Cleanup
 
-No cleanup yet. Existing SSD downloads remain useful evidence/assets, but no new SSD computation is current work.
+No cleanup. Existing SSD assets and environment are required for runner 34.
