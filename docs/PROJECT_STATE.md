@@ -196,9 +196,28 @@ Everything else stays W1:
 - negative prompt;
 - `--disable-pinned-memory`.
 
-Hypothesis: inherited head/body edge cropping can be eliminated by safe-framing the raw driver before Wan without materially reducing motion quality or causing camera breathing.
+### Runner 39 attempt 1 — INFRASTRUCTURE/PREFLIGHT FAIL
 
-Expected evidence:
+The surfaced terminal excerpt reached a healthy ComfyUI startup, then exited with:
+
+`RUNNER39-WAN-W1F: FAIL - W1F safe-framing inference exited with code 2`
+
+No Wan/model-quality inference is valid from this attempt.
+
+The W1F executor is the first current route that imports `cv2` for deterministic raw-video preprocessing. The isolated ComfyUI bootstrap does not explicitly guarantee OpenCV, and Runner 39 attempt 1 did not preflight this dependency.
+
+Current Runner 39 is hardened to:
+
+- verify `import cv2, numpy` before W1F;
+- install only `opencv-python-headless>=4.10,<5` in the isolated Wan Python environment if `cv2` is missing;
+- verify the import again before starting ComfyUI/inference;
+- keep every Wan/model/framing experiment variable unchanged.
+
+This is an infrastructure/preprocessor dependency correction, not a configuration experiment.
+
+Hypothesis remains unchanged: inherited head/body edge cropping can be eliminated by safe-framing the raw driver before Wan without materially reducing motion quality or causing camera breathing.
+
+Expected evidence after a valid retry:
 
 - `Z:\AI\WanAnimate2\w1f_exilada_safe_framing80.mp4`
 - `Z:\AI\WanAnimate2\w1f_run_manifest.json`
