@@ -1,0 +1,66 @@
+{
+  "gate": "G3S-C1C_GAMEPLAY_WALK_OVERLAY",
+  "revision": "GAMEPLAY_WALK_OVERLAY_V2_FEMININE",
+  "status": "RUNNER_READY_REVIEW_REQUIRED",
+  "date": "2026-09-07",
+  "facing_azimuth_deg": 72.0,
+  "purpose": "Author a subtle adult feminine Exilada walk on the approved 72-degree belt-scroller facing while retaining real gait timing and support semantics.",
+  "design_intent": [
+    "read as an adult feminine Exilada gait without catwalk exaggeration",
+    "make support-side weight transfer visible through restrained pelvic obliquity",
+    "add mild pelvis/shoulder counter-rotation while preserving grounded action readability",
+    "keep the projected leg corridor compact without runway-style crossing",
+    "reduce generic civilian arm pendulum and keep the head comparatively stable",
+    "retain clear contact/down/passing/up gait semantics and support-foot contacts"
+  ],
+  "guardrails": [
+    "no exaggerated hip sway",
+    "no catwalk leg crossing",
+    "no cartoon bounce",
+    "no loss of support-foot order",
+    "no diffusion or visible-body generation in this gate"
+  ],
+  "parameters": {
+    "pelvis_bob_scale": 0.62,
+    "stride_x_scale": {
+      "hip": 0.99,
+      "knee": 0.95,
+      "ankle": 0.91,
+      "toe": 0.91
+    },
+    "phase_weight": {
+      "contact": 0.25,
+      "down": 0.65,
+      "passing": 1.0,
+      "up": 0.75
+    },
+    "pelvic_obliquity_total_px": 3.2,
+    "pelvic_yaw_split_px": 2.2,
+    "torso_counterlean_total_px": 1.8,
+    "shoulder_counteryaw_split_px": 1.4,
+    "torso_forward_shear_px_at_head": 2.6,
+    "arm_swing_x_scale": {
+      "elbow": 0.7,
+      "wrist": 0.56
+    },
+    "arm_swing_y_scale": {
+      "elbow": 0.91,
+      "wrist": 0.86
+    },
+    "swing_leg_lift_px": {
+      "contact": {"knee": 0.0, "ankle": 0.0, "toe": 0.0},
+      "down": {"knee": 0.4, "ankle": 0.6, "toe": 0.4},
+      "passing": {"knee": 1.4, "ankle": 2.0, "toe": 1.3},
+      "up": {"knee": 1.0, "ankle": 1.5, "toe": 1.0}
+    },
+    "head_offset_stabilization": 0.64
+  },
+  "review_requirements": [
+    "feminine read must be visible without relying on costume or hair",
+    "must remain a grounded action-game walk, not a runway walk",
+    "support-foot contacts remain legible",
+    "contact/down/passing/up remain distinct",
+    "no anatomy break or cartoon exaggeration",
+    "must be materially better than runner 32 V1 before visible authoring resumes"
+  ]
+}
