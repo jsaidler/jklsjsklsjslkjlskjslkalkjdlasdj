@@ -1,86 +1,93 @@
-# Wan-Animate-2 validation spike — CLI only
+# Wan-Animate-2 validation / exhaustion tooling
 
-Status: **HISTORICAL / REJECTED FOR PRODUCTION / WORKSPACE CLEANED UP.**
+Status: **ACTIVE AGAIN FOR A CONTROLLED BASE-BF16 MODEL-EXHAUSTION PASS.**
 
-This directory preserves reproducible research tooling only. It must **not** be treated as the current Roguelite animation route and must not imply that a local Wan workspace still exists.
+The historical 2026-09-04 Base INT8 run remains valid negative evidence for that constrained configuration, but it no longer counts as a model-family rejection. The current project gate deliberately rebuilds Wan-Animate-2 around the highest-quality Base BF16 checkpoint before making another verdict.
 
-## Historical hardware / tested route
+## Hardware
 
-The 2026-09-04 validation ran on:
+- Windows 11
+- NVIDIA RTX 3060 12 GB
+- 48 GB RAM
 
-- Windows 11;
-- NVIDIA RTX 3060 12 GB;
-- 48 GB RAM.
+The GPU is **not** used to choose the checkpoint. The canonical checkpoint is Base BF16 even if execution later requires aggressive offload or reduced spatial/temporal settings. Those execution concessions must be isolated one at a time.
 
-The tested model route was:
+## Canonical BF16 W0 asset set
 
-- official Wan-Animate-2 Base INT8 ConvRot;
-- `wan_animate_2_int8_convrot.safetensors`;
-- native ComfyUI `WanAnimate2ToVideo` support;
-- FP8 UMT5 text encoder;
-- CLIP Vision H;
-- Wan 2.1 VAE;
-- no LightX2V/distillation LoRA;
-- 384×576;
-- 17 frames;
-- seed 42;
-- Euler;
-- 20 steps;
-- CPU model cache.
+Only these model files belong to the reference-quality W0 route:
 
-The generation completed and produced evaluable output.
+- `models/diffusion_models/wan_animate_2_bf16.safetensors` — ~32.8 GB;
+- `models/text_encoders/umt5_xxl_fp16.safetensors` — ~11.4 GB;
+- `models/clip_vision/clip_vision_h.safetensors` — ~1.26 GB;
+- `models/vae/Wan2_1_VAE_bf16.safetensors` — ~0.254 GB.
 
-## Production rejection
+Total payload is about **45.7 GB**, excluding ComfyUI/runtime/temp files.
 
-The Exilada spike was rejected for two decisive reasons:
+The following are deliberately **not** retained in the active W0 workspace:
 
-1. **Driving-motion transfer was too weak.** The driver visibly walked while the generated Exilada remained largely planted with only modest weight/limb change.
-2. **The required modern-pixel-art/game-art language was not preserved.** Output read as smooth painted/video-diffusion imagery rather than deliberate discrete pixel art.
+- Base INT8 ConvRot;
+- Distilled BF16;
+- Distilled INT8 ConvRot;
+- LightX2V distillation LoRA;
+- UMT5 FP8.
 
-Identity and coarse anatomy were comparatively stable, but that did not compensate for the motion/style failures.
+If they are found in the isolated Wan workspace, `bootstrap.ps1` removes them before the BF16 download. Git history preserves the old experiment; local disk does not need duplicate 16–33 GB checkpoints.
 
-Result: **Wan-Animate-2 Base INT8 is CLOSED as the production animation foundation.**
+## Official W0 inputs
 
-Do not rescue or silently revive this exact route through:
+The bootstrap downloads the current upstream `examples/demo1` assets:
 
-- seed fishing;
-- CFG/step cosmetics;
-- stronger reference strength;
-- prompt-only changes;
-- a synthetic richer driving video;
-- post-generation pixel filters;
-- manual frame-by-frame repair.
+- `reference.png`;
+- `template.mp4`.
 
-A future Wan-family revisit would require a **materially different checkpoint/integration/model behavior** with evidence that both locomotor adherence and native/discrete game-art preservation are solved.
+They are stored under:
 
-## Workspace cleanup
+`ComfyUI/input/wan_animate2_w0/`
 
-The isolated local Wan runtime/model workspace used for this rejected experiment was deleted after rejection.
+W0 exists only to prove the fresh local integration before testing Exilada.
 
-Therefore:
+## Upstream Base reference semantics
 
-- do not assume `D:\AI\WanAnimate2` exists;
-- do not instruct the operator to run `inspect.ps1`/`run_spike.ps1` against that path without an explicit new installation gate;
-- do not treat missing Wan weights as an infrastructure regression — the deletion was intentional cleanup of a rejected route.
+The upstream repository config declares approximately:
 
-## Historical scripts
+- Base BF16;
+- `640×800`;
+- `37` frames;
+- `16 fps`;
+- `20` steps in the repository YAML;
+- base seed `0`.
 
-The scripts in this directory remain only so the prior experiment is auditable:
+The upstream Diffusers example also uses `640×800` and 40 inference steps. We will record the exact inference path used in each W0 attempt rather than mixing those two documented paths.
 
-- `bootstrap.ps1`
-- `make_driver.ps1`
-- `inspect.ps1`
-- `build_workflow.py`
-- `run_spike.ps1`
+## Scripts
 
-They are **research history**, not current operator actions.
+### `bootstrap.ps1`
 
-## Rejection record
+Active. Rebuilds the isolated `D:\AI\WanAnimate2` ComfyUI workspace if needed, enforces a free-space preflight, deletes superseded Wan-specific weights/materials, downloads only the canonical BF16 W0 asset set, downloads the official demo inputs, copies `exilada_master.png`, writes `wan_bf16_route.json`, and removes the completed Hugging Face download cache.
 
-Historical rejection commit:
+### `inspect.ps1`
 
-`402dc4a3c4684312af33bbc00f903bad7b708a58` — `record Wan Animate 2 spike rejection`
+Active. Starts the fresh ComfyUI headlessly, validates the BF16 files/native Wan node classes, proves superseded Wan weights are absent, and stores the exact installed node schemas in:
 
-Post-Wan research commit:
+`D:\AI\WanAnimate2\object_info_wan_bf16.json`
 
-`2277777c91bdd553ef7d9ee882c378226e36f842` — `Document post-Wan pixel-native animation research`
+No W0 workflow is authored until this schema exists. This prevents guessing cache/widget semantics across ComfyUI versions.
+
+### Historical scripts
+
+`make_driver.ps1`, `build_workflow.py`, and `run_spike.ps1` document the old 384×576 / 17-frame INT8 experiment. Do **not** use them for the BF16 W0 gate.
+
+## Current operator entry point
+
+Use:
+
+`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
+
+Runner 35 performs setup + cleanup + download + schema preflight and intentionally stops before inference.
+
+## Cleanup discipline
+
+- Remove model variants and generated material only when they are no longer part of a current diagnostic hypothesis.
+- Do not retain duplicate quantizations/Distilled checkpoints “just in case”; download them later only if W4 explicitly calls for that controlled comparison.
+- Preserve small manifests/logs/results as evidence.
+- Do not delete the current Base BF16 route after one bad output; apply the model-exhaustion protocol first.
