@@ -18,8 +18,8 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 - elevated arcade beat'em-up / belt-scroller false 3D;
 - fixed `640×360` orthographic camera, pitch `26 deg`;
 - protagonist about `128 px` tall;
-- mostly lateral / three-quarter screen-left locomotion family;
-- exact horizontal facing angle is currently under locomotion review;
+- first screen-left locomotion family is mostly lateral / slight three-quarter;
+- **locomotion-facing baseline selected at `72 deg` azimuth from travel heading** (`90 deg` = pure side);
 - no isometric north/south character-family multiplication;
 - final runtime = conventional deterministic spritesheet playback;
 - runtime/world locomotion is separate from baked sprite root translation.
@@ -33,9 +33,7 @@ Retained source:
 - eight approved phases `1588..1658`;
 - existing guide `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`.
 
-C1A still proves coherent human gait timing/support progression and intact skeletal chains. It is **not** the final gameplay locomotion master.
-
-The old horizontal camera azimuth was `45 deg` from travel heading. This is now reopened because runner-30 visual output still reads too frontal/awkward for the belt-scroller.
+C1A proves coherent human gait timing/support progression and intact skeletal chains. It is **not** the final gameplay locomotion master.
 
 ## SSD status
 
@@ -43,58 +41,48 @@ Exact upstream SSD remains BLOCKED because the public release omits the custom m
 
 Moore-compatible fallback remains technically runnable with the released SSD denoising/reference UNets plus baseline Moore pose guider/motion module.
 
-### Runner 29
+Runner 29: technical PASS / visual FAIL.
 
-- technical PASS;
-- visual FAIL;
-- weak pose obedience;
-- unstable feet/lower legs;
-- detached accessory/ground artifacts.
-
-### Runner 30
-
-Runner:
-
-`tools/structured-2d-character-pipeline/30_run_ssd_moore_compat_exilada_walk8_pose_aligned.ps1`
-
-It fixed a real input defect: runner 29 had stretched C1A pose geometry vertically by `1.7778x` through independent `640x360 -> 512x512` axis normalization.
-
-Runner 30 used uniform scale + DWPose-body registration and produced a **clear A/B improvement**:
-
-- stronger pose articulation;
-- better left/right differentiation;
-- materially better leg/foot reconstruction.
-
-But the user rejected the result as still far below the intended game quality:
-
-- walk lacks naturality;
-- pose language is not yet appropriate to the game;
-- gait phases remain awkward;
-- accessory/restraint artifacts persist.
-
-Therefore runner 30 is a useful diagnostic correction but **not production PASS**.
+Runner 30: fixed the `1.7778x` target-pose stretch/registration defect and clearly improved visible pose response, but the user rejected the walk as still far below the intended game quality. This proved the next bottleneck is locomotion art direction, not another diffusion parameter sweep.
 
 Do not run SSD again yet.
 
-## CURRENT GATE — G3S-C1C gameplay locomotion master
+## Runner 31 — facing audit CLOSED
+
+Runner 31 compared `60`, `72`, `84 deg` skeleton projections with all other motion/camera variables fixed.
+
+Decision:
+
+- `60 deg` rejected as too frontal;
+- `84 deg` rejected as too profile-thin for the baseline;
+- **`72 deg` selected** as the gameplay locomotion facing baseline.
+
+The remaining primary problem is the generic raw `NormalWalk` pose language.
+
+## CURRENT GATE — runner 32 gameplay walk overlay V1
 
 Canonical doc:
 
 `docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
 
-Immediate runner:
+Runner:
 
-`tools/structured-2d-character-pipeline/31_run_g3s_c1c_gameplay_facing_audit.ps1`
+`tools/structured-2d-character-pipeline/32_run_g3s_c1c_gameplay_walk_overlay_v1.ps1`
 
-Runner 31 performs no diffusion. It rebuilds skeleton-only reviews of the same validated real gait at three camera azimuths:
+Helper:
 
-- `60 deg` — 30 deg off pure profile;
-- `72 deg` — 18 deg off pure profile;
-- `84 deg` — 6 deg off pure profile.
+`tools/structured-2d-character-pipeline/g3s_c1c_apply_gameplay_walk_overlay.py`
 
-Everything else stays fixed: same motion, same eight phases, `640x360`, pitch `26 deg`, target skeleton height about `128 px`.
+Runner 32 performs **no diffusion**. It rebuilds a fresh `72 deg` skeleton baseline and applies one bounded authored overlay:
 
-Purpose: establish a game-appropriate mostly-lateral presentation before styling the gait itself.
+- stride compression;
+- pelvis/root bob reduction;
+- mild forward upper-body intent;
+- reduced casual arm pendulum;
+- head stabilization;
+- real gait timing/support order retained.
+
+It outputs an A/B review package so the raw `72 deg` gait and authored V1 can be compared directly.
 
 ## EXACT NEXT OPERATOR ACTION
 
@@ -102,29 +90,36 @@ Purpose: establish a game-appropriate mostly-lateral presentation before styling
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\31_run_g3s_c1c_gameplay_facing_audit.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\32_run_g3s_c1c_gameplay_walk_overlay_v1.ps1"
 ```
 
-Then share, from each of these directories, the contact sheet and preferably zoom GIF:
+Expected terminal marker:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az60`
+`G3S-C1C-OVERLAY: A/B SKELETON REVIEW PACKAGE READY`
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az72`
+Share:
 
-`Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_facing_audit\az84`
+1. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\baseline_az72\g3s_c1_skeleton_walk_contact_sheet.png`
+2. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\baseline_az72\g3s_c1_skeleton_walk_zoom.gif`
+3. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\overlay_v1\g3s_c1_skeleton_walk_contact_sheet.png`
+4. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\overlay_v1\g3s_c1_skeleton_walk_zoom.gif`
 
-## Decision after runner 31
+## Decision rule
 
-- choose one facing;
-- choose an intermediate facing if needed;
-- or reject all three.
+Approve overlay V1 only if it is clearly more natural and game-authored than the raw `72 deg` baseline while preserving:
 
-If the selected facing still leaves the gait too neutral, the next skeleton-only gate will apply a deterministic gameplay locomotion overlay: shorter/clearer stride, controlled root bob, torso inclination, shoulder orientation, arm-swing/elbow treatment, head stabilization and foot-lift amplitude.
+- human phase readability;
+- grounded support contacts;
+- left/right alternation;
+- mature/non-cartoon physicality;
+- anatomical coherence.
 
-Only after the skeleton locomotion itself is approved should visible body authoring resume.
+If V1 is directionally right but one specific control is visibly over/under-corrected, revise only that control in the next bounded skeleton pass. Do not open a broad parameter sweep.
+
+Only after the skeleton locomotion master passes should visible body authoring resume.
 
 ## Layering
 
-Runner-30 restraint/accessory failures reinforce body-first locomotion validation. Hair, clothing, bindings, shackles/chains and secondary masses are downstream layer/authoring problems, not part of defining the base gait.
+Base gait is body motion first. Hair, clothing, bindings, shackles/chains and secondary masses remain downstream layer/authoring problems.
 
 No cleanup applies. SSD assets are retained but computation is paused.
