@@ -11,9 +11,7 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 3. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 4. `docs/G1_CAMERA_SCALE_LOG.md`
 5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-6. `docs/G3S_C1B_VISIBLE_WALK_PROOF.md`
-7. `docs/G3S_C1B_SEGMENTED_PUPPET.md`
-8. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+6. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -31,151 +29,145 @@ Normal operator loop after an approved runner exists:
 - pitch `26 deg`;
 - protagonist about `128 px` tall;
 - first visible family screen-left/front-three-quarter;
-- gameplay depth movement does not require north/south/isometric sprite families.
-
-True isometric multi-directional character production remains closed unless explicitly reopened.
+- gameplay depth movement does not require north/south/isometric sprite families;
+- true isometric multi-directional character production remains closed unless explicitly reopened.
 
 ## Runtime animation representation — LOCKED
 
 `approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
 
-Runtime does not require a 3D skeleton, MPFB, segmented puppet, diffusion model or per-frame generation.
+Runtime does not require a 3D skeleton, segmented puppet or diffusion model.
 
 ## Canonical Exilada reference
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-## Retained offline motion source
+## Retained motion control
 
-- G2 PASS/CLOSED;
-- `G2_CANONICAL_RIG`;
-- CMU `105_34 NormalWalk`;
-- C1A skeleton walk PASS/CLOSED;
-- approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
+C1A skeleton-only walk: PASS/CLOSED.
 
-This is the exact source of the first eight SSD walk targets. Do not ask the user for eight new pose images.
+- motion: CMU `105_34 NormalWalk`;
+- rig: `G2_CANONICAL_RIG`;
+- guide: `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`;
+- approved states: `1588,1598,1608,1618,1628,1638,1648,1658`;
+- first visible family: screen-left/front-three-quarter.
 
-## Historical/closed visible routes
+The user is not expected to supply eight manual pose images.
 
-- visible 3D -> final pixel art — CLOSED;
-- nearest-segment rigid partition — CLOSED;
-- whole-body chain/cage warp -> gait — CLOSED;
-- MPFB skinned body as mandatory guide — CLOSED;
-- Flux2 independent full-body redraw per frame — FAIL/CLOSED;
-- segmented 2D puppet runner 23 — PAUSED/HISTORICAL.
+## Local SSD/authoring environment — PASS
 
-## CURRENT — SPRITE SHEET DIFFUSION LOCAL VALIDATION
+Workspace:
 
-Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
-
-Goal: determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence strongly enough that accepted frames can be frozen into conventional spritesheets.
-
-## Installation / model / authoring-support gates — PASS
-
-Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
+`Z:\AI\SpriteSheetDiffusionSpike`
 
 Validated:
 
-- Miniconda PASS;
-- env `ssd` PASS;
+- Miniconda / env `ssd` PASS;
 - Python `3.10.21`;
-- pip `26.2.1`;
-- RTX 3060 detected;
-- Torch `2.0.1+cu118`;
-- CUDA build `11.8`;
-- real SSD inference import graph PASS;
-- core generation models PASS;
-- authoring support PASS;
+- RTX 3060;
+- Torch `2.0.1+cu118` / CUDA 11.8;
+- SSD import graph PASS;
 - DWPose available;
-- FILM available, optional/not default.
+- FILM available, optional/not default;
+- released SSD denoising/reference UNets present;
+- baseline AnimateAnyone pose guider + motion module present.
 
-## Correct role split — LOCKED
+## Walk8 input preparation — PASS
 
-- **SSD** generates visible Exilada frames.
-- **DWPose** extracts pose from RGB/reference/driving frames.
-- **C1A** already owns the exact eight walk target poses.
+Runner 28 V3 successfully passed the JSON path-control plane and reached real model inference.
 
-First walk proof:
+This confirms:
 
-`Exilada master --DWPose--> matching reference pose`
+- Exilada master path handling;
+- DWPose reference-pose extraction;
+- conversion of approved C1A states into eight clean target pose maps;
+- dedicated first-walk SSD input config/preparation.
 
-`approved C1A guide --deterministic OpenPose-style render--> 8 clean target pose maps`
+## Exact upstream SSD inference — BLOCKED
 
-`master + reference pose + 8 targets --SSD--> 8 visible Exilada frames`
+The first actual SSD model execution failed while loading `pose_guider.pth` into SSD's current custom `PoseGuider`.
 
-## CURRENT GATE — runner 28 first real Exilada inference
+Installed checkpoint architecture:
 
-Runner:
+- Moore/AnimateAnyone baseline: `conv_in`, `blocks`, `conv_out`.
 
-`tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
+Current SSD code requires:
+
+- custom multi-scale `conv_layers*`, `final_proj`, `cross_attn*`, `scale` architecture;
+- strict checkpoint loading;
+- multiple indexed pose features consumed by modified `unet_3d.py`.
+
+The public SSD model release does not include that custom trained `pose_guider.pth`. Upstream issue #3 records the same missing-checkpoint blocker.
+
+Therefore exact current-upstream SSD inference is **not reproducible from the public checkpoint set**. This is not a DWPose, CUDA or RTX 3060 failure.
+
+The earlier project assumption that the baseline AnimateAnyone pose guider was a drop-in exact SSD checkpoint has been corrected in:
+
+`tools/structured-2d-character-pipeline/ssd_model_manifest.json`
+
+Current manifest status:
+
+`EXACT_UPSTREAM_INFERENCE_BLOCKED_POSE_GUIDER_UNRELEASED`
+
+Do not run runner 28 again and do not fake compatibility by loading the wrong checkpoint loosely into SSD's custom PoseGuider.
+
+## CURRENT GATE — Moore-compatible empirical fallback
+
+Purpose: salvage a meaningful local test using only architecture/checkpoint combinations that actually match.
+
+Route:
+
+`original Moore-AnimateAnyone graph + baseline Moore pose guider/motion module + released SSD fine-tuned denoising/reference UNets`
+
+This route is **not the exact published SSD graph**. It tests whether the released SSD UNets remain useful for Exilada sprite generation in the compatible parent graph.
+
+Pinned Moore source commit:
+
+`a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
 Helper:
 
-`tools/structured-2d-character-pipeline/g3s_ssd_prepare_walk8.py`
+`tools/structured-2d-character-pipeline/g3s_ssd_moore_compat_walk8.py`
 
-Request wrapper:
+Runner:
 
-`tools/structured-2d-character-pipeline/g3s_ssd_walk8_request.py`
+`tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
 
-### Attempt 1 — SCRIPT FAIL
+Runner 29 reuses all heavyweight models already present and fetches only Moore source code. It performs checkpoint-signature/graph compatibility checks before generation and labels the result `exact_upstream_ssd: false`.
 
-Raw `Start-Process -ArgumentList` split `D:\GOOGLE DRIVE\...`; Python received `D:\GOOGLE`.
-
-### Attempt 2 — SCRIPT FAIL caught by preflight
-
-Manually quoted `Start-Process -ArgumentList` still failed the native argument preflight. No model work started.
-
-### Attempt 3 — SCRIPT FAIL caught by preflight
-
-Actual user result:
-
-- expected `D:\GOOGLE DRIVE\DEV\Roguelite` and the complete master path as two values;
-- received count `1`;
-- received a single concatenated string containing both paths.
-
-Thus the call-operator/array-splatting transport used inside the runner function is also rejected for whitespace-bearing path payloads on this Windows PowerShell 5.1 environment.
-
-All three are runner/control-plane defects. Environment, models, DWPose and SSD remain untested by runner 28 and all previous PASS gates remain valid. No reinstall/redownload is required.
-
-## Windows Python transport rule — LOCKED V3
-
-Stop transporting whitespace-bearing project paths through native argv.
-
-Runner 28 now uses a **JSON request control plane**:
-
-- actual project paths are written to `Z:\AI\SpriteSheetDiffusionSpike\ssd_walk8_prepare_request.json`;
-- helper and request-wrapper scripts are copied to the same no-space `Z:\AI\SpriteSheetDiffusionSpike` workspace;
-- native Python invocations receive only no-space script/request paths and scalar literals;
-- Python reads the real paths from JSON;
-- a request probe writes them back to JSON and PowerShell verifies exact equality before DWPose/model work;
-- runner 28 uses neither `Start-Process` nor dynamic argv-array transport for the whitespace-bearing payload.
-
-## Exact next operator action
+## Exact current operator action
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\29_run_ssd_moore_compat_exilada_walk8.ps1"
 ```
 
-Expected early sequence:
+Target:
 
-- `[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...`
-- `SSD-WALK8-REQUEST-PROBE: PASS`
-- `[OK] JSON path transport preflight PASS.`
-- `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
-
-Expected successful end state:
-
-- `SSD-WALK8: OUTPUT READY FOR VISUAL QA`;
-- eight generated PNGs;
+- `SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`;
+- 8 PNG frames;
 - contact sheet;
 - GIF;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
+- `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
 
-Visual PASS still requires review of identity, anatomy/proportions, hair, cloth/shackles/chains, pose obedience and temporal coherence.
+Technical success is not visual approval. Review identity, anatomy/proportions, long hair, cloth/shackles/chains, pose obedience and temporal coherence before any expansion to more actions or sheet packing.
+
+## Exact SSD future condition
+
+Exact SSD remains blocked unless a trustworthy compatible custom pose-guider checkpoint becomes available or the project explicitly decides to retrain the missing stage-1/custom pose stack.
+
+## Historical/closed visible routes
+
+- visible 3D -> final pixel art — CLOSED;
+- nearest-segment rigid partition — CLOSED;
+- whole-body chain/cage warp — CLOSED;
+- MPFB body as mandatory guide — CLOSED;
+- Flux2 independent per-frame redraw — FAIL/CLOSED;
+- segmented 2D puppet — PAUSED/HISTORICAL;
+- runner 28 exact-upstream SSD attempt — BLOCKED/CLOSED by unreleased pose-guider checkpoint.
 
 ## No cleanup
 
-SSD is ACTIVE. Do not delete `Z:\AI\SpriteSheetDiffusionSpike`.
+The SSD workspace and released fine-tuned models remain useful for the active fallback investigation. No cleanup applies.
