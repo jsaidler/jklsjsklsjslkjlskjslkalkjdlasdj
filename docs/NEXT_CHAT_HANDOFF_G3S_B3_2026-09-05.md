@@ -72,36 +72,38 @@ Helper:
 
 ### Attempt 1 — SCRIPT FAIL
 
-`Start-Process -ArgumentList` with a raw array split `D:\GOOGLE DRIVE\...`; Python received `D:\GOOGLE`.
+Raw `Start-Process -ArgumentList` split `D:\GOOGLE DRIVE\...`.
 
 ### Attempt 2 — SCRIPT FAIL caught before model work
 
-The manually quoted `Start-Process -ArgumentList` approach still failed the argv preflight:
+Manually quoted `Start-Process -ArgumentList` still failed the argv preflight.
 
-`SSD-WALK8: FAIL - native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.`
+### Attempt 3 — SCRIPT FAIL caught before model work
 
-This second failure is also a runner defect, not SSD/DWPose/CUDA/model failure. The preflight prevented any expensive work from starting.
+Call-operator/array-splatting still delivered the two whitespace-bearing payload paths as one concatenated Python argument. Actual received count was `1`.
 
-## Windows Python invocation rule — LOCKED V2
+No DWPose or SSD generation ran in these failures. They do not invalidate any installed model/dependency/support PASS gate.
 
-For Windows PowerShell 5.1 project runners:
+## Windows transport rule — LOCKED V3
 
-- do not use `Start-Process -ArgumentList` for Python invocations containing whitespace-bearing paths;
-- invoke Python with `& $PythonExe @Arguments`;
-- display native output but use `$LASTEXITCODE` and structured marker files for control flow;
-- keep a preflight using the exact project-root and Exilada-master paths;
-- on mismatch, print actual argv before aborting.
+Do not carry project paths containing spaces through native Python argv at all.
 
-## Current runner — FIX V2 / RETRY READY
+Runner 28 now uses JSON request transport:
 
-Runner 28 now uses no `Start-Process` for Python. The same direct argv-preserving invocation is used for:
+- request: `Z:\AI\SpriteSheetDiffusionSpike\ssd_walk8_prepare_request.json`;
+- local helper copy: `Z:\AI\SpriteSheetDiffusionSpike\g3s_ssd_prepare_walk8.py`;
+- local request wrapper: `Z:\AI\SpriteSheetDiffusionSpike\g3s_ssd_walk8_request.py`;
+- Python receives only paths under `Z:\AI` with no spaces;
+- real project-root/master/guide/model-training/marker values are decoded from JSON;
+- preflight requires Python to write the decoded values back and PowerShell to match them exactly before any DWPose/model work.
 
-1. path transport preflight;
-2. DWPose/reference + C1A target-map preparation;
-3. SSD inference;
-4. contact-sheet/GIF review generation.
+New source wrapper:
 
-After preflight PASS it runs:
+`tools/structured-2d-character-pipeline/g3s_ssd_walk8_request.py`
+
+## Current runner — FIX V3 / RETRY READY
+
+After JSON preflight PASS it runs:
 
 - Exilada master -> DWPose reference pose;
 - C1A guide -> 8 clean target maps;
@@ -120,8 +122,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 Expected early output:
 
-- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `[OK] Native argument transport preflight PASS.`
+- `[PREFLIGHT] Verifying JSON control-plane transport of the actual Windows paths...`
+- `SSD-WALK8-REQUEST-PROBE: PASS`
+- `[OK] JSON path transport preflight PASS.`
 - `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 Successful technical end state:
