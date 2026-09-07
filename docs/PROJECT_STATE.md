@@ -55,7 +55,7 @@ The active SSD spike uses the complete master as appearance reference.
 - C1A skeleton walk PASS/CLOSED;
 - approved cycle `1588,1598,1608,1618,1628,1638,1648,1658`.
 
-This may be reused only as offline pose/motion control.
+This is the source of the first eight pose-control states for SSD. The user is not expected to supply eight new pose references.
 
 ## Historical/closed visible routes
 
@@ -72,135 +72,79 @@ Canonical doc: `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
 
 Goal: determine whether Sprite Sheet Diffusion can generate a coherent Exilada action sequence strongly enough that accepted frames can be frozen into conventional spritesheets.
 
-The user has now explicitly required the workstation setup to include **all assets genuinely useful/necessary for the best practical spritesheet-authoring workflow**, not only the smallest smoke-test set. This does not mean downloading unrelated audio/portrait or legally unsuitable legacy assets.
-
-## Environment gate — PASS
+## Environment / dependencies / assets — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
-- clone: PASS;
-- Miniconda: PASS;
-- env `ssd`: PASS;
+Validated state:
+
+- Miniconda PASS;
+- env `ssd` PASS;
 - Python `3.10.21`;
 - pip `26.2.1`;
-- environment marker written.
-
-## Windows inference dependency gate — PASS
-
-Validated user console:
-
-- `SSD-DEPS: PASS`;
 - GPU `NVIDIA GeForce RTX 3060`;
 - Torch `2.0.1+cu118`;
 - CUDA build `11.8`;
-- real SSD `inference.py` import graph PASS;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
-- freeze `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`.
+- real SSD inference import graph PASS;
+- core generation model gate PASS;
+- authoring-support gate PASS.
 
-The earlier runner 25 `NativeCommandError` was a PowerShell control-flow defect and is closed. Subsequent runners must use controlled native-process execution and structured Python diagnostics.
-
-## CURRENT GATE — core generation model download IN PROGRESS
-
-Manifest:
-
-`tools/structured-2d-character-pipeline/ssd_model_manifest.json`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/26_download_ssd_models.ps1`
-
-Destination:
-
-`Z:\AI\SpriteSheetDiffusionSpike\repo\ModelTraining\pretrained_model`
-
-Estimated core download: **~13.7 GB**.
-
-Core generation set:
-
-- SD1.5 UNet;
-- MSE VAE;
-- CLIP vision image encoder;
-- SSD fine-tuned denoising/reference UNets;
-- AnimateAnyone pose guider + motion module.
-
-The user reported on 2026-09-07 that runner 26 **is currently downloading**. Do not interrupt it. Let it complete and report `SSD-MODELS: PASS` or a controlled failure.
-
-## Production-support asset gate — PREPARED / QUEUED AFTER RUNNER 26
-
-Manifest:
-
-`tools/structured-2d-character-pipeline/ssd_authoring_support_manifest.json`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/27_download_ssd_authoring_support.ps1`
-
-Additional download: approximately **0.42 GB**.
-
-It adds:
-
-- DWPose YOLOX detector `models/openpose/yolox_l.onnx`;
-- DWPose whole-body pose model `models/openpose/dw-ll_ucoco_384.onnx`;
-- FILM interpolation `pretrained_model/film_net_fp16.pt`.
-
-Runner 27 also verifies the MediaPipe face/pose task files already bundled in the upstream clone and structurally loads DWPose through OpenCV DNN plus FILM through TorchScript.
-
-### Why these are included
-
-- **DWPose** gives us a practical route from arbitrary driving footage/actions to body/hand/face pose maps for future walk/run/attack/dodge/hit/death production, instead of requiring manual pose-image authoring for every action.
-- **FILM** keeps upstream interpolation available as an optional production tool. It is not the default for final sprite frames because interpolation can damage crisp pixel silhouettes; every interpolated frame must pass QA.
-
-## Explicit exclusions from the full spritesheet-authoring kit
-
-- `wav2vec2` and AniPortrait audio models — unrelated to spritesheet action generation;
-- legacy CMU OpenPose body/hand/face weights — not used because the bundled OpenPose path is explicitly non-commercial-use-only and DWPose is the preferred whole-body detector path;
-- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
-- `xformers` — not a model download; only add later if measured RTX 3060 VRAM behavior proves it necessary through a compatibility-tested optimization gate.
-
-## Current exact operator sequence
-
-### Now
-
-Do nothing to the already-running model download. Wait for runner 26 to finish.
-
-### After `SSD-MODELS: PASS`
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\27_download_ssd_authoring_support.ps1"
-```
-
-Support PASS target:
+Latest user-supplied support result:
 
 - `SSD-SUPPORT: PASS`;
 - DWPose available;
-- FILM available;
-- `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json` written;
-- `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json` written.
+- FILM available, optional/not default;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json`;
+- probe `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json`.
 
-## Next after support PASS
+The support runner requires the core-model PASS marker, so core generation models are structurally confirmed present before support PASS.
 
-Prepare the first **8-frame Exilada walk inference** using:
+## PowerShell runner rule — LOCKED
 
-- complete `exilada_master.png`;
-- approved eight-state walk pose sequence;
-- SSD core generation weights;
-- DWPose available for future arbitrary action extraction, but not required for the already-approved walk poses;
-- FILM disabled by default for the first identity/temporal-coherence proof.
+Expected native failures must never be raw control flow under `$ErrorActionPreference='Stop'`. Use structured Python diagnostics, explicit exit-code handling and controlled project `FAIL` messages.
 
-First quality questions:
+## CURRENT GATE — prepare canonical walk pose maps for first SSD inference
 
-- identity persistence;
-- anatomy/proportion persistence;
-- hair/clothing/equipment persistence;
-- pose obedience;
-- temporal coherence;
-- RTX 3060 12 GB memory fit;
-- clean conversion of generated RGB/background to transparent native sprite frames.
+The phrase “8 poses” means the approved C1A eight-state walk cycle:
 
-Only after this passes do we expand to conventional multi-action sheets and automate sheet packing, alpha cleanup and runtime metadata.
+1. source 1588 — `left_contact`;
+2. source 1598 — `left_down`;
+3. source 1608 — `left_passing`;
+4. source 1618 — `left_up`;
+5. source 1628 — `right_contact`;
+6. source 1638 — `right_down`;
+7. source 1648 — `right_passing`;
+8. source 1658 — `right_up`.
+
+Canonical guide:
+
+`Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`
+
+Existing review PNGs in that workspace are **not** suitable SSD inputs because they include labels, a ground band, support-foot rings and review-specific rendering. Do not feed them directly to SSD.
+
+Correct next work:
+
+`C1A guide data -> clean OpenPose-compatible body pose maps -> SSD first 8-frame Exilada inference`
+
+The user must not be asked to create or find an arbitrary `YOUR_8_POSE_IMAGES` folder.
+
+## First real inference contract
+
+- appearance reference: complete `exilada_master.png`;
+- motion control: eight clean maps derived from the approved C1A guide;
+- 8 frames;
+- `512×512` first proof;
+- FILM disabled;
+- validate identity, anatomy/proportions, hair/clothing/equipment persistence, pose obedience, temporal coherence, VRAM fit and alpha/background cleanup viability.
+
+Only after this PASS do we expand to multi-action spritesheets and automate packing/pivots/events.
+
+## Explicit exclusions
+
+- wav2vec2 / audio-driven AniPortrait models — unrelated;
+- legacy CMU OpenPose body/hand/face weights — not a production dependency; DWPose is preferred;
+- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
+- xformers — optimization only if measured VRAM behavior requires it.
 
 ## No cleanup
 
