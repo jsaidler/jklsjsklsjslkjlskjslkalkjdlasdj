@@ -1,6 +1,6 @@
 # Next-chat handoff — G3S character spritesheet production
 
-Status date: **2026-09-06**
+Status date: **2026-09-07**
 
 Purpose: exact continuation state. GitHub living documents are canonical.
 
@@ -82,16 +82,23 @@ Workspace:
 
 Upstream clone: **SUCCESS**
 
-Observed user console:
+Miniconda: **SUCCESS**
 
-- 887/887 objects received;
-- ~289.63 MiB transferred;
-- `conda` command unavailable;
-- env `ssd` not created yet;
-- `cd /d` failed because it is CMD syntax, not PowerShell;
-- `pip install -r requirements.txt` failed from the wrong directory and the upstream file is absent anyway.
+Resolved executable:
 
-These are bootstrap/procedure failures, not an SSD inference failure.
+`C:\Users\jsaid\miniconda3\Scripts\conda.exe`
+
+Environment `ssd`: **NOT CREATED YET**
+
+Latest console result:
+
+`conda create -n ssd python=3.10 pip -y` was blocked by `CondaToSNonInteractiveError` because Anaconda Terms of Service have not been accepted for:
+
+- `https://repo.anaconda.com/pkgs/main`;
+- `https://repo.anaconda.com/pkgs/r`;
+- `https://repo.anaconda.com/pkgs/msys2`.
+
+No package transaction/model download occurred. This is not an SSD inference/model failure.
 
 ## Superseded route
 
@@ -103,25 +110,34 @@ Flux2 per-frame full-body redraw remains FAIL/CLOSED.
 
 `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
 
-This runner performs only environment bootstrap:
+Runner 24 now requires explicit user opt-in before accepting Anaconda channel terms. Switch:
 
-- verifies upstream clone + real inference/config paths;
-- installs Miniconda via WinGet if needed;
-- locates `conda.exe` without shell restart/path refresh dependency;
-- creates env `ssd` with Python 3.10 + pip;
-- verifies with `conda run`;
-- writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
-- downloads no model weights;
-- installs no large SSD dependency stack.
+`-AcceptAnacondaTos`
+
+Without the switch, the runner will not accept terms on the user's behalf.
+
+With the switch, it:
+
+1. accepts Anaconda ToS for the three channels listed above;
+2. creates `ssd` with Python 3.10 + pip;
+3. verifies via `conda run`;
+4. writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
+5. downloads no model weights;
+6. installs no large SSD dependency stack.
 
 ## Exact next operator action
+
+Only if the user agrees to the Anaconda Terms of Service for those channels:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1" `
+  -AcceptAnacondaTos
 ```
+
+Supplying `-AcceptAnacondaTos` is explicit authorization to perform the ToS acceptance commands.
 
 PASS requires:
 
@@ -129,9 +145,7 @@ PASS requires:
 - Python 3.10.x inside env `ssd`;
 - local bootstrap marker written.
 
-If it fails, share the complete console output. Do not manually improvise dependency/model installation before this gate passes.
-
-After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, followed by model download in a documented order.
+After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, followed later by model downloads in a documented order.
 
 ## Do not clean SSD workspace
 
