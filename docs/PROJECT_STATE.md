@@ -113,30 +113,37 @@ Runner:
 
 `tools/structured-2d-character-pipeline/28_run_ssd_exilada_walk8.ps1`
 
-### First execution — FAIL due runner argument quoting
+### Attempt 1 — SCRIPT FAIL
 
-Actual error:
+Error:
 
-`C:\Users\jsaid\miniconda3\envs\ssd\python.exe: can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
+`can't open file 'D:\\GOOGLE': [Errno 2] No such file or directory`
 
-Final status:
+Cause: raw `Start-Process -ArgumentList` array split `D:\GOOGLE DRIVE\...`.
 
-`SSD-WALK8: FAIL - input preparation exited with code 2`
+### Attempt 2 — SCRIPT FAIL caught by preflight
 
-Root cause: Windows PowerShell 5.1 `Start-Process -ArgumentList` flattened a raw string array and split the helper path `D:\GOOGLE DRIVE\...` at the first space. This is a script bug, not an SSD/DWPose/model failure.
+Actual user result:
 
-### Native argument-boundary rule — LOCKED
+- `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
+- `SSD-WALK8: FAIL - native argument quoting preflight failed; refusing to run preparation with corrupted path arguments.`
 
-In Windows PowerShell 5.1:
+The preflight did its job: it prevented DWPose/SSD work from starting with corrupted argv. The manually quoted `Start-Process -ArgumentList` strategy is therefore also rejected for this project on Windows PowerShell 5.1.
 
-- never pass raw string arrays containing whitespace-bearing paths to `Start-Process -ArgumentList`;
-- explicitly quote the constructed argument line, or use an equivalent argv-preserving transport;
-- preflight path argument transport before expensive/model work;
-- the actual project root and Exilada master path are regression-test inputs.
+Neither attempt invalidated environment/model/support PASS gates. No reinstall/redownload is required.
 
-Runner 28 now has a path-argument preflight that launches Python and verifies the complete project-root and master paths arrive as exactly two intact argv items. The same controlled quoting path is used for preparation, inference and review.
+## Windows native Python invocation rule — LOCKED V2
 
-No reinstall/redownload is required.
+Under Windows PowerShell 5.1:
+
+- **do not use `Start-Process -ArgumentList` for project Python invocations containing paths with spaces**;
+- invoke directly with the PowerShell call operator and array splatting: `& $PythonExe @Arguments`;
+- temporarily prevent native stderr from becoming terminating control flow;
+- show stdout/stderr but decide success only from `$LASTEXITCODE` and structured markers;
+- preflight the actual project-root and Exilada-master paths before expensive model work;
+- print received argv values on any future mismatch.
+
+Runner 28 has been updated to follow this rule for preflight, input preparation, SSD inference and review. `Start-Process` is no longer used for Python in runner 28.
 
 ## Exact next operator action
 
@@ -147,11 +154,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\28_run_ssd_exilada_walk8.ps1"
 ```
 
-Expected new early sequence:
+Expected early sequence:
 
 - `[PREFLIGHT] Verifying native argument transport for paths containing spaces...`
-- `[OK] Native argument quoting preflight PASS.`
-- `[PREP] ...`
+- `[OK] Native argument transport preflight PASS.`
+- `[PREP] Extracting Exilada reference pose with DWPose and building 8 clean target pose maps...`
 
 Expected successful end state:
 
@@ -162,10 +169,6 @@ Expected successful end state:
 - marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_inference.json`.
 
 Visual PASS still requires review of identity, anatomy/proportions, hair, cloth/shackles/chains, pose obedience and temporal coherence.
-
-## Native-process scripting rule — LOCKED
-
-Expected native failures must never be raw control flow under `$ErrorActionPreference='Stop'`. Use structured Python diagnostics, controlled child processes and explicit exit-code handling. Space-bearing Windows paths must additionally pass argv transport preflight.
 
 ## No cleanup
 
