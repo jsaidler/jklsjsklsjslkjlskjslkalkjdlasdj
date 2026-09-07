@@ -1,0 +1,84 @@
+{
+  "revision": "SSD_MINIMAL_INFERENCE_MODELS_V1",
+  "status": "ACTIVE",
+  "estimated_download_gb": 13.7,
+  "minimum_free_space_gb": 18.0,
+  "destination_root_relative_to_modeltraining": "pretrained_model",
+  "notes": [
+    "This is the minimal model set required by ModelTraining/inference.py for the first SSD smoke test.",
+    "No wav2vec2, DWPose or FILM interpolation model is downloaded in this gate.",
+    "The first smoke test will use already-prepared pose images and will not use --accelerate."
+  ],
+  "files": [
+    {
+      "id": "sd15_unet_config",
+      "source": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/unet/config.json",
+      "destination": "stable-diffusion-v1-5/unet/config.json",
+      "expected_sha256": null,
+      "expected_min_bytes": 700
+    },
+    {
+      "id": "sd15_unet_weights",
+      "source": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5/resolve/main/unet/diffusion_pytorch_model.bin",
+      "destination": "stable-diffusion-v1-5/unet/diffusion_pytorch_model.bin",
+      "expected_sha256": "c7da0e21ba7ea50637bee26e81c220844defdf01aafca02b2c42ecdadb813de4",
+      "expected_min_bytes": 3400000000
+    },
+    {
+      "id": "vae_config",
+      "source": "https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main/config.json",
+      "destination": "sd-vae-ft-mse/config.json",
+      "expected_sha256": null,
+      "expected_min_bytes": 500
+    },
+    {
+      "id": "vae_weights",
+      "source": "https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main/diffusion_pytorch_model.safetensors",
+      "destination": "sd-vae-ft-mse/diffusion_pytorch_model.safetensors",
+      "expected_sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+      "expected_min_bytes": 330000000
+    },
+    {
+      "id": "clip_image_encoder_config",
+      "source": "https://huggingface.co/lambda/sd-image-variations-diffusers/resolve/main/image_encoder/config.json",
+      "destination": "image_encoder/config.json",
+      "expected_sha256": null,
+      "expected_min_bytes": 650
+    },
+    {
+      "id": "clip_image_encoder_weights",
+      "source": "https://huggingface.co/lambda/sd-image-variations-diffusers/resolve/main/image_encoder/pytorch_model.bin",
+      "destination": "image_encoder/pytorch_model.bin",
+      "expected_sha256": "89d2aa29b5fdf64f3ad4f45fb4227ea98bc45156bbae673b85be1af7783dbabb",
+      "expected_min_bytes": 1200000000
+    },
+    {
+      "id": "ssd_denoising_unet",
+      "source": "https://huggingface.co/fszontagh/sprite-sheet-diffusion/resolve/main/denoising_unet.pth",
+      "destination": "denoising_unet.pth",
+      "expected_sha256": "341cca53cfaa4e0c05098e511b8a3dc1a0db90c6ec68f345ba14115e0d3e43ac",
+      "expected_min_bytes": 3400000000
+    },
+    {
+      "id": "ssd_reference_unet",
+      "source": "https://huggingface.co/fszontagh/sprite-sheet-diffusion/resolve/main/reference_unet.pth",
+      "destination": "reference_unet.pth",
+      "expected_sha256": "84194364a42b5ae8b2a93a60b02a36ed0f989c230bb4c3ee33d7956bba5d0dcc",
+      "expected_min_bytes": 3400000000
+    },
+    {
+      "id": "animateanyone_pose_guider",
+      "source": "https://huggingface.co/patrolli/AnimateAnyone/resolve/main/pose_guider.pth",
+      "destination": "pose_guider.pth",
+      "expected_sha256": "1a8b7c1b4db92980fd977b4fd003c1396bbae9a9cdea00c35d452136d5e4f488",
+      "expected_min_bytes": 4000000
+    },
+    {
+      "id": "animateanyone_motion_module",
+      "source": "https://huggingface.co/patrolli/AnimateAnyone/resolve/main/motion_module.pth",
+      "destination": "motion_module.pth",
+      "expected_sha256": "0d11e01a281b39880da2efeea892215c1313e5713fca3d100a7fbb72ee312ef9",
+      "expected_min_bytes": 1800000000
+    }
+  ]
+}
