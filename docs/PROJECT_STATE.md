@@ -33,17 +33,17 @@ Normal operator loop after an approved runner exists:
 - gameplay depth movement does not require north/south/isometric sprite families;
 - true isometric multi-directional character production remains closed unless explicitly reopened.
 
-### Locomotion-facing lock — 2026-09-07
+### Locomotion-facing lock
 
 Runner 31 compared the retained real gait at `60`, `72` and `84 deg` azimuth from travel heading.
 
 Decision:
 
 - `60 deg` rejected as too frontal/depth-oriented;
-- `84 deg` rejected as the baseline because it sacrifices too much projected torso/face/body mass;
-- **`72 deg` selected as the first gameplay locomotion facing baseline**.
+- `84 deg` rejected as baseline because it sacrifices too much projected torso/face/body mass;
+- **`72 deg` selected and locked as the first gameplay locomotion facing baseline**.
 
-In this convention `90 deg` is pure side profile. The old C1A `45 deg` projection remains valid only as a historical mechanical sanity view, not the production locomotion baseline.
+`90 deg` is pure side profile in the current convention. The old C1A `45 deg` projection is historical/mechanical only.
 
 ## Runtime animation representation — LOCKED
 
@@ -64,13 +64,11 @@ Runtime does not require a 3D skeleton, segmented puppet or diffusion model. Wor
 
 C1A proves gait timing, left/right alternation, support-foot sequencing and intact joint chains. It does **not** approve final gameplay locomotion art direction.
 
-## SSD/visible-authoring status
+## SSD / visible-authoring status
 
-Local SSD authoring environment remains available and technically validated.
+Exact upstream SSD remains **BLOCKED** because the public release omits the custom multi-scale `pose_guider.pth` required by the current SSD graph. Do not run runner 28 again.
 
-Exact upstream SSD inference remains **BLOCKED** because the public release omits the custom multi-scale `pose_guider.pth` required by the current SSD graph. Do not run runner 28 again.
-
-Moore-compatible fallback remains technically runnable:
+The Moore-compatible fallback remains technically runnable:
 
 `Moore-AnimateAnyone graph + baseline Moore pose guider/motion + released SSD fine-tuned denoising/reference UNets`
 
@@ -88,7 +86,7 @@ Runner 30 corrected the concrete pose-registration defect from runner 29: the ol
 
 However runner 30 still failed as a production walk because the source locomotion itself was too generic/frontal/under-authored for the game.
 
-Do not rerun SSD yet.
+**SSD visible authoring remains paused.** Do not rerun it until C1C provides an approved skeleton locomotion master.
 
 ## Runner 31 gameplay-facing audit — PASS / CLOSED
 
@@ -100,13 +98,9 @@ Result:
 
 **`72 deg` azimuth selected as gameplay locomotion facing baseline.**
 
-The camera/facing problem is therefore sufficiently isolated. The remaining primary problem is animation authorship, not model tuning.
+The camera/facing problem is sufficiently isolated. The remaining primary problem is animation authorship.
 
-## CURRENT GATE — RUNNER 32 GAMEPLAY WALK OVERLAY V1
-
-Canonical thematic doc:
-
-`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
+## Runner 32 gameplay walk overlay V1 — VISUAL FAIL / CLOSED
 
 Runner:
 
@@ -116,26 +110,84 @@ Helper:
 
 `tools/structured-2d-character-pipeline/g3s_c1c_apply_gameplay_walk_overlay.py`
 
-Runner 32 performs no diffusion. It creates a fresh `72 deg` skeleton baseline and a deterministic authored overlay that keeps real gait timing/support order while changing the projected animation language:
+V1 created a fresh `72 deg` baseline and a deterministic authored overlay with compact stride, reduced root bob, mild upper-body forward intent, reduced casual arm pendulum and head stabilization.
 
-- compact projected stride;
-- reduced pelvis/root bob;
-- mild screen-left upper-body intent;
-- reduced casual/civilian arm pendulum;
-- stabilized head offset.
+Visual review result:
 
-Current V1 control values are documented in `docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md` and in the generated marker.
+- somewhat more controlled than the raw baseline;
+- difference still too small;
+- still read as generic mocap/human locomotion rather than the Exilada's authored walk;
+- specifically did **not** achieve the expected feminine locomotion read;
+- lacked convincing support-side weight transfer through pelvis/torso/shoulders.
 
-### Runner 32 PASS criteria
+Therefore runner 32 V1 is **FAIL/CLOSED as locomotion master**. This does not reopen broad parameter sweeps.
 
-The overlay must be clearly better than the fresh `72 deg` raw baseline in naturality and game fit while preserving:
+## CURRENT GATE — RUNNER 33 FEMININE GAMEPLAY WALK V2
 
-- human gait phase readability;
-- grounded support contacts;
-- left/right alternation;
-- non-cartoon anatomy and physicality.
+Canonical thematic doc:
 
-Do not proceed to visible body generation until the skeleton walk itself passes.
+`docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1`
+
+Helper:
+
+`tools/structured-2d-character-pipeline/g3s_c1c_apply_feminine_walk_overlay_v2.py`
+
+Machine-readable spec:
+
+`tools/structured-2d-character-pipeline/g3s_c1c_gameplay_walk_overlay_v2_feminine_spec.json`
+
+### V2 intent
+
+The Exilada's walk must read as:
+
+- adult and feminine;
+- natural rather than catwalk-like;
+- grounded and action-ready;
+- compatible with the locked `72 deg` belt-scroller family;
+- still faithful to the real contact/down/passing/up timing and support sequence.
+
+This is an art-direction requirement for the Exilada, not a claim that there is one universal female gait.
+
+### V2 bounded controls
+
+Runner 33 performs **no diffusion** and creates a fresh `72 deg` baseline plus V2 authored overlay. V2 adds:
+
+- root/pelvis bob at `62%` of raw amplitude;
+- moderate stride compression: hip `0.99`, knee `0.95`, ankle/toe `0.91`;
+- phase-weighted pelvic obliquity up to `3.2 px` total;
+- subtle pelvic yaw split up to `2.2 px`;
+- torso/shoulder counterbalance and shoulder counter-yaw up to `1.4 px`;
+- mild forward upper-body shear `2.6 px` at the head;
+- compact arm pendulum;
+- small swing-leg clearance boost in passing/up;
+- head stabilization blend `0.64`.
+
+Guardrails:
+
+- no exaggerated hip sway;
+- no catwalk leg crossing;
+- no cartoon bounce;
+- no change to gait event/support ordering;
+- no visible-body/diffusion execution;
+- helper hard-fails if projected left/right hip Y separation exceeds `8 px`.
+
+## Runner 33 PASS criteria
+
+PASS requires:
+
+- clearly more feminine skeleton read than raw `72 deg` baseline without relying on hair/costume;
+- grounded action-game locomotion rather than runway locomotion;
+- readable contact/down/passing/up phases;
+- stable support-foot contacts and left/right alternation;
+- natural pelvis/torso/shoulder counter-motion;
+- no anatomical break or cartoon exaggeration;
+- a material improvement over runner 32 V1 sufficient to justify returning to visible body authoring.
+
+If runner 33 fails, diagnose the remaining motion-design defect before any SSD rerun.
 
 ## Exact current operator action
 
@@ -143,25 +195,25 @@ Do not proceed to visible body generation until the skeleton walk itself passes.
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\32_run_g3s_c1c_gameplay_walk_overlay_v1.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1"
 ```
 
 Expected terminal marker:
 
-`G3S-C1C-OVERLAY: A/B SKELETON REVIEW PACKAGE READY`
+`G3S-C1C-FEMININE-V2: A/B SKELETON REVIEW PACKAGE READY`
 
-Share these four artifacts:
+Share:
 
-1. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\baseline_az72\g3s_c1_skeleton_walk_contact_sheet.png`
-2. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\baseline_az72\g3s_c1_skeleton_walk_zoom.gif`
-3. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\overlay_v1\g3s_c1_skeleton_walk_contact_sheet.png`
-4. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v1\overlay_v1\g3s_c1_skeleton_walk_zoom.gif`
+1. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\baseline_az72\g3s_c1_skeleton_walk_contact_sheet.png`
+2. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\baseline_az72\g3s_c1_skeleton_walk_zoom.gif`
+3. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\overlay_v2_feminine\g3s_c1_skeleton_walk_contact_sheet.png`
+4. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\overlay_v2_feminine\g3s_c1_skeleton_walk_zoom.gif`
 
 ## Layering consequence
 
-Base locomotion is defined on body motion first. Hair, clothing, bindings, shackles/chains and other secondary masses remain downstream animation/authoring layers and must not be allowed to obscure gait validation.
+Base locomotion is defined on body motion first. Hair, clothing, bindings, shackles/chains and other secondary masses remain downstream animation/authoring layers.
 
-## Historical/closed visible routes
+## Historical / closed visible routes
 
 - visible 3D -> final pixel art — CLOSED;
 - nearest-segment rigid partition — CLOSED;
