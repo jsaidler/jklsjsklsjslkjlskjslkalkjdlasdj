@@ -1,6 +1,6 @@
 # Wan-Animate-2 validation / exhaustion tooling
 
-Status: **ACTIVE — W0 PASS_BASELINE / W1 CURRENT PREFERRED VISUAL-MOTION BASELINE / W1A 1.5 NOT PREFERRED / W1F SAFE FRAMING ACTIVE.**
+Status: **ACTIVE — W0 PASS_BASELINE / W1 CURRENT PREFERRED VISUAL-MOTION BASELINE / W1A 1.5 NOT PREFERRED / W1F SAFE FRAMING RETRY ACTIVE.**
 
 ## Active local paths
 
@@ -113,6 +113,25 @@ Expected evidence:
 - `Z:\AI\WanAnimate2\w1f_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1f_api_prompt.json`
 - `Z:\AI\WanAnimate2\w1f_safe_driver_manifest.json`
+
+## Runner 39 attempt 1 — INFRASTRUCTURE/PREFLIGHT FAIL
+
+The surfaced terminal excerpt ended immediately after ComfyUI startup with:
+
+`RUNNER39-WAN-W1F: FAIL - W1F safe-framing inference exited with code 2`
+
+No model-quality inference can be drawn from this attempt.
+
+The W1F executor is the first active runner that imports `cv2` for deterministic video preprocessing, while the isolated ComfyUI bootstrap does not explicitly guarantee OpenCV. That dependency was not preflighted before attempt 1.
+
+Runner 39 is now hardened to:
+
+- verify `import cv2, numpy` before starting W1F;
+- install only `opencv-python-headless>=4.10,<5` into the isolated Wan Python environment if `cv2` is absent;
+- re-check the import before launching ComfyUI/inference;
+- leave all Wan/model/driver-framing experiment settings unchanged.
+
+This is an infrastructure/preprocessor dependency fix only, not a new model/configuration variable.
 
 ## Current operator runner
 
