@@ -35,7 +35,7 @@ Use conventional sprite animation:
 
 `approved 2D frames -> spritesheet PNG(s) + metadata -> ordinary runtime sprite playback`
 
-Actions are stored as deterministic frame sequences in rows/blocks/atlas regions. The runtime does not require 3D, a segmented puppet or diffusion.
+Actions are stored as deterministic frame sequences in rows/blocks/atlas regions. Runtime does not require 3D, a segmented puppet or diffusion.
 
 ## Current source-authoring route — SSD SPIKE
 
@@ -76,7 +76,7 @@ The actual config additionally requires:
 
 ## Actual local state
 
-Workspace intended:
+Workspace:
 
 `Z:\AI\SpriteSheetDiffusionSpike`
 
@@ -93,26 +93,45 @@ Observed user console:
 
 These are bootstrap/procedure failures, not an SSD inference failure.
 
-## Superseded current route
+## Superseded route
 
 The segmented-puppet runner 23 is no longer the current production route. It remains historical and must not be continued unless explicitly reopened.
 
 Flux2 per-frame full-body redraw remains FAIL/CLOSED.
 
+## CURRENT RUNNER
+
+`tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
+
+This runner performs only environment bootstrap:
+
+- verifies upstream clone + real inference/config paths;
+- installs Miniconda via WinGet if needed;
+- locates `conda.exe` without shell restart/path refresh dependency;
+- creates env `ssd` with Python 3.10 + pip;
+- verifies with `conda run`;
+- writes `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`;
+- downloads no model weights;
+- installs no large SSD dependency stack.
+
 ## Exact next operator action
 
-Only bootstrap Miniconda + Python 3.10 env. Do not download weights yet.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-Use the PowerShell block provided in the current chat, which:
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\24_bootstrap_ssd_environment.ps1"
+```
 
-1. installs Miniconda through WinGet if `conda.exe` is absent;
-2. locates `conda.exe` without relying on shell PATH refresh;
-3. creates env `ssd` with Python 3.10;
-4. verifies `conda run -n ssd python --version`.
+PASS requires:
 
-PASS requires Python 3.10.x inside env `ssd`.
+- console `SSD-ENV: PASS`;
+- Python 3.10.x inside env `ssd`;
+- local bootstrap marker written.
 
-After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, then model download in a documented order.
+If it fails, share the complete console output. Do not manually improvise dependency/model installation before this gate passes.
+
+After PASS, next work is a controlled Windows dependency bootstrap based on the Moore-AnimateAnyone pinned stack, followed by model download in a documented order.
 
 ## Do not clean SSD workspace
 
