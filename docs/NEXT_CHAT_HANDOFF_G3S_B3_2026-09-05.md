@@ -80,57 +80,83 @@ Consequences:
 - no CUDA/DWPose/environment reinstall is required;
 - `ssd_model_manifest.json` has been corrected so baseline pose guider is labelled fallback-only, not exact-SSD compatible.
 
-## CURRENT route — Moore-compatible empirical fallback
+## Moore-compatible empirical fallback — RUNNER 29 TECHNICAL PASS
 
-Use the compatible parent graph:
+Compatible route:
 
 `Moore-AnimateAnyone graph + baseline Moore pose guider/motion + released SSD fine-tuned denoising/reference UNets`
 
-This is explicitly **not** the exact published SSD graph. It is a bounded empirical test of the useful released SSD weights.
+This remains explicitly **not** the exact published SSD graph. It is a bounded empirical test of the useful released SSD weights.
 
 Pinned Moore commit:
 
 `a914ef38aae3733c2f02f29853dd0593372e0cc9`
 
-New helper:
+Helper:
 
 `tools/structured-2d-character-pipeline/g3s_ssd_moore_compat_walk8.py`
 
-New runner:
+Runner:
 
 `tools/structured-2d-character-pipeline/29_run_ssd_moore_compat_exilada_walk8.ps1`
 
-Runner 29:
+### Actual execution — 2026-09-07
 
-- rebuilds the canonical Exilada walk8 inputs automatically;
-- fetches only pinned Moore source code under `Z:\AI\SpriteSheetDiffusionSpike\moore_animateanyone`;
-- reuses all downloaded heavyweight models;
-- checks baseline pose-guider checkpoint signature;
-- loads Moore matching PoseGuider/UNet/pipeline;
-- loads released SSD denoising/reference weights;
-- runs 512×512, 8 frames, 25 steps, CFG 3.5, seed 42, fp16;
-- writes PNG frames, contact sheet, GIF and result marker with `exact_upstream_ssd: false`.
+Runner 29 completed and printed:
 
-## Exact next operator action
+`SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+Observed result:
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\29_run_ssd_moore_compat_exilada_walk8.ps1"
-```
+- canonical Exilada master + C1A walk8 package rebuilt: PASS;
+- Moore source pinned/reset successfully;
+- model initialization completed;
+- SSD denoising checkpoint: **0 unexpected Moore keys**;
+- `588` denoising keys missing under Moore `strict=False`;
+- this missing-key count does **not** mean random initialization: Moore `from_pretrained_2d()` already loads SD1.5 spatial weights plus the separate motion module, then runner 29 overlays the SSD denoising checkpoint;
+- upstream SSD inference also loads its denoising checkpoint using `strict=False`;
+- reference UNet and baseline Moore pose guider loaded strictly;
+- 8 frames generated at `512×512`, 25 steps, CFG `3.5`, seed `42`, fp16;
+- diffusion pass completed in about `42 s`;
+- frame PNGs, contact sheet, GIF and marker were emitted.
 
-Expected technical success:
+Artifacts:
 
-- `SSD-MOORE-COMPAT: OUTPUT READY FOR VISUAL QA`;
-- eight PNG frames;
-- contact sheet;
-- GIF;
-- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
+- frames: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\frames`;
+- sheet: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`;
+- GIF: `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`;
+- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_exilada_walk8_moore_compat.json`.
 
-If it fails, diagnose the exact Moore/SSD checkpoint/import/VRAM error. Do not broaden the architecture or begin another model search before closing that failure.
+The logged SD1.5 unused-output-weight warning, TypedStorage deprecation warning and direct-`in_channels` future warning are non-fatal; generation completed.
 
-If it succeeds, inspect visual identity, anatomy/proportions, long hair, cloth/shackles/chains, pose obedience and temporal coherence before expanding to any more actions.
+Runner 29 is therefore **TECHNICAL PASS / OUTPUT READY FOR VISUAL QA**. It is not a visual PASS.
+
+## EXACT NEXT OPERATOR ACTION
+
+Do not rerun runner 29 yet.
+
+Share these two existing artifacts in the chat for visual review:
+
+1. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat_contact_sheet.png`
+2. `Z:\AI\SpriteSheetDiffusionSpike\exilada_walk8_moore_compat\exilada_walk8_moore_compat.gif`
+
+Review must judge:
+
+- identity persistence;
+- anatomy/proportions;
+- long hair;
+- cloth/shackles/chains;
+- obedience to the approved C1A eight-state gait;
+- temporal coherence;
+- practical usefulness for conventional spritesheet production.
+
+Only after visual QA should the project choose among:
+
+- PASS and expand the route;
+- bounded parameter/control correction and one discriminating rerun;
+- FAIL/CLOSE the Moore-compatible salvage route.
+
+Do not begin another model search, FILM interpolation, additional action generation, resolution sweep or sheet packing before closing this visual gate.
 
 ## Future exact SSD condition
 
