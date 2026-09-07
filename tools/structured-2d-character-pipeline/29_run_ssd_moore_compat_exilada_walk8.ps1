@@ -124,10 +124,11 @@ if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) {
     Fail "ssd python missing: $Python"
 }
 
-$Git = (Get-Command git.exe -ErrorAction SilentlyContinue).Source
-if (-not $Git) {
+$gitCommand = Get-Command git.exe -ErrorAction SilentlyContinue
+if ($null -eq $gitCommand) {
     Fail 'git.exe is not available.'
 }
+$Git = [string]$gitCommand.Source
 
 Write-Host "[OK] Python: $Python" -ForegroundColor Green
 Write-Host "[OK] GPU/deps/models/support: PASS" -ForegroundColor Green
@@ -159,18 +160,24 @@ if (-not (Test-Path -LiteralPath $InputMarker -PathType Leaf)) {
 }
 
 # Fetch only the pinned Moore source code; all heavyweight model files are reused.
+# Bootstrap is idempotent: origin is explicitly created or repaired on every run.
 Write-Host ''
 Write-Host "[SOURCE] Ensuring Moore-AnimateAnyone source at pinned commit $MooreCommit ..." -ForegroundColor Yellow
 New-Item -ItemType Directory -Force $MooreRoot | Out-Null
 if (-not (Test-Path -LiteralPath (Join-Path $MooreRoot '.git') -PathType Container)) {
     $code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'init') -WorkingDirectory $SsdRoot
     if ($code -ne 0) { Fail "git init failed with code $code" }
-    $code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'remote', 'add', 'origin', $MooreRemote) -WorkingDirectory $SsdRoot
-    if ($code -ne 0) { Fail "git remote add failed with code $code" }
 }
+
+# Remove/re-add origin so a partially interrupted earlier run cannot leave the
+# source bootstrap in an unrecoverable state.
+$null = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'remote', 'remove', 'origin') -WorkingDirectory $SsdRoot
+$code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'remote', 'add', 'origin', $MooreRemote) -WorkingDirectory $SsdRoot
+if ($code -ne 0) { Fail "git remote add failed with code $code" }
+
 $code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'fetch', '--depth', '1', 'origin', $MooreCommit) -WorkingDirectory $SsdRoot
 if ($code -ne 0) { Fail "git fetch Moore commit failed with code $code" }
-$code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'checkout', '--detach', 'FETCH_HEAD') -WorkingDirectory $SsdRoot
+$code = Invoke-NoSpaceProcess -FilePath $Git -Arguments @('-C', $MooreRoot, 'checkout', '--force', '--detach', 'FETCH_HEAD') -WorkingDirectory $SsdRoot
 if ($code -ne 0) { Fail "git checkout Moore commit failed with code $code" }
 
 if (-not (Test-Path -LiteralPath (Join-Path $MooreRoot 'src\models\pose_guider.py') -PathType Leaf)) {
