@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN W0 PASS_BASELINE / W1 APPEARANCE CONFIGURATION FAIL WITH POSITIVE MOTION EVIDENCE / W1A ACTIVE / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
+Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN W0 PASS_BASELINE / W1 APPEARANCE CONFIGURATION FAIL WITH POSITIVE MOTION EVIDENCE / W1A ACTIVE / FRAMING GATE NEXT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
 
 ## Purpose
 
@@ -92,11 +92,9 @@ Classification:
 
 Do not reject Wan.
 
-## Native reference-strength control — decisive next variable
+## Native reference-strength control — decisive current variable
 
 Current native ComfyUI `WanAnimate2ToVideo` documents `reference_image_strength` with default `1.0` and states that values above `1.0` tighten generated-frame attention to the reference image latent. `pose_strength` is a separate control for driving-motion influence.
-
-This directly targets W1's identity/style/accessory drift without changing motion source, model, seed or sampler.
 
 ## W1A — CURRENT: reference strength 1.5
 
@@ -114,23 +112,40 @@ Exact one-variable change from completed W1:
 
 Everything else remains fixed, including Exilada reference/prompt, official driver, Base BF16 stack, `640×800`, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, negative prompt and `--disable-pinned-memory`.
 
-Judge W1A against W1 on:
+Judge W1A against W1 on face/body/reference identity, art-language preservation, hair/clothing/accessory persistence, topology/artifact rate and motion loss.
 
-1. face/body/reference identity;
-2. pixel/game-art preservation;
-3. hair mass and clothing-layout persistence;
-4. shackles/chains/accessory retention;
-5. topology/artifact rate;
-6. whether motion adherence materially degrades.
+## Framing/crop gate — LOCKED NEXT AFTER W1A
 
-If 1.5 materially improves appearance without unacceptable motion loss, continue reference-strength calibration inside Wan before W2. If it does not, choose the next native conditioning variable from evidence; do not switch models automatically.
+Crop is a hard production blocker. Do not attempt to repair it after generation by cropping/repositioning the result; missing pixels cannot be recovered.
+
+Because W0 and W1 show the same late-frame crop tendency despite unrelated reference characters, the primary hypothesis is **driving-video geometry/framing**, not target-character identity.
+
+After W1A chooses the better reference strength, perform a dedicated one-variable framing test with that winning appearance configuration. Automatically preprocess the same driver before Wan by:
+
+- detecting/tracking the performer over the clip;
+- deriving a temporally stable/smoothed subject envelope;
+- fitting the full visible body plus safety margin inside fixed `640×800`;
+- preserving aspect ratio;
+- padding/letterboxing instead of destructive center-cropping;
+- keeping subject scale and center constant or smoothly varying;
+- using no manual masks/keyframes/per-frame crop edits.
+
+Success criterion: head and feet remain inside the generated frame throughout motion without materially weakening motion transfer or increasing topology drift.
+
+If validated, this automatic framing normalization becomes mandatory preprocessing for arbitrary Internet drivers.
+
+## Art-direction prompt gate — AFTER FRAMING
+
+Only after framing is controlled should we change the appearance prompt toward the approved aesthetic refinement: stronger 1980s barbarian/sword-and-sorcery influence, more torn fabric and more body exposure. Keep that test separate from framing and reference-strength calibration.
 
 ## Wan exhaustion sequence
 
 - W0 official baseline — **PASS_BASELINE**.
 - W1 Exilada + official driver, reference strength 1.0 — **CONFIGURATION FAIL for production appearance; motion evidence positive**.
 - W1A reference strength 1.5 — **CURRENT**.
-- W2 target Internet walking driver — after appearance conditioning is understood.
+- framing/crop normalization gate — **NEXT**.
+- art-direction prompt gate.
+- W2 target Internet walking driver.
 - W3 secondary-motion stress video.
 - W4 finite hypothesis-driven variants only if needed.
 
