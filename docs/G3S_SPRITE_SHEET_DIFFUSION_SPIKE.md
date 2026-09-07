@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODEL DOWNLOAD IN PROGRESS / PRODUCTION SUPPORT QUEUED**
+Gate status: **ACTIVE — ENVIRONMENT PASS / DEPENDENCIES PASS / CORE MODELS PASS / AUTHORING SUPPORT PASS / FIRST EXILADA INFERENCE PREPARATION CURRENT**
 
 ## Decision
 
@@ -10,7 +10,7 @@ The character-production target is a conventional **2D spritesheet**: approved p
 
 The active offline source-authoring spike is **Sprite Sheet Diffusion (SSD)**, using the complete Exilada master as appearance reference plus pose/motion guidance. SSD is a production tool under validation, not a runtime dependency.
 
-The user explicitly directed that the local authoring stack should not stop at the smallest smoke-test download: **download everything actually useful/necessary to create spritesheets at the best practical quality**, while still excluding unrelated assets that do not improve this workflow.
+The workstation setup must include all assets genuinely useful/necessary for the best practical spritesheet-authoring workflow, while excluding unrelated audio/portrait assets and legally unsuitable legacy components.
 
 ## Presentation/runtime lock retained
 
@@ -31,42 +31,32 @@ Upstream: `https://github.com/chenganhsieh/Sprite-Sheet-Diffusion`
 - prompt config: `ModelTraining/configs/prompts/inference.yaml`;
 - actual dependency file: `ModelTraining/requirements.txt`;
 - no root `requirements.txt` despite the README command;
-- upstream `pretrained_model/download.sh` confirms the SD1.5 UNet, SD VAE and CLIP vision image encoder layout used by inference;
-- SSD config also requires `denoising_unet.pth`, `reference_unet.pth`, `pose_guider.pth` and `motion_module.pth`.
-
-`inference.py` loads the VAE, SD1.5 UNet architecture, SSD fine-tuned denoising/reference UNets, pose guider, motion module and CLIP image encoder. It accepts a directory of pose images and can optionally load FILM frame interpolation when `--accelerate` is used. The imported OpenPose/DWPose code is not required when pose images are already prepared, but it is useful for production because it can turn arbitrary driving footage/actions into whole-body pose maps.
+- inference loads SD1.5 UNet architecture, MSE VAE, CLIP vision encoder, SSD fine-tuned denoising/reference UNets, pose guider and motion module;
+- inference consumes a directory of pose images;
+- FILM interpolation is optional through `--accelerate`;
+- DWPose is retained as the preferred production pose extractor for future arbitrary actions.
 
 ## Environment bootstrap — PASS
 
 Workspace: `Z:\AI\SpriteSheetDiffusionSpike`
 
-Runner: `tools/structured-2d-character-pipeline/24_bootstrap_ssd_environment.ps1`
-
-Validated state:
-
-- clone: PASS;
-- Miniconda: PASS;
-- `conda.exe`: `C:\Users\jsaid\miniconda3\Scripts\conda.exe`;
-- env `ssd`: PASS;
+- Miniconda PASS;
+- env `ssd` PASS;
 - Python `3.10.21`;
 - pip `26.2.1`;
 - marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_environment_bootstrap.json`.
 
 ## Windows inference dependencies — PASS
 
-Runner: `tools/structured-2d-character-pipeline/25_bootstrap_ssd_dependencies.ps1`
-
 Validated user result:
 
 - `SSD-DEPS: PASS`;
-- GPU: `NVIDIA GeForce RTX 3060`;
-- Torch: `2.0.1+cu118`;
-- CUDA build: `11.8`;
-- real SSD inference import graph: PASS;
-- marker: `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
-- freeze: `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`.
-
-No model/checkpoint was downloaded by the dependency gate.
+- GPU `NVIDIA GeForce RTX 3060`;
+- Torch `2.0.1+cu118`;
+- CUDA build `11.8`;
+- real SSD `inference.py` import graph PASS;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependencies_bootstrap.json`;
+- freeze `Z:\AI\SpriteSheetDiffusionSpike\ssd_dependency_freeze.txt`.
 
 ## Native-process scripting rule — LOCKED
 
@@ -78,166 +68,95 @@ For subsequent project PowerShell runners:
 4. native calls must have explicitly inspected exit codes;
 5. project failure must end as a controlled `FAIL`, not an unhandled `NativeCommandError`.
 
-## Core SSD generation models — CURRENT DOWNLOAD
+## Core SSD generation models — PASS
 
-Manifest:
+Runner: `tools/structured-2d-character-pipeline/26_download_ssd_models.ps1`
 
-`tools/structured-2d-character-pipeline/ssd_model_manifest.json`
+Manifest: `tools/structured-2d-character-pipeline/ssd_model_manifest.json`
 
-Runner:
+Core generation set present under `ModelTraining/pretrained_model`:
 
-`tools/structured-2d-character-pipeline/26_download_ssd_models.ps1`
+- SD1.5 UNet;
+- Stability AI MSE VAE;
+- CLIP vision image encoder;
+- SSD fine-tuned `denoising_unet.pth`;
+- SSD fine-tuned `reference_unet.pth`;
+- AnimateAnyone baseline `pose_guider.pth`;
+- AnimateAnyone baseline `motion_module.pth`.
 
-Destination:
+Runner 27 cannot reach PASS without the core-model PASS marker, so the subsequent authoring-support PASS structurally confirms the core model gate completed successfully.
 
-`Z:\AI\SpriteSheetDiffusionSpike\repo\ModelTraining\pretrained_model`
+## Production-authoring support — PASS
 
-Estimated download: **~13.7 GB**.
+Runner: `tools/structured-2d-character-pipeline/27_download_ssd_authoring_support.ps1`
 
-Core generation set:
-
-1. Stable Diffusion v1.5 UNet config + weights;
-2. Stability AI MSE VAE config + weights;
-3. Lambda CLIP vision image encoder config + weights;
-4. SSD fine-tuned `denoising_unet.pth`;
-5. SSD fine-tuned `reference_unet.pth`;
-6. AnimateAnyone baseline `pose_guider.pth`;
-7. AnimateAnyone baseline `motion_module.pth`.
-
-Known large-file SHA256 values are enforced by the manifest. Downloads are resumable through `.part` files and avoid a duplicate Hugging Face cache.
-
-### Current operator state
-
-The user reported on 2026-09-07 that **runner 26 is currently downloading**. Do not interrupt or restart it merely because the production-support plan has been expanded. Let runner 26 finish and report its PASS/FAIL normally.
-
-## Production-authoring support decision — QUEUED AFTER CORE PASS
-
-The first model manifest was intentionally the smallest complete inference set. The user has now clarified that the workstation should also hold the support assets needed for the **best practical spritesheet-authoring workflow**, not merely the minimum smoke test.
-
-A second controlled asset gate is therefore prepared.
-
-Manifest:
-
-`tools/structured-2d-character-pipeline/ssd_authoring_support_manifest.json`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/27_download_ssd_authoring_support.ps1`
-
-Additional download: approximately **0.42 GB**.
-
-### 1. DWPose — production pose extraction
-
-Download:
-
-- `ModelTraining/models/openpose/yolox_l.onnx`;
-- `ModelTraining/models/openpose/dw-ll_ucoco_384.onnx`.
-
-Purpose:
-
-- extract whole-body pose from arbitrary driving video/action references;
-- body, hands and face are available through the repo's DWPose path;
-- useful when authoring future walk/run/attack/dodge/hit/death actions instead of manually drawing pose maps;
-- DWPose is the preferred detector path for this project.
-
-The repo's DWPose implementation uses OpenCV DNN on CPU, so the already-installed OpenCV stack is enough; a separate ONNX Runtime install is not required for this path.
-
-### 2. FILM interpolation — available but not default
-
-Download:
-
-- `ModelTraining/pretrained_model/film_net_fp16.pt`.
-
-Purpose:
-
-- make upstream `--accelerate` / interpolation mode available;
-- produce optional in-between frames where it helps timing or source review.
-
-Production rule:
-
-**FILM is available, but not automatically used for final sprite frames.** Pixel-art silhouettes and hand-authored timing take priority; interpolated frames must pass visual QA because interpolation can soften or deform crisp sprite geometry.
-
-### 3. MediaPipe task assets — already bundled, verify only
-
-The upstream clone already contains:
-
-- `utils/mp_models/blaze_face_short_range.tflite`;
-- `utils/mp_models/face_landmarker_v2_with_blendshapes.task`;
-- `utils/mp_models/pose_landmarker_heavy.task`.
-
-Runner 27 verifies them instead of downloading duplicate copies.
-
-## Intentionally excluded even from the full spritesheet-authoring kit
-
-### wav2vec2 / AniPortrait audio models
-
-Not downloaded. They support audio-driven portrait animation and do not improve action spritesheets for the Exilada.
-
-### Legacy CMU OpenPose body/hand/face weights
-
-Not downloaded. The bundled OpenPose preprocessor explicitly carries a non-commercial-use restriction, while DWPose provides a more appropriate whole-body extraction path for this project. Avoid making the production pipeline depend on legacy CMU OpenPose weights.
-
-### AnimateAnyone baseline denoising/reference UNets
-
-Not downloaded. They must not replace the SSD fine-tuned sprite UNets; doing so would reduce the point of this spike.
-
-### xformers
-
-Not installed by default. It is a memory/performance optimization rather than a model asset. Only add it if measured VRAM behavior on the RTX 3060 shows that the first real inference needs it, and only through a compatibility-verified Windows wheel/test gate.
-
-## Runner 27 behavior
-
-After runner 26 PASS, runner 27:
-
-1. requires environment, dependency and core-model PASS markers;
-2. downloads DWPose detector + whole-body ONNX models;
-3. downloads FILM TorchScript interpolation model;
-4. validates known SHA256 hashes;
-5. verifies the three bundled MediaPipe task assets;
-6. loads both DWPose ONNX files through OpenCV DNN as a structural probe;
-7. loads FILM through `torch.jit.load(..., map_location='cpu')` as a structural probe;
-8. writes:
-   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json`;
-   - `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json`;
-9. executes no actual SSD inference.
-
-## Current exact operator sequence
-
-### Right now
-
-Let the already-running runner 26 finish.
-
-### After `SSD-MODELS: PASS`
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\27_download_ssd_authoring_support.ps1"
-```
-
-Expected final support status:
+Actual user result on 2026-09-07:
 
 - `SSD-SUPPORT: PASS`;
 - DWPose available;
-- FILM available;
-- support marker/probe written.
+- FILM available, optional/not default;
+- marker `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_bootstrap.json`;
+- probe `Z:\AI\SpriteSheetDiffusionSpike\ssd_authoring_support_probe.json`.
 
-## First real inference after support PASS
+DWPose is the preferred route for extracting pose maps from future driving footage/actions. FILM remains an optional interpolation tool and is not enabled for the first identity/temporal-coherence proof.
 
-Then prepare **Exilada master + approved 8-state walk pose sequence + first real SSD inference**.
+## Canonical eight-state walk source — CLARIFIED
 
-The first quality gate remains an 8-frame action, not a giant multi-action sheet. The purpose is to validate:
+The phrase **“8 poses”** does not mean eight new references the user must find or provide.
+
+It refers to the already-approved C1A skeleton-only walk cycle derived from real CMU motion:
+
+| Index | Source frame | Event | Support foot |
+|---:|---:|---|---|
+| 0 | 1588 | `left_contact` | left |
+| 1 | 1598 | `left_down` | left |
+| 2 | 1608 | `left_passing` | left |
+| 3 | 1618 | `left_up` | left |
+| 4 | 1628 | `right_contact` | right |
+| 5 | 1638 | `right_down` | right |
+| 6 | 1648 | `right_passing` | right |
+| 7 | 1658 | `right_up` | right |
+
+Canonical source data:
+
+- guide: `Z:\AI\RogueliteCharacterPipeline\g3s_c1_skeleton_walk\g3s_c1_skeleton_walk_guide.json`;
+- source motion: `CMU 105_34 NormalWalk`;
+- rig: `G2_CANONICAL_RIG`;
+- approved projected direction: screen-left/front-three-quarter;
+- review playback: `83 ms` per state.
+
+Existing C1A review PNGs also exist in that workspace as `g3s_c1_skeleton_walk_00_left_contact.png` through the corresponding eight states. **Those review images must not be fed directly into SSD**, because they contain labels, ground graphics, support-foot rings and review-specific colors.
+
+The correct next preparation step is to render **clean SSD/OpenPose-compatible body pose maps** from the existing C1A guide data, with no labels/ground/review annotations. This is project work; the user must not be asked to invent a `YOUR_8_POSE_IMAGES` folder or manually locate new pose references.
+
+## First real SSD inference — CURRENT
+
+Inputs:
+
+- complete `assets/source/characters/exilada/reference/exilada_master.png` as appearance reference;
+- eight clean pose-control maps generated from the approved C1A guide;
+- 8 frames;
+- `512×512` first proof;
+- FILM disabled initially.
+
+Quality gate:
 
 - identity persistence;
-- body/proportion persistence;
-- hair/clothing/equipment persistence from the complete master;
-- temporal coherence;
+- anatomy/proportion persistence;
+- hair/clothing/equipment persistence;
 - pose obedience;
-- whether 512×512 / 8 frames fits the RTX 3060 12 GB;
-- whether the generated RGB/background can be converted cleanly to transparent native sprite frames without damaging pixel edges.
+- temporal coherence;
+- RTX 3060 12 GB memory fit;
+- clean conversion of generated RGB/background to transparent native sprite frames.
 
-Only after that PASS do we expand to the conventional multi-action sheet and automate frame packing/alpha/pivot metadata.
+Only after this PASS do we expand to conventional multi-action sheet production and automate packing, alpha cleanup, pivots and runtime metadata.
+
+## Explicit exclusions
+
+- wav2vec2 / AniPortrait audio models — unrelated;
+- legacy CMU OpenPose body/hand/face weights — do not make production depend on them; DWPose is preferred;
+- AnimateAnyone baseline denoising/reference UNets — must not replace SSD fine-tuned sprite UNets;
+- xformers — optimization only, add later only if measured VRAM behavior requires it.
 
 ## Cleanup if SSD is explicitly discarded
 
