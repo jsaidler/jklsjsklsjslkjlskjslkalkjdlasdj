@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / LOCKED — COMPLETE-CHARACTER 2D SPRITESHEET RUNTIME; RUNNER 34 EXPORT PASS / POSE-ONLY COMPLETE-MOTION FAIL; WAN-ANIMATE-2 REJECTED/CLOSED; NEXT AUTHORING ROUTE UNSELECTED**
+Status: **CANONICAL / LOCKED — COMPLETE-CHARACTER 2D SPRITESHEET RUNTIME; MODEL EXHAUSTION REQUIRED BEFORE ROUTE SWITCH; MOORE+SSD AUDIT ACTIVE**
 
 ## Presentation lock
 
@@ -49,7 +49,7 @@ Canonical initial-state visual reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-The master defines the Exilada's **entire initial visible state** for the current production proof: body, hair, base clothing/bindings, shackles/chains/restraints and other visible initial details.
+The master defines the Exilada's **entire initial visible state** for the current production proof.
 
 ## Equipment / armor variation — OPEN LATER GATE
 
@@ -63,6 +63,23 @@ Offline authoring may internally separate body, hair, cloth, restraints, armor a
 
 - modular offline control = allowed;
 - modular visible runtime construction = closed.
+
+## Model-exhaustion rule — LOCKED 2026-09-07
+
+Do not switch animation/generation models simply because one tested configuration produces a bad result.
+
+A route can be closed at model/task level only after:
+
+1. its official/reference behavior is reproduced locally where practical;
+2. loader/checkpoint/integration semantics are verified;
+3. preprocessing/input-domain correctness is verified;
+4. project task is tested first in a controlled/easier matched form;
+5. meaningful parameters are tested systematically with fixed seed/input and one variable at a time;
+6. the same decisive failure persists across multiple valid configurations.
+
+Until then classify problems as infrastructure, integration, configuration or BLOCKED rather than “model cannot do it.”
+
+Cleanup of large model assets occurs only after genuine abandonment/model-task failure or an explicit decision that a blocked route is no longer worth retaining.
 
 ## Retained motion work
 
@@ -80,75 +97,68 @@ Runner:
 
 `tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-Runner 34 proved that the toolchain can:
+Runner 34 proved the runtime/export architecture:
 
-- animate from the full `exilada_master.png` reference;
-- output full-character frames;
-- remove the neutral background;
-- preserve RGBA transparency;
-- pack a complete-character spritesheet and metadata;
-- play it through ordinary frame animation.
+- full-character frames from the complete master;
+- RGBA transparency;
+- complete-character spritesheet + metadata;
+- ordinary sprite playback.
 
-Therefore the **runtime/export architecture is viable**.
+Its visible temporal result was poor for production, but the correct classification is:
 
-However the current Moore-compatible SSD temporal authoring method failed the complete-motion quality requirement when driven by body OpenPose only:
+> **current Moore-compatible SSD configuration FAIL; model capability unresolved.**
 
-- hair is mostly frozen/warped rather than physically trailing;
-- base cloth morphs but lacks convincing controlled lag;
-- jiggle is not intentionally controllable/readable;
-- ankle restraint/chain detaches and mutates into stepped artifacts;
-- lower limbs/feet degrade in extreme phases;
-- loop coherence remains weak.
-
-This is not grounds to return to runtime layers. It means the current offline authoring route is insufficient.
-
-## Wan-Animate-2 — REJECTED/CLOSED
-
-Wan-Animate-2 Base INT8 ConvRot was already tested locally on 2026-09-04.
-
-It was rejected for two decisive reasons:
-
-1. driving locomotion transfer was too weak;
-2. output read as smooth painted/video-diffusion imagery rather than the required modern pixel-art/game-art language.
-
-Identity retention was comparatively decent, but that did not compensate for motion/style failure.
-
-Do not revisit the same Wan route with a richer synthetic driver, seed search, stronger reference strength, prompt cosmetics or post-generation pixel filtering. A future revisit requires a **materially different model/checkpoint/integration** with evidence that both failure classes are addressed.
-
-The isolated Wan model/runtime workspace was deleted after rejection. Repository scripts remain research history only.
-
-## Erroneous runner-35 proposal — WITHDRAWN
-
-A 2026-09-07 proposal to reuse Wan as runner 35 ignored the prior rejection/cleanup record. That proposal was invalid and its newly-created runner/helper files were removed from `main`.
-
-No runner 35 is active.
-
-## Next complete-motion route requirement — LOCKED, IMPLEMENTATION OPEN
-
-The next authoring route must satisfy all of the following before it can become production:
-
-- complete-character output per frame;
-- body locomotion plus hair, cloth, jiggle and restraints/chains baked together;
-- explicit/inspectable motion control where possible;
-- stable attachment ownership and topology;
-- native/discrete pixel/game-art preservation rather than painted video output plus a pixel filter;
-- local/free/self-hosted preference unless explicitly changed;
-- no large installation until the candidate has a discriminating reason to succeed where earlier routes failed.
-
-Prior post-Wan research identified pixel-native skeleton/keyframe animation classes as more relevant than another generic video diffusion model. Those remain candidates, not approvals.
+The distinction matters because runner 30 already demonstrated that a preprocessing/pose-registration mistake in our own integration materially degraded the result before being fixed.
 
 ## SSD route status
 
-Exact upstream SSD remains blocked by the unreleased custom multi-scale `pose_guider.pth`.
+Exact upstream SSD remains **BLOCKED** because the public release does not include the custom SSD pose-guider checkpoint required by the exact published graph.
 
-The Moore-compatible route remains useful evidence because it preserves Exilada identity reasonably well and follows body pose to a degree, but it is **insufficient as the sole complete-motion author when driven only by OpenPose body maps**.
+The current runnable route is a compatibility reconstruction:
+
+`Moore AnimateAnyone graph + Moore baseline pose guider/motion module + released SSD reference/denoising UNets`
+
+Therefore runner 34 is not a valid experiment for concluding that the exact published SSD method cannot perform the task.
+
+The active gate is to exhaust meaningful integration questions in the retained Moore/SSD environment before changing models.
+
+## Moore/SSD exhaustion audit — CURRENT
+
+The audit must isolate components instead of changing several variables at once:
+
+1. establish pure Moore baseline behavior with Moore weights + our validated preprocessing;
+2. A/B substitute only the released SSD reference/denoising UNets;
+3. validate actual pose-guider input domain/registration;
+4. identify whether the Moore pose guider is the dominant compatibility bottleneck;
+5. use staged diagnostics for body motion, identity/topology, hair/cloth, restraints/chains, jiggle and loop;
+6. only after a repeatable ceiling decide whether recovering/retraining a compatible SSD pose guider is justified.
+
+Controlled parameter sweeps are allowed as diagnostics if seed/input are fixed and one meaningful variable changes at a time. Random reroll/seed hunting is not an acceptable production method.
+
+## Wan-Animate-2 historical status — CONFIGURATION FAIL / NOT ACTIVE
+
+Wan-Animate-2 Base INT8 ConvRot was tested locally on 2026-09-04 and the tested configuration had two major failures:
+
+- weak locomotion transfer;
+- smooth painted/video-diffusion appearance instead of the required game-art language.
+
+Those observations remain valid. However the earlier project classification of the **entire model family** as conclusively rejected was stronger than the evidence justified.
+
+The earlier test did not first establish a documented official/reference baseline in the exact local integration and then systematically isolate the conditioning/input variables before closure.
+
+The Wan workspace was already deleted under the earlier cleanup decision. It is **not active** and should not be rebuilt while Moore/SSD still has unresolved integration questions. A later Wan revisit, if chosen after SSD exhaustion, must begin from an official/reference baseline rather than directly from another Exilada artistic test.
+
+## Erroneous runner-35 proposal — WITHDRAWN
+
+The 2026-09-07 Wan runner-35 proposal remains withdrawn/deleted. The corrected lesson is not “never use Wan again”; it is “do not jump to Wan before the current model branch is exhausted, and do not rerun it without a proper baseline protocol.”
+
+No runner 35 is active.
 
 ## Closed routes / assumptions
 
 Closed unless explicitly reopened:
 
 - runtime construction of the visible character from body/hair/clothing/equipment layers;
-- Wan-Animate-2 Base INT8 production route;
 - hidden 3D render as final visible pixel art;
 - independent unconstrained full-body redraw for each frame;
 - C0 nearest-segment hard partition as production route;
@@ -156,10 +166,8 @@ Closed unless explicitly reopened:
 - MPFB skinned body as mandatory visible guide;
 - implicit return to isometric/multi-directional character production.
 
+Exact public SSD remains BLOCKED; Wan remains inactive with a failed historical configuration. Neither is currently entitled to the stronger claim “model family proven incapable.”
+
 ## Current validation question
 
-The active question is:
-
-> Which **non-rejected** authoring route can produce a complete Exilada animation with explicit motion fidelity, coherent secondary motion/attachments and the required native/discrete game-art look?
-
-Do not answer that by rerunning Wan-Animate-2.
+> Is the current Moore/SSD result limited by the model family, or by our compatibility reconstruction/input/integration — and can we prove which one before switching models?
