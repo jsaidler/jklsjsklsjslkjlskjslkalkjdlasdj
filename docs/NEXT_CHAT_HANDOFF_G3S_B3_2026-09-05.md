@@ -108,7 +108,7 @@ Direct comparison against W1:
 
 Conclusion: **return to W1 `reference_image_strength=1.0` as current preferred balance.**
 
-## CURRENT GATE — RUNNER 39 / W1F AUTOMATIC SAFE FRAMING
+## CURRENT GATE — RUNNER 39 / W1F AUTOMATIC SAFE FRAMING RETRY
 
 Runner:
 
@@ -120,7 +120,7 @@ Executor:
 
 W1F branches from W1, not W1A.
 
-Only changed axis: driver framing.
+Only changed experimental axis: driver framing.
 
 The preprocessor:
 
@@ -133,7 +133,26 @@ The preprocessor:
 
 Everything else remains exact W1: Exilada reference/prompt, Base BF16 stack, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.0, negative prompt and `--disable-pinned-memory`.
 
-Expected outputs:
+### Attempt 1 — INFRASTRUCTURE/PREFLIGHT FAIL
+
+Terminal excerpt reached healthy ComfyUI startup and then:
+
+`RUNNER39-WAN-W1F: FAIL - W1F safe-framing inference exited with code 2`
+
+Do not count this against Wan or the framing hypothesis.
+
+The W1F executor is the first active route to import `cv2` for deterministic video preprocessing; the bootstrap did not explicitly guarantee OpenCV and Runner 39 did not preflight it.
+
+Runner 39 has now been hardened to:
+
+- test `import cv2, numpy` before the W1F run;
+- install only `opencv-python-headless>=4.10,<5` into the isolated Wan Python environment if `cv2` is absent;
+- verify the import again;
+- then start ComfyUI and rerun the exact same W1F experiment.
+
+No Wan/model/sampler/seed/framing parameter changed in this correction.
+
+Expected outputs after a valid retry:
 
 - `Z:\AI\WanAnimate2\w1f_exilada_safe_framing80.mp4`
 - `Z:\AI\WanAnimate2\w1f_run_manifest.json`
