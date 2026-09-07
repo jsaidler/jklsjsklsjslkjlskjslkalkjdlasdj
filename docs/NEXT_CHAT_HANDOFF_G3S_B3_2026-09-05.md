@@ -10,65 +10,74 @@ Purpose: exact continuation state. GitHub living documents are canonical.
 2. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 3. `docs/G3S_C1C_GAMEPLAY_LOCOMOTION_MASTER.md`
 4. `docs/G3S_SPRITE_SHEET_DIFFUSION_SPIKE.md`
-5. `docs/G3S_C1_HIDDEN_POSE_GUIDE.md`
-6. `docs/G1_CAMERA_SCALE_LOG.md`
+5. `docs/CHARACTER_LAYER_DAMAGE_SYSTEM.md`
+6. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
 
 ## Locked production direction
 
 - elevated arcade beat'em-up / belt-scroller false 3D;
 - fixed `640×360` orthographic camera, pitch `26 deg`;
 - protagonist about `128 px` tall;
-- first screen-left locomotion family is mostly lateral / slight three-quarter;
-- **locomotion-facing baseline = `72 deg` azimuth from travel heading** (`90 deg` = pure side);
-- no isometric north/south character-family multiplication;
-- final runtime = conventional deterministic spritesheet playback;
-- runtime/world locomotion is separate from baked sprite root translation.
+- first screen-left locomotion family mostly lateral/slight three-quarter;
+- locomotion-facing baseline = **`72 deg` azimuth from travel heading** (`90 deg` pure side);
+- final runtime = ordinary deterministic playback of **complete-character spritesheets**.
 
-## C1A status — mechanical pass only
+## Critical architecture correction — LOCKED
 
-Retained source: `G2_CANONICAL_RIG`, CMU `105_34 NormalWalk`, eight approved phases `1588..1658`. C1A proves coherent gait timing/support progression and intact skeletal chains. It is not the final gameplay locomotion master.
+The visible character is **not assembled in runtime** from body/hair/clothing/equipment layers. That approach is abolished.
+
+Each runtime frame is the already-composed full character. Offline tools may use modular sources internally, but before export the frame must contain the whole visible state and all baked secondary motion.
+
+The exported walk must therefore include, together:
+
+- body locomotion;
+- soft-tissue/jiggle motion;
+- hair motion;
+- base clothing/bindings motion;
+- shackles/chains/restraints/accessories motion;
+- final occlusion among those elements.
+
+Armor/equipment/accessory variation will be solved later as an offline-production/state-variant problem. Do not reintroduce runtime character construction.
+
+## Initial Exilada reference
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+This is the **complete initial-state appearance reference** for the immediate walk proof, including hair, base clothing/bindings, restraints and other visible initial details.
+
+## Motion status
+
+C1A remains a mechanical eight-phase human-gait sanity source. Runner 31 locked `72 deg` facing. Runner 32 V1 remained too generic. Runner 33 V2 adds restrained feminine body-language treatment but is not treated as final animation approval.
+
+The user explicitly chose to stop delaying the first spritesheet for further gait micro-adjustment. Runner-33 V2 is therefore used as a **provisional motion driver** for the whole-character proof.
 
 ## SSD status
 
-Exact upstream SSD remains BLOCKED by the missing custom multi-scale `pose_guider.pth`. Moore-compatible fallback remains technically runnable. Runner 29 visually failed; runner 30 fixed the `1.7778×` target-pose distortion and improved pose response, but the source locomotion still failed the game's animation-art-direction target.
+Exact upstream SSD remains blocked by the missing custom multi-scale `pose_guider.pth`.
 
-**Do not run SSD again yet.**
+Moore-compatible fallback is technically runnable. Runner 30 fixed the target-pose registration distortion and materially improved visible pose response. It remains the best working temporal reference-to-pose route currently available locally.
 
-## Runner 31 — facing audit CLOSED
-
-`60 deg` rejected as too frontal, `84 deg` rejected as too profile-thin, **`72 deg` selected and locked**.
-
-## Runner 32 — gameplay walk overlay V1 VISUAL FAIL / CLOSED
-
-V1 reduced bob/stride/arm pendulum and stabilized the head, but remained generic mocap/human locomotion and did not achieve the expected feminine Exilada gait. The missing class was support-side weight transfer and pelvis/torso/shoulder counter-motion.
-
-## CURRENT GATE — runner 33 feminine gameplay walk V2
+## CURRENT GATE — runner 34 complete-character playable proof
 
 Runner:
 
-`tools/structured-2d-character-pipeline/33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1`
+`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
 
-Helper:
+Packer:
 
-`tools/structured-2d-character-pipeline/g3s_c1c_apply_feminine_walk_overlay_v2.py`
+`tools/structured-2d-character-pipeline/g3s_pack_complete_character_spritesheet.py`
 
-Spec:
+Runner 34:
 
-`tools/structured-2d-character-pipeline/g3s_c1c_gameplay_walk_overlay_v2_feminine_spec.json`
-
-V2 is skeleton-only at the locked `72 deg` facing. It adds restrained phase-weighted pelvic obliquity, mild pelvic yaw, torso/shoulder counterbalance, compact arm pendulum, moderate stride compression, swing-leg clearance and head stabilization. The target is adult feminine Exilada locomotion without catwalk exaggeration.
-
-## First real runner 33 execution — technical guard failure RESOLVED
-
-The fresh `72 deg` baseline built successfully (`C1_TRAVEL_TOTAL_DX_PX=-61.1472`, `C1_MAX_SKELETON_HEIGHT_PX=128.000`). The helper then failed with:
-
-`V2 pelvic obliquity exceeded safety limit: 10.12px`
-
-This was a faulty safety calculation: it compared the **absolute final projected hip-Y separation** against `8 px`, even though the source `72 deg` gait already contains substantial projected hip separation from real pose/depth geometry.
-
-The helper and runner are corrected. They now measure only the **additional hip-Y separation introduced by V2 compared with the same source frame**. Allowed additive separation = authored maximum `3.2 px` + `0.25 px` numerical tolerance. The marker records source max, authored max, added max and allowed added max. No V2 artistic parameter was changed.
-
-Technical failure is CLOSED/RESOLVED. Runner 33 must simply be rerun after pulling main.
+1. takes the complete `exilada_master.png`;
+2. takes the current `72 deg` V2 eight-frame guide;
+3. aligns those poses uniformly to the master DWPose footprint;
+4. runs the proven Moore-compatible SSD inference at `512×512`, 8 frames, 25 steps, CFG 3.5, seed 42, fp16;
+5. treats hair/cloth/jiggle/restraints as part of the same temporal-generation test;
+6. removes connected neutral background from each generated frame;
+7. exports eight RGBA complete-character frames;
+8. packs a 4×2 complete-character spritesheet and metadata;
+9. creates a playback GIF.
 
 ## EXACT NEXT OPERATOR ACTION
 
@@ -76,26 +85,28 @@ Technical failure is CLOSED/RESOLVED. Runner 33 must simply be rerun after pulli
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\33_run_g3s_c1c_gameplay_walk_overlay_v2_feminine.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\34_run_exilada_complete_character_walk8_playable_proof.ps1"
 ```
 
-Expected terminal marker:
+Expected final marker:
 
-`G3S-C1C-FEMININE-V2: A/B SKELETON REVIEW PACKAGE READY`
+`G3S-COMPLETE-WALK8: COMPLETE CHARACTER SPRITESHEET READY FOR QA`
 
-Share contact sheet + zoom GIF from:
+Workspace:
 
-1. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\baseline_az72`
-2. `Z:\AI\RogueliteCharacterPipeline\g3s_c1c_gameplay_walk_overlay_v2_feminine\overlay_v2_feminine`
+`Z:\AI\SpriteSheetDiffusionSpike\exilada_initial_complete_walk8_playable_proof`
+
+Share at minimum:
+
+1. `generated_complete_character\exilada_walk8_moore_compat_contact_sheet.png`
+2. `generated_complete_character\exilada_walk8_moore_compat.gif`
+3. `spritesheet\exilada_initial_walk8_complete_spritesheet.png`
+4. `spritesheet\exilada_initial_walk8_complete_spritesheet_preview.gif`
 
 ## Decision rule
 
-PASS only if V2 reads clearly more feminine without hair/costume carrying the read, remains grounded/action-ready rather than runway-like, preserves contact/down/passing/up and support-foot clarity, improves pelvis/torso/shoulder weight transfer naturally, and shows no anatomical/cartoon break.
+This is not a final-art gate. It answers whether the full-master temporal route is viable enough to continue.
 
-Only after the skeleton locomotion master passes should visible body authoring resume.
+Judge the complete baked character, especially identity, locomotion, jiggle, hair, cloth/bindings and restraint/accessory attachment/motion. Detached, frozen, migrating or identity-changing secondary masses count as failures of the full-character authoring route; they are not deferred runtime-layer problems.
 
-## Layering
-
-Base gait is body motion first. Hair, clothing, bindings, shackles/chains and secondary masses remain downstream layer/authoring problems.
-
-No cleanup applies. SSD assets are retained but computation is paused.
+No cleanup applies.
