@@ -68,11 +68,13 @@ $StderrLog = Join-Path $UserDir "comfyui_h3_${Port}_stderr.log"
 $ExecutorLog = Join-Path $Workspace 'h0_executor.log'
 
 Stop-ManagedH3 $PidFile 'CLEAN-LAUNCH'
+$apiRunning = $false
 try {
     $null = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2
+    $apiRunning = $true
+} catch {}
+if ($apiRunning) {
     Fail "port $Port is already serving an unmanaged process. Stop it or choose a different port; Runner47 will not kill an unknown server."
-} catch {
-    # Expected when the port is free. Fail() uses exit, so a live unmanaged server never reaches here.
 }
 
 $launchArgs = @('-s',$MainPy,'--windows-standalone-build','--listen','127.0.0.1','--port',"$Port",'--disable-auto-launch')
@@ -105,12 +107,11 @@ if (-not $ready) {
 
 Write-Host 'Submitting H3 H0 Base Ref2VA...' -ForegroundColor Cyan
 if (Test-Path $ExecutorLog) { Remove-Item -LiteralPath $ExecutorLog -Force }
-$executorOutput = & $Python $Executor `
+& $Python $Executor `
     --workspace $Workspace `
     --comfy-root $ComfyRoot `
     --port $Port `
-    --timeout-minutes $TimeoutMinutes 2>&1
-$executorOutput | Tee-Object -FilePath $ExecutorLog | ForEach-Object { Write-Host $_ }
+    --timeout-minutes $TimeoutMinutes 2>&1 | Tee-Object -FilePath $ExecutorLog | ForEach-Object { Write-Host $_ }
 $executorExit = $LASTEXITCODE
 
 if ($executorExit -ne 0) {
