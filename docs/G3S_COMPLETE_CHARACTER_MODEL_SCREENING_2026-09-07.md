@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / WAN ACTIVE / W1 PAINTERLY LOOK APPROVED / W1A REF-1.5 STRUCTURAL BRANCH RETAINED / W1F DRIVER LETTERBOX CLOSED / W1G TRACKED DRIVER REFRAMING CLOSED FAIL / W1H RAW-DRIVER ASPECT-MATCHED CANVAS CURRENT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
+Status: **CANONICAL / WAN ACTIVE / W1 PAINTERLY LOOK APPROVED / W1A REF-1.5 STRUCTURAL BRANCH RETAINED / W1F DRIVER LETTERBOX CLOSED / W1G TRACKED DRIVER REFRAMING CLOSED FAIL / W1H ASPECT-MATCHED RAW-DRIVER GEOMETRY PASS / W1I RESIDUAL-BLUR TEST CURRENT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
 
 ## Purpose
 
@@ -66,100 +66,104 @@ Runner 39 letterboxed the full raw driver inside 640×800 with no temporal track
 
 ## W1G — TRACKED RAW-DRIVER REFRAMING / CLOSED FAIL
 
-Runner 40 progressed through several preprocessing diagnostics and finally produced a valid W1G v3.1 inference.
+Runner 40 eventually produced a valid W1G v3.1 inference on the W1A ref-1.5 branch.
 
-Final valid run:
+Valid run:
 
-- parent = W1A ref 1.5;
 - detector-agnostic foreground tracker;
 - `29/37` detections;
 - constant scale `0.420722...`;
 - target bottom y `580`;
-- all pre-inference margin guards passed;
 - prompt id `e6d3e6a8-553d-4317-80b1-102881624276`;
 - elapsed `1838.11 s`;
 - output SHA256 `4450a4737f437aa80e3aef53c8fa66dfc5d4b103b0b41a70c4cc82c1856c30d0`.
 
-Visual verdict: **worse than W1/W1A**.
+Visual verdict: **worse than W1/W1A** — stronger ghosting, unstable/elongated limbs, detached/duplicated-looking extremities and degraded temporal body coherence.
 
-Failure signature:
+Classification: **VALID METHOD FAIL FOR TRACKED DRIVER REFRAMING**, not Wan family failure. Synthetic frame-to-frame affine translation corrupts the rich spatiotemporal motion signal. Driver tracking/recentering is closed.
 
-- stronger ghosting/smearing;
-- unstable/elongated body and limbs;
-- detached/duplicated-looking extremities;
-- degraded temporal body coherence;
-- framing still not reliably solved.
+## Framing root cause / production geometry rule
 
-Classification: **VALID CONFIGURATION/METHOD FAIL FOR TRACKED DRIVER REFRAMING**, not Wan family failure.
+ComfyUI's current `WanAnimate2ToVideo` center-resizes `pose_video` to the requested Wan width/height.
 
-Interpretation: synthetic frame-to-frame affine translation cancels the performer's traversal but also corrupts the richer spatiotemporal signal Wan is supposed to consume. The branch that modifies raw-driver geometry for framing is closed. Do not tune the tracker further.
+- official raw driver: `480×854`, aspect ≈ `0.5621`;
+- upstream Wan demo default: `720×1280`, aspect `0.5625`;
+- our old W1/W1A canvas: `640×800`, aspect `0.8`.
 
-## Framing root cause now prioritized
+A center crop from 480×854 to aspect 0.8 keeps only about **70.3% of source height**, discarding about **29.7% vertically**. This is the leading explanation for the inherited top/body crop.
 
-ComfyUI's current `WanAnimate2ToVideo` applies:
+Production rule learned: **preserve raw-driver pixels/trajectory and choose a Wan generation canvas whose aspect closely matches that driver.** Do not impose the old `640×800` generation aspect on arbitrary portrait footage.
 
-`pose_video -> common_upscale(..., requested width, requested height, "area", "center")`
+## W1H — ASPECT-MATCHED RAW DRIVER / GEOMETRY PASS + CURRENT BEST BASELINE
 
-The official raw driver is `480×854` (aspect ≈ 0.5621).
+Runner 41 changed only:
 
-Upstream Wan-Animate-2's own demo defaults are `720×1280` (aspect 0.5625), essentially the same portrait shape.
+- Wan geometry `640×800 -> 512×912`.
 
-Our W0/W1/W1A canvas was `640×800` (aspect 0.8).
+Everything else remained exact W1A, including original raw driver and `reference_image_strength=1.5`.
 
-A center crop from 480×854 to aspect 0.8 keeps only about **70.3% of source height**, discarding about **29.7% vertically**. This is now the leading explanation for the inherited full-body crop.
+Completed evidence:
 
-W1F avoided direct center-crop loss by shrinking/letterboxing the driver, but that changed subject scale. W1G changed temporal geometry and damaged motion. The next test therefore fixes **generation-space aspect** while leaving the raw driver untouched.
+- status `INFERENCE_COMPLETE`;
+- prompt id `5299b50f-a38d-4cf1-b71e-7022319067d7`;
+- elapsed `1672.46 s`;
+- output SHA256 `84756f74af5f01aed8329b6a9b7b116149c6abcfd6e6349399c5de8ecf575af1`;
+- raw driver aspect `0.562061`;
+- W1H canvas aspect `0.561404`;
+- estimated pose-video retention `99.88%`, versus `70.26%` under W1A geometry.
 
-## W1H — CURRENT: RAW DRIVER + ASPECT-MATCHED WAN CANVAS + REF 1.5
+Full-sequence visual verdict:
+
+- previous catastrophic top/head/right-body crop is resolved;
+- complete body retention is materially better than W1/W1A/W1F/W1G;
+- body topology/temporal coherence is substantially stronger than W1G and generally better than W1A;
+- long hair and cloth remain non-rigid/dynamic;
+- later frames are cleaner and more readable;
+- residual destructive blur remains around the fastest motion phase (~frames 8–10);
+- restraint/chain topology is still imperfect, especially a loose knotted/chain-like mass near the raised hand late in the sequence;
+- a few extremities approach/touch lateral edges because the source performer itself traverses the frame. This should be solved by choosing W2 production drivers with real safe margins, not by reintroducing tracker/recentering.
+
+Classification: **W1H = PASS for the canvas/aspect hypothesis and new best Wan baseline.**
+
+## W1I — CURRENT: NATIVE POSE-END BLUR ISOLATION
 
 Runner:
 
-`tools/structured-2d-character-pipeline/41_run_wan_animate2_bf16_w1h_aspect_matched_ref15.ps1`
+`tools/structured-2d-character-pipeline/42_run_wan_animate2_bf16_w1i_pose_end70_ref15.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1h_aspect_matched_ref15.py`
+`tools/wan-animate2-spike/run_w1i_pose_end70_ref15.py`
 
-Parent = exact W1A prompt.
+Parent = exact W1H prompt.
 
 Only experimental axis:
 
-- Wan `width/height: 640×800 -> 512×912`.
+- `pose_end_percent: 1.00 -> 0.70`.
 
-The original raw driver remains byte-for-byte untouched.
+Rationale: W1H solved the dominant framing/aspect failure and left residual high-motion blur. Native WanAnimate2ToVideo documentation states motion is mostly established early and explicitly gives `pose_end_percent≈0.7` as an example that can loosen fine detail while retaining choreography. This is a smaller, more controlled blur intervention than lowering `pose_strength`, changing prompt, seed or model.
 
-Why 512×912:
+Everything else stays W1H:
 
-- aspect ≈ 0.5614, within ~0.12% of 480×854;
-- nearly eliminates center-crop loss in the raw pose-video path;
-- total pixels are lower than 640×800;
-- no tracking, letterboxing, translation cancellation or synthetic camera motion.
-
-Everything else remains W1A:
-
-- Exilada reference/prompt;
-- original raw driver;
-- BF16 stack;
-- 37 frames, 16 fps output, 20 steps;
-- CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- raw driver untouched;
+- `512×912` geometry;
+- ref strength 1.5;
 - pose strength 1.0;
-- reference strength 1.5;
-- pose CLIP branch unchanged;
-- negative prompt unchanged.
+- pose start 0.0;
+- same Exilada reference/prompt;
+- same BF16 stack;
+- 37 frames / 16 fps;
+- 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- same CLIP pose branch and negative prompt.
 
-Success criterion:
-
-1. materially better full-body framing than W1A;
-2. no W1G-style motion/topology degradation;
-3. retain stronger body structure from ref 1.5;
-4. then isolate destructive-blur reduction.
+Success criterion: reduce destructive blur/ghosting in fast-motion phases **without** losing W1H topology, motion adherence, hair/cloth dynamics or framing behavior.
 
 Expected evidence:
 
-- `Z:\AI\WanAnimate2\w1h_exilada_aspectmatched_ref15.mp4`
-- `Z:\AI\WanAnimate2\w1h_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1h_api_prompt.json`
-- `Z:\AI\WanAnimate2\w1h_executor.log`
+- `Z:\AI\WanAnimate2\w1i_exilada_poseend70_ref15.mp4`
+- `Z:\AI\WanAnimate2\w1i_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1i_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1i_executor.log`
 
 ## Sequence
 
@@ -168,10 +172,10 @@ Expected evidence:
 - W1A ref 1.5 — structural branch retained
 - W1F whole-frame letterbox — CROP FAIL / CLOSED
 - W1G tracked driver reframing — VALID METHOD FAIL / CLOSED
-- W1H aspect-matched generation canvas + raw driver + ref 1.5 — **CURRENT**
-- blur gate if W1H passes framing
+- W1H aspect-matched generation canvas + raw driver + ref 1.5 — **GEOMETRY PASS / BEST BASELINE**
+- W1I pose_end_percent 0.70 — **CURRENT BLUR TEST**
 - separate 1980s/torn-clothing/body-exposure art gate
-- W2 clean Internet walking driver
+- W2 clean Internet walking driver with safe real margins
 - W3 secondary-motion stress driver
 - finite W4 variants if still justified
 
@@ -179,4 +183,4 @@ After the finite Wan matrix, classify `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
 
 ## Cleanup
 
-No large asset was added by W1G or W1H. Keep small W1G failure evidence. Do not download alternate large Wan variants in advance. Keep SSD comparison evidence until Wan reaches a production verdict.
+No new large asset was added by W1F/W1G/W1H/W1I tooling. Keep small failure/proof evidence. Do not download alternate large Wan variants in advance. Keep SSD comparison evidence until Wan reaches a production verdict.
