@@ -1,10 +1,10 @@
-# MiniMax H3 Ref2VA local spike tooling
+# MiniMax H3 Ref2VA local production tooling
 
-Status: **ACTIVE — H0 completed as PASS_CANDIDATE; next gate is a game-relevant walking driver. Wan is paused after W1L.**
+Status: **ACTIVE — H0 is PASS_CANDIDATE as motion master. Runner49/H0T Turbo4 is the current throughput-quality gate. H1-S walk follows only after the speed path is accepted. Final runtime art is separate high-quality pixel-art reconstruction.**
 
-Canonical procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
+Canonical H3 procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
 
-Incident: `docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`.
+H1-S production definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
 
 ## Paths
 
@@ -13,87 +13,118 @@ Incident: `docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`.
 - paused Wan workspace: `Z:\AI\WanAnimate2`
 - `D:\AI` stale/invalid.
 
-## Integration history
+## H0 completed quality baseline
 
-Runner46 prepared the pinned H3 environment. Runner47 exposed a pre-inference omission: pinned `MiniMaxH3ReferenceToVideo` requires `audio_vae` even when no audio reference is used. Runner48 added only that dependency and completed the unchanged H0.
+Base Ref2VA:
 
-The Runner47 failure is historical integration evidence only; it is not a model-quality failure.
+-448×800;
+-124f @24fps;
+-50 steps;
+- `res_multistep/beta`;
+- seed0;
+- `ref_image_size=match`;
+- prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
+- elapsed `4504.8s`;
+- output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`.
 
-## Minimal active H3 set
+Verdict: **PASS_CANDIDATE**. H3 is a strong complete-character motion-master candidate.
 
-- `minimax_h3_ref2va_pruned_int8_convrot.safetensors`
-- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
-- `minimax_h3_video_vae_fp16.safetensors`
-- `minimax_h3_audio_vae_fp32.safetensors` — required schema dependency
+## Final-art boundary
 
-Total ~42.5GB. No FL2VA checkpoint, Turbo LoRA, style embedding or alternate quantization.
+H3 output is not the final runtime pixel art.
+
+Current production chain:
+
+`pixel-art Exilada reference + real driver -> H3 motion master -> automatic action/cycle distillation -> segmentation/alignment -> high-quality pixel-art reconstruction -> transparent spritesheet/atlas`
+
+The old tiny whole-frame proxy is historical QA only.
+
+## Temporal rule
+
+Do not default to generating only8–12 H3 frames. Current H3 uses the `17k+5` temporal grid and documents its trained range around124–362 frames @24fps.
+
+Generate a fast124-frame master, then distill ~12 runtime frames.
 
 ## Tool files
 
 ### `prepare_h0_driver.py`
 
-Outputs the same Wan comparison driver at24fps/124f with no crop/resize/tracking/recentering and no audio.
+Builds the comparison driver at24fps/124f without spatial transforms.
 
 ### `run_h0_ref2va.py`
 
-Base H0 executor.
+Historical Base50 H0 executor.
 
 ### `run_h0_ref2va_audio_vae_required.py`
 
-Current Ref2VA integration wrapper. It wires the schema-required audio VAE, delegates the unchanged quality run to the base executor and annotates the manifest. Future manifests also record the audio VAE at top level.
+Runner48 integration wrapper adding the schema-required audio VAE.
 
-## H0 completed baseline
+### `run_h0t_ref2va_turbo4.py`
 
-- Base Ref2VA;
-- Picture1 = Exilada appearance;
-- Video1 = movement/performance;
-- `448×800`;
--124 frames @24fps;
-- `ref_image_size=match`;
--50 steps;
-- `res_multistep`;
-- `beta`;
-- seed0;
-- no Turbo;
-- no audio reference/decode.
+Runner49 throughput executor. Uses exact H0 inputs but applies the official Ref2V Turbo4 LoRA at strength1.0,4 steps and `res_multistep/simple`.
 
-Completed prompt id: `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`.
+Writes:
 
-Elapsed: `4504.8s`.
+- `h0t_exilada_ref2va_448x800_124f_turbo4.mp4`;
+- `h0t_run_manifest.json`;
+- `h0t_api_prompt.json`.
 
-Canonical output:
+The manifest records wall-clock speedup versus completed H0.
 
-`Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
+## Runner49
 
-Gameplay proxy:
+Runner:
 
-`Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`
+`tools/structured-2d-character-pipeline/49_run_minimax_h3_ref2va_h0t_turbo4.ps1`
 
-## H0 verdict
+It downloads/verifies only:
 
-**PASS_CANDIDATE / FAMILY ADVANCES.**
+- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
+- ~1.96GB;
+- SHA256 `5b9ab5ade15d0775676d01a907268a69a1468dc6033b3b0d3ded5502f3ebb84c`.
 
-Visual review found stable body topology, no destructive whole-body smear, coherent hair/cloth secondary motion, readable restraints and strong gameplay-scale silhouette. Residual chain-detail drift remains. Late right-foot crop is treated as a driver/framing-envelope problem, not anatomy collapse.
+Exact command:
 
-`448×800` passes; do not increase resolution or use `ref_image_size=max` without a specific later failure.
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-## Next gate
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\49_run_minimax_h3_ref2va_h0t_turbo4.ps1"
+```
 
-Use a real game-relevant walking driver:
+If `H3-H0T: prompt_id=...` appears, real Turbo inference started.
 
-- fixed camera;
-- one adult full-body performer;
-- screen-left movement;
-- mostly lateral/slight3/4 targeting the locked `72°` baseline;
-- complete gait cycle;
-- safe head/feet/lateral margins.
+## H0T pass criterion
 
-Keep H0 quality settings for the first walk test. After walking passes, stress hair/cloth/wind/restraints. Optimize speed/Turbo only later.
+Speed alone is insufficient. Compare H0T directly with H0 for:
 
-## Classification rule
+- complete body topology;
+- identity/body/hair/costume coherence;
+- motion adherence;
+- hair/cloth/restraint secondary motion;
+- destructive blur/ghosting.
 
-API-schema/CUDA/DynamicVRAM/runtime failures are not model-quality failures. A completed video is judged at full resolution and gameplay scale.
+Use Turbo for H1-S only if quality remains acceptable.
+
+## H1-S after H0T
+
+Game-relevant walk driver: fixed camera, full-body screen-left, mostly lateral/slight3/4 near72°, safe real margins and one clean gait cycle.
+
+Keep the proven124-frame temporal regime; a clean gait cycle may be tiled/repeated through the reference interval.
+
+Distill one stable generated cycle to ~12 unique runtime frames, then run the separate pixel-art reconstruction gate.
+
+## Runtime target
+
+First walk:
+
+- ~128px visible character;
+-12 unique frames;
+-192×192 cells;
+-4×3 review sheet =768×576;
+- transparent RGBA;
+- optional trimmed atlas + JSON pivots/durations.
 
 ## Cleanup
 
-H3 is now proven active enough that paused Wan large weights may be deleted while preserving W1H/W1L proof/results. Keep the minimal H3 four-file set and do not accumulate alternate H3 variants without an explicit hypothesis.
+Keep Base H3 files plus the single explicit Turbo4 LoRA while evaluating throughput. Do not accumulate FL2VA/style/alternate quantizations without a specific hypothesis. Wan large weights may be removed while proof/results remain.
