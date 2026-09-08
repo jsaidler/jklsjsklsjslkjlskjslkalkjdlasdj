@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / H3 ACTIVE / RUNNER46 BOOTSTRAP NEXT / H0 BASE REF2VA DEFINED**
+Status: **CANONICAL / H3 ACTIVE / RUNNER46 BOOTSTRAP PASS / RUNNER47 H0 BASE REF2VA CURRENT**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -18,7 +18,7 @@ The model must preserve more than skeleton motion. It must generate coherent bod
 
 Wan-Animate-2 is **PAUSED AFTER W1L**, not `EXHAUSTED_FAIL`.
 
-The operator reported W1L complete on 2026-09-08. Runner46 independently requires the completed local W1L video, prompt and manifest before H3 bootstrap proceeds. W1L's visual verdict is not invented here; its evidence remains in `Z:\AI\WanAnimate2` for comparison.
+The operator reported W1L complete on 2026-09-08. Runner46 subsequently verified the completed local W1L video, prompt and manifest with `status=INFERENCE_COMPLETE` before H3 bootstrap. W1L's visual verdict is not invented here; its evidence remains in `Z:\AI\WanAnimate2` for comparison.
 
 Do not launch another Wan inference while H3 is the active screening route.
 
@@ -32,6 +32,23 @@ The official ComfyUI H3 R2V workflow uses `MiniMaxH3ReferenceToVideo` and suppor
 
 No FL2VA model is required for this spike.
 
+## Runner46 result — PASS
+
+On 2026-09-08 the operator reported:
+
+`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+
+Verified local paths:
+
+- Comfy root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- bootstrap manifest: `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
+- driver manifest: `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
+- object info: `Z:\AI\MiniMaxH3\h3_required_object_info.json`.
+
+Downloaded model payload: Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE only, approximately **41.9GB**.
+
+Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. Runner46 performs no H3 inference, so this result is not model-quality evidence.
+
 ## Pinned local stack
 
 ### ComfyUI
@@ -40,17 +57,15 @@ Pinned stable portable:
 
 - release: **ComfyUI v0.34.0**;
 - archive: `ComfyUI_windows_portable_nvidia.7z`;
-- source: `https://github.com/Comfy-Org/ComfyUI/releases/download/v0.34.0/ComfyUI_windows_portable_nvidia.7z`;
-- compressed size: about **2.15 GB**;
 - SHA256: `ed57cc6b19ae3d83add1ecebfdd56b25e04e0008cf0fe9af43a4ad8797e2a24c`;
 - workspace root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable`;
 - H3 port: **8190**.
 
-Rationale: use a dedicated pinned H3 environment rather than mutate the proven Wan environment. H0 uses ComfyUI's normal DynamicVRAM behavior. Do **not** carry Wan's `--disable-pinned-memory` workaround into H3 unless H3 itself produces evidence that it is required.
+H0 uses ComfyUI's normal DynamicVRAM behavior. Do **not** carry Wan's `--disable-pinned-memory` workaround into H3 unless H3 itself produces evidence that it is required.
 
 ### Required H0 model files
 
-Only these three large H3 files are downloaded:
+Only these three large H3 files are installed:
 
 1. `models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors`
    - approximately **21 GB**;
@@ -62,8 +77,6 @@ Only these three large H3 files are downloaded:
    - `5,207,808,496` bytes, approximately **5.21 GB**;
    - SHA256 `7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522`.
 
-H0 model payload is therefore approximately **41.9 GB** before ComfyUI itself and generated evidence. A first clean bootstrap should have roughly **48 GB minimum free**; **55–60 GB free is preferred** so downloads, extraction, logs and output do not run against the filesystem limit.
-
 ### Explicitly excluded from H0
 
 Do **not** download:
@@ -74,7 +87,7 @@ Do **not** download:
 - style embeddings;
 - audio VAE.
 
-The H3 audio stream exists internally, but H0 decodes video only. Audio is irrelevant to the sprite-production decision, so `minimax_h3_audio_vae_fp32.safetensors` is deliberately omitted.
+The H3 audio stream exists internally, but H0 decodes video only. Audio is irrelevant to the sprite-production decision.
 
 ## Upstream workflow evidence
 
@@ -97,15 +110,15 @@ The upstream template specifies:
 
 H0 chooses **`beta`** and does not use Turbo.
 
-## H0 input preparation
+## H0 input preparation — COMPLETE
 
 ### Appearance
 
-Source remains canonical:
+Canonical source:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Runner46 copies it to:
+Prepared H3 input:
 
 `ComfyUI/input/roguelite_h3/exilada_master.png`
 
@@ -113,21 +126,7 @@ No redraw or appearance preprocessing is performed.
 
 ### Motion
 
-For a direct family comparison, H0 starts with the **same raw source driver recorded by W1H**.
-
-MiniMax H3 expects reference-video frames at 24 fps. Runner46 therefore calls:
-
-`tools/minimax-h3-spike/prepare_h0_driver.py`
-
-The normalizer:
-
-- reads the exact W1H raw source driver;
-- outputs exactly **124 frames at 24 fps**;
-- performs **no crop**;
-- performs **no resize**;
-- does not stabilize/recenter/track the subject;
-- removes audio because H0 is motion-only;
-- uses timestamp resampling only.
+H0 uses the **same raw source driver recorded by W1H** for direct family comparison.
 
 Prepared driver:
 
@@ -137,7 +136,16 @@ Evidence:
 
 `Z:\AI\MiniMaxH3\h0_driver_manifest.json`
 
-## H0 exact inference baseline
+The normalizer:
+
+- outputs exactly **124 frames at24fps**;
+- performs **no crop**;
+- performs **no resize**;
+- does not stabilize/recenter/track the subject;
+- removes audio because H0 is motion-only;
+- uses timestamp resampling only.
+
+## H0 exact inference baseline — CURRENT GATE
 
 H0 is a **Base Ref2VA accuracy baseline**, not a speed/Turbo test.
 
@@ -145,7 +153,7 @@ H0 is a **Base Ref2VA accuracy baseline**, not a speed/Turbo test.
 - output geometry: **448×800**;
 - frame count: **124**;
 - FPS: **24**;
-- duration: ~5.17 s;
+- duration: ~5.17s;
 - `ref_image_size`: **match**;
 - inference steps: **50**;
 - sampler: **res_multistep**;
@@ -157,19 +165,17 @@ H0 is a **Base Ref2VA accuracy baseline**, not a speed/Turbo test.
 - no negative-conditioning branch;
 - fixed camera/full-body/topology stability requested in prompt.
 
-The 50-step / video-shift12 / audio-shift3 choice matches the current reference-accuracy regime used for MiniMax H3 Base rather than a distilled/Turbo shortcut.
-
 ## Why 448×800 first
 
-The runtime protagonist is roughly 128 px tall. A 768-short-edge source is not automatically justified if a smaller H3 canvas preserves the information needed by the final sprite.
+The runtime protagonist is roughly128px tall. A 768-short-edge source is not automatically justified if a smaller H3 canvas preserves the information needed by the final sprite.
 
 `448×800`:
 
 - is valid on the H3 32-pixel canvas grid;
 - has aspect `0.56`, close to the current portrait driver;
-- is 358,400 pixels;
+- is358,400 pixels;
 - has a H3 visual latent grid of `28×50 = 1400` spatial cells;
-- is about 34.7% of the spatial cell count of `1344×768` (`84×48 = 4032`).
+- is about34.7% of the spatial cell count of `1344×768` (`84×48 = 4032`).
 
 This reduces spatial activation/token work but **does not shrink the model weights** and does not eliminate RAM/offload cost.
 
@@ -186,7 +192,7 @@ If H0 fails specifically because anatomy/identity is under-resolved:
 3. `512×896`;
 4. one 768-short-edge control only if needed to distinguish low-resolution failure from model/task failure.
 
-If motion/topology is already excellent and **identity alone** is weak, test `ref_image_size=max` before increasing output resolution. `max` keeps substantially more reference-image information but is expected to be slower because reference tokens remain active through sampling.
+If motion/topology is already excellent and **identity alone** is weak, test `ref_image_size=max` before increasing output resolution.
 
 ## Dual-scale QA
 
@@ -211,9 +217,32 @@ The H0 executor automatically creates:
 
 `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`
 
-This downsizes the whole portrait frame to about 160 px high. If the generated character occupies roughly 80% of the frame, the character appears near the game's ~128 px target. This is a **perceptual proxy**, not final segmentation/alpha extraction.
+This downsizes the whole portrait frame to about160px high. If the generated character occupies roughly80% of the frame, the character appears near the game's ~128px target. This is a **perceptual proxy**, not final segmentation/alpha extraction.
 
 Downsampling may make tiny texture noise or restrained local motion blur irrelevant. It cannot excuse topology changes, missing body parts, broken silhouette or identity loss.
+
+## Current operator action — Runner47 H0
+
+Runner46 has passed. Run:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
+```
+
+Expected proof files:
+
+- `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
+- `Z:\AI\MiniMaxH3\h0_run_manifest.json`;
+- `Z:\AI\MiniMaxH3\h0_api_prompt.json`;
+- `Z:\AI\MiniMaxH3\h0_executor.log`;
+- `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4` when the preview encoder succeeds.
+
+If Runner47 prints `H3-H0: prompt_id=...`, actual H3 inference has started.
+
+Inference completion means only **technical execution PASS**. Production quality remains a human visual gate.
 
 ## Failure classification
 
@@ -227,59 +256,12 @@ A bad local run is not automatically a H3 model failure.
 
 No manual repair can convert a failed production route into a production PASS.
 
-## Operational sequence
-
-### Gate 46 — prepare/bootstrap only
-
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\46_prepare_minimax_h3_ref2va.ps1"
-```
-
-Runner46:
-
-1. verifies W1L completion evidence;
-2. stops only the known managed Wan Comfy process to free RAM/VRAM;
-3. verifies disk/pagefile context;
-4. downloads/verifies/extracts pinned ComfyUI v0.34.0;
-5. downloads/verifies only the three H0 model files;
-6. stores the pinned official H3 R2V workflow;
-7. prepares Exilada + 24fps/124f driver inputs;
-8. starts ComfyUI only for node/schema/system preflight;
-9. captures required `object_info` and system stats;
-10. stops that preflight server;
-11. writes `h3_bootstrap_manifest.json`.
-
-**Runner46 performs no H3 inference.**
-
-### Gate 47 — H0 inference
-
-Only after Runner46 reports PASS:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
-```
-
-Expected proof files:
-
-- `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
-- `Z:\AI\MiniMaxH3\h0_run_manifest.json`;
-- `Z:\AI\MiniMaxH3\h0_api_prompt.json`;
-- `Z:\AI\MiniMaxH3\h0_executor.log`;
-- `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4` when the preview encoder succeeds.
-
-Inference completion means only **technical execution PASS**. Production quality remains a human visual gate.
-
 ## Cleanup policy
 
 - H3 H0 installs only one Ref2VA quantization and one encoder/VAE set.
-- `.part` files are resumable during download; corrupt completed files are deleted rather than retained.
 - no FL2VA/Turbo/style assets are accumulated.
 - Wan W1L video/manifests remain evidence.
-- once H3 is proven technically active and we decide not to return to Wan immediately, remove the paused Wan **large checkpoint set** while preserving small proof files/results; do not delete it prematurely during H3 bootstrap failure diagnosis.
+- once H3 is proven technically active and we decide not to return to Wan immediately, remove the paused Wan **large checkpoint set** while preserving small proof files/results;
 - SSD/Moore comparison evidence remains until explicit abandonment/final model verdict.
 
 ## H3 H0 decision after output
