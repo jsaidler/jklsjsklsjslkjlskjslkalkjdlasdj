@@ -1,6 +1,6 @@
 # MiniMax H3 Ref2VA local spike tooling
 
-Status: **ACTIVE — H3 Base Ref2VA is the current complete-character screening route. Runner46 prepares the pinned stack; Runner47 runs H0. Wan is paused after W1L.**
+Status: **ACTIVE — H3 Base Ref2VA is the current complete-character screening route. Runner46 bootstrap/preflight PASSED; Runner47 runs H0 now. Wan is paused after W1L.**
 
 Canonical procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
 
@@ -10,6 +10,22 @@ Canonical procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
 - H3 workspace: `Z:\AI\MiniMaxH3`
 - paused Wan workspace: `Z:\AI\WanAnimate2`
 - `D:\AI` is stale/invalid.
+
+## Runner46 result — PASS
+
+Operator result on 2026-09-08:
+
+`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+
+Prepared/verified:
+
+- `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
+- `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
+- `Z:\AI\MiniMaxH3\h3_required_object_info.json`;
+- selected ~41.9GB model payload only.
+
+Classification: infrastructure/integration bootstrap PASS. No H3 model-quality inference happened in Runner46.
 
 ## H0 stack
 
@@ -21,7 +37,7 @@ Pinned ComfyUI:
 - default DynamicVRAM behavior;
 - no custom nodes for H0.
 
-Downloaded H3 files only:
+Installed H3 files only:
 
 - `minimax_h3_ref2va_pruned_int8_convrot.safetensors`
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
@@ -35,8 +51,8 @@ No FL2VA checkpoint, no Turbo LoRA, no style embeddings, no audio VAE.
 
 Temporal normalizer for the same raw motion driver used by the Wan comparison branch.
 
-- output 24 fps;
-- exactly 124 frames;
+- output24fps;
+- exactly124 frames;
 - no spatial crop;
 - no resize;
 - no tracking/recentering/stabilization;
@@ -53,9 +69,9 @@ H0 settings:
 - Picture1 = Exilada appearance;
 - Video1 = movement/performance;
 - `448×800`;
-- 124 frames at 24 fps;
+-124 frames at24fps;
 - `ref_image_size=match`;
-- 50 steps;
+-50 steps;
 - `res_multistep`;
 - `beta` scheduler;
 - seed0;
@@ -68,29 +84,22 @@ It writes:
 - canonical H0 video;
 - small whole-frame gameplay-scale proxy when PyAV encoding succeeds.
 
-## Operator sequence
+## Current operator sequence
 
-First:
+Runner46 is complete. Run Runner47:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\46_prepare_minimax_h3_ref2va.ps1"
-```
-
-Runner46 is **bootstrap/preflight only**. It downloads/verifies the selected files and validates the live H3/core node set. It does not infer.
-
-After Runner46 PASS:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
 ```
 
+If the executor prints `H3-H0: prompt_id=...`, real H3 inference has started.
+
 ## Classification rule
 
-A download/CUDA/DynamicVRAM/API/runtime failure is not a model-quality failure. Preserve the exact Runner47 diagnostics and Comfy stdout/stderr and classify the failure layer first.
+A CUDA/DynamicVRAM/API/runtime failure is not a model-quality failure. Preserve the exact Runner47 diagnostics and Comfy stdout/stderr and classify the failure layer first.
 
 A completed video is also not automatically a production PASS. Review full-resolution body topology/identity/motion first, then the gameplay-scale proxy.
 
@@ -99,7 +108,7 @@ A completed video is also not automatically a production PASS. Review full-resol
 Only after H0 evidence:
 
 - identity weak but motion/topology strong → try `ref_image_size=max`;
-- anatomy under-resolved → `480×864`, then `512×896`, then at most one 768-short-edge control;
+- anatomy under-resolved → `480×864`, then `512×896`, then at most one768-short-edge control;
 - do not blindly grid-search settings;
 - do not download FL2VA unless a later explicit hypothesis requires that task family.
 
