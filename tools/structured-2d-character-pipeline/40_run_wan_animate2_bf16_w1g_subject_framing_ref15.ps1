@@ -5,7 +5,7 @@ param(
     [int]$TimeoutMinutes = 240,
     [double]$TargetSubjectHeightRatio = 0.48,
     [double]$TargetCenterX = 300.0,
-    [double]$TargetBottomY = 620.0
+    [double]$TargetBottomY = 580.0
 )
 
 Set-StrictMode -Version Latest
@@ -46,16 +46,17 @@ $WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
 if (-not $WorkspacePython) { Fail "ComfyUI Python environment not found under $Workspace" }
 
 Write-Host ''
-Write-Host 'Roguelite Runner 40 - Wan-Animate-2 Base BF16 W1G / detector-agnostic tracked subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
+Write-Host 'Roguelite Runner 40 - Wan-Animate-2 Base BF16 W1G / tracked subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
 Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
 Write-Host '[PARENT] Exact completed W1A prompt at reference_image_strength=1.5.' -ForegroundColor Green
 Write-Host '[WHY 1.5] User review: W1A preserves body structure/topology better than 1.0 even though it carries more destructive blur. Blur remains a later isolated axis.' -ForegroundColor Yellow
 Write-Host '[FRAMING EVIDENCE] W1F proved whole-frame 80% letterboxing does NOT solve generated crop.' -ForegroundColor Yellow
-Write-Host '[W1G V1] Global temporal-activity union collapsed to the whole source frame and aborted before inference.' -ForegroundColor Yellow
-Write-Host '[W1G V2] HOG person detection was too semantically brittle and also exited before any Wan prompt was submitted.' -ForegroundColor Yellow
-Write-Host '[W1G V3] Detector-agnostic foreground tracking: temporal-median background, per-frame foreground component tracking, interpolated misses, smoothed translation, ONE constant scale.' -ForegroundColor Yellow
+Write-Host '[W1G V1 PREFLIGHT] One global temporal-activity union expanded to the whole frame and correctly aborted before inference.' -ForegroundColor Yellow
+Write-Host '[W1G V2 PREFLIGHT] Person-specific HOG tracking was rejected as too brittle for arbitrary drivers.' -ForegroundColor Yellow
+Write-Host '[W1G V3] Detector-agnostic foreground tracking works; the first v3 guard showed the tracked subject was 29.49 px below the CLIP-safe lower bound.' -ForegroundColor Yellow
+Write-Host '[W1G V3.1] Keep the same tracker/scale and raise only the preferred vertical anchor from y=620 to y=580 so the tracked subject stays inside the center-square CLIP crop.' -ForegroundColor Yellow
 Write-Host "[TARGET] subject-envelope height ratio=$TargetSubjectHeightRatio, center-x=$TargetCenterX, bottom-y=$TargetBottomY on 640x800." -ForegroundColor Green
-Write-Host '[CLIP GUARD] The preprocessor also keeps the tracked subject safely inside the center-square crop used by the existing CLIPVisionEncode pose path.' -ForegroundColor Green
+Write-Host '[CLIP GUARD] The preprocessor keeps the tracked subject safely inside the center-square crop used by the existing CLIPVisionEncode pose path.' -ForegroundColor Green
 Write-Host '[UNCHANGED] Exilada reference/prompt, Base BF16 stack, 37 frames, 16 fps output, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt.' -ForegroundColor Green
 Write-Host '[MEMORY] Keep proven --disable-pinned-memory workaround.' -ForegroundColor Yellow
 Write-Host ''
@@ -142,27 +143,26 @@ if (-not $ready) {
     Fail "ComfyUI API did not become available at $Base"
 }
 
-if (Test-Path $ExecutorLog -PathType Leaf) { Remove-Item -LiteralPath $ExecutorLog -Force }
-Write-Host 'Preparing detector-agnostic tracked subject driver and submitting W1G...' -ForegroundColor Cyan
-& $WorkspacePython $Executor `
+Write-Host 'Preparing tracked subject-normalized raw driver and submitting W1G...' -ForegroundColor Cyan
+if (Test-Path $ExecutorLog) { Remove-Item -LiteralPath $ExecutorLog -Force }
+$executorOutput = & $WorkspacePython $Executor `
     --workspace $Workspace `
     --comfy-root $ComfyRoot `
     --port $Port `
     --timeout-minutes $TimeoutMinutes `
     --target-subject-height-ratio $TargetSubjectHeightRatio `
     --target-center-x $TargetCenterX `
-    --target-bottom-y $TargetBottomY 2>&1 | Tee-Object -FilePath $ExecutorLog
-$ExecutorExit = $LASTEXITCODE
-if ($ExecutorExit -ne 0) {
+    --target-bottom-y $TargetBottomY 2>&1
+$executorOutput | Tee-Object -FilePath $ExecutorLog | ForEach-Object { Write-Host $_ }
+$executorExit = $LASTEXITCODE
+if ($executorExit -ne 0) {
     Write-Host ''
     Write-Host 'W1G executor diagnostics:' -ForegroundColor Red
-    if (Test-Path $ExecutorLog -PathType Leaf) { Get-Content $ExecutorLog -Tail 120 }
-    if (Test-Path $StderrLog -PathType Leaf) {
-        Write-Host ''
-        Write-Host 'Last ComfyUI stderr lines:' -ForegroundColor DarkYellow
-        Get-Content $StderrLog -Tail 80
-    }
-    Fail "W1G subject-framing executor exited with code $ExecutorExit"
+    if (Test-Path $ExecutorLog) { Get-Content -LiteralPath $ExecutorLog -Tail 120 }
+    Write-Host ''
+    Write-Host 'ComfyUI stderr tail (secondary context only):' -ForegroundColor DarkYellow
+    if (Test-Path $StderrLog) { Get-Content $StderrLog -Tail 80 }
+    Fail "W1G subject-framing inference exited with code $executorExit"
 }
 
 $Output = Join-Path $Workspace 'w1g_exilada_subject_framed_ref15.mp4'
