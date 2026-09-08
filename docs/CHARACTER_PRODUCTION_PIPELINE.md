@@ -2,7 +2,11 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL PRODUCTION ROADMAP — H3 COMPLETE-CHARACTER MOTION MASTER -> AUTOMATIC ACTION DISTILLATION -> HIGH-QUALITY PIXEL-ART SPRITESHEET**
+Status: **CANONICAL ROADMAP — ALL-LOCAL CHARACTER/ACTION AUTHORING -> H3 BASE50 MOTION MASTER -> AUTOMATIC DISTILLATION -> FLUX.1 KONTEXT PIXEL-ART RECONSTRUCTION -> RUNTIME SPRITESHEET**
+
+Canonical state: `docs/PROJECT_STATE.md`.
+
+Canonical local UI/workflow specification: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
 
 ## Non-negotiable production contract
 
@@ -12,157 +16,188 @@ Status: **CANONICAL PRODUCTION ROADMAP — H3 COMPLETE-CHARACTER MOTION MASTER -
 - final exported frames contain the complete visible character state;
 - motion comes from real driving video rather than unrelated guessed poses;
 - anatomy, proportions and left/right identity remain stable;
-- hair, cloth, restraints and secondary masses move coherently;
+- hair, cloth, restraints, weapons and secondary masses move coherently;
 - no routine manual frame-by-frame repainting, manual masks or per-frame alignment;
 - recurring operations must be scriptable/headless;
+- normal production should be exposed through one local UI;
 - equipment/damage/state variation must scale offline without reintroducing runtime assembly.
 
 Canonical Exilada appearance reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-## Current production architecture — LOCKED 2026-09-08
+## Production architecture — LOCKED
 
-`pixel-art Exilada reference + real driver -> H3 complete-character motion master -> automatic action/cycle detection and frame distillation -> automatic segmentation/alignment -> high-quality pixel-art reconstruction -> transparent spritesheet/atlas + metadata -> runtime playback`
+`reference image or locally generated reference -> relative world scale + real driver + action preset -> H3 Base50 complete-character motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> FLUX.1 Kontext [dev] pixel-art reconstruction -> transparent spritesheet/atlas + metadata -> runtime playback`
 
-MiniMax H3 painterly/raster video is an **intermediate motion representation**. It is not the final runtime art.
+MiniMax H3 painterly/raster video is an **intermediate motion representation**, not final runtime art.
 
-Detailed H1-S definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
+## Character-source modes
 
-## Runtime output — LOCKED
+The local authoring tool must support:
 
-Per animation/state family:
+1. **existing image** — upload an approved complete character reference;
+2. **text description** — generate a complete local reference image, select/approve it, then use that image for motion generation.
 
-- transparent complete-character PNG sequence and/or spritesheet/atlas;
-- fixed/declared pivot/root metadata;
-- per-frame duration/timing;
-- optional event metadata such as foot contacts, attack markers and hitbox helpers;
-- provenance/version manifest.
+The exact text-to-image model is still open. SDXL-class and FLUX text-to-image families are current candidates.
 
-Visible runtime character remains one complete rendered sprite per frame.
+## Relative world scale
 
-## Complete-frame animation requirement
+The authoring job carries explicit `relative_scale` metadata.
 
-Every exported animation bakes all relevant motion:
+- `1.0` = baseline adult-human/Exilada scale;
+- Exilada is about `128px` visible height in the canonical gameplay composition at `1.0`;
+- different monsters/creatures may be much smaller or larger;
+- scale affects target runtime occupancy, cell/atlas dimensions and source-resolution policy;
+- scale does not mean non-uniformly stretching existing art.
 
-- body locomotion/action;
-- soft-tissue/jiggle response;
-- hair motion;
-- clothing/binding motion;
-- armor/equipment motion where present;
-- shackles/chains/restraints;
-- self-occlusion.
+Exact scale bounds remain open.
 
-If those elements are temporally wrong, the authored animation fails; runtime does not repair them.
+## Motion backbone — MiniMax H3 Base Ref2VA
 
-## Motion backbone — UPDATED
+Canonical quality configuration is restored to H0 Base50:
 
-The old G2/CMU/Moore walk proof remains historical research only.
-
-Active motion backbone is **MiniMax H3 Ref2VA**:
-
-- Picture1 = complete Exilada appearance;
-- Video1 = arbitrary real movement/performance;
-- raw-video temporal conditioning preserves richer motion than skeleton-only pose;
-- H0 at448×800/124f proved stable complete-character topology and coherent hair/cloth motion.
-
-Wan remains paused comparison evidence. Moore/SSD is no longer the active complete-motion path.
-
-## H3 H0 quality baseline
-
-Completed H0:
-
--448×800;
--124f@24fps;
--50 steps;
+- `448×800`;
+- `124f@24fps`;
+- `ref_image_size=match`;
+- `50 steps`;
 - `res_multistep/beta`;
 - seed0;
-- `ref_image_size=match`;
+- no Turbo/FL2VA/style embedding.
+
+Completed H0 evidence:
+
 - prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
-- elapsed `4504.8s`.
+- elapsed `4504.8s`;
+- output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
+- SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`.
 
-Verdict: **PASS_CANDIDATE as motion-master family**.
+Verdict: **PASS_CANDIDATE / preferred motion-master quality baseline**.
 
-H0 solved the dominant Wan problem: destructive whole-body smear/topology instability did not recur. Residual chain-detail drift remains; late crop follows the source driver envelope.
+## Turbo4 — CLOSED AS DEFAULT
 
-## Production-throughput gate — CURRENT
+The 4-step official Ref2V Turbo experiment was visually rejected by the user.
 
-A 75-minute Base50 run is not the ordinary action-production target.
+Do not make it the default production setting. Base50 remains canonical until a faster controlled experiment is visually equivalent.
 
-Runner49 tests the official Ref2V Turbo4 path against exact H0 inputs:
+Record: `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`.
 
-- LoRA `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
-- strength1.0;
--4 steps;
-- `res_multistep/simple`;
-- same448×800/124f/24fps;
-- same Picture1/Video1/ref_image_size/seed/prompt.
+## Action presets
 
-Turbo becomes production-eligible only if it materially reduces wall clock without losing H0-level topology/identity/motion quality.
+Initial local UI must include common actions and `custom`, including:
+
+- idle, walk, run, jump, land, dodge, roll;
+- punch, kick, block, parry, hit reaction, knockdown, get-up, death;
+- taunt, dance/gesture;
+- sword slash/overhead/thrust, axe swing, spear thrust, bow shot, staff attack, spell cast and special attack.
+
+The real video remains authoritative for the actual motion. Action type supplies metadata and extraction/loop/pivot/event defaults.
 
 ## H3 temporal rule
 
 Do not default to 8–12 **generated H3 frames**.
 
-Current H3 uses the `17k+5` temporal grid and documents trained video range around124–362 frames @24fps.
+The current proven motion-master regime is `124f@24fps`.
 
-Production baseline is therefore:
+Production baseline:
 
-`fast124-frame motion master -> distill one useful action/cycle -> ~12 runtime frames`
+`124-frame Base50 master -> action-dependent compact frame set -> final renderer`
 
-Shorter H3 windows may be tested later only with explicit quality evidence.
+Typical first final frame sets are 8–16 frames, but no global count is locked.
 
-## H1-S locomotion production
+## Current downstream proof source
 
-After the throughput path is chosen:
+The existing H0 video is a **dance/gesture-like action**, not locomotion.
 
-1. use a fixed-camera full-body screen-left real walk with safe real margins and one clean gait cycle;
-2. keep the proven124-frame H3 regime; a clean gait cycle may be automatically repeated/tiled through the reference interval;
-3. generate a complete H3 motion master;
-4. automatically detect one coherent generated gait cycle;
-5. select ~12 phase-distributed frames;
-6. automatically reject crop/structural failures;
-7. automatically segment complete character including hair/cloth/chains;
-8. pivot-align to stable ground while preserving valid vertical bob;
-9. build a high-resolution transparent action strip/contact sheet.
+It has already been used to prove basic frame extraction and raster sheet packing. It must now be reused for the first final pixel-art reconstruction test so the downstream pipeline can be validated without paying another Base50 generation cost.
 
-No manual masks, repainting or frame alignment.
+## Automatic action distillation
 
-## Final pixel-art reconstruction — REQUIRED / NOT YET PROVEN
+The system must:
 
-The H3 motion-master frames must then be reconstructed as deliberate high-quality pixel art.
+1. extract video frames;
+2. identify the useful action interval or loop/cycle;
+3. select an action-appropriate compact frame set;
+4. preserve action timing and optional event markers;
+5. reject obvious crop/structural failures where automatic confidence permits;
+6. output high-resolution frames for alpha/rendering.
 
-Preferred validation architecture:
+Manual per-frame selection is not a required production step.
 
-- canonical Exilada pixel-art reference;
-- complete selected action strip/contact sheet supplied together so all frames share one coherent design/palette;
-- pose/silhouette/foot placement preserved from H3;
-- stronger pixel clustering, palette discipline and material readability than the current reference;
-- exact pixel grid, no blurry interpolation.
+## Automatic alpha/pivot/alignment
 
-Simple nearest-neighbor downscale/palette quantization is a cheap control only and is not assumed sufficient.
+The system must:
 
-## First walk runtime target
+- isolate complete visible character;
+- preserve hair/cloth/weapon/accessory extents;
+- output RGBA;
+- derive stable action-appropriate pivot/root;
+- preserve valid body bob, jump arcs and knockback;
+- allocate cells based on action envelope and relative scale.
 
-- visible protagonist ~128px tall;
--12 unique frames;
-- art playback around12fps, with actual action speed controlled by metadata/gameplay;
--192×192 initial review cells;
--4×3 sheet =768×576;
-- transparent RGBA complete-character sprites;
-- optional trimmed atlas + JSON frame rectangles/pivots/durations.
+No routine manual masks or alignment.
+
+## Final pixel-art reconstruction — REQUIRED / CURRENT CANDIDATE
+
+**FLUX.1 Kontext [dev] is the preferred first local model to validate.**
+
+Preferred strategy:
+
+- canonical/approved character reference as identity anchor;
+- selected action frames supplied as a coherent strip/shared-context set when practical;
+- preserve pose/silhouette/foot placement/frame order;
+- reconstruct authored-looking high-quality pixel art with coherent palette and material reading;
+- split back to exact cells;
+- deterministic pixel-grid/palette QA afterward.
+
+Simple nearest-neighbor downscale/palette quantization is a control only, not the final-art plan.
+
+### License caveat
+
+Open-weight Kontext [dev] is non-commercial. It is suitable for technical validation. Commercial shipping later requires appropriate BFL commercial licensing or a renderer with compatible terms.
+
+SDXL/img2img remains fallback for quality/hardware/license failure.
+
+## Runtime output — LOCKED
+
+Per action/state family:
+
+- motion-master MP4;
+- selected transparent PNG frames;
+- final pixel-art spritesheet PNG;
+- preview GIF/equivalent;
+- optional trimmed atlas PNG;
+- atlas/action JSON with frame rectangles, pivots, durations and events;
+- provenance manifest including source hashes, H3 settings, renderer settings, relative scale and action preset.
+
+Visible runtime character remains one complete rendered sprite per frame.
+
+## Local UI
+
+One local authoring interface is required.
+
+Current V1 scaffold choice: **Gradio**.
+
+Minimum controls:
+
+- character source mode: image / text generation;
+- character image or description;
+- character name/category;
+- relative world scale;
+- action-video upload;
+- action-type dropdown/custom action;
+- optional facing/frame-count override;
+- H3 production preset hidden/locked to Base50 by default;
+- progress and previews;
+- final file access.
 
 ## Variation architecture — later
 
-After baseline animation + final pixel-art reconstruction are proven, solve armor/equipment/accessory/damage variation offline.
-
-Candidate production may use source modules/masks/state families internally, but every runtime variant still exports as complete-character animation frames.
+After baseline local authoring + final pixel-art reconstruction are proven, solve armor/equipment/accessory/damage variation offline. Every runtime variant still exports as complete-character frames.
 
 ## Damage / exposure integration
 
-Offline source state may retain complete body, clothing/armor coverage semantics, damage zones, attachment sockets, anatomical side ownership and surface-state masks.
-
-Those are resolved offline into complete runtime sprite families. Adult nudity/partial nudity remains a legitimate state.
+Offline source state may retain complete body, clothing/armor coverage semantics, damage zones, attachment sockets, anatomical side ownership and surface-state masks. Those resolve offline into complete runtime sprite families. Adult nudity/partial nudity remains a legitimate state.
 
 ## Automated QA contract
 
@@ -170,24 +205,17 @@ Production batches should check at least:
 
 - full body present;
 - stable topology/identity;
-- no driver-forced crop inside selected runtime cycle;
-- hair/cloth/restraints remain attached and coherent;
-- alpha matte preserves all intended extents;
-- pivot/ground consistency;
+- no unacceptable source-envelope crop in selected frames;
+- hair/cloth/weapons/restraints remain attached/coherent;
+- alpha matte preserves intended extents;
+- pivot/ground/action-path consistency;
 - pixel-art frame consistency;
-- no unexpected palette/interpolation blur;
-- atlas metadata matches frame geometry/timing.
+- no interpolation blur;
+- atlas metadata matches geometry/timing;
+- relative scale and action metadata are preserved.
 
-## Cleanup discipline
+## Immediate gate
 
-- keep Base H3 Ref2VA files;
-- add only the single official Turbo4 LoRA for current throughput hypothesis;
-- do not accumulate FL2VA/style/alternate quantizations without evidence;
-- Wan large checkpoints may be removed while W1H/W1L proof remains;
-- keep SSD/Moore evidence until explicit final abandonment.
+**Install/validate FLUX.1 Kontext [dev] locally and use the existing H0 dance/gesture motion master to produce the first genuinely final-style pixel-art spritesheet.**
 
-## Current gate
-
-**Runner49 H0T Turbo4 throughput-quality comparison.**
-
-Do not spend another Base50 hour on a new walking driver before deciding whether Turbo4 can preserve H0 quality at practical speed.
+Do not spend another Base50 H3 generation merely to test downstream rendering.
