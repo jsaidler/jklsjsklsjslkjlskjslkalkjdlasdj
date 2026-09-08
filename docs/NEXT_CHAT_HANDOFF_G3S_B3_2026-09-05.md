@@ -22,64 +22,77 @@ Painterly illustrated 2D dark fantasy with explicit 1980s sword-and-sorcery char
 
 ## Wan status — PAUSED AFTER W1L
 
-W0 passed local BF16 integration. W1 established approved art/motion language. W1F letterbox and W1G tracked/recentered framing are closed. W1H `512×912` solved dominant crop while preserving raw driver and remains the best documented Wan geometry baseline. W1I pose-end0.70 did not materially improve blur/structure. W1J and W1K were prepared but never executed.
+W1H remains the best documented Wan geometry baseline. W1I did not materially fix blur/structure. W1L completed with ref1.0 + pose0.80 +30 steps. Preserve W1L evidence; do not invent its visual verdict without reviewing the local video. Do not launch another Wan inference while H3 is active.
 
-W1L / Runner45 changed ref1.5->1.0, pose1.0->0.8 and20->30 steps on W1H. The user reported W1L finished and explicitly chose to move to H3. Runner46 then verified local W1L video/prompt/manifest with `status=INFERENCE_COMPLETE`. **Do not invent a W1L visual verdict without the local output.**
+## MiniMax H3 Base Ref2VA — ACTIVE
 
-Preserve W1L evidence in `Z:\AI\WanAnimate2`. Do not launch another Wan inference while H3 is active.
-
-## DECISION LOCK — MINIMAX H3 BASE REF2VA ACTIVE
-
-MiniMax H3 Base Ref2VA is now the active screening route. Wan is paused, not exhausted. SCAIL-2 is later only if H3 fails the complete-character contract.
-
-Canonical H3 procedure:
+Canonical procedure:
 
 `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-## H3 pinned environment — RUNNER46 PASS
+Incident record:
 
-Runner46 completed successfully on 2026-09-08:
+`docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`
 
-`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+## Runner46
 
-Verified local artifacts:
+Runner46 successfully installed/verifed the pinned H3 environment, three initial model files, inputs, object-info and normalized driver. That is an infrastructure bootstrap pass, but it did **not** prove the final API graph was complete.
 
-- Comfy root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
-- bootstrap: `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
-- driver manifest: `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
-- object info: `Z:\AI\MiniMaxH3\h3_required_object_info.json`.
+## Runner47 — FAILED BEFORE INFERENCE
 
-Pinned:
+User terminal:
 
-- ComfyUI NVIDIA portable v0.34.0;
-- port8190;
-- normal DynamicVRAM behavior;
-- no custom nodes for H0;
+```text
+HTTP 400
+prompt_outputs_failed_validation
+MiniMaxH3ReferenceToVideo
+Required input is missing: audio_vae
+```
+
+Classification: **INTEGRATION_FAIL / PRE-INFERENCE PROMPT VALIDATION**.
+
+Important:
+
+- no `prompt_id`;
+- no H3 denoising;
+- no model-quality evidence;
+- do not change resolution/prompt/sampling because of this failure.
+
+Root cause: in pinned ComfyUI v0.34.0, `MiniMaxH3ReferenceToVideo.audio_vae` is a required input even when no audio reference is used.
+
+## Corrected minimal H3 dependency set
+
+Existing:
+
 - Ref2VA pruned INT8 ConvRot diffusion ~21GB;
-- Qwen3-VL 32B MiniMax H3 NVFP4 AWQ encoder ~15.7GB;
-- H3 video VAE FP16 ~5.21GB.
+- Qwen3-VL NVFP4 AWQ encoder ~15.7GB;
+- video VAE ~5.21GB.
 
-No FL2VA, Turbo LoRA, embeddings, alternate H3 quantizations or audio VAE. Downloaded H0 model payload ~41.9GB.
+Additional required schema dependency:
 
-Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. Runner46 performed no H3 inference, so there is still no model-quality evidence.
+- `minimax_h3_audio_vae_fp32.safetensors`;
+- 605,254,808 bytes (~605MB);
+- SHA256 `8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48`.
 
-## H0 exact baseline
+Corrected H0 payload ~42.5GB.
 
-- task: Base Ref2VA;
-- `<Picture 1>` = Exilada appearance/identity/anatomy/clothing/hair/art language;
-- `<Video 1>` = movement/performance/timing/weight transfer only;
-- same raw Wan comparison driver, normalized to24fps/124f with **no crop/resize/tracking/recentering**;
-- canvas `448×800`;
-- 124 frames @24fps;
+Audio VAE is only wired to satisfy Ref2VA schema. H0 still has no audio reference and no audio decode/output.
+
+## H0 quality baseline — unchanged
+
+- Base Ref2VA;
+- Picture1 = Exilada appearance;
+- Video1 = same raw Wan driver normalized to24fps/124f with no spatial transforms;
+- `448×800`;
+-124f @24fps;
 - `ref_image_size=match`;
-- 50 steps;
-- `res_multistep` sampler;
-- `beta` scheduler;
+-50 steps;
+- `res_multistep` + `beta`;
 - seed0;
-- H3 default sigma shifts video12/audio3;
-- no Turbo LoRA.
+- no FL2VA/Turbo/embedding;
+- no audio reference/decode.
 
-## CURRENT GATE — Runner47 H0 inference
+## CURRENT GATE — Runner48
 
 Run:
 
@@ -87,10 +100,20 @@ Run:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\48_run_minimax_h3_ref2va_h0_audio_vae_fix.ps1"
 ```
 
-Expected H0 proof:
+Runner48 downloads/verifies only the missing official audio VAE, wires it to the Ref2VA node, and re-submits the otherwise unchanged H0.
+
+If terminal reaches:
+
+```text
+H3-H0: prompt_id=...
+```
+
+actual H3 inference has started. Leave it running unless Comfy reports a new execution error.
+
+Expected successful proof:
 
 - `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 - `Z:\AI\MiniMaxH3\h0_run_manifest.json`
@@ -98,34 +121,25 @@ Expected H0 proof:
 - `Z:\AI\MiniMaxH3\h0_executor.log`
 - `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4` when preview encoding succeeds.
 
-A completed inference is only a technical PASS. Review full-res anatomy/topology/identity/motion and then gameplay-scale readability.
+## After Runner48
 
-## What to do with Runner47 output
+If inference completes:
 
-If terminal reaches a `prompt_id`, H3 inference actually started. Do not interrupt unless Comfy reports an execution error.
+1. inspect full-res anatomy/topology/identity/motion;
+2. inspect gameplay proxy;
+3. only then choose the smallest next branch.
 
-If Runner47 fails before/while inference:
+Finite decisions:
 
-- preserve the exact `H3 H0 executor diagnostics` and Comfy stdout/stderr;
-- classify download/API/CUDA/DynamicVRAM/OOM/runtime layer first;
-- do not call it a model failure.
-
-If Runner47 completes:
-
-1. inspect full `448×800` video for head/torso/limb topology, identity, motion transfer, long hair, cloth and restraints;
-2. inspect the tiny gameplay proxy;
-3. only then choose the smallest next H3 branch.
-
-## Finite H3 next decisions
-
-- strong topology/motion but weak identity only -> test `ref_image_size=max` before increasing output size;
+- strong topology/motion but weak identity -> `ref_image_size=max`;
 - under-resolved anatomy/detail -> `480×864`, then `512×896`, then at most one 768-short-edge control;
-- good H0 -> advance to actual game-relevant walking/secondary-motion driver;
-- major model/task failure after integration is proven -> diagnose once; do not blindly grid-search.
+- good H0 -> game-relevant walking/secondary-motion driver;
+- major model/task failure after integration proven -> diagnose once, not endless tuning.
 
 ## Cleanup
 
-- H3 H0 installs one Ref2VA quantization only;
+- keep audio VAE while H3 Ref2VA is active;
+- do not accumulate FL2VA/Turbo/alternate quantizations;
 - preserve W1L proof/results;
-- once H3 is technically proven active and immediate Wan return is unnecessary, remove paused Wan large checkpoint weights while preserving small evidence/results;
+- remove paused Wan large checkpoint weights only after H3 is technically proven active enough that immediate return is unnecessary;
 - keep SSD comparison evidence until explicit abandonment/final verdict.
