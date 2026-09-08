@@ -10,15 +10,16 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 2. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 3. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 4. `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
-5. `docs/VISUAL_DIRECTION.md`
-6. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-7. `docs/ANIMATION_PIPELINE.md`
-8. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-9. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-10. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
-11. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-12. `docs/CHARACTERS.md`
-13. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+5. `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
+6. `docs/VISUAL_DIRECTION.md`
+7. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+8. `docs/ANIMATION_PIPELINE.md`
+9. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+10. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+11. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
+12. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
+13. `docs/CHARACTERS.md`
+14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -187,13 +188,37 @@ Kontext server port: `8191`.
 ### First model payload — quality-first practical 12GB-VRAM set
 
 - `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB, SHA256 `630ba795ec64283b4230ea23cf79406c2c68b7c578229ed139f30043eadb30a2`;
-- `clip_l.safetensors` ~246MB, SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c8576cd796491d9a6cdd`;
+- `clip_l.safetensors` ~246MB, SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`;
 - `t5xxl_fp16.safetensors` ~9.79GB, SHA256 `6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635`;
 - `ae.safetensors` ~335MB, SHA256 `afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38`.
 
 Total first renderer payload: about **22.3GB**.
 
 The native FP8-scaled diffusion is the first practical official ComfyUI route for RTX 3060 12GB. T5 remains FP16 because the machine has 48GB system RAM and the project is quality-first. If completed evidence specifically implicates FP8 diffusion quality, full BF16 Kontext is the next controlled branch. GGUF/custom nodes are not installed before the native route is tested.
+
+### Runner50 CLIP-L hash preflight incident — FIXED / ZERO MODEL EVIDENCE
+
+The next Runner50 attempt successfully downloaded and verified the ~11.9GB Kontext diffusion model, then downloaded `clip_l.safetensors`, but failed before inference because the repository contained the wrong expected CLIP-L SHA256.
+
+Observed downloaded SHA256:
+
+`660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`
+
+Independent Hugging Face metadata confirms this is the correct hash for the standard 246MB FLUX CLIP-L file. The previous repository value omitted one `c0` sequence. Because the runner believed the valid download was corrupt, it deleted that CLIP-L file.
+
+Classification: **INTEGRATION FAIL / PRE-INFERENCE / zero Kontext quality evidence**.
+
+Repairs:
+
+- PowerShell Runner50 expected hash corrected;
+- Python executor expected hash corrected;
+- remaining first-spike hashes independently rechecked before resume;
+- already verified Kontext FP8 diffusion preserved and reusable;
+- only CLIP-L must be downloaded again due to the false mismatch deletion.
+
+Incident record:
+
+`docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 
 ### Runner50 first proof contract
 
@@ -242,13 +267,13 @@ Current candidate families include SDXL-class and FLUX text-to-image models. Kon
 ## Model-screening order
 
 1. **MiniMax H3 Ref2VA — ACTIVE / Base50 quality baseline locked for motion masters.**
-2. **FLUX.1 Kontext [dev] — ACTIVE renderer spike / Runner50 parser repaired, inference not yet evidenced.**
+2. **FLUX.1 Kontext [dev] — ACTIVE renderer spike / Runner50 preflight hashes repaired, inference not yet evidenced.**
 3. Wan-Animate-2 — paused after W1L, not exhausted.
 4. SCAIL-2 — later only if H3 fails a future motion-production gate.
 
 ## Immediate implementation order
 
-1. rerun **Runner50** after pulling commit `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2` or later;
+1. rerun **Runner50** after pulling the CLIP-L hash repair;
 2. inspect the first H0 dance12 Kontext pixel-art sheet;
 3. classify renderer result separately for layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
 4. if FP8-scaled Kontext is structurally good but visibly under-resolved, test full BF16 Kontext as the next controlled variable;
