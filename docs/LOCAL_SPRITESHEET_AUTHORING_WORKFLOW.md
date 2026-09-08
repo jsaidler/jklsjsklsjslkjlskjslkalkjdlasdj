@@ -2,15 +2,13 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / FLUX KONTEXT ACTIVE / RUNNER51 LAYOUT CONCEPT REJECTED / RUNNER52 SINGLE-ACTION 1x12 CURRENT GATE / UI AFTER RENDERER PASS**
+Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 LOCKED / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / RUNNER53 STYLE-ADAPTER GATE / UI AFTER RENDERER PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
 
-Runner50 visual-failure record: `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`.
-
-Runner51 layout-correction record: `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`.
+Runner52 result: `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`.
 
 ## Purpose
 
@@ -35,15 +33,15 @@ Current local stages:
 
 - character reference generation: model choice still open;
 - motion generation: MiniMax H3 Base Ref2VA;
-- frame extraction/selection: Python automation;
+- action-frame extraction/selection: Python automation;
 - alpha/alignment/pivot: Python automation;
-- pixel-art reconstruction: FLUX.1 Kontext [dev] active validation;
+- pixel-art reconstruction: FLUX.1 Kontext [dev] + active style-adapter validation;
 - packing/preview/manifest: Python automation;
 - authoring UI: Gradio after renderer pass.
 
 ## Canonical pipeline
 
-`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> one horizontal spritesheet row for that action + frames/preview/atlas metadata`
+`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> one horizontal spritesheet row for that action + frames/preview/JSON/manifest`
 
 The H3 video is an **intermediate motion master**, not final runtime art.
 
@@ -95,33 +93,11 @@ Preferred driver properties:
 
 Initial presets:
 
-- `idle`
-- `walk`
-- `run`
-- `jump`
-- `land`
-- `dodge`
-- `roll`
-- `punch`
-- `kick`
-- `block`
-- `parry`
-- `hit_react`
-- `knockdown`
-- `get_up`
-- `death`
-- `taunt`
-- `dance_or_gesture`
-- `sword_slash`
-- `sword_overhead`
-- `sword_thrust`
-- `axe_swing`
-- `spear_thrust`
-- `bow_shot`
-- `staff_attack`
-- `cast_spell`
-- `special_attack`
-- `custom`
+- idle, walk, run, jump, land, dodge, roll;
+- punch, kick, block, parry, hit_react, knockdown, get_up, death;
+- taunt, dance_or_gesture;
+- sword_slash, sword_overhead, sword_thrust, axe_swing, spear_thrust, bow_shot, staff_attack, cast_spell, special_attack;
+- custom.
 
 Preset responsibilities:
 
@@ -143,7 +119,7 @@ Preset responsibilities:
 - `50 steps`;
 - sampler `res_multistep`;
 - scheduler `beta`;
-- seed `0` as current deterministic baseline;
+- seed `0`;
 - no Turbo LoRA;
 - no FL2VA;
 - no style embedding;
@@ -155,7 +131,7 @@ Canonical H0 evidence:
 
 H0 elapsed: `4504.8s`.
 
-Turbo4 was run and visually rejected. It is not the production default.
+Turbo4 was visually rejected and is not the production default.
 
 ## Stage F — Automatic action distillation
 
@@ -167,7 +143,8 @@ Downstream automation must:
 2. locate the desired action interval or cycle;
 3. select a compact ordered frame set for that action;
 4. reject obvious crop/structure failures where confidence permits;
-5. preserve timing metadata.
+5. derive **runtime-appropriate** timing/events rather than blindly preserving long source-video holds;
+6. preserve provenance separately from runtime timing.
 
 ### Spritesheet layout invariant — HARD LOCK
 
@@ -177,21 +154,12 @@ Frames inside the row read left-to-right in time.
 
 For the current H0 `dance_or_gesture` proof:
 
-- all 12 selected frames belong to the same action;
+- 12 selected frames;
 - final layout = `12 columns × 1 row`;
 - cell size = `192×192`;
-- final review sheet = `2304×192`;
-- frame timing is stored in metadata/JSON.
+- local final review sheet = `2304×192`.
 
-A later multi-action sheet may stack several distinct actions vertically, for example:
-
-- row 1 = idle;
-- row 2 = walk;
-- row 3 = run;
-- row 4 = jump;
-- row 5 = punch;
-- row 6 = kick;
-- additional rows = weapon attacks, defenses, hit/death, specials.
+A later multi-action sheet may stack distinct actions vertically.
 
 Do **not** split one action across several final rows merely because the renderer processes it in chunks.
 
@@ -201,17 +169,11 @@ The renderer may use temporary high-resolution `2×2` tiles internally.
 
 For a 12-frame action:
 
-- chunk 1 = final action frames 1–4;
-- chunk 2 = final action frames 5–8;
-- chunk 3 = final action frames 9–12.
+- chunk1 = frames1–4;
+- chunk2 = frames5–8;
+- chunk3 = frames9–12.
 
-These chunks are processing devices only. After inference the 12 cells are extracted and concatenated into a single horizontal action row.
-
-Runner51 was rejected before execution because it incorrectly promoted three processing/temporal chunks into three final spritesheet rows.
-
-Record:
-
-`docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
+These chunks are processing devices only. Final packing always restores one horizontal action row.
 
 ## Stage G — Automatic alpha, alignment and pivot
 
@@ -230,36 +192,39 @@ No routine manual masks or per-frame alignment.
 
 ### Active renderer family
 
-**FLUX.1 Kontext [dev] remains the active first renderer family.**
+**FLUX.1 Kontext [dev] remains active.**
 
-Runner50 proved local operability but failed the production contract.
+Runner52 materially solved the previous layout/body problem but did **not** yet prove final high-level pixel art.
 
-### Runner50 result — MODEL/TASK FAIL
+### Runner52 result — PARTIAL PASS
 
-Completed evidence:
+Evidence:
 
-- prompt id `56576cf4-165a-4ad2-8a96-ec28bf75da1e`;
-- elapsed `296.63s`;
+- three successful four-frame chunk inferences;
+- total Kontext inference time `849.35s` (~14m09s);
 - FP8-scaled Kontext;
 - 20 steps;
-- guidance `2.5`;
-- CFG `1.0`;
+- guidance2.5;
+- CFG1;
 - Euler/simple;
 - seed0;
-- denoise `1.0`.
+- denoise0.45;
+- final `12×1` action row.
 
-Useful evidence:
+Passes/candidates:
 
-- local Kontext inference works;
-- pixel-art-like rendering quality is promising;
-- alpha extraction is viable enough to continue.
+- one-action row semantics: **PASS**;
+- adult body/identity preservation: **PASS_CANDIDATE**;
+- pose fidelity: **PASS_CANDIDATE**;
+- cross-chunk consistency: **PASS_CANDIDATE**;
+- automatic alpha: **PASS_CANDIDATE**.
 
-Failures:
+Remaining failure:
 
-- adult body/identity proportions drifted and became juvenile/infantilized;
-- the output layout was not a correct one-action row;
-- mature 1980s sword-and-sorcery charge weakened;
-- denoise1.0 gave excessive redraw freedom.
+- final art still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail;
+- deliberate authored pixel-cluster quality is **NOT YET PASS**.
+
+Do not call the downstream renderer solved yet.
 
 ### Approved adult-body invariant — HARD LOCK
 
@@ -267,16 +232,15 @@ The renderer changes rendering language, not approved body design.
 
 For adult characters:
 
-- preserve adult age and head-to-body ratio;
+- preserve adult age/head-to-body ratio;
 - preserve torso/limb length and major proportions;
 - preserve adult bust/hips/pelvis/legs relationship;
 - no shortened/thickened juvenile reinterpretation;
-- no enlarged head, rounded/widened childlike face, cute/chibi/adolescent drift;
-- preserve character-specific maturity, severity and physical presence.
+- no enlarged head, rounded childlike face, cute/chibi/adolescent drift.
 
 ### Art-direction invariant — HARD LOCK
 
-The final renderer must preserve the active inspiration lineage:
+Final art must preserve:
 
 - Heavy Metal;
 - Conan;
@@ -284,92 +248,50 @@ The final renderer must preserve the active inspiration lineage:
 - Frank Frazetta;
 - Julie Bell.
 
-The desired charge includes mature adult anatomy, danger, grime, sensuality, pulp-fantasy excess and tactile skin/cloth/metal.
+Required charge includes mature adult anatomy, danger, grime, sensuality, pulp-fantasy excess and tactile skin/cloth/metal.
 
 A clean pixel-art result that loses this charge is not a PASS.
 
-## Runner51 — REJECTED BEFORE EXECUTION
-
-Runner51 is retained only as history.
-
-Its useful structure-preservation ideas are carried forward, but its final `4×3` layout interpretation is wrong for a single action.
-
-Classification:
-
-**CONFIGURATION / TASK-FORMULATION FAIL — PRE-INFERENCE**.
-
-No model-quality evidence exists from Runner51.
-
-## Runner52 — CURRENT GATE
+## Runner53 — CURRENT GATE
 
 Runner:
 
-`tools/structured-2d-character-pipeline/52_run_flux_kontext_h0_dance12_single_action_row.ps1`
+`tools/structured-2d-character-pipeline/53_run_flux_kontext_h0_dance_chunk2_modern_pixelart_lora_probe.ps1`
 
 Executor:
 
-`tools/flux-kontext-spike/run_h0_dance12_single_action_row_structure_lock.py`
+`tools/flux-kontext-spike/run_h0_dance_chunk2_modern_pixelart_lora_probe.py`
 
-Runner52 keeps:
+Purpose: determine whether a dedicated pixel-art style adapter can improve rendering language while preserving the Runner52 structure gains.
 
-- same installed FP8-scaled Kontext runtime;
-- canonical Exilada reference;
-- 20 steps;
-- guidance `2.5`;
-- CFG `1.0`;
-- Euler/simple;
-- seed0;
-- `denoise=0.45`;
-- mature-adult body lock;
-- Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell lock.
+Controlled test:
 
-Runner52 corrects the layout:
+- only Runner52 chunk2, source frames `46,57,68,79`;
+- same canonical Exilada reference;
+- same Kontext FP8;
+- same 20 steps / guidance2.5 / CFG1 / Euler-simple / seed0 / denoise0.45;
+- only new variable: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`;
+- file `ume_modern_pixelart.safetensors`;
+- strength `1.0`;
+- SHA256 `ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4`;
+- ~344MB;
+- LoRA license MIT; Kontext base license caveat remains.
 
-1. the complete H0 is treated as one known `dance_or_gesture` action interval;
-2. 12 ordered samples span that action;
-3. frames are grouped into three internal 4-frame `2×2` Kontext tiles only for working resolution;
-4. all 12 rendered cells are concatenated into one final horizontal action row;
-5. final sheet = `2304×192`, `12×1`, transparent RGBA plus opaque QA version;
-6. one full-action GIF preview is generated;
-7. per-frame source index and duration are recorded in the manifest.
+Why only one chunk: ordinary FLUX.1-dev LoRA compatibility with Kontext is not assumed as guaranteed, and there is no reason to spend another full three-chunk pass before seeing evidence.
 
-### Runner52 expected outputs
+Runner53 PASS requires:
 
-Under `Z:\AI\FluxKontext`:
+- visibly stronger deliberate pixel clusters/material grouping than Runner52;
+- adult anatomy remains materially unchanged;
+- exact source poses remain recognizable;
+- no cute/chibi/juvenile drift;
+- locked 1980s sword-and-sorcery charge remains visible.
 
-- `h0_dance12_source_action_strip.png`
-- `h0_dance12_action_selection_manifest.json`
-- `h0_dance12_chunk01_input_2x2.png`
-- `h0_dance12_chunk02_input_2x2.png`
-- `h0_dance12_chunk03_input_2x2.png`
-- three chunk-specific Kontext outputs/prompts/manifests;
-- `h0_dance12_pixelart_sheet_opaque.png`
-- `h0_dance12_pixelart_sheet_rgba.png`
-- `h0_dance12_preview.gif`
-- `h0_dance12_kontext_manifest.json`
-- `h0_dance12_kontext_executor.log`
-
-### Runner52 pass boundary
-
-PASS requires:
-
-- all 12 cells read as one coherent dance_or_gesture action left-to-right;
-- mature Exilada anatomy/proportions remain materially stable;
-- no infantilization/cute/chibi drift;
-- H0 poses/silhouettes remain recognizably preserved;
-- cross-chunk style/body consistency is acceptable;
-- deliberate high-quality pixel-art reading;
-- locked 1980s sword-and-sorcery charge remains visible;
-- hair/cloth/restraints readable;
-- automatic alpha usable without routine manual repair.
-
-If Runner52 still changes adult body structure at denoise0.45, classify that exact renderer failure before changing precision/model family.
+If it passes, apply the adapter to the full 12-frame action. If it fails, reject the adapter specifically before changing denoise, precision or renderer family.
 
 ### License caveat
 
 FLUX.1 Kontext [dev] open weights are non-commercial. Technical validation is acceptable; commercial shipping later requires appropriate BFL licensing or a renderer with compatible terms.
-
-SDXL/img2img remains a fallback candidate if Kontext ultimately fails quality, hardware or licensing requirements.
 
 ## Stage I — Runtime packaging
 
@@ -379,25 +301,23 @@ Every completed action job should return at minimum:
 - `<character>_<action>_frames/`
 - `<character>_<action>_pixelart_row.png`
 - `<character>_<action>_preview.gif`
-- `<character>_<action>_atlas.png` optionally;
-- `<character>_<action>_atlas.json` with rectangles, pivots, durations/events;
-- `<character>_<action>_manifest.json` with source hashes, model/settings, scale, action preset and provenance.
+- optional atlas PNG;
+- JSON with rectangles, pivots, runtime durations/events;
+- provenance manifest with source hashes/model/settings/relative scale/action preset.
 
 Runtime-visible cells remain complete precomposed character images.
 
 ## Local interface — REQUIRED
 
-The production workflow must be exposed through one local UI.
-
 Minimum controls:
 
 ### Character
 
-- mode: `reference image` / `generate from text`;
+- mode: reference image / generate from text;
 - image upload or text description;
 - character name/id;
 - relative world scale;
-- optional category (`humanoid`, `creature`, `monster`, `boss`, `other`).
+- optional category.
 
 ### Motion
 
@@ -409,7 +329,7 @@ Minimum controls:
 
 ### Generation
 
-Default H3 controls remain hidden/locked to Base50. Advanced controls may expose controlled experimental settings, but production defaults must not silently drift.
+Default H3 controls stay hidden/locked to Base50. Advanced controls may expose controlled experiments, but defaults must not silently drift.
 
 ### Output
 
@@ -421,33 +341,13 @@ Default H3 controls remain hidden/locked to Base50. Advanced controls may expose
 
 ## UI implementation
 
-**Gradio remains the V1 implementation choice**, after renderer behavior passes.
-
-## Failure classification
-
-Use project-wide vocabulary:
-
-- `INFRASTRUCTURE FAIL`
-- `INTEGRATION FAIL`
-- `CONFIGURATION FAIL`
-- `BLOCKED`
-- `MODEL/TASK FAIL`
-- `EXHAUSTED_FAIL`
-
-A renderer failure does not retroactively invalidate a good H3 motion master.
+**Gradio remains the V1 implementation choice after renderer quality passes.**
 
 ## Immediate implementation order
 
-1. do not run Runner51;
-2. run Runner52 on the existing H0 dance/gesture motion master;
-3. inspect `h0_dance12_source_action_strip.png` first to confirm one ordered action row;
-4. inspect the full-action GIF for temporal coherence;
-5. inspect opaque final sheet for body maturity/proportions, pose fidelity, cross-chunk consistency, pixel-art quality and art direction;
-6. inspect RGBA/alpha;
-7. if renderer passes, build the Gradio orchestration UI around H3 Base50 + the proven renderer formulation;
-8. then implement action-specific cycle detection, text-reference generation and creature-scale cases;
-9. do not spend another Base50 H3 hour solely to debug the renderer.
-
-## Current validation question
-
-> Can Runner52 preserve the Exilada's mature adult physical identity and locked 1980s sword-and-sorcery direction while converting the existing H0 dance_or_gesture motion into one correct 12-frame horizontal pixel-art action row automatically?
+1. run Runner53 only;
+2. compare its four-frame output to Runner52 chunk2;
+3. if style improves without structure loss, run a full 12-frame LoRA pass;
+4. then solve action-specific frame distillation/runtime timing;
+5. then build the Gradio orchestration UI;
+6. only after that expand to new actions and creature-scale cases.
