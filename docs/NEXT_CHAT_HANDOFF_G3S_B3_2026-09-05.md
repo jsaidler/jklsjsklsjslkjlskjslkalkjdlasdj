@@ -91,13 +91,36 @@ A global temporal-activity union expanded to essentially the whole frame (`1.000
 
 ### W1G v2 — PRE-INFERENCE FAIL
 
-HOG-person tracking also exited with code 2 before any `W1G: prompt_id=...`. The user-surfaced excerpt did not include the specific executor `W1G: FAIL` line, so the exact sub-cause is not asserted.
+HOG-person tracking also exited with code 2 before any `W1G: prompt_id=...`. The surfaced excerpt did not contain the executor-specific cause, and HOG-only detection is superseded as too brittle for arbitrary driving footage.
 
-HOG-only detection is superseded because it is semantically too brittle for arbitrary driving footage.
+### W1G v3 — FOREGROUND TRACKING WORKS / MARGIN-GUARD FAIL
 
-### W1G v3 — CURRENT IMPLEMENTATION
+Detector-agnostic temporal-median foreground tracking successfully reached framing diagnostics. With the first v3 anchor (`bottom y=620`), the run then stopped before Wan because the subject sat too low for the CLIP center square.
 
-The executor now:
+Measured minimum margins:
+
+- full-canvas bottom `66.51 px` vs required `70`;
+- CLIP center-square bottom `-13.49 px` vs required `16`;
+- CLIP center-square top `116.62 px`;
+- left/right `146.63 / 203.55 px`.
+
+No `prompt_id` was produced. Classification: **PREPROCESSOR CONFIGURATION / MARGIN-GUARD FAIL; no Wan inference**.
+
+### W1G v3.1 — CURRENT IMPLEMENTATION
+
+Keep v3's successful tracker and constant scale. Change only the preferred vertical anchor:
+
+- envelope-height ratio `0.48` unchanged;
+- center x `300` unchanged;
+- **bottom y `620 -> 580`**.
+
+This raises the tracked subject by 40 px. From the measured v3 geometry, expected preflight margins are approximately:
+
+- full-canvas bottom `106.51 px`;
+- CLIP center-square bottom `26.51 px`;
+- CLIP top still safely positive.
+
+The executor:
 
 - estimates a temporal-median background over the first 37 frames;
 - segments moving foreground independently per frame;
@@ -106,18 +129,12 @@ The executor now:
 - expands for head/hair/hands/feet safety;
 - smooths translation across time;
 - uses **one constant scale** for the sequence, so there is no zoom/camera breathing;
-- target envelope height ratio `0.48`;
-- target center x `300`;
-- target bottom y `620`;
-- hard pre-inference margin guard on 640×800;
-- hard guard for the CLIP center-square crop;
-- no new detector checkpoint/model download.
+- hard-checks full-canvas and CLIP-center-square margins before Wan;
+- downloads no new detector checkpoint/model.
 
-Runner 40 now captures executor stdout/stderr in:
+Runner 40 captures executor stdout/stderr in:
 
 `Z:\AI\WanAnimate2\w1g_executor.log`
-
-and prints it on failure. A future code-2 exit therefore must expose the actual preprocessor error instead of only ComfyUI stderr.
 
 Everything else remains W1A: Exilada reference/prompt, Base BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, ref strength 1.5, negative prompt and `--disable-pinned-memory`.
 
