@@ -15,7 +15,7 @@ $KontextSha256 = '630ba795ec64283b4230ea23cf79406c2c68b7c578229ed139f30043eadb30
 
 $ClipName = 'clip_l.safetensors'
 $ClipUrl = 'https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors'
-$ClipSha256 = '660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c8576cd796491d9a6cdd'
+$ClipSha256 = '660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd'
 
 $T5Name = 't5xxl_fp16.safetensors'
 $T5Url = 'https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors'
