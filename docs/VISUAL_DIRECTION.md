@@ -2,11 +2,13 @@
 
 Status date: **2026-09-08**
 
-Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / FLUX.1 KONTEXT [DEV] = PREFERRED FIRST PIXEL-ART RECONSTRUCTION CANDIDATE / 1980s SWORD-AND-SORCERY LOCKED**
+Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / FLUX.1 KONTEXT [DEV] = ACTIVE RENDERER CANDIDATE / RUNNER50 VISUAL FAIL RECORDED / RUNNER51 STRUCTURE-LOCK PREPARED / 1980s SWORD-AND-SORCERY LOCKED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Local authoring workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
+
+Runner50 visual-failure record: `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`.
 
 ## Core production constraint
 
@@ -22,15 +24,29 @@ Runtime character art is deliberate high-quality pixel art:
 - exact pixel-grid rendering;
 - strong silhouette and readable large masses;
 - controlled palette/material separation;
-- enough detail to feel contemporary at the target gameplay scale;
-- no dependence on facial microdetail as the sole identity carrier;
+- enough detail to feel contemporary at gameplay scale;
 - final art should exceed the current canonical Exilada reference in pixel construction and consistency.
 
 Simple nearest-neighbor reduction, palette quantization or the old tiny H0 proxy is not the final-art solution.
 
+## Adult identity/body preservation — HARD LOCK
+
+The renderer is allowed to change **rendering language**, not the physical design of an approved character.
+
+For the Exilada and equivalent adult characters:
+
+- mature adult age must remain visually unambiguous;
+- adult head-to-body ratio must remain materially consistent;
+- torso/limb length, shoulder/hip relationship, bust, pelvis, legs and overall adult sexual dimorphism must not be arbitrarily redesigned;
+- do not shorten torso/limbs, enlarge the head, widen/round the face, thicken/soften the anatomy into a juvenile shape or otherwise infantilize the character;
+- no cute/chibi/adolescent drift;
+- body mass may move dynamically, but the underlying mature physical structure remains the same character across frames.
+
+Runner50 violated this rule by making the Exilada physically shorter/thicker and more juvenile-looking. That result is rejected.
+
 ## H3 painterly/raster output — INTERMEDIATE MOTION MASTER
 
-MiniMax H3 Base50 has been visually approved as the current motion-master quality baseline.
+MiniMax H3 Base50 remains the current motion-master quality baseline.
 
 Its strengths should inform the final pixel art:
 
@@ -39,38 +55,61 @@ Its strengths should inform the final pixel art:
 - rich hair volume and inertia;
 - cloth/material response;
 - mature dark-fantasy severity;
-- useful localized motion impression;
 - complete-character continuity.
 
-But H3 output is not the final runtime raster style.
+H3 output is not the final runtime raster style.
 
 Canonical chain:
 
-`character reference + real action video -> H3 Base50 complete-character motion master -> automatic action-frame extraction/alignment -> high-quality pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
+`character reference + real action video -> H3 Base50 complete-character motion master -> automatic coherent action-frame extraction -> high-quality pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
 
-## Final pixel-art reconstruction — CURRENT PREFERRED CANDIDATE
+## Spritesheet temporal organization — HARD LOCK
 
-**FLUX.1 Kontext [dev] is the preferred first local renderer to validate for this stage.**
+A spritesheet is not an arbitrary contact sheet.
 
-This choice is based on the actual task boundary: the system already has pose/motion frames and needs image editing/style transformation while preserving identity, silhouette and attachment relationships.
+For the current `4×N` authoring convention:
 
-Preferred validation method:
+- **one row = one temporally coherent animation sequence**;
+- frames inside a row read left-to-right in time;
+- do not scatter unrelated timestamps across one sheet and call it an animation;
+- if a selected action needs more than one row, each row must be an explicitly meaningful sequence/chunk according to the action preset and metadata;
+- final packing must preserve exact frame order and timing metadata.
 
-- give the renderer the canonical character reference;
-- give it the selected action frames as one shared-context strip/contact sheet when practical;
-- request high-quality deliberate pixel art while preserving frame order, pose and silhouette;
-- split the reconstructed set back into cells;
-- apply deterministic pixel-grid/palette QA afterward.
+Runner50 violated this by evenly sampling the whole 124-frame H0 and placing unrelated stages of the gesture across a global `4×3` grid.
 
-Processing every frame independently with no shared context is not the preferred first strategy because temporal design/palette consistency matters.
+## Final pixel-art reconstruction — ACTIVE CANDIDATE
 
-Kontext is **not yet proven** in this project; it is the next renderer gate.
+**FLUX.1 Kontext [dev] remains the active first local renderer family, but Runner50 did not pass the task contract.**
 
-### License caveat
+Runner50 proved:
 
-The open-weight FLUX.1 Kontext [dev] release is non-commercial. It may be used for local technical validation, but commercial game shipping requires appropriate commercial licensing from Black Forest Labs or a renderer with compatible commercial terms.
+- local inference works on the current RTX 3060 12GB stack;
+- FP8-scaled Kontext can produce a useful pixel-art-like language;
+- automatic alpha extraction is viable enough to keep testing.
 
-SDXL/img2img remains a fallback candidate if Kontext fails quality, hardware or licensing requirements.
+Runner50 failed:
+
+- adult identity/body-proportion preservation;
+- correct spritesheet temporal semantics;
+- part of the locked mature art-direction charge.
+
+Therefore the next controlled test is Runner51 rather than a model-family jump.
+
+### Runner51 controlled repair
+
+Runner51 changes the task formulation while keeping the same model/runtime:
+
+- each final row is one short coherent temporal sequence;
+- one high-motion 16-frame window is selected inside each third of the existing H0;
+- four ordered frames are taken from each window;
+- each four-frame row is reconstructed separately as a `2×2` `1024×1024` input so each character is much larger during the edit;
+- Kontext denoise is reduced from `1.0` to `0.45` to preserve source structure;
+- the prompt explicitly forbids infantilization/body redesign;
+- the mature 1980s sword-and-sorcery inspiration lineage is a hard requirement.
+
+Runner51:
+
+`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
 
 ## 1980s sword-and-sorcery charge — LOCKED
 
@@ -85,10 +124,12 @@ Canonical inspiration lineage remains:
 Interpretation:
 
 - adult sensuality, heroic anatomy, danger, grime, erotic charge and pulp-fantasy excess may coexist;
-- mature body language should not be sanitized by default;
+- mature body language must not be sanitized or infantilized by default;
 - materials should feel tactile, physical and illustrated even after pixel-art reconstruction;
 - the 1980s influence is tonal/art-directional, not VHS/CRT gimmicks;
 - the objective is the imagery of that period made playable with contemporary systemic and animation quality.
+
+This inspiration set remains active in every renderer prompt and review gate. A technically clean sprite that loses this charge is not a visual PASS.
 
 ## Exilada appearance reference
 
@@ -114,7 +155,7 @@ Her initial deprivation/captivity state may include:
 
 Exact tear geometry and exposure remain subject to visual-state approval rather than temporary prompt wording.
 
-## Character scale variation — UPDATED
+## Character scale variation — LOCKED DIRECTION
 
 The same visual system must work for very different creature sizes.
 
@@ -162,16 +203,14 @@ The game remains an elevated 2D belt-scroller / false-3D action presentation:
 - native raster `640×360`;
 - camera pitch `26°`;
 - Exilada baseline about `128px` tall at `relative_scale=1.0`;
-- first locomotion family screen-left, mostly lateral/slight3/4;
+- first locomotion family screen-left, mostly lateral/slight 3/4;
 - current facing baseline `72°`;
 - strong lateral travel plus continuous walkable depth;
 - combat readability over geometric purity.
 
-## H3 quality configuration — RESTORED
+## H3 quality configuration — LOCKED
 
-The official Turbo4 / 4-step experiment was visually rejected by the user.
-
-The preferred H3 motion-master quality configuration is restored to the original H0 Base50 settings:
+The preferred H3 motion-master quality configuration remains the original H0 Base50 settings:
 
 - `448×800`;
 - `124f@24fps`;
@@ -183,22 +222,15 @@ The preferred H3 motion-master quality configuration is restored to the original
 
 Do not trade this quality away for speed until a faster path is proven visually equivalent.
 
-## Current visual gates
+## Current visual gate
 
-1. install/validate FLUX.1 Kontext [dev] locally in a separate workspace;
-2. use the existing H0 dance/gesture motion master — not a new walk — to test the entire downstream render path without another H3 wait;
-3. distill a sensible action-frame set;
-4. reconstruct that set as coherent high-quality pixel art;
-5. pack the first genuinely final-style spritesheet;
-6. validate at actual gameplay scale and against backgrounds;
+1. Runner50 is closed as **MODEL/TASK FAIL** for adult body preservation and spritesheet semantics;
+2. run Runner51 on the same H0 motion master;
+3. first inspect the automatically selected source temporal rows;
+4. inspect each row GIF independently for temporal coherence;
+5. inspect the final sheet for mature body preservation, pose fidelity, pixel-art quality and 1980s sword-and-sorcery charge;
+6. only after renderer behavior passes, build the Gradio orchestration UI;
 7. then expand to new actions and creature-scale cases.
-
-## Superseded decisions
-
-- painterly H3/Wan video as final runtime art — superseded;
-- tiny whole-frame proxy as production asset — closed;
-- Turbo4 as production-quality H3 default — rejected;
-- mandatory pixel-preservation through the video model itself — unnecessary; final pixel reconstruction is downstream.
 
 ## Current decision
 
@@ -206,9 +238,13 @@ Do not trade this quality away for speed until a faster path is proven visually 
 
 **LOCKED:** H3 Base50 painterly/raster output is a motion-master intermediate.
 
-**CURRENT PREFERRED RENDERER CANDIDATE:** FLUX.1 Kontext [dev], pending local quality/hardware/license validation.
+**LOCKED:** one temporally coherent animation sequence per spritesheet row.
 
-**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and the 1980s sword-and-sorcery charge remain active.
+**LOCKED:** approved adult character body/age/proportions may not be infantilized or redesigned by the renderer.
+
+**ACTIVE RENDERER CANDIDATE:** FLUX.1 Kontext [dev], now under Runner51 structure-lock validation.
+
+**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and the mature 1980s sword-and-sorcery charge remain active.
 
 **LOCKED:** mature erotic charge, nudity and partial nudity remain legitimate.
 
