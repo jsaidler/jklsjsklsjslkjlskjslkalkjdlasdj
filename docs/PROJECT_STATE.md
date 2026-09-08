@@ -132,52 +132,51 @@ Runner 42 changed only `pose_end_percent 1.00 -> 0.70`.
 
 Frame-by-frame output stayed extremely close to W1H. High-motion blur and structural deformation remained. Classification: **valid configuration test / not preferred**. Return pose end to1.0.
 
-## W1J REF1.0 — SUPERSEDED BEFORE EXECUTION
+## W1J / W1K — SUPERSEDED BEFORE EXECUTION
 
-Runner 43 exists as a prepared ref-strength-only test, but the user correctly identified that the remaining failure is too large and includes both heavy blur and structural deformation. Lowering only `reference_image_strength` is therefore no longer the next gate.
+Runner 43 prepared `reference_image_strength=1.0` as an isolated test. Runner 44 prepared `pose_strength=0.80` as an isolated test. Neither was executed.
 
-Do not run Runner 43 unless later evidence specifically requires an isolated ref-strength comparison.
+The user explicitly requested a more aggressive combined operating-point search because the remaining failure includes both heavy blur and structural changes. Preserve these runners as small diagnostic tooling only; they are not current gates.
 
-## Runner 44 — CURRENT GATE: W1K POSE STRENGTH 0.80
+## Runner 45 — CURRENT GATE: W1L COMPOUND QUALITY SEARCH
 
 Runner:
 
-`tools/structured-2d-character-pipeline/44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1`
+`tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1k_pose_strength80_ref15.py`
+`tools/wan-animate2-spike/run_w1l_ref10_pose80_steps30.py`
 
-Parent = exact W1H.
+Parent = exact completed W1H.
 
-Only experimental axis relative to W1H:
+Deliberate compound changes relative to W1H:
 
-- `pose_strength: 1.00 -> 0.80`.
+- `reference_image_strength: 1.5 -> 1.0`;
+- `pose_strength: 1.00 -> 0.80`;
+- `steps: 20 -> 30`.
 
 Everything else stays W1H:
 
 - raw driver untouched;
 - `512×912`;
-- reference strength1.5;
 - pose start0.0 / pose end1.0;
 - seed0;
-- 20 steps;
 - CFG1.0;
 - Euler/simple;
 - shift5.0;
 - same Exilada reference/prompt/negative/CLIP pose branch.
 
-Why this is a better next test than ref1.0 alone:
+Experiment policy: **COMPOUND_CONFIGURATION_SEARCH**. W1L is intentionally not a one-variable causal test. Its purpose is to find whether a materially better operating point exists for the two coupled production blockers: destructive motion blur and structural deformation.
 
-- the remaining defect is concentrated in motion phases;
-- ComfyUI documents `pose_strength` as the direct scale of the pose video's influence;
-- the Animate-2 model path directly scales pose-branch values when pose strength differs from1.0;
-- W1I showed that merely ending the pose branch earlier does not help;
-- a moderate 20% reduction tests whether over-forced motion conditioning is causing both smear and anatomy distortion without discarding choreography outright.
+Pass W1L only if both defects improve materially while choreography, identity, long-hair motion, cloth dynamics and framing remain acceptable. If it succeeds, later isolated tests may determine which control contributed. If it fails, do not continue blindly enumerating nearby values.
 
-Pass W1K only if destructive blur **and** structural deformation fall materially while choreography, identity, long-hair motion and cloth dynamics remain acceptable.
+Expected outputs:
 
-If W1K fails decisively, next high-leverage axis is **sampling quality/steps**, not another blind reference-strength tweak.
+- `Z:\AI\WanAnimate2\w1l_exilada_aspectmatched_ref10_pose80_steps30.mp4`
+- `Z:\AI\WanAnimate2\w1l_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1l_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1l_executor.log`
 
 ## Exact current operator action
 
@@ -185,5 +184,5 @@ If W1K fails decisively, next high-leverage axis is **sampling quality/steps**, 
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1"
 ```
