@@ -19,6 +19,7 @@ GitHub living docs are canonical.
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 - `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 - `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
+- `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
 - `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 - `docs/ANIMATION_PIPELINE.md`
@@ -110,7 +111,25 @@ Repair: delimit the variable as `${Label}:` in the two affected status strings o
 
 Repair commit: `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2`.
 
-Do not change renderer settings because of this incident. Pull and rerun the same Runner50 command.
+Do not change renderer settings because of this incident.
+
+### Runner50 CLIP-L hash preflight incident — FIXED
+
+The next attempt successfully downloaded and verified the ~11.9GB Kontext FP8-scaled diffusion file, then downloaded the ~246MB CLIP-L file.
+
+Runner50 rejected that CLIP-L because the repository contained the wrong expected SHA256. The downloaded file hash was:
+
+`660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`
+
+Independent Hugging Face metadata confirms this is the correct CLIP-L hash. The previous project value omitted one `c0` sequence.
+
+Classification: **INTEGRATION FAIL / PRE-INFERENCE / ZERO KONTEXT QUALITY EVIDENCE**.
+
+Both the PowerShell runner and Python executor are corrected. Remaining first-spike model hashes were independently rechecked. The already verified ~11.9GB Kontext file remains reusable; CLIP-L must download again because the failed runner deleted the valid file after the false mismatch.
+
+Incident record:
+
+`docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 
 ### Workspace/runtime
 
@@ -121,10 +140,10 @@ Do not change renderer settings because of this incident. Pull and rerun the sam
 
 ### First model set
 
-- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB;
-- `clip_l.safetensors` ~246MB;
-- `t5xxl_fp16.safetensors` ~9.79GB;
-- `ae.safetensors` ~335MB.
+- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB; SHA256 `630ba795ec64283b4230ea23cf79406c2c68b7c578229ed139f30043eadb30a2`;
+- `clip_l.safetensors` ~246MB; SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`;
+- `t5xxl_fp16.safetensors` ~9.79GB; SHA256 `6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635`;
+- `ae.safetensors` ~335MB; SHA256 `afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38`.
 
 Total ~22.3GB.
 
@@ -186,7 +205,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\50_run_flux_kontext_h0_dance12_pixelart_proof.ps1"
 ```
 
-The first successful execution downloads about 22.3GB of renderer models plus creates the separate portable runtime. Subsequent runs reuse verified files.
+On resume, the already verified Kontext diffusion file is reused. The runner re-downloads CLIP-L (~246MB), then continues with T5XXL FP16 and VAE as needed.
 
 ## License caveat
 
@@ -219,7 +238,7 @@ Scale affects target sprite occupancy, cell/atlas dimensions and source-resoluti
 
 ## Immediate next actions
 
-1. pull the repaired Runner50 and rerun it;
+1. pull the corrected Runner50 and rerun it;
 2. inspect the generated sheet/preview/manifest;
 3. classify renderer result by layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
 4. only if FP8 is specifically under-resolved, test full BF16 Kontext;
