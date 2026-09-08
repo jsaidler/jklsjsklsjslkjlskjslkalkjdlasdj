@@ -34,6 +34,12 @@ $ModelSpecs = @(
         Url = 'https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_fp16.safetensors'
         Sha256 = '7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522'
         ApproxGB = 5.21
+    },
+    [pscustomobject]@{
+        RelativePath = 'models\vae\minimax_h3_audio_vae_fp32.safetensors'
+        Url = 'https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors'
+        Sha256 = '8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48'
+        ApproxGB = 0.605
     }
 )
 
@@ -134,13 +140,14 @@ Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
 Write-Host '[MODEL] MiniMax H3 Base Ref2VA, pruned INT8 ConvRot diffusion model.' -ForegroundColor Green
 Write-Host '[COMFY] pinned stable v0.34.0 NVIDIA portable / CUDA 13.0 route.' -ForegroundColor Green
 Write-Host '[H0] 448x800, 124 frames, 24 fps, ref_image_size=match, Base 50-step, res_multistep + beta, seed0.' -ForegroundColor Green
-Write-Host '[DOWNLOAD POLICY] Ref2VA only. No FL2VA, no Turbo LoRA, no style embeddings, no audio VAE for H0.' -ForegroundColor Yellow
+Write-Host '[DOWNLOAD POLICY] Ref2VA only. Includes schema-required audio VAE; no FL2VA, no Turbo LoRA, no style embeddings.' -ForegroundColor Yellow
+Write-Host '[AUDIO] H0 uses no audio reference/decode, but pinned MiniMaxH3ReferenceToVideo requires audio_vae as an input.' -ForegroundColor Yellow
 Write-Host '[WAN] W1L evidence must exist before the transition. Wan inference server is stopped only if its managed PID is known.' -ForegroundColor Yellow
 Write-Host ''
 
 $ReferenceSource = Join-Path $ProjectRepoRoot 'assets\source\characters\exilada\reference\exilada_master.png'
 $DriverNormalizer = Join-Path $ProjectRepoRoot 'tools\minimax-h3-spike\prepare_h0_driver.py'
-$H0Executor = Join-Path $ProjectRepoRoot 'tools\minimax-h3-spike\run_h0_ref2va.py'
+$H0Executor = Join-Path $ProjectRepoRoot 'tools\minimax-h3-spike\run_h0_ref2va_audio_vae_required.py'
 foreach ($f in @($ReferenceSource,$DriverNormalizer,$H0Executor)) {
     if (-not (Test-Path $f -PathType Leaf)) { Fail "required repository file missing: $f" }
 }
@@ -189,7 +196,6 @@ try {
     Write-Host '[PAGEFILE] could not query pagefile state; bootstrap continues.' -ForegroundColor DarkYellow
 }
 
-# W1L is complete; stop only the known managed Wan Comfy process so H3 starts with clean RAM/VRAM.
 Stop-ManagedProcess (Join-Path $WanWorkspace '.wan_animate2_spike.pid') 'WAN'
 
 $Archive = Join-Path $Workspace $ComfyArchiveName
@@ -237,7 +243,7 @@ foreach ($spec in $ModelSpecs) {
 $OfficialWorkflow = Join-Path $Workspace 'official_video_minimax_h3_r2v_pinned.json'
 Download-SmallFile $WorkflowTemplateUrl $OfficialWorkflow
 $workflowText = Get-Content -LiteralPath $OfficialWorkflow -Raw
-foreach ($token in @('MiniMaxH3ReferenceToVideo','minimax_h3_ref2va_pruned_int8_convrot.safetensors','res_multistep')) {
+foreach ($token in @('MiniMaxH3ReferenceToVideo','minimax_h3_ref2va_pruned_int8_convrot.safetensors','minimax_h3_audio_vae_fp32.safetensors','res_multistep')) {
     if ($workflowText -notmatch [regex]::Escape($token)) { Fail "pinned official R2V template does not contain expected token: $token" }
 }
 
@@ -330,7 +336,6 @@ $SystemStats = Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 30
 $SystemStatsPath = Join-Path $Workspace 'h3_system_stats.json'
 $SystemStats | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $SystemStatsPath -Encoding UTF8
 
-# Bootstrap is preflight only. Stop the managed server; Runner47 launches a clean inference process.
 Stop-ManagedProcess $PidFile 'H3-PREFLIGHT'
 
 $ModelsManifest = @()
@@ -368,7 +373,8 @@ $BootstrapManifest = [ordered]@{
     }
     model_family = 'MiniMax H3 Base Ref2VA'
     model_files = $ModelsManifest
-    explicitly_not_downloaded = @('MiniMax H3 FL2VA diffusion weights','Ref2V Turbo LoRA','style embeddings','audio VAE')
+    explicitly_not_downloaded = @('MiniMax H3 FL2VA diffusion weights','Ref2V Turbo LoRA','style embeddings','alternate Ref2VA quantizations')
+    audio_policy = 'audio VAE is schema-required by MiniMaxH3ReferenceToVideo; H0 uses no audio reference and no audio decode/output'
     reference_image = 'roguelite_h3/exilada_master.png'
     reference_image_sha256 = Get-Sha256 $ReferenceInput
     raw_driver_source = $DriverSource
@@ -393,7 +399,7 @@ $BootstrapManifest = [ordered]@{
         audio_sigma_shift = 3
         turbo_lora = $false
     }
-    next_runner = 'tools/structured-2d-character-pipeline/47_run_minimax_h3_ref2va_h0.ps1'
+    next_runner = 'tools/structured-2d-character-pipeline/48_run_minimax_h3_ref2va_h0_audio_vae_fix.ps1'
 }
 $BootstrapManifest | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $BootstrapManifestPath -Encoding UTF8
 
@@ -403,5 +409,5 @@ Write-Host "Comfy root:       $ComfyRoot" -ForegroundColor Cyan
 Write-Host "Bootstrap:        $BootstrapManifestPath" -ForegroundColor Cyan
 Write-Host "Driver manifest:  $DriverManifest" -ForegroundColor Cyan
 Write-Host "Object info:      $ObjectInfoPath" -ForegroundColor Cyan
-Write-Host 'Downloaded model payload: Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE only (~41.9 GB).' -ForegroundColor Yellow
-Write-Host 'NEXT: run Runner47. Do not download FL2VA/Turbo variants before H0 evidence exists.' -ForegroundColor Yellow
+Write-Host 'Downloaded model payload: Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE + schema-required audio VAE (~42.5 GB).' -ForegroundColor Yellow
+Write-Host 'NEXT: run Runner48. Do not download FL2VA/Turbo variants before H0 evidence exists.' -ForegroundColor Yellow
