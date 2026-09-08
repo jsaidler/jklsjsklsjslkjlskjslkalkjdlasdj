@@ -7,7 +7,8 @@ GitHub living docs are canonical.
 ## Paths
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
-- active H3: `Z:\AI\MiniMaxH3`
+- active H3 motion workspace: `Z:\AI\MiniMaxH3`
+- active Kontext renderer workspace: `Z:\AI\FluxKontext`
 - paused Wan: `Z:\AI\WanAnimate2`
 - SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
 - `D:\AI` invalid/stale.
@@ -16,6 +17,7 @@ GitHub living docs are canonical.
 
 - `docs/PROJECT_STATE.md`
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+- `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
 - `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 - `docs/ANIMATION_PIPELINE.md`
@@ -77,42 +79,109 @@ Therefore:
 
 Record: `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`.
 
-## Important H0 action clarification
+## Existing H0 action clarification
 
 The existing H0 result is a **dance/gesture-like action**, not a walk.
 
-This is now useful: it is the immediate downstream proof source. Do not generate a new walk merely to test spritesheet conversion.
+This is now the renderer proof source. Do not generate a new walk merely to test spritesheet conversion.
 
-It has already proved basic frame extraction/raster packing. The next proof must turn selected H0 action frames into genuinely final-style pixel art.
+## CURRENT GATE — Runner50 / FLUX.1 Kontext [dev]
 
-## Temporal rule
+Canonical renderer spike:
 
-Keep the proven `124f@24fps` H3 motion-master regime for now.
+`docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 
-Do not default to 8–12 generated H3 frames. Distill the long motion master downstream into an action-appropriate compact set, typically 8–16 frames for early tests.
+Runner:
 
-## Final pixel-art renderer — NEXT GATE
+`tools/structured-2d-character-pipeline/50_run_flux_kontext_h0_dance12_pixelart_proof.ps1`
 
-Preferred first local candidate: **FLUX.1 Kontext [dev]**.
+Executor:
 
-First test:
+`tools/flux-kontext-spike/run_h0_dance12_pixelart_proof.py`
 
-1. approved Exilada reference;
-2. selected action frames from the existing H0 dance/gesture video as a shared-context strip/set;
-3. Kontext reconstruction into deliberate high-quality pixel art;
-4. split cells;
-5. deterministic pixel-grid/palette QA;
-6. final transparent spritesheet + preview + atlas/manifest.
+### Workspace/runtime
 
-Kontext is not yet proven.
+- renderer workspace: `Z:\AI\FluxKontext`;
+- isolated ComfyUI port: `8191`;
+- Runner50 clones the proven H3 ComfyUI v0.34.0 portable runtime while excluding H3 models/input/output/user state;
+- no custom nodes for this first renderer proof.
 
-### License caveat
+### First model set
+
+- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB;
+- `clip_l.safetensors` ~246MB;
+- `t5xxl_fp16.safetensors` ~9.79GB;
+- `ae.safetensors` ~335MB.
+
+Total ~22.3GB.
+
+The native FP8-scaled diffusion is the practical official starting point for RTX 3060 12GB. T5 is kept FP16 because system RAM is 48GB and quality is prioritized. Full BF16 Kontext is the next controlled branch only if completed evidence shows the FP8 diffusion itself is the quality bottleneck.
+
+### First proof contract
+
+No new H3 inference.
+
+Runner50 uses deterministic H0 frames:
+
+`1, 12, 23, 35, 46, 57, 68, 79, 90, 102, 113, 124`
+
+It builds a square `1024×1024` input with a centered `4×3` action grid, conditions Kontext on:
+
+1. the 12-frame action sheet as pose/composition authority;
+2. canonical Exilada as identity/style authority.
+
+Kontext baseline:
+
+- 20 steps;
+- guidance2.5;
+- CFG1.0;
+- Euler/simple;
+- seed0.
+
+Expected outputs under `Z:\AI\FluxKontext`:
+
+- `h0_dance12_input_sheet.png`
+- `h0_dance12_selection_manifest.json`
+- `h0_dance12_kontext_api_prompt.json`
+- `h0_dance12_kontext_full.png`
+- `h0_dance12_kontext_working_grid.png`
+- `h0_dance12_pixelart_sheet_opaque.png`
+- `h0_dance12_pixelart_sheet_rgba.png`
+- `h0_dance12_pixelart_frames/`
+- `h0_dance12_pixelart_preview.gif`
+- `h0_dance12_kontext_manifest.json`
+- `h0_dance12_kontext_executor.log`
+
+### Pass criteria
+
+Runner50 is not accepted just because inference completes. Review separately:
+
+- 12 source poses preserved;
+- Exilada identity/design coherent;
+- true high-quality pixel-art reading;
+- no destructive pose/topology rewrite;
+- hair/cloth/restraints retained;
+- runtime review readable;
+- automatic alpha usable without routine manual masks.
+
+## Exact next operator command
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\50_run_flux_kontext_h0_dance12_pixelart_proof.ps1"
+```
+
+The first execution downloads about 22.3GB of renderer models plus creates the separate portable runtime. Subsequent runs reuse verified files.
+
+## License caveat
 
 The open-weight Kontext [dev] release is non-commercial. Technical validation is fine; commercial game shipping later requires BFL commercial licensing or a renderer with compatible terms.
 
 SDXL/img2img remains fallback.
 
-## Local authoring UI — REQUIRED
+## Local authoring UI — REQUIRED AFTER RENDERER PASS
 
 The finished tool must expose one local interface with:
 
@@ -125,25 +194,22 @@ The finished tool must expose one local interface with:
 - progress/previews;
 - final sheet/frames/preview/JSON/manifest file access.
 
-Gradio is the current V1 UI scaffold choice.
+Gradio is the current V1 UI scaffold choice. Build it after the renderer behavior is proven so the UI orchestrates validated stages instead of hiding unresolved failures.
 
 The exact local text-to-reference model is not yet locked. SDXL-class and FLUX text-to-image families are candidates.
 
 ## Relative scale
 
-`relative_scale=1.0` = baseline adult-human/Exilada size, about 128px visible height in the canonical gameplay composition.
+`relative_scale=1.0` = baseline adult-human/Exilada size, about128px visible height in the canonical gameplay composition.
 
 Scale affects target sprite occupancy, cell/atlas dimensions and source-resolution policy. It is not arbitrary image stretching. Exact min/max remains open.
 
-## Wan
-
-Wan remains paused after W1L, not exhausted. Preserve W1H/W1L evidence. Large Wan checkpoints may be removed if proof remains.
-
 ## Immediate next actions
 
-1. install/validate FLUX.1 Kontext [dev] locally in a separate workspace without touching H3;
-2. reuse the existing H0 dance/gesture motion master;
-3. extract/select a coherent action set;
-4. produce the first final-style pixel-art spritesheet;
-5. then wrap the proven stages in the local Gradio UI;
-6. only afterward expand to new actions and creature scales.
+1. run Runner50;
+2. inspect the generated sheet/preview/manifest;
+3. classify renderer result by layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
+4. only if FP8 is specifically under-resolved, test full BF16 Kontext;
+5. after renderer PASS, build Gradio orchestration UI;
+6. then expand semantic action distillation, reference generation and creature scales;
+7. do not spend another Base50 H3 hour solely to debug the renderer.
