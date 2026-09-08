@@ -119,9 +119,34 @@ Because the terminal excerpt omitted the executor's specific `W1G: FAIL - ...` l
 
 HOG-only detection is also conceptually too brittle for the production contract because drivers may use arbitrary subject appearance and non-upright poses. The HOG-only path is superseded.
 
-### W1G v3 — ACTIVE
+### W1G v3 — FOREGROUND TRACKING WORKS / PRE-INFERENCE MARGIN-GUARD FAIL
 
-V3 is detector-agnostic for the current fixed-camera official baseline:
+V3 replaced HOG with detector-agnostic temporal-median foreground tracking. The tracker successfully produced coherent framing diagnostics. The first v3 configuration (`target_bottom_y=620`) then stopped on the safety guard before any Wan prompt was submitted.
+
+Observed minimum margins:
+
+- full-canvas bottom: `66.51 px` vs required `70 px`;
+- CLIP-center-square bottom: `-13.49 px` vs required `16 px`;
+- CLIP-center-square top: `116.62 px`;
+- left/right: `146.63 / 203.55 px`.
+
+Interpretation: the tracker itself is working; the tracked subject is simply anchored too low for the central square consumed by the pose CLIPVision path. Classification: **PREPROCESSOR CONFIGURATION / MARGIN-GUARD FAIL; no Wan inference**.
+
+### W1G v3.1 — CURRENT
+
+Keep v3's detector-agnostic foreground tracker and constant-scale policy unchanged. Adjust only the preferred vertical framing anchor:
+
+- target envelope height ratio `0.48` — unchanged;
+- target center x `300` — unchanged;
+- **target bottom y `620 -> 580`**.
+
+The 40 px upward shift is derived directly from the measured v3 margins. Expected preflight effect:
+
+- CLIP-center-square bottom margin: about `-13.49 -> 26.51 px`;
+- full-canvas bottom margin: about `66.51 -> 106.51 px`;
+- top margins remain comfortably above guard thresholds.
+
+V3.1 procedure:
 
 1. estimate temporal-median background from the first 37 frames;
 2. segment foreground independently per frame;
@@ -130,15 +155,13 @@ V3 is detector-agnostic for the current fixed-camera official baseline:
 5. expand for head/hair/hands/feet safety;
 6. smooth translation only;
 7. keep one constant scale, so no zoom/camera breathing;
-8. target envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
+8. target envelope height ratio `0.48`, center x `300`, bottom y `580` on `640×800`;
 9. hard-check canvas and CLIP center-square margins before Wan;
 10. use existing `cv2` + `numpy`, with no new detector checkpoint/model.
 
-Runner 40 now also writes and surfaces:
+Runner 40 writes and surfaces:
 
 `Z:\AI\WanAnimate2\w1g_executor.log`
-
-so executor failures are no longer hidden behind unrelated ComfyUI stderr.
 
 Everything else remains W1A: Exilada reference/prompt, Base BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt and `--disable-pinned-memory`.
 
@@ -148,7 +171,7 @@ Success criterion:
 2. W1A's stronger structural retention survives;
 3. if so, **blur reduction is the next isolated variable**.
 
-Expected evidence after a valid W1G v3 inference:
+Expected evidence after a valid W1G v3.1 inference:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`;
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`;
@@ -174,7 +197,8 @@ Only after framing and destructive blur are controlled should the appearance pro
 - W1F whole-frame safe80 — **CROP FAIL**.
 - W1G v1 global activity union — **PRE-INFERENCE FAIL / no Wan inference**.
 - W1G v2 HOG tracking — **PRE-INFERENCE FAIL / no Wan inference**.
-- W1G v3 detector-agnostic foreground tracking + constant scale + ref 1.5 — **CURRENT**.
+- W1G v3 detector-agnostic tracking at bottom-y 620 — **PRE-INFERENCE MARGIN-GUARD FAIL / no Wan inference**.
+- W1G v3.1 detector-agnostic tracking at bottom-y 580 + ref 1.5 — **CURRENT**.
 - blur-reduction gate if W1G framing passes.
 - art-direction gate.
 - W2 target Internet walking driver.
