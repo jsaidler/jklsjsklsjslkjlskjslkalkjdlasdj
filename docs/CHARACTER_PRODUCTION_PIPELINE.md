@@ -1,197 +1,193 @@
 # Character Production Pipeline — End-to-End Living Plan
 
-Status date: **2026-09-07**
+Status date: **2026-09-08**
 
-Status: **CANONICAL PRODUCTION ROADMAP — COMPLETE-CHARACTER SPRITESHEET EXPORT**
+Status: **CANONICAL PRODUCTION ROADMAP — H3 COMPLETE-CHARACTER MOTION MASTER -> AUTOMATIC ACTION DISTILLATION -> HIGH-QUALITY PIXEL-ART SPRITESHEET**
 
 ## Non-negotiable production contract
 
-The character pipeline must satisfy all of the following:
-
-- final visible language is 2D sprite animation for the elevated belt-scroller;
+- final visible language is 2D pixel-art sprite animation for the elevated belt-scroller;
 - runtime playback uses complete already-composed character frames;
 - runtime character construction from body/hair/clothing/equipment layers is abolished;
-- source-authoring may remain modular offline where that improves variation, damage, attachment or secondary-motion control;
-- the final exported frame must contain the whole visible character state;
-- motion is based on real/captured/deterministic motion infrastructure rather than guessed unrelated key poses;
-- anatomy, proportions and left/right identity must remain stable;
-- hair, cloth, restraints and other secondary masses must move coherently through the sequence;
-- no routine manual frame-by-frame repainting as the production method;
+- final exported frames contain the complete visible character state;
+- motion comes from real driving video rather than unrelated guessed poses;
+- anatomy, proportions and left/right identity remain stable;
+- hair, cloth, restraints and secondary masses move coherently;
+- no routine manual frame-by-frame repainting, manual masks or per-frame alignment;
 - recurring operations must be scriptable/headless;
-- armor/equipment/state variation must eventually scale without reintroducing runtime character assembly.
+- equipment/damage/state variation must scale offline without reintroducing runtime assembly.
 
-Canonical initial Exilada reference:
+Canonical Exilada appearance reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-For the current proof this master defines the **complete initial visible state**, not merely the body identity.
+## Current production architecture — LOCKED 2026-09-08
 
-## Current production architecture
+`pixel-art Exilada reference + real driver -> H3 complete-character motion master -> automatic action/cycle detection and frame distillation -> automatic segmentation/alignment -> high-quality pixel-art reconstruction -> transparent spritesheet/atlas + metadata -> runtime playback`
 
-`gameplay camera/scale -> motion control -> complete-state appearance reference -> temporal character authoring -> secondary motion -> complete-frame cleanup/alpha -> spritesheet packing -> runtime playback`
+MiniMax H3 painterly/raster video is an **intermediate motion representation**. It is not the final runtime art.
 
-Possible offline internal stages may still include rigs, semantic layers, masks, equipment modules, physics or image/video generation, but they must resolve before export into one complete character image per frame.
+Detailed H1-S definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
 
 ## Runtime output — LOCKED
 
-Per animation/state family, expected output:
+Per animation/state family:
 
-- complete-character PNG sequence or atlas/spritesheet;
-- transparency;
-- fixed pivot/root metadata;
-- frame duration/timing;
+- transparent complete-character PNG sequence and/or spritesheet/atlas;
+- fixed/declared pivot/root metadata;
+- per-frame duration/timing;
 - optional event metadata such as foot contacts, attack markers and hitbox helpers;
 - provenance/version manifest.
 
-Runtime does not need to know which pixels belong to body, hair, clothing or equipment unless a later gameplay-specific shader/effect requires auxiliary masks. Even then, the visible character remains one complete rendered sprite.
+Visible runtime character remains one complete rendered sprite per frame.
 
 ## Complete-frame animation requirement
 
-Every selected state/variant must bake all relevant motion:
+Every exported animation bakes all relevant motion:
 
 - body locomotion/action;
-- soft-tissue/jiggle motion;
+- soft-tissue/jiggle response;
 - hair motion;
-- base clothing/binding motion;
+- clothing/binding motion;
 - armor/equipment motion where present;
-- shackles/chains/restraints motion;
-- correct self-occlusion.
+- shackles/chains/restraints;
+- self-occlusion.
 
-If hair, clothing or restraints are temporally wrong, that is a failure of the authored animation, not a future runtime composition task.
+If those elements are temporally wrong, the authored animation fails; runtime does not repair them.
 
-## Current motion backbone
+## Motion backbone — UPDATED
 
-Retained infrastructure:
+The old G2/CMU/Moore walk proof remains historical research only.
 
-- `G2_CANONICAL_RIG`;
-- CMU `105_34 NormalWalk` mechanical source;
-- eight gait phases;
-- locked first gameplay facing `72 deg` azimuth from travel heading.
+Active motion backbone is **MiniMax H3 Ref2VA**:
 
-Runner 33 V2 is not final walk approval. It is retained as the provisional motion driver for the first complete-character proof because the project must now determine whether the whole visible pipeline works before further gait micro-adjustment.
+- Picture1 = complete Exilada appearance;
+- Video1 = arbitrary real movement/performance;
+- raw-video temporal conditioning preserves richer motion than skeleton-only pose;
+- H0 at448×800/124f proved stable complete-character topology and coherent hair/cloth motion.
 
-## Current visible-authoring candidate
+Wan remains paused comparison evidence. Moore/SSD is no longer the active complete-motion path.
 
-Exact upstream Sprite Sheet Diffusion is blocked by the unreleased custom multi-scale pose-guider checkpoint.
+## H3 H0 quality baseline
 
-Current runnable fallback:
+Completed H0:
 
-`Moore-AnimateAnyone graph + baseline Moore pose guider/motion + released SSD denoising/reference UNets`
+-448×800;
+-124f@24fps;
+-50 steps;
+- `res_multistep/beta`;
+- seed0;
+- `ref_image_size=match`;
+- prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
+- elapsed `4504.8s`.
 
-Runner 30 proved corrected pose registration materially improves visible pose response.
+Verdict: **PASS_CANDIDATE as motion-master family**.
 
-## Immediate gate — complete-character playable proof
+H0 solved the dominant Wan problem: destructive whole-body smear/topology instability did not recur. Residual chain-detail drift remains; late crop follows the source driver envelope.
 
-Runner:
+## Production-throughput gate — CURRENT
 
-`tools/structured-2d-character-pipeline/34_run_exilada_complete_character_walk8_playable_proof.ps1`
+A 75-minute Base50 run is not the ordinary action-production target.
 
-Packer:
+Runner49 tests the official Ref2V Turbo4 path against exact H0 inputs:
 
-`tools/structured-2d-character-pipeline/g3s_pack_complete_character_spritesheet.py`
+- LoRA `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
+- strength1.0;
+-4 steps;
+- `res_multistep/simple`;
+- same448×800/124f/24fps;
+- same Picture1/Video1/ref_image_size/seed/prompt.
 
-The proof uses:
+Turbo becomes production-eligible only if it materially reduces wall clock without losing H0-level topology/identity/motion quality.
 
-- full `exilada_master.png` initial appearance;
-- runner-33 V2 eight-frame guide at `72 deg`;
-- 512×512 temporal generation;
-- 8 frames;
-- 25 steps;
-- CFG 3.5;
-- seed 42;
-- fp16;
-- connected-background extraction to transparent RGBA;
-- 4×2 complete-character spritesheet packing;
-- fixed pivot derived from the aligned master pose.
+## H3 temporal rule
 
-## Current proof success criteria
+Do not default to 8–12 **generated H3 frames**.
 
-The first proof does not need final production polish. It needs to answer whether the route is structurally useful.
+Current H3 uses the `17k+5` temporal grid and documents trained video range around124–362 frames @24fps.
 
-PASS for continuation requires enough of the following to be true:
+Production baseline is therefore:
 
-- Exilada identity survives across the sequence;
-- locomotion reads as a coherent walk;
-- limbs do not catastrophically mutate;
-- hair behaves as a temporal mass rather than eight unrelated drawings;
-- base cloth/bindings move plausibly;
-- jiggle/soft-body response is believable enough to preserve physicality;
-- shackles/chains/restraints remain attached to the correct anatomical ownership;
-- frame alignment/pivot is stable enough for sprite playback;
-- the packed spritesheet can be inspected or used directly as a runtime proof.
+`fast124-frame motion master -> distill one useful action/cycle -> ~12 runtime frames`
 
-A failure in secondary motion is not hidden by stripping those elements out; they are part of the test.
+Shorter H3 windows may be tested later only with explicit quality evidence.
 
-## Variation architecture — later production gate
+## H1-S locomotion production
 
-After the initial-state animation route is proven, the project must solve armor/equipment/accessory/damage variation.
+After the throughput path is chosen:
 
-The later system may use modular source assets offline, semantic masks, rigs or bounded state families, but each runtime variant must still export as a complete-character animation family.
+1. use a fixed-camera full-body screen-left real walk with safe real margins and one clean gait cycle;
+2. keep the proven124-frame H3 regime; a clean gait cycle may be automatically repeated/tiled through the reference interval;
+3. generate a complete H3 motion master;
+4. automatically detect one coherent generated gait cycle;
+5. select ~12 phase-distributed frames;
+6. automatically reject crop/structural failures;
+7. automatically segment complete character including hair/cloth/chains;
+8. pivot-align to stable ground while preserving valid vertical bob;
+9. build a high-resolution transparent action strip/contact sheet.
 
-Candidate later approaches may include:
+No manual masks, repainting or frame alignment.
 
-- offline compositing/regeneration per equipment state;
-- precomputed bounded variant families;
-- source-state parameterization with automated batch export;
-- reusable masks/semantic passes that accelerate offline generation;
-- other deterministic authoring strategies.
+## Final pixel-art reconstruction — REQUIRED / NOT YET PROVEN
 
-Do not lock one until the baseline complete-character temporal route is proven.
+The H3 motion-master frames must then be reconstructed as deliberate high-quality pixel art.
+
+Preferred validation architecture:
+
+- canonical Exilada pixel-art reference;
+- complete selected action strip/contact sheet supplied together so all frames share one coherent design/palette;
+- pose/silhouette/foot placement preserved from H3;
+- stronger pixel clustering, palette discipline and material readability than the current reference;
+- exact pixel grid, no blurry interpolation.
+
+Simple nearest-neighbor downscale/palette quantization is a cheap control only and is not assumed sufficient.
+
+## First walk runtime target
+
+- visible protagonist ~128px tall;
+-12 unique frames;
+- art playback around12fps, with actual action speed controlled by metadata/gameplay;
+-192×192 initial review cells;
+-4×3 sheet =768×576;
+- transparent RGBA complete-character sprites;
+- optional trimmed atlas + JSON frame rectangles/pivots/durations.
+
+## Variation architecture — later
+
+After baseline animation + final pixel-art reconstruction are proven, solve armor/equipment/accessory/damage variation offline.
+
+Candidate production may use source modules/masks/state families internally, but every runtime variant still exports as complete-character animation frames.
 
 ## Damage / exposure integration
 
-Damage and exposure remain first-class state problems, but they are now interpreted through offline complete-frame variant generation.
+Offline source state may retain complete body, clothing/armor coverage semantics, damage zones, attachment sockets, anatomical side ownership and surface-state masks.
 
-The source character may retain:
-
-- complete underlying body;
-- clothing/armor coverage semantics;
-- damage zones;
-- attachment sockets;
-- anatomical side ownership;
-- surface-state masks;
-- structural damage states.
-
-Those source states are resolved offline into complete sprite families as needed by the future state system.
+Those are resolved offline into complete runtime sprite families. Adult nudity/partial nudity remains a legitimate state.
 
 ## Automated QA contract
 
-Production batches should validate at least:
+Production batches should check at least:
 
-- exact frame dimensions;
-- transparency integrity;
-- stable pivot/root;
-- frame count and timing;
-- loop closure where relevant;
-- identity/silhouette area anomalies;
-- attachment continuity;
-- foot-contact consistency;
-- left/right ownership;
-- unexpected detached foreground fragments;
-- deterministic output hashes where inputs/tooling are unchanged.
+- full body present;
+- stable topology/identity;
+- no driver-forced crop inside selected runtime cycle;
+- hair/cloth/restraints remain attached and coherent;
+- alpha matte preserves all intended extents;
+- pivot/ground consistency;
+- pixel-art frame consistency;
+- no unexpected palette/interpolation blur;
+- atlas metadata matches frame geometry/timing.
 
-Each batch should also generate:
+## Cleanup discipline
 
-- contact sheet;
-- looping preview GIF/video;
-- spritesheet PNG;
-- metadata/QA JSON.
+- keep Base H3 Ref2VA files;
+- add only the single official Turbo4 LoRA for current throughput hypothesis;
+- do not accumulate FL2VA/style/alternate quantizations without evidence;
+- Wan large checkpoints may be removed while W1H/W1L proof remains;
+- keep SSD/Moore evidence until explicit final abandonment.
 
-## Production scaling principle
+## Current gate
 
-Once a working authoring route is validated, a new animation or complete character state should require configuration/source selection and automated generation—not manual repainting of every frame.
+**Runner49 H0T Turbo4 throughput-quality comparison.**
 
-Expected later flow:
-
-`motion/action source + selected complete character state -> offline authoring/secondary motion -> complete frames -> QA -> spritesheet + metadata`
-
-## Kill switches
-
-- If the complete-character temporal route cannot keep identity and secondary masses coherent, change visible-authoring strategy before building an animation library.
-- If a variation system becomes combinatorial manual labor, redesign offline state generation before expanding equipment content.
-- If a tool requires recurring GUI/manual repair per clip, reject or simplify that stage.
-- Do not reintroduce runtime character assembly as a convenience without an explicit architectural reopening.
-
-## Current operator step
-
-Run runner 34 and judge the actual complete-character spritesheet before returning to detailed locomotion polish.
+Do not spend another Base50 hour on a new walking driver before deciding whether Turbo4 can preserve H0 quality at practical speed.
