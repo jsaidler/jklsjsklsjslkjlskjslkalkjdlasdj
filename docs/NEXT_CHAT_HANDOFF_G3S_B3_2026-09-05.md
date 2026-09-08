@@ -18,6 +18,7 @@ GitHub living docs are canonical.
 - `docs/PROJECT_STATE.md`
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 - `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
+- `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
 - `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
 - `docs/ANIMATION_PIPELINE.md`
@@ -99,6 +100,18 @@ Executor:
 
 `tools/flux-kontext-spike/run_h0_dance12_pixelart_proof.py`
 
+### Runner50 initial parser incident — FIXED
+
+The first operator invocation failed immediately in the PowerShell parser at two `$Label:` interpolations.
+
+Classification: **INTEGRATION FAIL / PRE-INFERENCE**. No downloads, ComfyUI launch or Kontext inference occurred; zero model-quality evidence.
+
+Repair: delimit the variable as `${Label}:` in the two affected status strings only.
+
+Repair commit: `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2`.
+
+Do not change renderer settings because of this incident. Pull and rerun the same Runner50 command.
+
 ### Workspace/runtime
 
 - renderer workspace: `Z:\AI\FluxKontext`;
@@ -173,7 +186,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\50_run_flux_kontext_h0_dance12_pixelart_proof.ps1"
 ```
 
-The first execution downloads about 22.3GB of renderer models plus creates the separate portable runtime. Subsequent runs reuse verified files.
+The first successful execution downloads about 22.3GB of renderer models plus creates the separate portable runtime. Subsequent runs reuse verified files.
 
 ## License caveat
 
@@ -206,7 +219,7 @@ Scale affects target sprite occupancy, cell/atlas dimensions and source-resoluti
 
 ## Immediate next actions
 
-1. run Runner50;
+1. pull the repaired Runner50 and rerun it;
 2. inspect the generated sheet/preview/manifest;
 3. classify renderer result by layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
 4. only if FP8 is specifically under-resolved, test full BF16 Kontext;
