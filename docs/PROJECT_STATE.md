@@ -196,27 +196,44 @@ The excerpt did **not** include the executor's specific `W1G: FAIL - ...` line, 
 
 Independent of that missing diagnostic, HOG-only person detection is too semantically brittle for the production contract because driving footage may contain arbitrary subject appearance, non-upright poses or non-human reference motion. That detector-specific path is therefore superseded.
 
-### W1G v3 — CURRENT IMPLEMENTATION
+### W1G v3 — FOREGROUND TRACKING WORKS / MARGIN GUARD FAIL
 
-The preprocessor now uses a detector-agnostic method for the fixed-camera official baseline:
+V3 uses a detector-agnostic temporal-median foreground tracker. The tracker produced a coherent subject track and reached framing diagnostics, so the subject-analysis mechanism itself is now viable.
 
-- estimates a temporal-median background from the first 37 source frames;
-- segments moving foreground independently per frame;
-- tracks the dominant coherent foreground component instead of unioning the entire trajectory;
-- interpolates missed boxes;
-- expands boxes for head/hair/hands/feet safety;
-- smooths **translation only** over time;
-- keeps **one constant scale** for all frames, so there is no zoom/camera breathing;
-- targets subject-envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
-- hard-fails before inference if top/bottom/side margins are unsafe;
-- separately guards the central square used by `CLIPVisionEncode(crop="center")`;
-- uses only existing `cv2` + `numpy`; no detector checkpoint/model download.
+Observed first-v3 guard result:
 
-Runner 40 also now tees all executor stdout/stderr to:
+- minimum output bottom margin: `66.51 px` versus required `70 px`;
+- minimum CLIP-center-square bottom margin: `-13.49 px` versus required `16 px`;
+- minimum CLIP-center-square top margin: `116.62 px`;
+- left/right margins: `146.63 / 203.55 px`.
+
+The tracked subject was therefore simply too low in the `640×800` conditioning canvas. No Wan prompt was submitted. Classification: **PREPROCESSOR CONFIGURATION / MARGIN-GUARD FAIL; no model inference**.
+
+### W1G v3.1 — CURRENT IMPLEMENTATION
+
+Keep the successful v3 tracker, interpolation, smoothed translation and constant scale unchanged. Change only the preferred vertical anchor:
+
+- target subject-envelope height ratio: `0.48` unchanged;
+- target center x: `300` unchanged;
+- **target bottom y: `620 -> 580`**.
+
+The 40 px upward correction is directly derived from the measured v3 margins. It should move the CLIP-center-square bottom margin from `-13.49 px` to about `26.51 px`, while leaving ample top margin and raising the full-canvas bottom margin to about `106.51 px`.
+
+The preprocessor remains detector-agnostic for this fixed-camera official baseline:
+
+- temporal-median background from the first 37 source frames;
+- moving foreground segmented independently per frame;
+- dominant coherent component tracking;
+- missed-box interpolation;
+- expansion for head/hair/hands/feet safety;
+- **translation smoothing only**;
+- **one constant scale** for all frames — no zoom/camera breathing;
+- hard guards for the `640×800` canvas and CLIP center square;
+- existing `cv2` + `numpy` only; no new detector checkpoint/model.
+
+Runner 40 tees executor stdout/stderr to:
 
 `Z:\AI\WanAnimate2\w1g_executor.log`
-
-and prints the executor diagnostics on failure, so future code-2 exits can no longer be masked by unrelated ComfyUI stderr.
 
 Everything else remains W1A:
 
@@ -228,7 +245,7 @@ Everything else remains W1A:
 - negative prompt;
 - `--disable-pinned-memory`.
 
-Expected evidence after a valid v3 run:
+Expected evidence after a valid v3.1 run:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
