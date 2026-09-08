@@ -1,164 +1,92 @@
 # Character Animation Production — Living Decision Record
 
-Status date: **2026-09-07**
+Status date: **2026-09-08**
 
-Status: **RAW-VIDEO DUAL-REFERENCE COMPLETE-CHARACTER GENERATION IS THE ACTIVE PRODUCTION CLASS. WAN-ANIMATE-2 BASE BF16 REMAINS UNDER CONTROLLED EXHAUSTION. W0 PASSED; W1 PAINTERLY LOOK IS APPROVED; W1A 1.5 IS RETAINED AS THE STRONGER STRUCTURAL BRANCH; W1F WHOLE-FRAME SAFE FRAMING FAILED; W1G DETECTOR-AGNOSTIC SUBJECT FRAMING IS ACTIVE.**
+Status: **RAW-VIDEO COMPLETE-CHARACTER GENERATION ACTIVE. WAN BASE BF16 UNDER CONTROLLED EXHAUSTION. W1 PAINTERLY LOOK APPROVED. W1A REF-1.5 STRUCTURAL BRANCH RETAINED. W1F LETTERBOX CLOSED. W1G TRACKED RAW-DRIVER REFRAMING CLOSED FAIL. W1H ASPECT-MATCHED GENERATION CANVAS CURRENT.**
 
 Canonical state: `docs/PROJECT_STATE.md`
 
-Canonical visual direction: `docs/VISUAL_DIRECTION.md`
-
-Canonical model screening: `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-
 ## Hard production constraints
 
-The pipeline must:
+- complete Exilada reference + separate raw driving video;
+- driver identity/clothing/hair may differ completely;
+- infer body motion, soft response, hair inertia, cloth/material/wind and restraint/accessory dynamics automatically;
+- no routine manual rigging/keyframing/sim repair/mask repair/repainting/compositing;
+- final runtime uses complete precomposed spritesheet frames.
 
-- use `assets/source/characters/exilada/reference/exilada_master.png` as complete appearance/state reference;
-- accept a separate real driving video for movement/performance;
-- allow the driver performer to differ completely in identity, clothing, hair and accessories;
-- preserve Exilada identity, hair mass, clothing state and restraints as far as production quality requires;
-- infer locomotion, body soft response, hair inertia, cloth/material/wind response and restraint/accessory motion automatically;
-- require no routine manual rigging, keyframing, simulation repair, masks, repainting, per-frame cleanup or hand compositing;
-- allow automatic preprocessing/postprocessing;
-- output complete visible frames suitable for automatic spritesheet packing.
+## Motion-source rule
 
-## Runtime contract — LOCKED
+Final production motion comes from real driving video consumed in a richer form than skeleton-only pose.
 
-`complete generated frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
+## W1 / W1A
 
-No visible runtime body/hair/clothing/equipment assembly.
+W1 ref 1.0: approved painterly visual/motion baseline, but crop, restraint drift and some limb artifacts remain.
 
-## Motion-source rule — LOCKED
+W1A ref 1.5: user review shows better body structure/topology than 1.0, but more destructive blur. Preserve ref 1.5 as structural branch; blur is a later isolated axis.
 
-Final production motion comes from **real driving video consumed in a richer form than body skeleton alone**. Internet footage is acceptable; costume matching is not required.
+## W1F — CLOSED
 
-Pose/SMPL/mocap may remain diagnostics only.
+Whole-frame safe letterboxing did not solve generated crop. Do not iterate safe-box percentages.
 
-## Model-exhaustion protocol — LOCKED
+## W1G — VALID METHOD FAIL / CLOSED
 
-Do not switch model families after a single ugly result. Before `EXHAUSTED_FAIL`, reproduce official behavior, validate checkpoint/loader/input semantics, test cross-identity in controlled stages, change one high-leverage variable at a time, keep seed/input fixed unless stochasticity itself is tested, prohibit manual rescue and require decisive failure across a finite valid matrix.
+Runner 40 final v3.1 produced a valid inference on ref 1.5 after all preflight guards passed.
 
-## Active Wan Base-BF16 set
+Result: materially worse than W1/W1A — more ghosting/smearing, unstable/elongated limbs/body, detached/duplicated-looking extremities, weaker temporal coherence, framing still not reliably solved.
 
-- `wan_animate_2_bf16.safetensors` ~32.8 GB;
-- `umt5_xxl_fp16.safetensors` ~11.4 GB;
-- `clip_vision_h.safetensors` ~1.26 GB;
-- `Wan2_1_VAE_bf16.safetensors` ~0.254 GB.
+Conclusion: do not reframe raw driving footage with frame-to-frame tracking/affine camera-follow transforms. This corrupts the richer spatiotemporal signal Wan needs.
 
-Lower-precision/Distilled variants are not retained unless a later controlled comparison explicitly needs them.
+W1G is retained only as small failure evidence.
 
-## W0 — PASS_BASELINE
+## Framing geometry root cause
 
-Runner 36 reproduced the official raw-video path at `640×800`, 37 frames, 16 fps, 20 steps, seed 0. The first attempt hit AIMDO `hostbuf_file_reader_read failed`; adding only `--disable-pinned-memory` resolved the infrastructure issue.
+Current `WanAnimate2ToVideo` uses center-resize/crop of `pose_video` to the requested output geometry.
 
-## W1 — APPROVED VISUAL/MOTION BASELINE
+- raw driver: `480×854`, aspect ≈ 0.5621;
+- upstream Wan-Animate-2 demo default: `720×1280`, aspect 0.5625;
+- W1/W1A canvas: `640×800`, aspect 0.8.
 
-Runner 37 used Exilada + the official driver at `reference_image_strength=1.0`.
+Center-cropping 480×854 to aspect 0.8 discards about 29.7% of source height. This is now the leading crop explanation.
 
-Positive evidence: substantial cross-identity motion transfer, non-rigid long-hair motion, ragged hip-cloth drape changes, no cat identity/costume leakage and coarse Exilada-state retention.
+The correction must happen in **generation-space aspect**, not by altering the driver.
 
-Technical issues: restraint/chain instability, some hand/foot blur/stretch and transient artifacts, later head/body crop, and insufficient driver coverage for final walking/jiggle/wind quality.
-
-### Visual-language decision
-
-The W1 painterly/illustrated 2D look was explicitly approved as the preferred whole-game direction. Localized, restrained motion blur is allowed when it does not erase anatomy/topology/readability. The visible direction deliberately includes an **1980s sword-and-sorcery charge** aligned with Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell.
-
-## W1A — reference strength 1.5 / STRUCTURAL BRANCH RETAINED
-
-User review supersedes the earlier sharpness-weighted verdict:
-
-- `1.5` preserves body structure/topology better than `1.0`;
-- `1.0` is cleaner in some phases;
-- `1.5` adds more destructive blur/ghosting;
-- keep `1.5` as the structural branch and solve blur independently.
-
-## W1F — WHOLE-FRAME SAFE80 / CROP FAIL
-
-Runner 39 retry completed validly. The entire `480×854` source frame was placed at `360×640` inside `640×800` with offset `(140,80)`, no source crop and no temporal camera breathing.
-
-Visual verdict: **generated crop remained**. Head/hair still leave the top later and the character still pushes into the right edge.
-
-Conclusion: whole-frame letterboxing is not a sufficient framing mechanism. Do not iterate 70%/60%/50% letterbox-only variants.
-
-## Native framing semantics
-
-Current `WanAnimate2ToVideo` center-resizes `pose_video` to the requested size. The graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
-
-The framing preprocessor therefore must control the **performer/subject envelope itself**, not only canvas margins, while keeping that envelope safe in both the `640×800` pose canvas and the center-square CLIP pose crop.
-
-## W1G — CURRENT SUBJECT-FRAMING GATE ON REF 1.5
+## W1H — CURRENT
 
 Runner:
 
-`tools/structured-2d-character-pipeline/40_run_wan_animate2_bf16_w1g_subject_framing_ref15.ps1`
+`tools/structured-2d-character-pipeline/41_run_wan_animate2_bf16_w1h_aspect_matched_ref15.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1g_subject_framing_ref15.py`
+`tools/wan-animate2-spike/run_w1h_aspect_matched_ref15.py`
 
-Parent is the exact completed W1A prompt, so `reference_image_strength=1.5` remains unchanged.
+Parent = exact W1A.
 
-### W1G v1 — PRE-INFERENCE FAIL
+Only changed axis:
 
-A global temporal-activity union expanded to the whole frame (`1.000`) and aborted before Wan. Classification: **PREPROCESSOR/INTEGRATION FAIL**.
+`width/height 640×800 -> 512×912`
 
-### W1G v2 — PRE-INFERENCE FAIL
+Raw driver remains untouched.
 
-HOG-person tracking also exited before any `W1G: prompt_id=...`. The surfaced excerpt did not contain the specific executor failure line, so the exact sub-cause is not asserted. HOG-only detection is superseded as too semantically brittle for arbitrary driving footage.
+512×912 is almost aspect-identical to 480×854 while using fewer total pixels than 640×800.
 
-### W1G v3 — ACTIVE
+Everything else remains W1A: Exilada ref/prompt, raw driver, BF16 stack, 37 frames, 20 steps, CFG1, Euler/simple, shift5, seed0, pose strength1, ref strength1.5, CLIP pose branch and negative prompt.
 
-The revised framing method:
+Pass if:
 
-- estimates a temporal-median background over the first 37 frames;
-- segments moving foreground independently per frame;
-- tracks the dominant coherent foreground component without assuming a human/animal class;
-- interpolates missed detections;
-- expands boxes for head/hair/hands/feet safety;
-- follows **translation only** with temporal smoothing;
-- uses **one constant scale** for all frames, preventing zoom/camera breathing;
-- target envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
-- hard-checks top/bottom/side margins before Wan;
-- separately hard-checks CLIP center-square margins;
-- downloads no detector checkpoint/model.
+1. full-body framing materially improves;
+2. no W1G-style temporal/anatomical degradation;
+3. W1A structural retention survives.
 
-Runner 40 now tees executor stdout/stderr to `Z:\AI\WanAnimate2\w1g_executor.log` and prints that log on failure.
+If W1H passes, next gate = destructive-blur reduction. After that, separate 1980s / more torn / more exposed Exilada art gate.
 
-Everything else remains W1A: Exilada reference/prompt, BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt and `--disable-pinned-memory`.
+## Candidate order
 
-Success criterion: full head/hair/body remain safely inside generated frame while the stronger W1A structural retention survives.
+Wan first; SCAIL-2 only after documented Wan `EXHAUSTED_FAIL`.
 
-## Blur gate — AFTER W1G FRAMING PASS
+## Cleanup
 
-If W1G solves crop while retaining body structure, the next isolated axis is **destructive blur reduction**. Preserve framing and `reference_image_strength=1.5` while testing only native controls that can plausibly reduce ghosting without sacrificing topology.
-
-## Art-direction prompt gate — AFTER FRAMING/BLUR
-
-Once framing and destructive blur are controlled, test separately stronger 1980s sword-and-sorcery language, more severely torn chest/hip cloth, greater body exposure, possible partial breast exposure consistent with damaged fabric, and preserve severe adult Exilada identity/captivity logic.
-
-## Wan sequence
-
-- W0 official baseline — **PASS_BASELINE**;
-- W1 Exilada / ref strength 1.0 — **approved visual/motion baseline**;
-- W1A ref strength 1.5 — **STRUCTURAL BRANCH RETAINED**;
-- W1F safe framing 80% — **CROP FAIL**;
-- W1G v1 global activity union — **PRE-INFERENCE FAIL**;
-- W1G v2 HOG tracking — **PRE-INFERENCE FAIL**;
-- W1G v3 detector-agnostic foreground tracking + constant scale + ref 1.5 — **CURRENT**;
-- blur-reduction gate;
-- art-direction prompt gate;
-- W2 target Internet walking driver;
-- W3 secondary-motion stress video;
-- W4 finite remaining hypothesis-driven variants.
-
-## SCAIL-2 — NEXT ONLY IF WAN EXHAUSTS
-
-Do not install SCAIL-2 while Wan still has meaningful untested production controls.
-
-## Cleanup discipline — LOCKED
-
-Do not accumulate unused large model variants/materials. Preserve small logs/manifests/results. Keep the active Wan BF16 route while under exhaustion. Keep SSD comparison evidence until a production verdict is reached.
+Do not accumulate large model variants. Keep small logs/manifests/results. No large assets were added by W1G/W1H.
 
 ## Immediate operator action
 
@@ -166,5 +94,5 @@ Do not accumulate unused large model variants/materials. Preserve small logs/man
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\40_run_wan_animate2_bf16_w1g_subject_framing_ref15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\41_run_wan_animate2_bf16_w1h_aspect_matched_ref15.ps1"
 ```
