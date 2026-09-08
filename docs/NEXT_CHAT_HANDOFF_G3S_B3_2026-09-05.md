@@ -24,7 +24,7 @@ Painterly illustrated 2D dark fantasy with explicit 1980s sword-and-sorcery char
 
 W0 passed local BF16 integration. W1 established approved art/motion language. W1F letterbox and W1G tracked/recentered framing are closed. W1H `512×912` solved dominant crop while preserving raw driver and remains the best documented Wan geometry baseline. W1I pose-end0.70 did not materially improve blur/structure. W1J and W1K were prepared but never executed.
 
-W1L / Runner45 changed ref1.5->1.0, pose1.0->0.8 and20->30 steps on W1H. The user reported W1L finished and explicitly chose to move to H3. **Do not invent a W1L visual verdict without the local output.** Runner46 verifies the local W1L manifest/video/prompt before H3 bootstrap.
+W1L / Runner45 changed ref1.5->1.0, pose1.0->0.8 and20->30 steps on W1H. The user reported W1L finished and explicitly chose to move to H3. Runner46 then verified local W1L video/prompt/manifest with `status=INFERENCE_COMPLETE`. **Do not invent a W1L visual verdict without the local output.**
 
 Preserve W1L evidence in `Z:\AI\WanAnimate2`. Do not launch another Wan inference while H3 is active.
 
@@ -36,26 +36,32 @@ Canonical H3 procedure:
 
 `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-## H3 pinned environment
+## H3 pinned environment — RUNNER46 PASS
 
-Runner46 installs a dedicated environment under:
+Runner46 completed successfully on 2026-09-08:
 
-`Z:\AI\MiniMaxH3\ComfyUI_windows_portable`
+`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+
+Verified local artifacts:
+
+- Comfy root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- bootstrap: `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
+- driver manifest: `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
+- object info: `Z:\AI\MiniMaxH3\h3_required_object_info.json`.
 
 Pinned:
 
 - ComfyUI NVIDIA portable v0.34.0;
 - port8190;
 - normal DynamicVRAM behavior;
-- no custom nodes for H0.
-
-Only H0-required model payload:
-
+- no custom nodes for H0;
 - Ref2VA pruned INT8 ConvRot diffusion ~21GB;
 - Qwen3-VL 32B MiniMax H3 NVFP4 AWQ encoder ~15.7GB;
 - H3 video VAE FP16 ~5.21GB.
 
-No FL2VA, Turbo LoRA, embeddings, alternate H3 quantizations or audio VAE.
+No FL2VA, Turbo LoRA, embeddings, alternate H3 quantizations or audio VAE. Downloaded H0 model payload ~41.9GB.
+
+Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. Runner46 performed no H3 inference, so there is still no model-quality evidence.
 
 ## H0 exact baseline
 
@@ -73,34 +79,13 @@ No FL2VA, Turbo LoRA, embeddings, alternate H3 quantizations or audio VAE.
 - H3 default sigma shifts video12/audio3;
 - no Turbo LoRA.
 
-## CURRENT GATE — Runner46 bootstrap/preflight
+## CURRENT GATE — Runner47 H0 inference
 
 Run:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\46_prepare_minimax_h3_ref2va.ps1"
-```
-
-Runner46:
-
-1. verifies W1L evidence/status;
-2. stops only the known managed Wan server to free RAM/VRAM;
-3. checks disk/pagefile context;
-4. downloads and SHA-verifies pinned ComfyUI + only three H0 model files;
-5. copies canonical Exilada reference;
-6. prepares same raw driver at24fps/124f without spatial transforms;
-7. validates all required live H3/core nodes and stores `object_info` + system stats;
-8. writes `h3_bootstrap_manifest.json`;
-9. **does not infer**.
-
-If Runner46 fails, classify download/hash/extract/node/API/DynamicVRAM layer before changing model settings.
-
-## NEXT ONLY AFTER Runner46 PASS — Runner47 H0
-
-```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
 ```
@@ -114,6 +99,22 @@ Expected H0 proof:
 - `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4` when preview encoding succeeds.
 
 A completed inference is only a technical PASS. Review full-res anatomy/topology/identity/motion and then gameplay-scale readability.
+
+## What to do with Runner47 output
+
+If terminal reaches a `prompt_id`, H3 inference actually started. Do not interrupt unless Comfy reports an execution error.
+
+If Runner47 fails before/while inference:
+
+- preserve the exact `H3 H0 executor diagnostics` and Comfy stdout/stderr;
+- classify download/API/CUDA/DynamicVRAM/OOM/runtime layer first;
+- do not call it a model failure.
+
+If Runner47 completes:
+
+1. inspect full `448×800` video for head/torso/limb topology, identity, motion transfer, long hair, cloth and restraints;
+2. inspect the tiny gameplay proxy;
+3. only then choose the smallest next H3 branch.
 
 ## Finite H3 next decisions
 
