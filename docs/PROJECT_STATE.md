@@ -78,7 +78,7 @@ This supersedes the earlier rule that Wan had to reach `EXHAUSTED_FAIL` before a
 - W1I / Runner42: `pose_end_percent 1.0 -> 0.70`; blur/structural failure materially unchanged; NOT PREFERRED.
 - W1J / Runner43 and W1K / Runner44 were prepared but never executed; superseded before run.
 
-## W1L / Runner45 — OPERATOR-REPORTED COMPLETE / WAN PAUSED
+## W1L / Runner45 — COMPLETE / WAN PAUSED
 
 Parent = exact completed W1H.
 
@@ -87,9 +87,9 @@ Compound configuration search:
 - `reference_image_strength 1.5 -> 1.0`;
 - `pose_strength 1.00 -> 0.80`;
 - `steps 20 -> 30`;
-- everything else remains W1H: raw driver untouched, `512×912`, pose window0–1, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
+- everything else remained W1H: raw driver untouched, `512×912`, pose window0–1, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
 
-The user reported the run finished on 2026-09-08 and explicitly chose to move to MiniMax H3. **No W1L visual verdict is invented in the repository without reviewing its local evidence.** Runner46 requires and verifies the local W1L video/prompt/manifest before H3 downloads proceed.
+The user reported the run finished on 2026-09-08 and explicitly chose to move to MiniMax H3. Runner46 subsequently verified local W1L video/prompt/manifest with `status=INFERENCE_COMPLETE` before H3 bootstrap proceeded. **No W1L visual verdict is invented without reviewing the local video.**
 
 Preserve:
 
@@ -113,6 +113,22 @@ Why it qualifies:
 - `<Video 1>` maps to real motion/performance;
 - the final output is a complete generated video character rather than a skeleton-only representation.
 
+### Runner46 / bootstrap — PASS 2026-09-08
+
+Operator result:
+
+`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+
+Verified/prepared local evidence:
+
+- Comfy root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- bootstrap manifest: `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
+- driver manifest: `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
+- required object info: `Z:\AI\MiniMaxH3\h3_required_object_info.json`;
+- selected model payload: Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE only, approximately `41.9 GB`.
+
+Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. This proves the pinned local H3 stack, hashes, prepared inputs and required Comfy node schemas are ready. **No H3 model-quality inference has happened yet.**
+
 ### Pinned H0 local stack
 
 - ComfyUI Windows NVIDIA portable **v0.34.0**;
@@ -126,7 +142,7 @@ Why it qualifies:
 
 H0 deliberately does **not** download FL2VA, Turbo LoRA, style embeddings, alternate Ref2VA quantizations or the audio VAE. Selected H3 model payload is ~41.9 GB.
 
-### H0 exact settings
+### H0 exact settings — CURRENT INFERENCE GATE
 
 - task: Base Ref2VA;
 - canvas: **`448×800`**;
@@ -139,7 +155,7 @@ H0 deliberately does **not** download FL2VA, Turbo LoRA, style embeddings, alter
 - seed0;
 - H3 default sigma shifts video12/audio3;
 - appearance = canonical `exilada_master.png`;
-- motion = same raw driver used by W1H, automatically timestamp-resampled to 24fps/124f with **no crop, resize, tracking or recentering**.
+- motion = same raw driver used by W1H, automatically timestamp-resampled to24fps/124f with **no crop, resize, tracking or recentering**.
 
 ## H3 resolution strategy — LOCKED FOR FIRST SPIKE
 
@@ -150,7 +166,7 @@ First H3 Ref2VA target: **`448×800`**.
 - both dimensions are multiples of32;
 - aspect `0.56`, close to the current portrait driver;
 - 358,400 output pixels;
-- H3 visual latent grid about `28×50 = 1400` spatial cells versus `84×48 = 4032` at `1344×768`, about 34.7% of that spatial cell count.
+- H3 visual latent grid about `28×50 = 1400` spatial cells versus `84×48 = 4032` at `1344×768`, about34.7% of that spatial cell count.
 
 This reduces spatial activation/token work but does not reduce model-weight size or eliminate RAM/offload cost.
 
@@ -173,22 +189,13 @@ This first proxy is not alpha extraction. Final production still requires automa
 
 Downsampling may make minor local blur irrelevant, but it cannot excuse missing/reordered body parts, topology changes, detached limbs, broken silhouette or identity drift.
 
-## Current gates / exact operator action
+## Current gate / exact operator action — Runner47 H0
 
-### Runner46 — bootstrap/preflight only
+Runner46 has passed. Run H0 now:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\46_prepare_minimax_h3_ref2va.ps1"
-```
-
-Runner46 verifies W1L evidence, installs/verifies only the pinned H3 H0 stack, prepares the 24fps driver, validates live Comfy nodes/system stats and **does not infer**.
-
-### Runner47 — H0 inference, only after Runner46 PASS
-
-```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
 ```
