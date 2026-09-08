@@ -2,9 +2,11 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / FLUX.1 KONTEXT [DEV] PREFERRED PIXEL-ART RECONSTRUCTION CANDIDATE / UI IMPLEMENTATION NEXT**
+Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / FLUX.1 KONTEXT [DEV] RUNNER50 PIXEL-ART PROOF PREPARED / UI AFTER RENDERER PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
+
+Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
 
 ## Purpose
 
@@ -198,9 +200,9 @@ No routine manual masks or per-frame alignment.
 
 ## Stage H — Final pixel-art reconstruction
 
-### Preferred model — CURRENT DECISION
+### Preferred model — ACTIVE VALIDATION
 
-**FLUX.1 Kontext [dev] is the preferred first local model to validate for the final pixel-art reconstruction stage.**
+**FLUX.1 Kontext [dev] is the preferred first local model for the final pixel-art reconstruction stage.**
 
 Reason for the choice:
 
@@ -209,11 +211,59 @@ Reason for the choice:
 - Kontext is designed for context-aware image editing, character consistency and style transformation;
 - it is a better conceptual fit than asking H3 to preserve literal pixel clusters through video generation.
 
+### Runner50 — CURRENT GATE
+
+`tools/structured-2d-character-pipeline/50_run_flux_kontext_h0_dance12_pixelart_proof.ps1`
+
+Separate renderer workspace:
+
+`Z:\AI\FluxKontext`
+
+The runner clones the proven pinned ComfyUI v0.34.0 runtime from the H3 portable install but excludes H3 models and state. It then installs only:
+
+- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB;
+- `clip_l.safetensors` ~246MB;
+- `t5xxl_fp16.safetensors` ~9.79GB;
+- `ae.safetensors` ~335MB.
+
+Total first renderer payload: ~22.3GB.
+
+This is deliberately the **native official ComfyUI path**: no GGUF/custom-node stack until the native route is judged. FP8-scaled diffusion is the practical RTX 3060 12GB starting point; T5 remains FP16 because system RAM is 48GB and quality is prioritized.
+
+If completed visual evidence specifically shows that FP8 diffusion is the limiting factor while layout/identity behavior is otherwise correct, full BF16 Kontext is the next single-variable quality branch.
+
+### First proof input/output
+
+Runner50 does **not** regenerate H3 motion. It uses the existing H0 dance/gesture video and selects deterministic frames:
+
+`1, 12, 23, 35, 46, 57, 68, 79, 90, 102, 113, 124`
+
+It builds a square `1024×1024` action sheet with a centered `4×3` grid, gives Kontext both the action sheet and canonical Exilada reference, and uses the action sheet itself as the output-composition latent authority.
+
+Initial Kontext settings:
+
+- 20 steps;
+- guidance 2.5;
+- CFG 1.0;
+- Euler;
+- simple scheduler;
+- seed 0.
+
+The finalizer crops the generated 4×3 grid and nearest-neighbor reduces the **whole reconstructed set** to `768×576`, giving `192×192` review cells. This nearest-neighbor step happens only after generative reconstruction and is not a substitute for pixel-art generation.
+
+Expected outputs include:
+
+- full Kontext result;
+- opaque and RGBA sheets;
+- individual RGBA cells;
+- GIF preview;
+- prompt, selection and provenance manifests.
+
 ### Set-level consistency strategy
 
 Do not default to independently re-generating each frame with no shared context.
 
-Preferred first validation:
+Preferred architecture:
 
 - provide the canonical/reference character image;
 - provide the selected action frames as a coherent strip/contact sheet or otherwise shared-context set;
@@ -281,9 +331,7 @@ Default H3 controls should remain hidden/locked to the approved Base50 preset. A
 
 ## UI implementation
 
-**Gradio is the current V1 implementation choice** because it supports local image/video upload, galleries, progress reporting and file outputs with low integration cost.
-
-This is an engineering implementation choice, not a permanent game architecture dependency. Replace it if integration evidence shows a better local UI framework is needed.
+**Gradio remains the V1 implementation choice**, but implementation follows the renderer proof rather than preceding it. The UI should orchestrate proven stages, not hide unresolved renderer behavior behind controls.
 
 ## Failure classification
 
@@ -300,16 +348,13 @@ Each stage records its own failure. A failure in pixel-art reconstruction does n
 
 ## Immediate implementation order
 
-1. freeze H3 motion generation back to the proven Base50 configuration;
-2. preserve Turbo4 as rejected quality history and stop treating it as the current gate;
-3. install/validate FLUX.1 Kontext [dev] locally in a separate workspace without disturbing H3;
-4. use the **existing H0 dance/gesture video** as the first end-to-end input — no new H3 generation is required for this proof;
-5. extract a sensible action frame set from that video;
-6. run the Kontext pixel-art reconstruction experiment on the set;
-7. pack and inspect the first genuinely final-style pixel-art spritesheet;
-8. then build the Gradio orchestration UI around the proven stages;
-9. only after that expand to new action types and creature scales.
+1. run Runner50 on the existing H0 dance/gesture motion master;
+2. inspect layout/pose preservation, Exilada identity, pixel-art quality, alpha and gameplay-scale readability separately;
+3. if native FP8-scaled Kontext is structurally correct but under-resolved, test full BF16 Kontext as the next controlled variable;
+4. once the renderer passes, build the Gradio orchestration UI around H3 Base50 + Kontext;
+5. then implement semantic action presets/distillation, text-reference generation and relative-scale creature cases;
+6. do not spend another Base50 H3 hour on a new action solely to debug the renderer.
 
 ## Current validation question
 
-> Can a fully local pipeline preserve the H3 Base50 motion/anatomy/secondary dynamics while converting an automatically distilled action set into coherent, high-quality, temporally consistent pixel art through FLUX.1 Kontext [dev], then package it automatically as a runtime-ready spritesheet?
+> Can the isolated local FLUX.1 Kontext [dev] Runner50 preserve the existing H3 Base50 action poses and Exilada identity while reconstructing the 12-frame set as coherent, high-quality pixel art that can be automatically split, alpha-extracted and packaged as a runtime-ready review spritesheet?
