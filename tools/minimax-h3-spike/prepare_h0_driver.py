@@ -71,7 +71,8 @@ def main() -> None:
         fail(f"invalid source geometry {source_width}x{source_height}")
 
     source_fps = None
-    for candidate in (stream.average_rate, stream.base_rate, stream.guessed_rate):
+    for attr in ("average_rate", "base_rate", "guessed_rate"):
+        candidate = getattr(stream, attr, None)
         if candidate:
             try:
                 source_fps = float(candidate)
