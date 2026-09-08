@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **COMPLETE-CHARACTER RAW-VIDEO GENERATION ACTIVE. WAN IS PAUSED AFTER OPERATOR-REPORTED W1L COMPLETION. MINIMAX H3 BASE REF2VA IS ACTIVE. RUNNER46 BOOTSTRAP/PREFLIGHT IS CURRENT; RUNNER47 H0 FOLLOWS.**
+Status: **COMPLETE-CHARACTER RAW-VIDEO GENERATION ACTIVE. WAN IS PAUSED AFTER W1L. MINIMAX H3 BASE REF2VA IS ACTIVE. RUNNER46 BOOTSTRAP/PREFLIGHT PASSED; RUNNER47 H0 INFERENCE IS CURRENT.**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -27,11 +27,9 @@ Painterly illustrated dark fantasy with explicit 1980s sword-and-sorcery charge:
 - W1H changed generation geometry to `512×912` while keeping the raw `480×854` driver untouched; dominant crop was solved and temporal body coherence improved.
 - W1I pose-end0.70 did not materially improve heavy motion blur/structural changes.
 - W1J and W1K were prepared but never executed.
-- W1L / Runner45 used ref1.0 + pose0.80 +30 steps on the W1H branch. The user reported completion and chose to switch to H3. A W1L visual verdict is not invented without local review.
+- W1L / Runner45 used ref1.0 + pose0.80 +30 steps on the W1H branch. The user reported completion and chose to switch to H3. Runner46 later verified local W1L evidence/status. A W1L visual verdict is not invented without local review.
 
-W1L proof remains under `Z:\AI\WanAnimate2`. Runner46 verifies `status=INFERENCE_COMPLETE` locally before any H3 model download proceeds.
-
-Do not launch another Wan inference while H3 is active.
+W1L proof remains under `Z:\AI\WanAnimate2`. Do not launch another Wan inference while H3 is active.
 
 ## Screening transition — LOCKED 2026-09-08
 
@@ -49,11 +47,19 @@ The prompt treats Picture1 as the only appearance/identity/anatomy/clothing/hair
 
 No FL2VA download is needed for the first spike.
 
-## H3 pinned local H0 environment
+## H3 pinned local H0 environment — BOOTSTRAP PASS
 
 Workspace:
 
 `Z:\AI\MiniMaxH3`
+
+Runner46 passed on 2026-09-08 and verified:
+
+- Comfy root `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- `h3_bootstrap_manifest.json`;
+- `h0_driver_manifest.json`;
+- `h3_required_object_info.json`;
+- Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE only (~41.9GB).
 
 Pinned components:
 
@@ -65,9 +71,11 @@ Pinned components:
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`;
 - `minimax_h3_video_vae_fp16.safetensors`.
 
-No H3 FL2VA checkpoint, Turbo LoRA, style embedding, alternate Ref2VA quantization or audio VAE is installed for H0. Selected model payload is approximately 41.9GB.
+No H3 FL2VA checkpoint, Turbo LoRA, style embedding, alternate Ref2VA quantization or audio VAE is installed for H0.
 
-## H0 exact baseline
+Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. No H3 quality inference occurred in Runner46.
+
+## H0 exact baseline — CURRENT
 
 - Base Ref2VA, no Turbo;
 - output `448×800`;
@@ -119,28 +127,22 @@ H0 automatically attempts a portrait-frame proxy of ~160px height; if the charac
 
 Downsampling may make minor texture/detail defects irrelevant. It is not allowed to hide topology loss, missing limbs, detached parts or identity drift.
 
-## Current operational gates
+## Current operational gate — Runner47
 
-### Runner46 — CURRENT / PREPARE ONLY
-
-`tools/structured-2d-character-pipeline/46_prepare_minimax_h3_ref2va.ps1`
-
-Responsibilities:
-
-- verify completed W1L evidence;
-- stop only the known managed Wan Comfy process;
-- pin/install SHA-verified ComfyUI v0.34.0;
-- download/verify only the selected three H3 H0 model files;
-- prepare Exilada and the timing-normalized raw driver;
-- validate required H3/core node schemas and system stats;
-- write bootstrap evidence;
-- perform **no H3 inference**.
-
-### Runner47 — AFTER Runner46 PASS
+Runner46 is complete and passed. Current runner:
 
 `tools/structured-2d-character-pipeline/47_run_minimax_h3_ref2va_h0.ps1`
 
-Runs H0 and writes canonical video, API prompt, manifest, logs and gameplay-scale proxy. Inference completion is not automatically a production PASS.
+Exact operator command:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
+```
+
+Runner47 writes canonical H0 video, API prompt, manifest, logs and gameplay-scale proxy. Inference completion is not automatically a production PASS.
 
 ## Failure classification
 
