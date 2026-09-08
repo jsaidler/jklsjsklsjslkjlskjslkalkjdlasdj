@@ -12,114 +12,159 @@ GitHub living docs are canonical.
 - SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
 - `D:\AI` invalid/stale.
 
-## Production contract
+## Read first
 
-Complete Exilada appearance reference + arbitrary real driving video -> complete generated character frames -> automatic extraction/downsample/packing -> spritesheet. No routine manual rigging/keyframing/sim repair/mask repair/repainting/compositing.
+- `docs/PROJECT_STATE.md`
+- `docs/VISUAL_DIRECTION.md`
+- `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`
+- `docs/ANIMATION_PIPELINE.md`
+- `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
 
-## Art direction
+## Production contract — CURRENT
 
-Painterly illustrated 2D dark fantasy with explicit 1980s sword-and-sorcery charge: Heavy Metal, Conan, Red Sonja, Frank Frazetta, Julie Bell. Adult sensuality/nudity legitimate. Localized blur can be positive; destructive ghosting/anatomy loss is not.
+Final runtime pipeline is now explicitly:
+
+`pixel-art Exilada reference + arbitrary real driver -> H3 complete-character motion master -> automatic action/cycle distillation -> automatic segmentation/alignment -> high-quality pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime playback`
+
+No routine manual rigging/keyframing/mask repair/per-frame repainting/hand compositing.
+
+## Final visible-art clarification — LOCKED 2026-09-08
+
+Final runtime characters return to **deliberate high-quality pixel art**.
+
+The H3/Wan painterly result is not discarded; it is reclassified as an intermediate motion/pictorial master. The tiny H0 whole-frame proxy is not a final-art path.
+
+Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and the mature 1980s sword-and-sorcery direction remain active.
 
 ## Wan — PAUSED
 
-W1H remains the best documented Wan geometry baseline. W1I did not materially fix blur/structure. W1L completed ref1.0 + pose0.80 +30 steps. Preserve W1H/W1L videos/prompts/manifests/logs. H3 has now progressed far enough that Wan large checkpoints may be cleaned when convenient.
+W1H is the best documented Wan geometry baseline. W1L completed ref1.0 + pose0.80 +30 steps. Preserve W1H/W1L videos/prompts/manifests/logs. H3 has progressed far enough that Wan large checkpoints may be cleaned when convenient.
 
-## MiniMax H3 Base Ref2VA — ACTIVE / PASS_CANDIDATE
+## H3 H0 / Runner48 — COMPLETE / PASS_CANDIDATE
 
-Canonical procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
-
-Runner47 incident: missing required `audio_vae`, classified pre-inference integration only. Runner48 repaired it without changing quality settings.
-
-Minimal active H3 set:
-
-- Ref2VA pruned INT8 ConvRot diffusion ~21GB;
-- Qwen3-VL NVFP4 AWQ encoder ~15.7GB;
-- video VAE ~5.21GB;
-- schema-required audio VAE ~605MB.
-
-Total ~42.5GB. No FL2VA/Turbo/style/alternate quantization installed.
-
-## H0 / Runner48 — COMPLETE
-
-Exact baseline:
+Base H0:
 
 - Picture1 = canonical Exilada;
-- Video1 = same raw Wan comparison driver, timestamp-resampled only;
-- `448×800`;
--124f @24fps;
+- Video1 = raw comparison driver, timestamp-resampled only;
+-448×800;
+-124f@24fps;
 - `ref_image_size=match`;
 -50 steps;
 - `res_multistep/beta`;
 - seed0;
-- no crop/resize/tracking/recentering;
-- no audio reference/decode;
-- no Turbo.
+- no Turbo/FL2VA/style embedding.
 
 Evidence:
 
 - prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
-- elapsed `4504.8s`;
+- elapsed `4504.8s` (~75m05s);
 - video `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
-- SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`;
-- gameplay proxy `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`.
+- SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`.
 
-## H0 visual verdict
+Visual verdict: **PASS_CANDIDATE / H3 family advances as motion-master candidate.** Stable body topology, coherent hair/cloth response and no destructive global smear. Chains still drift somewhat. Late foot crop follows driver/source envelope.
 
-**PASS_CANDIDATE / H3 FAMILY ADVANCES.**
+`448×800` passes for motion-master generation.
 
-Frame-by-frame review of the uploaded output found:
+## Important temporal correction
 
-- materially stable body topology through124 frames;
-- no destructive global blur/ghost body;
-- stable face/torso/limbs/body proportions/hair/costume language;
-- long hair and torn cloth show secondary motion while staying attached;
-- restraints remain accessory geometry;
-- sharp readable anatomy during motion;
-- excellent fit with the locked painterly dark-fantasy direction;
-- gameplay-scale silhouette remains clear near the ~128px target.
+Do **not** default to asking H3 for only8–12 generated frames.
 
-Residuals:
+Current H3 uses the `17k+5` temporal grid and documents the trained video range at approximately124–362 frames @24fps. Preserve the proven124-frame regime for now.
 
-- chains still drift somewhat in curve/length/attachment detail;
-- late in the clip the right foot is partially cropped at the right frame edge; classify as driver/framing envelope, not topology collapse.
+Production strategy:
 
-`448×800` therefore passes; do not raise resolution or switch to `ref_image_size=max` without new evidence.
+`fast124-frame H3 master -> select/distill ~12 useful game frames -> pixel-art reconstruction`
 
-## CURRENT NEXT GATE — H1 GAME-RELEVANT WALK
+Shorter H3 windows are a later optimization only.
 
-Do not run another nearby H0 configuration tweak.
+## CURRENT GATE — Runner49 / H0T Turbo4
 
-Select/use a real walking driver with:
+Do this **before** spending another long inference on a walking driver.
 
-- one adult performer;
-- full body visible throughout;
+Runner49 benchmarks the official Ref2V Turbo4 route against the exact H0 inputs.
+
+Only added model:
+
+- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
+- ~1.96GB;
+- SHA256 `5b9ab5ade15d0775676d01a907268a69a1468dc6033b3b0d3ded5502f3ebb84c`.
+
+Turbo configuration:
+
+- LoRA strength1.0;
+-4 steps;
+- `res_multistep/simple`;
+- same Picture1/Video1;
+- same448×800;
+- same124f@24fps;
+- same `ref_image_size=match`;
+- same seed0 and prompt.
+
+Exact command:
+
+```powershell
+git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\49_run_minimax_h3_ref2va_h0t_turbo4.ps1"
+```
+
+Expected evidence:
+
+- `Z:\AI\MiniMaxH3\h0t_exilada_ref2va_448x800_124f_turbo4.mp4`
+- `Z:\AI\MiniMaxH3\h0t_run_manifest.json`
+- `Z:\AI\MiniMaxH3\h0t_api_prompt.json`
+- `Z:\AI\MiniMaxH3\h0t_executor.log`
+
+If `H3-H0T: prompt_id=...` appears, real Turbo inference started.
+
+Pass requires both substantial speed improvement and H0-level topology/identity/motion quality.
+
+## H1-S after Runner49 decision
+
+If Turbo4 passes, use it for the first actual game walk motion master.
+
+Driver requirements:
+
 - fixed camera;
-- continuous take;
-- screen-left locomotion;
-- mostly lateral/slight3/4, targeting locked `72°` facing;
-- at least one complete gait cycle;
+- one adult full-body performer;
+- screen-left travel;
+- mostly lateral/slight3/4 near locked `72°`;
 - safe head/feet/lateral margins;
+- one clear gait cycle;
 - performer identity/costume/body/hair irrelevant.
 
-Keep successful H0 quality settings for the first H1:
+A clean gait cycle may be automatically repeated/tiled to fill the proven124-frame conditioning interval.
 
-- `448×800`;
-- Base50;
-- `res_multistep/beta`;
-- seed0;
-- `ref_image_size=match`.
+The generated124-frame H3 result is a **motion master**, not a124-frame runtime animation.
 
-H1 pass requires a complete usable gait with H0-level topology, hair/cloth/restraint response and readable gameplay-scale silhouette.
+## Action distillation target
 
-After H1: secondary-motion/wind/restraint stress. Speed/Turbo only after quality is locked.
+First walk runtime target:
 
-## Manifest note
+-12 unique frames across one stable generated gait cycle;
+- automatic cycle detection/phase selection;
+- automatic segmentation including hair/cloth/chains;
+- stable ground/pivot alignment;
+- high-resolution transparent action strip;
+- no manual frame cleanup.
 
-The uploaded completed H0 manifest shows legacy top-level `audio_vae:null`, while its `integration_fix` block records the actual required audio VAE. The repaired wrapper has been corrected so future manifests populate the top-level field too. No rerun is needed for this metadata-only issue.
+## Final pixel-art target
+
+Separate renderer gate after motion/action extraction:
+
+- canonical Exilada pixel-art reference + selected action strip;
+- deliberate high-quality pixel art, not a blurry miniaturized H3 frame;
+- visible protagonist ~128px;
+- initial cell192×192;
+-4×3 / 12-frame review sheet =768×576;
+- optional trimmed runtime atlas + JSON pivots/durations.
+
+The exact final pixel-art renderer is **not yet proven**. Do not pretend H3 itself solved that stage.
 
 ## Cleanup
 
-- keep minimal H3 four-file set;
-- paused Wan large checkpoint weights may now be removed, preserving W1H/W1L proof/results;
-- do not accumulate H3 FL2VA/Turbo/alternate quantizations until a specific later hypothesis requires them;
+- keep Base H3 files and the single explicit Turbo4 LoRA while testing throughput;
+- do not accumulate FL2VA/style/alternate quantizations;
+- Wan large weights may be removed while proof/results remain;
 - keep SSD comparison evidence until explicit abandonment/final verdict.
