@@ -8,6 +8,8 @@ Canonical state: `docs/PROJECT_STATE.md`.
 
 Canonical local UI/workflow specification: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
 
+Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
+
 ## Non-negotiable production contract
 
 - final visible language is 2D pixel-art sprite animation for the elevated belt-scroller;
@@ -109,7 +111,7 @@ Typical first final frame sets are 8–16 frames, but no global count is locked.
 
 The existing H0 video is a **dance/gesture-like action**, not locomotion.
 
-It has already been used to prove basic frame extraction and raster sheet packing. It must now be reused for the first final pixel-art reconstruction test so the downstream pipeline can be validated without paying another Base50 generation cost.
+It has already been used to prove basic frame extraction and raster sheet packing. It is now reused for the first final pixel-art reconstruction test so the downstream pipeline can be validated without paying another Base50 generation cost.
 
 ## Automatic action distillation
 
@@ -137,7 +139,7 @@ The system must:
 
 No routine manual masks or alignment.
 
-## Final pixel-art reconstruction — REQUIRED / CURRENT CANDIDATE
+## Final pixel-art reconstruction — CURRENT ACTIVE GATE
 
 **FLUX.1 Kontext [dev] is the preferred first local model to validate.**
 
@@ -151,6 +153,53 @@ Preferred strategy:
 - deterministic pixel-grid/palette QA afterward.
 
 Simple nearest-neighbor downscale/palette quantization is a control only, not the final-art plan.
+
+### Runner50 — prepared
+
+`tools/structured-2d-character-pipeline/50_run_flux_kontext_h0_dance12_pixelart_proof.ps1`
+
+Separate renderer workspace:
+
+`Z:\AI\FluxKontext`
+
+Runner50 clones the existing proven ComfyUI v0.34.0 portable runtime into the separate renderer workspace **without copying H3 models/input/output/user state**.
+
+It then installs only the native renderer set:
+
+- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB;
+- `clip_l.safetensors` ~246MB;
+- `t5xxl_fp16.safetensors` ~9.79GB;
+- `ae.safetensors` ~335MB.
+
+Total ~22.3GB.
+
+No GGUF/custom nodes are installed for this first proof. The native FP8-scaled diffusion is the practical official 12GB-VRAM starting point; T5 stays FP16 because 48GB system RAM is available and quality is prioritized.
+
+### First proof mechanics
+
+No new H3 inference.
+
+Deterministic H0 frames:
+
+`1, 12, 23, 35, 46, 57, 68, 79, 90, 102, 113, 124`
+
+The executor builds a square `1024×1024` input with a centered `4×3` action grid, conditions Kontext on both the action sheet and canonical Exilada reference, and runs:
+
+- 20 steps;
+- guidance2.5;
+- CFG1.0;
+- Euler/simple;
+- seed0.
+
+After reconstruction, the whole `4×3` grid is reduced together to `768×576` by exact nearest-neighbor, producing `192×192` runtime review cells. Automatic neutral-background alpha extraction then produces RGBA cells/sheet plus a GIF preview and provenance manifest.
+
+This frame selection is a renderer test only. Semantic action/cycle distillation remains a later automation stage.
+
+### Controlled fallback
+
+If the native FP8-scaled Kontext result is structurally correct but visibly under-resolved, **full BF16 Kontext** is the next single-variable quality branch.
+
+Do not introduce GGUF/custom-node variants or a different renderer family before the native result is classified.
 
 ### License caveat
 
@@ -191,6 +240,8 @@ Minimum controls:
 - progress and previews;
 - final file access.
 
+The Gradio layer is implemented **after the renderer proof**, so it orchestrates proven stages rather than hiding unresolved renderer behavior.
+
 ## Variation architecture — later
 
 After baseline local authoring + final pixel-art reconstruction are proven, solve armor/equipment/accessory/damage variation offline. Every runtime variant still exports as complete-character frames.
@@ -216,6 +267,6 @@ Production batches should check at least:
 
 ## Immediate gate
 
-**Install/validate FLUX.1 Kontext [dev] locally and use the existing H0 dance/gesture motion master to produce the first genuinely final-style pixel-art spritesheet.**
+**Run Runner50 and visually judge the first H0 dance12 Kontext pixel-art sheet.**
 
 Do not spend another Base50 H3 generation merely to test downstream rendering.
