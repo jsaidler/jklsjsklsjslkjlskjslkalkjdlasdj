@@ -60,13 +60,87 @@ def newest_output(comfy_root, prefix, since_epoch):
     return max(candidates, key=os.path.getmtime) if candidates else None
 
 
-def clamp(v, lo, hi):
-    return max(lo, min(hi, v))
+def _iou(a, b):
+    ax0, ay0, aw, ah = a
+    bx0, by0, bw, bh = b
+    ax1, ay1 = ax0 + aw, ay0 + ah
+    bx1, by1 = bx0 + bw, by0 + bh
+    ix0, iy0 = max(ax0, bx0), max(ay0, by0)
+    ix1, iy1 = min(ax1, bx1), min(ay1, by1)
+    iw, ih = max(0.0, ix1 - ix0), max(0.0, iy1 - iy0)
+    inter = iw * ih
+    union = aw * ah + bw * bh - inter
+    return inter / union if union > 0 else 0.0
 
 
-def build_subject_framed_driver(src, dst, manifest_path, analysis_frames, target_w=640, target_h=800,
-                                target_subject_height_ratio=0.48, target_center_x=300.0,
-                                target_bottom_y=620.0):
+def _choose_person_box(rects, weights, frame_w, frame_h, previous=None):
+    if rects is None or len(rects) == 0:
+        return None
+    frame_area = float(frame_w * frame_h)
+    best = None
+    best_score = -1e18
+    for idx, rect in enumerate(rects):
+        x, y, w, h = [float(v) for v in rect]
+        if w <= 0 or h <= 0:
+            continue
+        area_ratio = (w * h) / frame_area
+        aspect = w / h
+        if area_ratio < 0.025 or area_ratio > 0.90:
+            continue
+        if aspect < 0.18 or aspect > 1.30:
+            continue
+        weight = float(weights[idx]) if weights is not None and len(weights) > idx else 0.0
+        cx = x + w / 2.0
+        cy = y + h / 2.0
+        center_penalty = abs(cx - frame_w / 2.0) / frame_w + 0.35 * abs(cy - frame_h / 2.0) / frame_h
+        continuity = 0.0
+        if previous is not None:
+            continuity = 2.5 * _iou((x, y, w, h), previous)
+            pcx = previous[0] + previous[2] / 2.0
+            pcy = previous[1] + previous[3] / 2.0
+            dist = ((cx - pcx) ** 2 + (cy - pcy) ** 2) ** 0.5
+            continuity -= 0.8 * dist / max(frame_w, frame_h)
+        score = 1.8 * weight + 2.0 * area_ratio - 0.35 * center_penalty + continuity
+        if score > best_score:
+            best_score = score
+            best = (x, y, w, h)
+    return best
+
+
+def _interpolate_series(values, np):
+    arr = np.asarray(values, dtype=np.float64)
+    x = np.arange(len(arr), dtype=np.float64)
+    valid = np.isfinite(arr)
+    if valid.sum() == 0:
+        raise ValueError("no valid samples")
+    if valid.sum() == 1:
+        arr[:] = arr[valid][0]
+        return arr
+    return np.interp(x, x[valid], arr[valid])
+
+
+def _smooth_series(values, np, radius=3):
+    arr = np.asarray(values, dtype=np.float64)
+    if len(arr) <= 2 or radius <= 0:
+        return arr
+    kernel = np.arange(1, radius + 2, dtype=np.float64)
+    kernel = np.concatenate([kernel, kernel[-2::-1]])
+    kernel /= kernel.sum()
+    padded = np.pad(arr, (radius, radius), mode="edge")
+    return np.convolve(padded, kernel, mode="valid")
+
+
+def build_subject_framed_driver(
+    src,
+    dst,
+    manifest_path,
+    analysis_frames,
+    target_w=640,
+    target_h=800,
+    target_subject_height_ratio=0.48,
+    target_center_x=300.0,
+    target_bottom_y=620.0,
+):
     try:
         import cv2
         import numpy as np
@@ -97,139 +171,148 @@ def build_subject_framed_driver(src, dst, manifest_path, analysis_frames, target
         frames.append(frame)
         h, w = frame.shape[:2]
         s = max(4, min(h, w) // 24)
-        corners = np.concatenate([
-            frame[:s, :s].reshape(-1, 3),
-            frame[:s, -s:].reshape(-1, 3),
-            frame[-s:, :s].reshape(-1, 3),
-            frame[-s:, -s:].reshape(-1, 3),
-        ], axis=0)
+        corners = np.concatenate(
+            [
+                frame[:s, :s].reshape(-1, 3),
+                frame[:s, -s:].reshape(-1, 3),
+                frame[-s:, :s].reshape(-1, 3),
+                frame[-s:, -s:].reshape(-1, 3),
+            ],
+            axis=0,
+        )
         corner_samples.append(np.median(corners, axis=0))
 
     if len(frames) < 8:
         cap.release()
         fail(f"not enough source frames for automatic subject analysis: {len(frames)}")
 
-    stack_gray = np.stack([cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frames], axis=0).astype(np.float32)
-    std_map = np.std(stack_gray, axis=0)
-    p99 = float(np.percentile(std_map, 99.0))
-    if p99 <= 1e-6:
+    # W1G v1 used one temporal-activity union box. The official clip has enough
+    # whole-frame temporal activity that the union can become 100% of the source
+    # frame. V2 instead detects the performer independently per frame, interpolates
+    # misses, and follows only translation while keeping ONE constant scale.
+    hog = cv2.HOGDescriptor()
+    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
+    detections = []
+    previous = None
+    detection_indices = []
+    for idx, frame in enumerate(frames):
+        detect_frame = frame
+        scale_for_detection = 1.0
+        if min(src_w, src_h) < 640:
+            scale_for_detection = 640.0 / min(src_w, src_h)
+            detect_frame = cv2.resize(
+                frame,
+                (int(round(src_w * scale_for_detection)), int(round(src_h * scale_for_detection))),
+                interpolation=cv2.INTER_LINEAR,
+            )
+        rects, weights = hog.detectMultiScale(
+            detect_frame,
+            winStride=(4, 4),
+            padding=(8, 8),
+            scale=1.03,
+            useMeanshiftGrouping=False,
+        )
+        if scale_for_detection != 1.0 and rects is not None and len(rects):
+            rects = np.asarray(rects, dtype=np.float64) / scale_for_detection
+        chosen = _choose_person_box(rects, weights, src_w, src_h, previous=previous)
+        detections.append(chosen)
+        if chosen is not None:
+            previous = chosen
+            detection_indices.append(idx)
+
+    if len(detection_indices) < max(3, int(round(len(frames) * 0.08))):
         cap.release()
-        fail("automatic subject analysis found essentially no temporal activity in the driver")
+        fail(
+            "automatic per-frame person detector found too few credible performer boxes "
+            f"({len(detection_indices)}/{len(frames)}); refusing to fall back to the failed whole-frame activity union"
+        )
 
-    activity_u8 = np.clip(std_map * (255.0 / p99), 0, 255).astype(np.uint8)
-    otsu, activity_mask = cv2.threshold(activity_u8, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    min_threshold = max(18, int(round(otsu)))
-    _, activity_mask = cv2.threshold(activity_u8, min_threshold, 255, cv2.THRESH_BINARY)
-    activity_mask = cv2.morphologyEx(activity_mask, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
-    activity_mask = cv2.morphologyEx(activity_mask, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
-    activity_mask = cv2.dilate(activity_mask, np.ones((11, 11), np.uint8), iterations=1)
+    xs = [d[0] if d else float("nan") for d in detections]
+    ys = [d[1] if d else float("nan") for d in detections]
+    ws = [d[2] if d else float("nan") for d in detections]
+    hs = [d[3] if d else float("nan") for d in detections]
 
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(activity_mask, connectivity=8)
-    components = []
-    frame_area = src_w * src_h
-    for label in range(1, num_labels):
-        x, y, w, h, area = [int(v) for v in stats[label]]
-        if area < max(64, int(frame_area * 0.0015)):
-            continue
-        components.append((area, x, y, w, h))
-    if not components:
-        cap.release()
-        fail("automatic subject analysis found no credible moving component")
+    xs = _interpolate_series(xs, np)
+    ys = _interpolate_series(ys, np)
+    ws = _interpolate_series(ws, np)
+    hs = _interpolate_series(hs, np)
 
-    components.sort(reverse=True)
-    _, ax, ay, aw, ah = components[0]
+    # Expand HOG boxes semantically so hair/head/feet/hands are not treated as edge noise.
+    cx = xs + ws / 2.0
+    bottom = ys + hs
+    expanded_w = ws * 1.24
+    expanded_h = hs * 1.18
+    expanded_cx = cx
+    expanded_bottom = bottom + hs * 0.06
+    expanded_top = expanded_bottom - expanded_h
 
-    # Merge nearby temporal-activity components into one movement envelope. This keeps
-    # a fixed camera transform for the whole clip and avoids per-frame camera breathing.
-    ex0, ey0, ex1, ey1 = ax, ay, ax + aw, ay + ah
-    grow_x = max(12, int(round(aw * 0.35)))
-    grow_y = max(12, int(round(ah * 0.35)))
-    region = (ax - grow_x, ay - grow_y, ax + aw + grow_x, ay + ah + grow_y)
-    for area, x, y, w, h in components[1:]:
-        cx = x + w / 2.0
-        cy = y + h / 2.0
-        if region[0] <= cx <= region[2] and region[1] <= cy <= region[3]:
-            ex0 = min(ex0, x)
-            ey0 = min(ey0, y)
-            ex1 = max(ex1, x + w)
-            ey1 = max(ey1, y + h)
-
-    raw_bbox = [int(ex0), int(ey0), int(ex1 - ex0), int(ey1 - ey0)]
-
-    # Expand beyond the motion envelope to include static body mass, head/hair and feet.
-    x, y, w, h = raw_bbox
-    side = int(round(w * 0.28))
-    top = int(round(h * 0.34))
-    bottom = int(round(h * 0.24))
-    sx0 = clamp(x - side, 0, src_w - 1)
-    sy0 = clamp(y - top, 0, src_h - 1)
-    sx1 = clamp(x + w + side, sx0 + 2, src_w)
-    sy1 = clamp(y + h + bottom, sy0 + 2, src_h)
-    subject_bbox = [int(sx0), int(sy0), int(sx1 - sx0), int(sy1 - sy0)]
-
-    bx, by, bw, bh = subject_bbox
-    bbox_area_ratio = (bw * bh) / float(frame_area)
-    if bh < src_h * 0.12 or bw < src_w * 0.08:
-        cap.release()
-        fail(f"automatic subject bbox is implausibly small: {subject_bbox}")
-    if bbox_area_ratio > 0.92:
-        cap.release()
-        fail(f"automatic subject bbox covers almost the whole source frame ({bbox_area_ratio:.3f}); refusing a meaningless subject-framing inference")
-
+    # Follow translation only. Constant scale avoids the camera-breathing problem.
+    robust_h = float(np.percentile(expanded_h, 90.0))
+    robust_w = float(np.percentile(expanded_w, 90.0))
     desired_h = target_h * float(target_subject_height_ratio)
-    desired_w_cap = target_w * 0.52
-    scale = min(desired_h / bh, desired_w_cap / bw)
-    if scale <= 0:
+    scale = min(desired_h / robust_h, (target_w * 0.52) / robust_w)
+    if not np.isfinite(scale) or scale <= 0:
         cap.release()
-        fail("automatic subject transform produced a non-positive scale")
+        fail("automatic subject tracking produced an invalid constant scale")
 
-    subject_cx = bx + bw / 2.0
-    subject_bottom = by + bh
-    tx = float(target_center_x) - scale * subject_cx
-    ty = float(target_bottom_y) - scale * subject_bottom
+    tracked_center = _smooth_series(expanded_cx, np, radius=3)
+    tracked_bottom = _smooth_series(expanded_bottom, np, radius=3)
+    tx = float(target_center_x) - scale * tracked_center
+    ty = float(target_bottom_y) - scale * tracked_bottom
 
-    out_x0 = scale * bx + tx
-    out_y0 = scale * by + ty
-    out_x1 = scale * (bx + bw) + tx
-    out_y1 = scale * (by + bh) + ty
-    margins = {
-        "left": round(out_x0, 2),
-        "top": round(out_y0, 2),
-        "right": round(target_w - out_x1, 2),
-        "bottom": round(target_h - out_y1, 2),
+    # Evaluate actual interpolated boxes after the smoothed camera-follow transform.
+    out_x0 = scale * (expanded_cx - expanded_w / 2.0) + tx
+    out_x1 = scale * (expanded_cx + expanded_w / 2.0) + tx
+    out_y0 = scale * expanded_top + ty
+    out_y1 = scale * expanded_bottom + ty
+
+    margins_per_frame = {
+        "left": out_x0,
+        "top": out_y0,
+        "right": target_w - out_x1,
+        "bottom": target_h - out_y1,
     }
+    min_margins = {k: round(float(np.min(v)), 2) for k, v in margins_per_frame.items()}
 
-    # CLIPVisionEncode in the current prompt uses crop='center'. On a 640x800 driver,
-    # its square crop effectively discards about 80 px top and bottom. Keep the whole
-    # detected subject envelope safely inside that central 640x640 region as well.
     clip_crop_top = (target_h - target_w) / 2.0
     clip_crop_bottom = clip_crop_top + target_w
-    clip_margins = {
-        "top_inside_center_square": round(out_y0 - clip_crop_top, 2),
-        "bottom_inside_center_square": round(clip_crop_bottom - out_y1, 2),
-        "left": round(out_x0, 2),
-        "right": round(target_w - out_x1, 2),
+    clip_top = out_y0 - clip_crop_top
+    clip_bottom = clip_crop_bottom - out_y1
+    min_clip_margins = {
+        "top_inside_center_square": round(float(np.min(clip_top)), 2),
+        "bottom_inside_center_square": round(float(np.min(clip_bottom)), 2),
+        "left": min_margins["left"],
+        "right": min_margins["right"],
     }
 
     guard_failures = []
-    if margins["top"] < 90:
-        guard_failures.append(f"top margin {margins['top']} < 90")
-    if margins["bottom"] < 90:
-        guard_failures.append(f"bottom margin {margins['bottom']} < 90")
-    if margins["left"] < 70:
-        guard_failures.append(f"left margin {margins['left']} < 70")
-    if margins["right"] < 70:
-        guard_failures.append(f"right margin {margins['right']} < 70")
-    if clip_margins["top_inside_center_square"] < 24:
-        guard_failures.append(f"CLIP center-crop top margin {clip_margins['top_inside_center_square']} < 24")
-    if clip_margins["bottom_inside_center_square"] < 24:
-        guard_failures.append(f"CLIP center-crop bottom margin {clip_margins['bottom_inside_center_square']} < 24")
+    if min_margins["top"] < 70:
+        guard_failures.append(f"top margin {min_margins['top']} < 70")
+    if min_margins["bottom"] < 70:
+        guard_failures.append(f"bottom margin {min_margins['bottom']} < 70")
+    if min_margins["left"] < 55:
+        guard_failures.append(f"left margin {min_margins['left']} < 55")
+    if min_margins["right"] < 55:
+        guard_failures.append(f"right margin {min_margins['right']} < 55")
+    if min_clip_margins["top_inside_center_square"] < 16:
+        guard_failures.append(
+            f"CLIP center-crop top margin {min_clip_margins['top_inside_center_square']} < 16"
+        )
+    if min_clip_margins["bottom_inside_center_square"] < 16:
+        guard_failures.append(
+            f"CLIP center-crop bottom margin {min_clip_margins['bottom_inside_center_square']} < 16"
+        )
     if guard_failures:
         cap.release()
         fail("FAIL_PREINFER_MARGIN_GUARD: " + "; ".join(guard_failures))
 
-    pad_bgr = np.median(np.stack(corner_samples, axis=0), axis=0).astype(np.uint8) if corner_samples else np.array([32, 32, 32], dtype=np.uint8)
-    matrix = np.array([[scale, 0.0, tx], [0.0, scale, ty]], dtype=np.float32)
+    pad_bgr = (
+        np.median(np.stack(corner_samples, axis=0), axis=0).astype(np.uint8)
+        if corner_samples
+        else np.array([32, 32, 32], dtype=np.uint8)
+    )
+    border_value = tuple(int(v) for v in pad_bgr.tolist())
 
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -240,11 +323,11 @@ def build_subject_framed_driver(src, dst, manifest_path, analysis_frames, target
 
     written = 0
     interpolation = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_LINEAR
-    border_value = tuple(int(v) for v in pad_bgr.tolist())
-    while True:
+    while written < len(frames):
         ok, frame = cap.read()
         if not ok:
             break
+        matrix = np.array([[scale, 0.0, tx[written]], [0.0, scale, ty[written]]], dtype=np.float32)
         warped = cv2.warpAffine(
             frame,
             matrix,
@@ -258,37 +341,33 @@ def build_subject_framed_driver(src, dst, manifest_path, analysis_frames, target
 
     cap.release()
     writer.release()
-    if written <= 0 or not os.path.isfile(dst) or os.path.getsize(dst) <= 0:
-        fail("subject-framing preprocessor produced no usable video")
+    if written != len(frames) or written <= 0 or not os.path.isfile(dst) or os.path.getsize(dst) <= 0:
+        fail(f"subject-framing preprocessor wrote {written}/{len(frames)} analyzed frames")
 
     manifest = {
-        "gate": "W1G_SUBJECT_FRAMING_V1",
+        "gate": "W1G_SUBJECT_FRAMING_V2_TRACKED_TRANSLATION",
         "status": "PASS_DRIVER_READY",
-        "method": "fixed global temporal-activity subject envelope; one affine transform for the whole clip; no per-frame camera breathing",
+        "method": "per-frame OpenCV HOG person detection + interpolation + smoothed translation; constant scale; no per-frame zoom",
         "source_width": src_w,
         "source_height": src_h,
         "source_fps": fps,
         "source_frame_count": frame_count,
         "analysis_frames": len(frames),
-        "activity_otsu_threshold": float(otsu),
-        "activity_threshold_used": int(min_threshold),
-        "raw_activity_bbox": raw_bbox,
-        "expanded_subject_bbox": subject_bbox,
-        "subject_bbox_area_ratio": round(bbox_area_ratio, 6),
+        "detected_frames": len(detection_indices),
+        "detected_frame_indices": detection_indices,
         "target_width": target_w,
         "target_height": target_h,
         "target_subject_height_ratio": target_subject_height_ratio,
         "target_center_x": target_center_x,
         "target_bottom_y": target_bottom_y,
-        "affine_scale": float(scale),
-        "affine_tx": float(tx),
-        "affine_ty": float(ty),
-        "transformed_subject_bbox": [round(out_x0, 2), round(out_y0, 2), round(out_x1 - out_x0, 2), round(out_y1 - out_y0, 2)],
-        "output_margins": margins,
-        "clipvision_center_crop_guard": clip_margins,
+        "constant_scale": float(scale),
+        "robust_expanded_subject_height": robust_h,
+        "robust_expanded_subject_width": robust_w,
+        "min_output_margins": min_margins,
+        "min_clipvision_center_crop_margins": min_clip_margins,
         "pad_bgr": [int(v) for v in pad_bgr.tolist()],
         "written_frames": written,
-        "policy": "normalize the automatically detected moving-subject envelope, not merely the whole source frame; preserve a fixed camera transform and explicit head/foot/side safety inside both 640x800 pose-video and the center-square CLIP pose crop",
+        "policy": "track the performer instead of unioning all motion; follow translation with temporal smoothing while keeping constant subject scale; preserve subject safety in 640x800 pose-video and center-square CLIP pose crop",
     }
     with open(manifest_path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, ensure_ascii=False, indent=2)
@@ -324,7 +403,7 @@ def main():
     if parent_manifest.get("status") != "INFERENCE_COMPLETE":
         fail(f"W1A manifest is not complete: {parent_manifest.get('status')}")
     if float(parent_manifest.get("reference_image_strength", -1)) != 1.5:
-        fail("W1G must branch from W1A reference_image_strength=1.5 so framing is the only model-input variable changed from that structural branch")
+        fail("W1G must branch from W1A reference_image_strength=1.5")
 
     with open(parent_prompt_path, "r", encoding="utf-8-sig") as fh:
         raw_prompt = json.load(fh)
@@ -369,8 +448,16 @@ def main():
         json.dump(prep, fh, ensure_ascii=False, indent=2)
 
     print(f"W1G: subject-framed driver prepared at {subject_abs}", flush=True)
-    print(f"W1G: detected envelope={prep['expanded_subject_bbox']} transformed={prep['transformed_subject_bbox']}", flush=True)
-    print(f"W1G: output margins={prep['output_margins']} CLIP-center-crop guard={prep['clipvision_center_crop_guard']}", flush=True)
+    print(
+        f"W1G: detected_frames={prep['detected_frames']}/{prep['analysis_frames']} "
+        f"constant_scale={prep['constant_scale']:.4f}",
+        flush=True,
+    )
+    print(
+        f"W1G: min output margins={prep['min_output_margins']} "
+        f"CLIP-center-crop margins={prep['min_clipvision_center_crop_margins']}",
+        flush=True,
+    )
 
     load_video_nodes = [(nid, node) for nid, node in prompt.items() if node.get("class_type") == "LoadVideo"]
     matches = []
@@ -397,7 +484,10 @@ def main():
     with open(prompt_out, "w", encoding="utf-8") as fh:
         json.dump(prompt, fh, ensure_ascii=False, indent=2)
 
-    print("W1G: submitting exact W1A structural branch with only automatic subject-framing replacing the raw driver geometry...", flush=True)
+    print(
+        "W1G: submitting exact W1A structural branch with only tracked subject-framing replacing driver geometry...",
+        flush=True,
+    )
     started = time.time()
     response = request_json(base + "/prompt", {"prompt": prompt}, timeout=120)
     prompt_id = response.get("prompt_id")
@@ -434,32 +524,49 @@ def main():
     shutil.copy2(output_path, canonical_output)
 
     manifest = dict(parent_manifest)
-    manifest.update({
-        "gate": "WAN_ANIMATE2_W1G_BF16_EXILADA_SUBJECT_FRAMING_REF15",
-        "status": "INFERENCE_COMPLETE",
-        "created_utc": datetime.now(timezone.utc).isoformat(),
-        "parent_w1a_prompt_id": parent_manifest.get("prompt_id"),
-        "driver": subject_rel,
-        "driver_preprocess": prep,
-        "reference_image_strength": 1.5,
-        "prompt_file": prompt_out,
-        "save_node": save_node_id,
-        "wan_node": wan_node_id,
-        "output_prefix": new_prefix,
-        "prompt_id": prompt_id,
-        "elapsed_seconds": elapsed,
-        "comfy_output": output_path,
-        "canonical_output": canonical_output,
-        "output_bytes": os.path.getsize(canonical_output),
-        "output_sha256": sha256_file(canonical_output),
-        "changed_from_w1a": ["driver_preprocess_subject_normalization", "output_prefix"],
-        "unchanged_from_w1a": [
-            "reference_image", "positive_prompt", "negative_prompt", "main_model", "text_encoder", "clip_vision", "vae",
-            "resolution", "frame_count", "fps", "steps", "cfg", "sampler", "scheduler", "shift", "seed",
-            "pose_strength", "reference_image_strength"
-        ],
-        "hypothesis": "W1F proved whole-frame letterboxing does not control Wan framing. W1G therefore normalizes the automatically detected moving-subject envelope itself, keeps it safe inside both the 640x800 pose-video canvas and the center-square CLIP pose crop, and branches from the structurally preferred W1A reference strength 1.5 without changing any model/sampler/seed setting.",
-    })
+    manifest.update(
+        {
+            "gate": "WAN_ANIMATE2_W1G_BF16_EXILADA_SUBJECT_FRAMING_REF15",
+            "status": "INFERENCE_COMPLETE",
+            "created_utc": datetime.now(timezone.utc).isoformat(),
+            "parent_w1a_prompt_id": parent_manifest.get("prompt_id"),
+            "driver": subject_rel,
+            "driver_preprocess": prep,
+            "reference_image_strength": 1.5,
+            "prompt_file": prompt_out,
+            "save_node": save_node_id,
+            "wan_node": wan_node_id,
+            "output_prefix": new_prefix,
+            "prompt_id": prompt_id,
+            "elapsed_seconds": elapsed,
+            "comfy_output": output_path,
+            "canonical_output": canonical_output,
+            "output_bytes": os.path.getsize(canonical_output),
+            "output_sha256": sha256_file(canonical_output),
+            "changed_from_w1a": ["driver_preprocess_tracked_subject_translation", "output_prefix"],
+            "unchanged_from_w1a": [
+                "reference_image",
+                "positive_prompt",
+                "negative_prompt",
+                "main_model",
+                "text_encoder",
+                "clip_vision",
+                "vae",
+                "resolution",
+                "frame_count",
+                "fps",
+                "steps",
+                "cfg",
+                "sampler",
+                "scheduler",
+                "shift",
+                "seed",
+                "pose_strength",
+                "reference_image_strength",
+            ],
+            "hypothesis": "W1G v2 tracks the performer per frame, interpolates misses, smooths translation, and uses one constant scale. This should remove source-frame traversal from the conditioning while preserving W1A reference strength 1.5 and avoiding zoom breathing.",
+        }
+    )
     manifest_path = os.path.join(workspace, "w1g_run_manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, ensure_ascii=False, indent=2)
