@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / H3 ACTIVE / RUNNER46 BOOTSTRAP PASS / RUNNER47 PRE-INFERENCE INTEGRATION FAIL / RUNNER48 CURRENT**
+Status: **CANONICAL / H0 COMPLETE / PASS_CANDIDATE / H1 GAME-RELEVANT WALK NEXT**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -18,76 +18,31 @@ No routine manual rigging, keyframing, repair, masks, repainting or hand composi
 
 ## Transition from Wan
 
-Wan-Animate-2 is **PAUSED AFTER W1L**, not exhausted. Preserve local W1L evidence. Do not launch another Wan run while H3 is active.
+Wan-Animate-2 is **PAUSED AFTER W1L**, not exhausted. Preserve local W1H/W1L evidence. H3 is now the active family.
 
-## Why Ref2VA
-
-`MiniMaxH3ReferenceToVideo` accepts multimodal references:
+## Ref2VA mapping
 
 - `<Picture 1>` = Exilada appearance/identity/anatomy/clothing/hair/art language;
 - `<Video 1>` = movement/performance/timing/weight transfer only.
 
 The prompt explicitly ignores the driver's identity/body/clothing/hair/environment/style.
 
-## Runner46 result
+## Integration history
 
-Runner46 completed successfully and proved:
+Runner46 prepared the dedicated ComfyUI v0.34.0 environment and H0 inputs. Runner47 was rejected before inference because `MiniMaxH3ReferenceToVideo.audio_vae` is a required node input even without audio references. This was classified **INTEGRATION_FAIL / PRE-INFERENCE**.
 
-- pinned ComfyUI v0.34.0 can launch locally;
-- initial selected checkpoints hash correctly;
-- Exilada and driver inputs are prepared;
-- H3/core node classes and object-info are present.
+Runner48 added only the official schema-required audio VAE and preserved every quality variable.
 
-This is an **infrastructure/bootstrap pass**, not a complete API graph-integration proof.
+Correct minimal H3 Ref2VA set:
 
-## Runner47 incident — integration only
+1. `models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors` — ~21GB.
+2. `models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` — ~15.7GB.
+3. `models/vae/minimax_h3_video_vae_fp16.safetensors` — ~5.21GB.
+4. `models/vae/minimax_h3_audio_vae_fp32.safetensors` — 605,254,808 bytes; SHA256 `8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48`.
 
-First H0 submission was rejected before `prompt_id`:
+Total active payload ~42.5GB. The audio VAE is a schema dependency only; H0 uses no audio reference and produces no audio output.
 
-```text
-HTTP 400
-prompt_outputs_failed_validation
-MiniMaxH3ReferenceToVideo
-Required input is missing: audio_vae
-```
-
-Classification: **INTEGRATION_FAIL / PRE-INFERENCE**.
-
-No H3 sampling occurred. This gives no model-quality evidence and does not justify changing H0 resolution, sampling, seed, references or prompt.
-
-### Root cause
-
-The initial tooling omitted the audio VAE because H0 does not use or decode audio. In pinned ComfyUI v0.34.0 that is invalid: `MiniMaxH3ReferenceToVideo` declares `audio_vae` as required regardless of whether audio references are connected.
-
-The official R2V workflow also includes this dependency.
-
-## Corrected pinned H0 model set
-
-1. `models/diffusion_models/minimax_h3_ref2va_pruned_int8_convrot.safetensors`
-   - ~21GB;
-   - SHA256 `9255f52b6677845ad238f20dfaafa94727053694127ab7f255c048f0f9365779`.
-2. `models/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
-   - ~15.7GB;
-   - SHA256 `35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6`.
-3. `models/vae/minimax_h3_video_vae_fp16.safetensors`
-   - 5,207,808,496 bytes (~5.21GB);
-   - SHA256 `7c1f131492e7eddacaac9069a61b81bdd39de5cc96561e677c5eab1cdce5e522`.
-4. **`models/vae/minimax_h3_audio_vae_fp32.safetensors`**
-   - **605,254,808 bytes (~605MB)**;
-   - SHA256 `8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48`.
-
-Corrected H0 H3 payload is approximately **42.5GB**.
-
-The audio VAE is a required node-schema dependency only. H0 still supplies no audio reference and performs no audio decode/output.
-
-## Explicitly excluded
-
-Do not download:
-
-- H3 FL2VA checkpoint;
-- alternate Ref2VA quantizations;
-- Turbo LoRA;
-- style embeddings.
+Explicitly excluded: FL2VA, alternate Ref2VA quantizations, Turbo LoRA and style embeddings.
 
 ## H0 input preparation
 
@@ -95,11 +50,11 @@ Appearance:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-Prepared driver:
+Driver:
 
 `ComfyUI/input/roguelite_h3/h0_driver_24fps_124f.mp4`
 
-Driver normalization remains:
+Driver normalization:
 
 - exactly124 frames at24fps;
 - no crop;
@@ -108,104 +63,113 @@ Driver normalization remains:
 - audio removed;
 - timestamp resampling only.
 
-## H0 exact quality baseline — unchanged
+## H0 exact completed baseline
 
 - task `ref2va`;
 - `448×800`;
 -124 frames @24fps;
+- duration ~5.17s;
 - `ref_image_size=match`;
 -50 steps;
-- `res_multistep` sampler;
-- `beta` scheduler;
+- `res_multistep`;
+- `beta`;
 - seed0;
-- H3 default sigma shifts video12/audio3;
+- H3 sigma shifts video12/audio3;
 - no Turbo;
-- no negative-conditioning branch;
-- fixed camera/full-body/topology stability requested in prompt;
 - Picture1 = Exilada appearance;
 - Video1 = motion only;
 - audio VAE wired only because required by schema.
 
-## Why 448×800 first
+Completion evidence:
 
-Runtime protagonist is ~128px tall. `448×800` is deliberately below a 768-short-edge source to test the smallest useful generation scale while preserving several-times supersampling for final sprite use.
+- prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
+- elapsed `4504.8s`;
+- canonical output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
+- output SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`;
+- gameplay proxy `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`;
+- proxy SHA256 `32d9f2873798e4920639055c1a0ea9336dffd891d857a36e03ccf142a874ecbd`.
 
-Finite resolution ladder only after completed H0 evidence:
+## H0 visual review
 
-1. `448×800`;
-2. `480×864` if specifically under-resolved;
-3. `512×896` if still needed;
-4. one 768-short-edge control only if necessary to separate resolution failure from model/task failure.
+The uploaded 448×800 video and 90×160 gameplay proxy were reviewed across the 124-frame sequence.
 
-If motion/topology is excellent and identity alone weak, test `ref_image_size=max` before increasing output resolution.
+### Verdict
 
-## Dual-scale QA
+**PASS_CANDIDATE / FAMILY ADVANCES.**
 
-Full-resolution hard checks:
+### Strong evidence
 
-- stable head/torso/two arms/two hands/two legs/two feet;
-- no detached/duplicated/swapped/fused/disappearing limbs;
-- stable torso/breast/hip anatomy;
-- Exilada identity preserved;
-- motion timing/weight follows driver;
-- long hair/cloth dynamic but attached;
-- restraints remain accessories, not flesh/limbs;
-- no destructive global smear/ghost double.
+- stable head/torso/two arms/two legs across the sequence;
+- no observed duplicated/fused/disappearing limbs or whole-body ghost doubles;
+- torso/hip/body proportions stay materially coherent;
+- face and general identity remain internally stable;
+- hair remains long/heavy and visibly responds to motion;
+- torn cloth moves with the body while remaining attached;
+- shackles/chains remain accessory geometry rather than morphing into flesh;
+- image stays materially sharper and structurally more legible than the problematic Wan runs;
+- painterly illustrated dark-fantasy rendering is highly compatible with the locked Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell direction;
+- gameplay-scale proxy retains a clear pose/silhouette near the target ~128px character height.
 
-Gameplay proxy:
+### Residual defects
 
-`Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`
+- chain geometry is not perfectly invariant; length/curve/attachment details drift somewhat;
+- toward the end of the clip the character reaches the right frame edge and the right foot becomes partially cropped. This is classified as a **framing/driver-envelope issue**, not observed anatomy collapse;
+- exact one-to-one fidelity against the canonical master remains an art-finalization check, although the generated character remains internally stable through H0.
 
-Downsampling may make minor texture noise/local blur irrelevant, but cannot excuse topology loss or identity drift.
+## Resolution decision
 
-## CURRENT OPERATOR ACTION — Runner48
+`448×800` passes the quality gate. Do **not** escalate to `480×864`, `512×896` or a 768-short-edge control without a new failure that specifically points to under-resolution.
 
-```powershell
-git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
+`ref_image_size=max` is also deferred. H0 does not show a clear identity-collapse problem that justifies the additional reference-token cost.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\48_run_minimax_h3_ref2va_h0_audio_vae_fix.ps1"
-```
+This supports the project hypothesis that generating below the model's usual 768-short-edge regime can be practical because final runtime sprites are only ~128px tall.
 
-Runner48:
+## Gameplay-scale result
 
-1. downloads/resumes the official audio VAE if absent;
-2. verifies exact SHA256 and byte size;
-3. starts pinned ComfyUI v0.34.0;
-4. wires `audio_vae` to the Ref2VA node;
-5. retains all H0 quality settings exactly;
-6. submits the repaired graph.
+The proxy is 90×160. With the character occupying most of the frame, the visible figure is roughly in the target runtime-height range. Pose, body mass, hair silhouette and limb direction remain readable. Minor high-frequency texture loss at this scale is acceptable; the important topology survives.
 
-If terminal prints:
+## Throughput
 
-```text
-H3-H0: prompt_id=...
-```
+H0 elapsed `4504.8s` for124 frames: ~36.3s/generated frame. Treat this only as an offline Base-quality reference because it is not directly comparable to Wan's different frame count/resolution/sampler. Do not optimize speed before the game-relevant locomotion gate passes.
 
-real H3 inference has started.
+## Manifest metadata note
 
-Expected proof after completion:
+The completed uploaded H0 manifest has a legacy top-level `audio_vae: null` inherited from the base executor, while its `integration_fix` block correctly records `minimax_h3_audio_vae_fp32.safetensors`. The repaired wrapper is corrected for future runs so top-level `audio_vae` is also populated. The metadata discrepancy did not affect the completed H0 graph or output.
 
-- `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
-- `Z:\AI\MiniMaxH3\h0_run_manifest.json`;
-- `Z:\AI\MiniMaxH3\h0_api_prompt.json`;
-- `Z:\AI\MiniMaxH3\h0_executor.log`;
-- gameplay proxy when preview encoding succeeds.
+## NEXT — H1 GAME-RELEVANT WALK DRIVER
 
-## Failure classification
+Do not tune nearby H0 settings again. Replace only the motion reference with a game-relevant real walking/performance clip while retaining the successful H0 quality baseline.
 
-- download/hash/extract/version -> `INFRASTRUCTURE FAIL`;
-- missing/changed node/API graph -> `INTEGRATION FAIL`;
-- CUDA/DynamicVRAM/host-buffer/OOM/runtime crash -> `INFRASTRUCTURE FAIL` until diagnosed;
-- completed video with poor character behavior -> `MODEL/TASK` or `CONFIGURATION` evidence according to defect.
+Required driver properties:
 
-No manual repair can convert a failed production route into a production PASS.
+- one adult performer;
+- whole body visible;
+- fixed camera;
+- continuous shot;
+- screen-left locomotion;
+- mostly lateral/slight 3/4, targeting the locked `72°` facing baseline;
+- at least one complete gait cycle;
+- enough head/feet/lateral margin that no source-envelope crop is forced;
+- performer clothing/hair/identity/body resemblance irrelevant.
+
+Initial H1 settings remain:
+
+- `448×800`;
+- Base50;
+- `res_multistep/beta`;
+- seed0;
+- `ref_image_size=match`.
+
+H1 pass criteria:
+
+- correct locomotion timing and weight transfer;
+- complete body through the gait cycle;
+- H0-level topology stability;
+- readable hair/cloth/restraint secondary response;
+- usable gameplay-scale silhouette for a locomotion spritesheet.
+
+After H1 passes, advance to stronger secondary dynamics/wind/restraint stress. Turbo/speed optimization comes afterward.
 
 ## Cleanup
 
-- keep one Ref2VA quantization only;
-- audio VAE is now part of the minimum active Ref2VA set;
-- no FL2VA/Turbo/style assets unless a later explicit hypothesis requires them;
-- preserve Wan W1L proof/results;
-- remove paused Wan large checkpoint weights only after H3 is technically proven active enough that immediate return is unnecessary;
-- keep SSD/Moore comparison evidence until explicit abandonment/final verdict.
+H3 is now both technically and visually proven active. Paused Wan large checkpoint weights may be removed while preserving W1H/W1L videos, prompts, manifests and logs. Keep only the minimal four-file H3 Ref2VA set. Do not accumulate FL2VA/Turbo/style/alternate quantizations until a later explicit hypothesis requires them. Keep SSD/Moore comparison evidence until explicit abandonment/final verdict.
