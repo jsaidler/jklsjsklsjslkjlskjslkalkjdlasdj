@@ -2,7 +2,7 @@
 
 Status date: **2026-09-07**
 
-Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN W0 PASS_BASELINE / W1 PAINTERLY DIRECTION APPROVED / W1A STRUCTURAL 1.5 BRANCH RETAINED / W1F WHOLE-FRAME LETTERBOX FAILED CROP / W1G TRACKED SUBJECT FRAMING ACTIVE / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
+Status: **CANONICAL / RAW-VIDEO MOTION CONTRACT LOCKED / WAN W0 PASS_BASELINE / W1 PAINTERLY DIRECTION APPROVED / W1A STRUCTURAL 1.5 BRANCH RETAINED / W1F WHOLE-FRAME LETTERBOX FAILED CROP / W1G DETECTOR-AGNOSTIC SUBJECT FRAMING ACTIVE / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
 
 ## Purpose
 
@@ -47,13 +47,7 @@ Conclusion: the local Base-BF16 direct-driving integration works.
 
 ## W1 — Exilada / reference strength 1.0
 
-Runner 37 proved:
-
-- substantial cross-identity raw-video motion transfer;
-- no cat identity/costume leakage;
-- long black hair moves as a non-rigid mass;
-- ragged hip cloth changes drape;
-- coarse Exilada identity/state survives.
+Runner 37 proved substantial cross-identity raw-video motion transfer, no cat identity/costume leakage, non-rigid long-hair motion, hip-cloth drape changes and coarse Exilada identity/state retention.
 
 Open technical issues:
 
@@ -72,12 +66,6 @@ The art direction deliberately includes an **1980s sword-and-sorcery charge** al
 
 Runner 38 changed only `reference_image_strength: 1.0 -> 1.5`.
 
-Manifest:
-
-- `INFERENCE_COMPLETE`;
-- elapsed `1912.32 s`;
-- output SHA256 `2661d339f332a28ca25a3a03aa6a59ccd93a572751fb488de04540a764315bef`.
-
 Current interpretation after user review:
 
 - `1.5` appears to preserve **body structure/topology** better than `1.0`;
@@ -89,35 +77,21 @@ Do not state simply that “1.5 lost”.
 
 ## W1F — fixed whole-frame safe framing 80% / CROP FAIL
 
-Runner 39 retry completed validly after the OpenCV preflight correction.
+Runner 39 retry completed validly. The whole source frame was placed at `360×640` inside `640×800` with offset `(140,80)`, no source crop and no camera breathing.
 
-Manifest facts:
+Visual result: **crop remains**. Head/hair still leave the top later and the character still reaches the right edge.
 
-- `INFERENCE_COMPLETE`;
-- reference strength `1.0`;
-- elapsed `1737.61 s`;
-- source `480×854`, 337 frames @30 fps;
-- whole source frame placed at `360×640` inside `640×800`, offset `(140,80)`;
-- no source crop, no tracking/camera breathing.
-
-Visual result:
-
-**crop remains.** Head/hair still leave the top later and the character still reaches the right edge.
-
-Conclusion:
-
-- scaling/letterboxing the whole driver frame does not control generated-character margins sufficiently;
-- do not spend runs on 70%/60%/50% whole-frame variants without a new mechanism.
+Conclusion: scaling/letterboxing the whole driver frame does not control generated-character margins sufficiently. Do not spend runs on 70%/60%/50% whole-frame variants without a new mechanism.
 
 ## Native framing semantics relevant to W1G
 
 Current ComfyUI `WanAnimate2ToVideo` resizes `pose_video` to requested width/height using `common_upscale(..., "area", "center")`.
 
-The current project graph also sends the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
+The project graph also sends the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
 
 Therefore W1G must control the **subject envelope**, not only canvas margins, and must keep that envelope safe inside both the `640×800` pose canvas and the center-square CLIP pose crop.
 
-## W1G — CURRENT: tracked subject framing on reference-strength 1.5 branch
+## W1G — CURRENT: subject framing on reference-strength 1.5 branch
 
 Runner:
 
@@ -131,30 +105,40 @@ Parent = exact completed W1A prompt. Thus `reference_image_strength=1.5` remains
 
 ### W1G v1 — PRE-INFERENCE FAIL
 
-The initial W1G preprocessor used one temporal-activity union box across the first 37 frames. It aborted before inference with:
+A single temporal-activity union across the first 37 frames expanded to the whole frame and aborted with:
 
 `automatic subject bbox covers almost the whole source frame (1.000)`
 
 Classification: **PREPROCESSOR/INTEGRATION FAIL**. No Wan/model inference occurred.
 
-This result is useful: temporal activity spans essentially the full source frame, so a global union confounds subject traversal/background activity with subject size. A single fixed affine transform is not a meaningful solution for this driver.
+### W1G v2 — PRE-INFERENCE FAIL / EXACT SUB-CAUSE NOT SURFACED
 
-### W1G v2 — ACTIVE
+V2 used OpenCV HOG person detection per frame, interpolated misses, smoothed translation and one constant scale. The surfaced terminal excerpt ended in executor code 2 before any `W1G: prompt_id=...` appeared.
 
-The revised preprocessor:
+Because the terminal excerpt omitted the executor's specific `W1G: FAIL - ...` line, the exact v2 sub-cause is not asserted. Classification remains **PREPROCESSOR/INTEGRATION FAIL; no Wan inference**.
 
-- runs OpenCV built-in HOG person detection independently per frame;
-- selects a temporally coherent performer box;
-- interpolates missing detections;
-- expands for head/hair/hands/feet safety;
-- applies **smoothed translation only** frame-to-frame;
-- keeps **one constant scale** over the complete analyzed sequence, preventing zoom/camera breathing;
-- targets subject-envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
-- preflights minimum top/bottom/left/right margins;
-- separately preflights the central square seen by `CLIPVisionEncode(crop="center")`;
-- uses existing `cv2` + `numpy`, with no new detector checkpoint/model download.
+HOG-only detection is also conceptually too brittle for the production contract because drivers may use arbitrary subject appearance and non-upright poses. The HOG-only path is superseded.
 
-If the HOG detector cannot produce enough credible boxes, v2 also aborts before Wan rather than falling back to the already-disproven global activity union.
+### W1G v3 — ACTIVE
+
+V3 is detector-agnostic for the current fixed-camera official baseline:
+
+1. estimate temporal-median background from the first 37 frames;
+2. segment foreground independently per frame;
+3. choose/track the dominant coherent foreground component;
+4. interpolate missing boxes;
+5. expand for head/hair/hands/feet safety;
+6. smooth translation only;
+7. keep one constant scale, so no zoom/camera breathing;
+8. target envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
+9. hard-check canvas and CLIP center-square margins before Wan;
+10. use existing `cv2` + `numpy`, with no new detector checkpoint/model.
+
+Runner 40 now also writes and surfaces:
+
+`Z:\AI\WanAnimate2\w1g_executor.log`
+
+so executor failures are no longer hidden behind unrelated ComfyUI stderr.
 
 Everything else remains W1A: Exilada reference/prompt, Base BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt and `--disable-pinned-memory`.
 
@@ -164,12 +148,13 @@ Success criterion:
 2. W1A's stronger structural retention survives;
 3. if so, **blur reduction is the next isolated variable**.
 
-Expected evidence after a valid W1G v2 inference:
+Expected evidence after a valid W1G v3 inference:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`;
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`;
 - `Z:\AI\WanAnimate2\w1g_api_prompt.json`;
-- `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`.
+- `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`;
+- `Z:\AI\WanAnimate2\w1g_executor.log`.
 
 ## Art-direction gate — AFTER FRAMING/BLUR
 
@@ -188,7 +173,8 @@ Only after framing and destructive blur are controlled should the appearance pro
 - W1A ref 1.5 — **structural branch retained; blur problem isolated**.
 - W1F whole-frame safe80 — **CROP FAIL**.
 - W1G v1 global activity union — **PRE-INFERENCE FAIL / no Wan inference**.
-- W1G v2 tracked translation + constant scale + ref 1.5 — **CURRENT**.
+- W1G v2 HOG tracking — **PRE-INFERENCE FAIL / no Wan inference**.
+- W1G v3 detector-agnostic foreground tracking + constant scale + ref 1.5 — **CURRENT**.
 - blur-reduction gate if W1G framing passes.
 - art-direction gate.
 - W2 target Internet walking driver.
