@@ -46,14 +46,15 @@ $WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
 if (-not $WorkspacePython) { Fail "ComfyUI Python environment not found under $Workspace" }
 
 Write-Host ''
-Write-Host 'Roguelite Runner 40 — Wan-Animate-2 Base BF16 W1G / subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
+Write-Host 'Roguelite Runner 40 - Wan-Animate-2 Base BF16 W1G / tracked subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
 Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
 Write-Host '[PARENT] Exact completed W1A prompt at reference_image_strength=1.5.' -ForegroundColor Green
 Write-Host '[WHY 1.5] User review: W1A preserves body structure/topology better than 1.0 even though it carries more destructive blur. Blur remains a later isolated axis.' -ForegroundColor Yellow
 Write-Host '[FRAMING EVIDENCE] W1F proved whole-frame 80% letterboxing does NOT solve generated crop.' -ForegroundColor Yellow
-Write-Host '[ONE VARIABLE FROM W1A] Driver geometry only: normalize the automatically detected moving-subject envelope with one fixed affine transform for the whole clip.' -ForegroundColor Yellow
+Write-Host '[W1G V1 PREFLIGHT] One global temporal-activity union expanded to the whole frame and correctly aborted before inference.' -ForegroundColor Yellow
+Write-Host '[W1G V2] Driver geometry only: detect the performer per frame, interpolate misses, smooth translation, and keep ONE constant scale. No per-frame zoom/breathing.' -ForegroundColor Yellow
 Write-Host "[TARGET] subject-envelope height ratio=$TargetSubjectHeightRatio, center-x=$TargetCenterX, bottom-y=$TargetBottomY on 640x800." -ForegroundColor Green
-Write-Host '[CLIP GUARD] The preprocessor also keeps the subject safely inside the center-square crop used by the existing CLIPVisionEncode pose path.' -ForegroundColor Green
+Write-Host '[CLIP GUARD] The preprocessor also keeps the tracked subject safely inside the center-square crop used by the existing CLIPVisionEncode pose path.' -ForegroundColor Green
 Write-Host '[UNCHANGED] Exilada reference/prompt, Base BF16 stack, 37 frames, 16 fps output, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt.' -ForegroundColor Green
 Write-Host '[MEMORY] Keep proven --disable-pinned-memory workaround.' -ForegroundColor Yellow
 Write-Host ''
@@ -139,7 +140,7 @@ if (-not $ready) {
     Fail "ComfyUI API did not become available at $Base"
 }
 
-Write-Host 'Preparing automatic subject-normalized raw driver and submitting W1G...' -ForegroundColor Cyan
+Write-Host 'Preparing tracked subject-normalized raw driver and submitting W1G...' -ForegroundColor Cyan
 & $WorkspacePython $Executor `
     --workspace $Workspace `
     --comfy-root $ComfyRoot `
@@ -166,7 +167,7 @@ foreach ($f in @($Output,$Manifest,$Prompt,$DriverManifest)) {
 }
 
 Write-Host ''
-Write-Host 'RUNNER40-WAN-W1G: PASS — SUBJECT-FRAMING / REF-STRENGTH 1.5 DIAGNOSTIC GENERATED' -ForegroundColor Green
+Write-Host 'RUNNER40-WAN-W1G: PASS - SUBJECT-FRAMING / REF-STRENGTH 1.5 DIAGNOSTIC GENERATED' -ForegroundColor Green
 Write-Host "Video:           $Output" -ForegroundColor Cyan
 Write-Host "Manifest:        $Manifest" -ForegroundColor Cyan
 Write-Host "Prompt:          $Prompt" -ForegroundColor Cyan
