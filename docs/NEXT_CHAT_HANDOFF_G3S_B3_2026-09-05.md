@@ -27,16 +27,11 @@ Final runtime uses complete-character spritesheets. Appearance comes from the Ex
 
 ## Visual direction — UPDATED 2026-09-07
 
-The earlier hard final-art pixel-art requirement is superseded.
-
-Current direction:
-
 - painterly illustrated dark-fantasy 2D;
 - deliberate **1980s sword-and-sorcery charge**;
 - inspirations: **Heavy Metal, Conan, Red Sonja, Frank Frazetta, Julie Bell**;
 - localized/restrained blur may be positive;
 - destructive blur that erases anatomy/topology is not acceptable;
-- adult sensuality/nudity must not be sanitized by default;
 - later art-direction test: more severely torn cloth, more body exposure, possible partial breast exposure consistent with damage/state.
 
 ## Candidate order
@@ -61,40 +56,24 @@ Strong raw-video motion, non-rigid hair/cloth response and approved painterly lo
 
 ## W1A — ref 1.5 / STRUCTURAL BRANCH RETAINED
 
-Runner 38 changed only `reference_image_strength 1.0 -> 1.5`.
-
-Revised interpretation after user review:
+User review supersedes the earlier sharpness-weighted verdict:
 
 - `1.5` preserves body structure/topology better;
 - `1.0` is cleaner in some phases;
 - `1.5` has more destructive blur/ghosting;
 - keep `1.5` as the structural branch and solve blur separately.
 
-Do not summarize W1A as simply “1.5 lost”.
-
 ## W1F — whole-frame safe80 / COMPLETE / CROP FAIL
 
-Runner 39 retry completed validly.
-
-Manifest:
-
-- ref strength 1.0;
-- elapsed 1737.61 s;
-- source 480×854 / 337 frames @30 fps;
-- whole source placed 360×640 in 640×800 at offset `(140,80)`;
-- no source crop or camera breathing.
-
-Visual result: **crop remains**. Head/hair still leave top later; character still pushes right.
-
-Conclusion: whole-frame letterbox margins do not map to equivalent Wan output margins. Do not waste time on simple 70%/60%/50% letterbox variants.
+Runner 39 retry completed validly. Whole-frame letterboxing did **not** solve generated crop. Do not iterate simple 70%/60%/50% letterbox variants.
 
 ## Relevant native semantics
 
-Current `WanAnimate2ToVideo` center-resizes `pose_video` to requested size. The project graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
+Current `WanAnimate2ToVideo` center-resizes `pose_video` to requested size. The graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
 
 The normalizer therefore must control the **subject envelope itself** and keep it safe inside both the 640×800 pose canvas and the CLIP center square.
 
-## CURRENT GATE — RUNNER 40 / W1G TRACKED SUBJECT FRAMING + REF 1.5
+## CURRENT GATE — RUNNER 40 / W1G SUBJECT FRAMING + REF 1.5
 
 Runner:
 
@@ -108,23 +87,22 @@ Parent = exact completed W1A prompt, therefore reference strength remains 1.5. R
 
 ### W1G v1 — PRE-INFERENCE FAIL
 
-The first subject-framing implementation used temporal-activity segmentation and one global activity union over the first 37 frames.
+A global temporal-activity union expanded to essentially the whole frame (`1.000`) and correctly aborted before Wan. Classification: preprocessor/integration fail.
 
-It aborted before inference with:
+### W1G v2 — PRE-INFERENCE FAIL
 
-`automatic subject bbox covers almost the whole source frame (1.000)`
+HOG-person tracking also exited with code 2 before any `W1G: prompt_id=...`. The user-surfaced excerpt did not include the specific executor `W1G: FAIL` line, so the exact sub-cause is not asserted.
 
-Classification: **PREPROCESSOR/INTEGRATION FAIL; no Wan inference.**
+HOG-only detection is superseded because it is semantically too brittle for arbitrary driving footage.
 
-Interpretation: whole-frame temporal activity makes the global union meaningless for this clip. The safety guard worked and prevented wasting an inference.
-
-### W1G v2 — CURRENT IMPLEMENTATION
+### W1G v3 — CURRENT IMPLEMENTATION
 
 The executor now:
 
-- detects the performer independently per frame using OpenCV's built-in HOG person detector;
-- selects a temporally coherent box;
-- interpolates missed detections;
+- estimates a temporal-median background over the first 37 frames;
+- segments moving foreground independently per frame;
+- tracks the dominant coherent foreground component without assuming person/cat/dog class;
+- interpolates missed boxes;
 - expands for head/hair/hands/feet safety;
 - smooths translation across time;
 - uses **one constant scale** for the sequence, so there is no zoom/camera breathing;
@@ -135,7 +113,11 @@ The executor now:
 - hard guard for the CLIP center-square crop;
 - no new detector checkpoint/model download.
 
-If not enough credible person detections are found, the run aborts before Wan rather than reverting to the failed global-activity method.
+Runner 40 now captures executor stdout/stderr in:
+
+`Z:\AI\WanAnimate2\w1g_executor.log`
+
+and prints it on failure. A future code-2 exit therefore must expose the actual preprocessor error instead of only ComfyUI stderr.
 
 Everything else remains W1A: Exilada reference/prompt, Base BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, ref strength 1.5, negative prompt and `--disable-pinned-memory`.
 
@@ -145,6 +127,7 @@ Expected outputs after a valid inference:
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1g_api_prompt.json`
 - `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`
+- `Z:\AI\WanAnimate2\w1g_executor.log`
 
 Success criterion: complete head/hair/body stay in frame while W1A's stronger structural retention survives. If this passes, **blur reduction is next**, before art-direction prompt changes.
 
