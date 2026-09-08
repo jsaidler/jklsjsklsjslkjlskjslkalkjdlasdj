@@ -46,13 +46,14 @@ $WorkspacePython = Find-WorkspacePython $Workspace $ComfyRoot
 if (-not $WorkspacePython) { Fail "ComfyUI Python environment not found under $Workspace" }
 
 Write-Host ''
-Write-Host 'Roguelite Runner 40 - Wan-Animate-2 Base BF16 W1G / tracked subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
+Write-Host 'Roguelite Runner 40 - Wan-Animate-2 Base BF16 W1G / detector-agnostic tracked subject-framing on ref-strength 1.5 branch' -ForegroundColor Cyan
 Write-Host "[WORKSPACE] $Workspace" -ForegroundColor Green
 Write-Host '[PARENT] Exact completed W1A prompt at reference_image_strength=1.5.' -ForegroundColor Green
 Write-Host '[WHY 1.5] User review: W1A preserves body structure/topology better than 1.0 even though it carries more destructive blur. Blur remains a later isolated axis.' -ForegroundColor Yellow
 Write-Host '[FRAMING EVIDENCE] W1F proved whole-frame 80% letterboxing does NOT solve generated crop.' -ForegroundColor Yellow
-Write-Host '[W1G V1 PREFLIGHT] One global temporal-activity union expanded to the whole frame and correctly aborted before inference.' -ForegroundColor Yellow
-Write-Host '[W1G V2] Driver geometry only: detect the performer per frame, interpolate misses, smooth translation, and keep ONE constant scale. No per-frame zoom/breathing.' -ForegroundColor Yellow
+Write-Host '[W1G V1] Global temporal-activity union collapsed to the whole source frame and aborted before inference.' -ForegroundColor Yellow
+Write-Host '[W1G V2] HOG person detection was too semantically brittle and also exited before any Wan prompt was submitted.' -ForegroundColor Yellow
+Write-Host '[W1G V3] Detector-agnostic foreground tracking: temporal-median background, per-frame foreground component tracking, interpolated misses, smoothed translation, ONE constant scale.' -ForegroundColor Yellow
 Write-Host "[TARGET] subject-envelope height ratio=$TargetSubjectHeightRatio, center-x=$TargetCenterX, bottom-y=$TargetBottomY on 640x800." -ForegroundColor Green
 Write-Host '[CLIP GUARD] The preprocessor also keeps the tracked subject safely inside the center-square crop used by the existing CLIPVisionEncode pose path.' -ForegroundColor Green
 Write-Host '[UNCHANGED] Exilada reference/prompt, Base BF16 stack, 37 frames, 16 fps output, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt.' -ForegroundColor Green
@@ -75,6 +76,7 @@ $UserDir = Join-Path $ComfyRoot 'user'
 New-Item -ItemType Directory -Force -Path $UserDir | Out-Null
 $StdoutLog = Join-Path $UserDir "comfyui_${Port}_stdout.log"
 $StderrLog = Join-Path $UserDir "comfyui_${Port}_stderr.log"
+$ExecutorLog = Join-Path $Workspace 'w1g_executor.log'
 $PidFile = Join-Path $Workspace '.wan_animate2_spike.pid'
 $MainPy = Join-Path $ComfyRoot 'main.py'
 
@@ -140,7 +142,8 @@ if (-not $ready) {
     Fail "ComfyUI API did not become available at $Base"
 }
 
-Write-Host 'Preparing tracked subject-normalized raw driver and submitting W1G...' -ForegroundColor Cyan
+if (Test-Path $ExecutorLog -PathType Leaf) { Remove-Item -LiteralPath $ExecutorLog -Force }
+Write-Host 'Preparing detector-agnostic tracked subject driver and submitting W1G...' -ForegroundColor Cyan
 & $WorkspacePython $Executor `
     --workspace $Workspace `
     --comfy-root $ComfyRoot `
@@ -148,14 +151,18 @@ Write-Host 'Preparing tracked subject-normalized raw driver and submitting W1G..
     --timeout-minutes $TimeoutMinutes `
     --target-subject-height-ratio $TargetSubjectHeightRatio `
     --target-center-x $TargetCenterX `
-    --target-bottom-y $TargetBottomY
-if ($LASTEXITCODE -ne 0) {
-    if (Test-Path $StderrLog) {
+    --target-bottom-y $TargetBottomY 2>&1 | Tee-Object -FilePath $ExecutorLog
+$ExecutorExit = $LASTEXITCODE
+if ($ExecutorExit -ne 0) {
+    Write-Host ''
+    Write-Host 'W1G executor diagnostics:' -ForegroundColor Red
+    if (Test-Path $ExecutorLog -PathType Leaf) { Get-Content $ExecutorLog -Tail 120 }
+    if (Test-Path $StderrLog -PathType Leaf) {
         Write-Host ''
         Write-Host 'Last ComfyUI stderr lines:' -ForegroundColor DarkYellow
-        Get-Content $StderrLog -Tail 160
+        Get-Content $StderrLog -Tail 80
     }
-    Fail "W1G subject-framing inference exited with code $LASTEXITCODE"
+    Fail "W1G subject-framing executor exited with code $ExecutorExit"
 }
 
 $Output = Join-Path $Workspace 'w1g_exilada_subject_framed_ref15.mp4'
@@ -172,5 +179,6 @@ Write-Host "Video:           $Output" -ForegroundColor Cyan
 Write-Host "Manifest:        $Manifest" -ForegroundColor Cyan
 Write-Host "Prompt:          $Prompt" -ForegroundColor Cyan
 Write-Host "Driver manifest: $DriverManifest" -ForegroundColor Cyan
+Write-Host "Executor log:    $ExecutorLog" -ForegroundColor Cyan
 Write-Host ''
 Write-Host 'Next gate: compare W1A vs W1G. Framing passes only if complete head/hair/body stay safely inside frame. If structure is retained, blur reduction becomes the next isolated axis.' -ForegroundColor Yellow
