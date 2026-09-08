@@ -1,6 +1,6 @@
 # Wan-Animate-2 validation / exhaustion tooling
 
-Status: **ACTIVE — W0 PASS_BASELINE / W1 PAINTERLY LOOK APPROVED / W1A 1.5 STRUCTURAL BRANCH RETAINED / W1F LETTERBOX CLOSED / W1G TRACKED DRIVER REFRAMING CLOSED FAIL / W1H ASPECT-MATCHED RAW-DRIVER GATE CURRENT.**
+Status: **ACTIVE — W0 PASS_BASELINE / W1 PAINTERLY LOOK APPROVED / W1A 1.5 STRUCTURAL BRANCH RETAINED / W1F LETTERBOX CLOSED / W1G TRACKED DRIVER REFRAMING CLOSED FAIL / W1H ASPECT-MATCHED RAW-DRIVER GEOMETRY PASS / W1I POSE-END BLUR TEST CURRENT.**
 
 ## Paths / hardware
 
@@ -32,55 +32,67 @@ W1A (`reference_image_strength=1.5`) is retained as the stronger body-structure 
 
 ## W1G — CLOSED VALID METHOD FAIL
 
-`run_w1g_subject_framing_ref15.py` + Runner 40 eventually generated a valid v3.1 result after tracked subject-framing preflights passed.
+`run_w1g_subject_framing_ref15.py` + Runner 40 generated a valid tracked/recentered result, but it materially worsened ghosting, limb topology and temporal coherence.
 
-The generated animation was materially worse: stronger ghosting/smearing, elongated/unstable body and limbs, detached/duplicated-looking extremities, degraded temporal coherence and no reliable framing solution.
+Conclusion: do not continue tracking/repositioning/affine camera-follow manipulation of raw driving footage. Preserve raw spatiotemporal motion.
 
-Conclusion: do not continue tracking/repositioning/affine camera-follow manipulation of the raw driver. Wan is consuming richer spatiotemporal information; synthetic frame-to-frame camera motion damages it.
+## Geometry finding — LOCKED
 
-Keep W1G mp4/log/manifests only as small evidence.
-
-## Geometry finding that motivates W1H
-
-Current ComfyUI `WanAnimate2ToVideo` center-resizes `pose_video` to requested output geometry.
+Current ComfyUI `WanAnimate2ToVideo` center-resizes/crops `pose_video` to requested output geometry.
 
 - raw driver: `480×854`, aspect ≈ 0.5621
-- upstream Wan-Animate-2 demo default: `720×1280`, aspect 0.5625
-- W1/W1A canvas: `640×800`, aspect 0.8
+- upstream Wan demo default: `720×1280`, aspect 0.5625
+- old W1/W1A canvas: `640×800`, aspect 0.8
 
-Center-cropping 480×854 to aspect 0.8 retains only about 70.3% of the original height. The next experiment therefore changes the Wan canvas aspect while leaving the driver untouched.
+Old geometry retained only about 70.3% of source height before pose conditioning.
 
-## `run_w1h_aspect_matched_ref15.py` — CURRENT
+Policy: **leave the raw driver untouched and match Wan generation aspect to that driver.**
+
+## `run_w1h_aspect_matched_ref15.py` — GEOMETRY PASS
+
+Runner 41 changed only `640×800 -> 512×912` on the exact W1A branch.
+
+Completed result:
+
+- prompt id `5299b50f-a38d-4cf1-b71e-7022319067d7`;
+- elapsed `1672.46 s`;
+- SHA256 `84756f74af5f01aed8329b6a9b7b116149c6abcfd6e6349399c5de8ecf575af1`;
+- estimated pose-video retention `99.88%`.
+
+Visual review: catastrophic top/head/right-body crop resolved; body topology/temporal coherence materially improved; hair/cloth remain dynamic; later frames are cleaner. Residual high-motion blur remains mainly around frames ~8–10 and chain topology remains imperfect. A few lateral edge contacts follow source performer traversal and should be handled by selecting production drivers with safe real margins, not by tracking.
+
+Classification: **W1H geometry PASS / current best baseline.**
+
+## `run_w1i_pose_end70_ref15.py` — CURRENT
 
 Runner:
 
-`tools/structured-2d-character-pipeline/41_run_wan_animate2_bf16_w1h_aspect_matched_ref15.ps1`
+`tools/structured-2d-character-pipeline/42_run_wan_animate2_bf16_w1i_pose_end70_ref15.ps1`
 
-Parent = exact W1A prompt.
+Parent = exact W1H prompt.
 
 Only changed axis:
 
-`Wan width/height 640×800 -> 512×912`
+`pose_end_percent 1.00 -> 0.70`
+
+Native WanAnimate2ToVideo docs state motion is mostly established early and give ~0.7 as an example that can loosen fine detail while retaining choreography. W1I therefore isolates residual blur without changing raw driver, geometry, pose strength, prompt, seed or model.
 
 The executor:
 
-1. verifies W1A is complete and uses ref strength 1.5;
-2. reads the original raw-driver geometry;
-3. calculates source/parent/target aspect and estimated center-crop retention;
-4. refuses an unexpectedly mismatched target aspect;
-5. changes only `WanAnimate2ToVideo.width/height` plus output prefix;
-6. leaves raw driver bytes and trajectory untouched;
-7. runs the same BF16 graph/seed/sampler/settings;
-8. writes `w1h_api_prompt.json`, `w1h_run_manifest.json` and canonical output.
+1. requires completed W1H evidence;
+2. verifies `512×912`, ref strength 1.5, pose strength 1.0, pose start 0.0, pose end 1.0;
+3. changes only `pose_end_percent` to 0.70 plus output prefix;
+4. runs the same BF16 graph/seed/sampler/settings;
+5. writes `w1i_api_prompt.json`, `w1i_run_manifest.json` and canonical output.
 
 Expected:
 
-- `Z:\AI\WanAnimate2\w1h_exilada_aspectmatched_ref15.mp4`
-- `Z:\AI\WanAnimate2\w1h_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1h_api_prompt.json`
-- `Z:\AI\WanAnimate2\w1h_executor.log`
+- `Z:\AI\WanAnimate2\w1i_exilada_poseend70_ref15.mp4`
+- `Z:\AI\WanAnimate2\w1i_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1i_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1i_executor.log`
 
-Pass only if full-body framing improves without W1G-style temporal/anatomical degradation. Blur is the next isolated axis only after framing passes.
+Prefer W1I over W1H only if destructive blur falls without losing topology, motion adherence, hair/cloth dynamics or framing.
 
 ## Current operator action
 
@@ -88,7 +100,7 @@ Pass only if full-body framing improves without W1G-style temporal/anatomical de
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\41_run_wan_animate2_bf16_w1h_aspect_matched_ref15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\42_run_wan_animate2_bf16_w1i_pose_end70_ref15.ps1"
 ```
 
 ## Cleanup
