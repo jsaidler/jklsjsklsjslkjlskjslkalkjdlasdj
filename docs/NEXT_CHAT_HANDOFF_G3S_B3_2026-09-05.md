@@ -54,35 +54,42 @@ Runner 42 changed only `pose_end_percent 1.00 -> 0.70`.
 
 Result remained extremely close to W1H; blur and structural problems persisted. Return pose end to1.0.
 
-## W1J — REF1.0 ONLY / SUPERSEDED BEFORE RUN
+## W1J / W1K — SUPERSEDED BEFORE RUN
 
-Runner 43 exists but is **not current**. User correctly rejected spending a full run on lowering only `reference_image_strength`, because the remaining failure is broader than identity tightness.
+Runner43 prepared ref1.0 alone. Runner44 prepared pose_strength0.80 alone. Neither was executed.
 
-Do not run Runner43 unless later evidence specifically requires an isolated ref-strength test.
+The user requested a combined quality search instead because the remaining problem is not subtle: blur is still heavy and several structural changes remain. Preserve those runners only as small diagnostic tooling.
 
-## CURRENT GATE — RUNNER 44 / W1K POSE STRENGTH 0.80
+## CURRENT GATE — RUNNER 45 / W1L COMPOUND QUALITY SEARCH
 
 Runner:
 
-`tools/structured-2d-character-pipeline/44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1`
+`tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1k_pose_strength80_ref15.py`
+`tools/wan-animate2-spike/run_w1l_ref10_pose80_steps30.py`
 
 Parent = exact W1H.
 
-Only changed axis:
+Deliberate compound changes from W1H:
 
-`pose_strength 1.00 -> 0.80`
+- `reference_image_strength 1.5 -> 1.0`;
+- `pose_strength 1.00 -> 0.80`;
+- `steps 20 -> 30`.
 
-Everything else stays W1H: raw driver untouched, `512×912`, ref1.5, pose window0.0–1.0, seed0,20 steps,CFG1,Euler/simple,shift5,same reference/prompt/negative/CLIP pose branch.
+Everything else stays W1H: raw driver untouched, `512×912`, pose start0.0, pose end1.0, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
 
-Why: remaining failure is motion-phase smear + anatomy deformation. ComfyUI defines pose strength as the direct scale of pose-video influence, and the Animate-2 model path scales pose-branch values directly. W1I already showed that ending the pose branch earlier did not help.
+This is explicitly **COMPOUND_CONFIGURATION_SEARCH**, not a one-variable causal test. The purpose is to see whether a materially better operating point exists for the coupled blockers: destructive blur and structural deformation.
 
-Pass only if blur **and structural deformation** fall materially while choreography, identity, hair and cloth dynamics remain acceptable.
+Pass only if both improve materially while choreography, identity, hair/cloth dynamics and framing remain acceptable.
 
-If W1K fails, next axis = sampling quality/steps rather than another blind reference-strength change.
+Expected:
+
+- `Z:\AI\WanAnimate2\w1l_exilada_aspectmatched_ref10_pose80_steps30.mp4`
+- `Z:\AI\WanAnimate2\w1l_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1l_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1l_executor.log`
 
 ## Exact operator action
 
@@ -90,7 +97,7 @@ If W1K fails, next axis = sampling quality/steps rather than another blind refer
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1"
 ```
 
 ## Cleanup
