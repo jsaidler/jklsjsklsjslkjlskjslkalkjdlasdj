@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / WAN W1L RUNNING AS FINAL CURRENT WAN RUN / MINIMAX H3 REF2VA NEXT / WAN PAUSES AFTER W1L / SCAIL-2 LATER IF NEEDED**
+Status: **CANONICAL / WAN PAUSED AFTER OPERATOR-REPORTED W1L COMPLETION / MINIMAX H3 BASE REF2VA ACTIVE / RUNNER46 BOOTSTRAP NEXT / H0 448×800 BASE50 DEFINED / SCAIL-2 LATER IF NEEDED**
 
 ## Purpose
 
@@ -15,21 +15,21 @@ The model must consume richer information than skeleton-only pose and automatica
 
 ## Screening order — LOCKED 2026-09-08
 
-1. finish the already-running Wan W1L and preserve its evidence;
-2. screen **MiniMax H3 Base Ref2VA** locally next;
-3. Wan becomes **PAUSED**, not exhausted, after W1L;
-4. SCAIL-2 remains a later candidate if H3 does not satisfy the contract.
+1. **MiniMax H3 Base Ref2VA** — active screening route.
+2. Wan-Animate-2 — **PAUSED AFTER W1L**, not exhausted.
+3. SCAIL-2 — later only if H3 does not satisfy the production contract.
 
-This supersedes the previous rule that Wan had to reach `EXHAUSTED_FAIL` before moving to another family.
+The prior rule that Wan had to reach `EXHAUSTED_FAIL` before another family could be screened is superseded.
 
-## Model-exhaustion / comparison protocol
+## Comparison protocol
 
 - distinguish infrastructure, integration, configuration and model/task failures;
 - fixed inputs/seeds unless the variable is intentionally changed;
 - one-variable experiments by default;
-- compound configuration searches allowed when explicitly labeled as such;
+- compound configuration searches allowed when explicitly labeled;
 - no seed fishing or manual rescue;
-- do not delete an active model family until evidence is secured and the route is genuinely paused/abandoned.
+- successful inference is not automatically a model-quality PASS;
+- do not delete proof/results while a family comparison is still active.
 
 ## Wan canonical history
 
@@ -38,78 +38,125 @@ This supersedes the previous rule that Wan had to reach `EXHAUSTED_FAIL` before 
 - W1A ref1.5: stronger apparent topology but more ghosting under old geometry.
 - W1F: whole-frame letterbox failed crop; closed.
 - W1G: tracked/recentered raw driver worsened ghosting and temporal anatomy; closed permanently.
-- W1H: `512×912` with untouched `480×854` driver fixed dominant crop and became best Wan geometry baseline; heavy fast-motion smear plus structural changes remain.
+- W1H: `512×912` with untouched `480×854` driver fixed dominant crop and became best Wan geometry baseline; heavy fast-motion smear plus structural changes remained.
 - W1I: pose-end0.70 did not materially improve those defects; not preferred.
 - W1J / W1K: prepared, never executed, superseded before run.
 
-## W1L — RUNNING / FINAL CURRENT WAN GATE
+## W1L — OPERATOR-REPORTED COMPLETE / WAN PAUSED
 
-Runner:
-
-`tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
-
-Parent = exact W1H.
-
-Compound changes:
+Runner45 used the exact W1H parent and deliberately changed:
 
 - `reference_image_strength 1.5 -> 1.0`;
 - `pose_strength 1.00 -> 0.80`;
 - `steps 20 -> 30`.
 
-Everything else remains W1H. Classification policy: **COMPOUND_CONFIGURATION_SEARCH**.
+The user reported completion and chose to move immediately to H3. The repository does **not** invent a W1L visual verdict without seeing the local result. Runner46 requires the local W1L video/prompt/manifest and verifies `status=INFERENCE_COMPLETE` before H3 bootstrap proceeds.
 
-After W1L completes, preserve its output/manifest and do not launch another Wan inference before the H3 spike.
+Preserve W1L evidence in `Z:\AI\WanAnimate2` for comparison. Do not launch another Wan inference while H3 is active.
 
-## MiniMax H3 Ref2VA — NEXT ACTIVE FAMILY
+## MiniMax H3 Base Ref2VA — ACTIVE
 
-Why it qualifies for screening:
+Canonical procedure:
 
-- Ref2VA accepts multimodal reference inputs including images and videos;
-- this maps directly to Exilada appearance reference + arbitrary real driving video;
-- it generates a complete video character rather than a skeleton-only motion representation;
-- current ComfyUI support exposes consumer-GPU quantized/offloaded execution suitable for a local RTX 3060-class screening route.
+`docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-Only **Ref2VA** is relevant initially. Do not download FL2VA in parallel.
+Why it qualifies:
+
+- `MiniMaxH3ReferenceToVideo` natively accepts image/video references;
+- `<Picture 1>` can define Exilada appearance/identity;
+- `<Video 1>` can define real movement/performance;
+- output is a complete generated video character;
+- current ComfyUI supplies a pruned/quantized local route appropriate for controlled consumer-GPU screening.
+
+Only **Ref2VA** is installed for H0. Do not download FL2VA in parallel.
+
+## H3 pinned H0 stack
+
+- ComfyUI NVIDIA Windows portable **v0.34.0**, dedicated workspace;
+- H3 workspace: `Z:\AI\MiniMaxH3`;
+- H3 API port: `8190`;
+- default DynamicVRAM behavior; no inherited Wan flags;
+- diffusion: `minimax_h3_ref2va_pruned_int8_convrot.safetensors` (~21 GB);
+- text encoder: `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` (~15.7 GB);
+- video VAE: `minimax_h3_video_vae_fp16.safetensors` (~5.21 GB).
+
+Selected H0 model payload is ~41.9 GB. H0 does not install FL2VA, Turbo LoRA, embeddings, alternate quantizations or audio VAE.
+
+## H0 — CURRENT EXPERIMENT
+
+Exact baseline:
+
+- Base Ref2VA;
+- `<Picture 1>` = canonical Exilada appearance only;
+- `<Video 1>` = motion/performance only;
+- same raw driver used for the Wan comparison branch, timestamp-resampled to 24fps/124 frames with no spatial crop/resize/tracking/recentering;
+- output `448×800`;
+- 124 frames at24fps;
+- `ref_image_size=match`;
+- 50 steps;
+- sampler `res_multistep`;
+- scheduler `beta`;
+- seed0;
+- H3 model default sigma shifts video12/audio3;
+- no Turbo LoRA.
+
+Runner46 prepares/verifies the environment and performs no inference. Runner47 runs H0 only after Runner46 PASS.
 
 ## H3 local-resolution strategy
 
-The game uses a protagonist around `128 px` tall, so screening must optimize for the final sprite use case rather than blindly generating at 768p or 2K.
+The game uses a protagonist around `128 px` tall, so screening optimizes for final sprite use rather than blindly generating at the maximum resolution.
 
-First local H3 target: **`448×800`**.
+First local target: **`448×800`**.
 
 Rationale:
 
-- divisible by 32 in both axes;
-- aspect `0.56`, matching the current portrait driving video closely;
-- only about 34.7% as many spatial pixels/cells as `1344×768`;
-- still several times larger than the final 128px-tall runtime character, leaving useful supersampling for anatomy, hair, cloth and alpha extraction.
+- both dimensions divisible by32;
+- aspect close to the portrait driver;
+- 358,400 pixels;
+- visual latent grid `28×50=1400` cells versus `84×48=4032` at `1344×768`, about34.7% of that spatial cell count;
+- still several times larger than final runtime character scale.
 
-Escalation ladder only if needed:
+This reduces spatial activation work but not model-weight size or all offload/RAM cost.
 
-1. `448×800` first;
-2. `480×864` if structure/identity is under-resolved;
-3. `512×896` if still needed;
-4. one 768-short-edge control to distinguish low-resolution failure from model failure.
+Finite escalation only if H0 is under-resolved:
 
-Do not generate directly at 128px. Very low model-space resolution can destroy anatomy/identity/temporal coherence before downsampling.
+1. `480×864`;
+2. `512×896`;
+3. one 768-short-edge control.
+
+If motion/topology is strong and identity alone is weak, test `ref_image_size=max` before increasing output resolution.
 
 ## Required H3 QA
 
-Every candidate is judged at:
+Judge every H3 candidate at:
 
-1. full generated resolution — topology, anatomy, identity, motion adherence, hair/cloth/restraint dynamics;
-2. automatically downsampled gameplay preview — character approximately `128 px` tall.
+1. full generated resolution — stable body topology/anatomy, identity, motion adherence, hair/cloth/restraint dynamics, absence of destructive whole-body smear;
+2. gameplay-scale proxy — silhouette/readability near the ~128px runtime character target.
 
-Minor local blur may become irrelevant at gameplay scale. Missing body parts, topology changes, silhouette failure and identity drift remain hard failures even if downsampling hides detail.
+Downsampling may erase harmless texture noise or restrained local blur. Missing/reordered body parts, topology changes, detached limbs, broken silhouette or identity drift remain failures.
 
-## H3 install policy
+## Failure classification
 
-- no H3 download while W1L is still running;
-- planned workspace: `Z:\AI\MiniMaxH3`;
-- use only the chosen Ref2VA quantized/pruned route plus required encoder/VAE components;
-- do not accumulate FL2VA or alternative quantizations without an explicit hypothesis;
-- preserve Wan W1L evidence before any large-asset cleanup.
+- download/hash/extraction/version → infrastructure;
+- missing/changed Comfy node/API graph → integration;
+- CUDA/DynamicVRAM/host-buffer/OOM/runtime crash → infrastructure until diagnosed;
+- completed video with bad topology/motion/identity → model/task or configuration evidence according to the observed defect.
+
+No infrastructure failure counts as model-quality evidence.
+
+## Current sequence
+
+- Wan W0–W1I — documented history;
+- Wan W1L — **operator-reported complete; visual verdict not invented; Wan paused**;
+- H3 Runner46 — **CURRENT: bootstrap/preflight**;
+- H3 Runner47 / H0 Base50 `448×800` — next after Runner46 PASS;
+- if needed: identity-only `ref_image_size=max` or finite resolution ladder;
+- walking/secondary-motion driver only after H0 proves the family technically useful;
+- SCAIL-2 only later if H3 fails the contract.
 
 ## Cleanup
 
-Wan BF16 assets remain until W1L is complete. Once H3 becomes the validated active route, reevaluate whether to remove the Wan ~45.7GB asset set. Preserve small proof files and SSD comparison evidence until explicit abandonment/final verdict.
+- do not accumulate alternate H3 task families/quantizations;
+- preserve W1L proof/results/manifests;
+- after H3 is technically proven active enough that immediate Wan return is unnecessary, remove paused Wan **large checkpoint weights** while keeping proof/results;
+- keep SSD comparison evidence until explicit abandonment/final model verdict.
