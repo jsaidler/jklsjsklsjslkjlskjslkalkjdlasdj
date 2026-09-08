@@ -13,7 +13,8 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 5. `docs/ANIMATION_PIPELINE.md`
 6. `docs/CHARACTERS.md`
 7. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-8. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+8. `docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`
+9. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -61,11 +62,9 @@ The production model must combine the complete Exilada appearance reference with
 
 ## Model-screening order — UPDATED / LOCKED 2026-09-08
 
-1. **MiniMax H3 Base Ref2VA is now the active screening route.**
+1. **MiniMax H3 Base Ref2VA is the active screening route.**
 2. Wan-Animate-2 is **PAUSED AFTER W1L**, not `EXHAUSTED_FAIL`.
-3. SCAIL-2 remains a later candidate only if H3 does not satisfy the production contract.
-
-This supersedes the earlier rule that Wan had to reach `EXHAUSTED_FAIL` before another family could be screened.
+3. SCAIL-2 remains later only if H3 does not satisfy the production contract.
 
 ## Wan history — compact canonical record
 
@@ -73,32 +72,11 @@ This supersedes the earlier rule that Wan had to reach `EXHAUSTED_FAIL` before a
 - W1 / Runner37 ref1.0: approved painterly visual/motion language; crop, restraint and limb artifacts remained.
 - W1A / Runner38 ref1.5: structurally stronger under the old geometry but more ghosted.
 - W1F / Runner39: whole-frame letterbox did not solve crop; CLOSED.
-- W1G / Runner40: tracked/recentered driver worsened ghosting and temporal anatomy; CLOSED. Never return to synthetic camera-follow/recentering.
-- W1H / Runner41: changed only `640×800 -> 512×912` with untouched `480×854` raw driver and ref1.5. Major crop resolved; best Wan geometry baseline. Prompt `5299b50f-a38d-4cf1-b71e-7022319067d7`, elapsed `1672.46s`, SHA256 `84756f74af5f01aed8329b6a9b7b116149c6abcfd6e6349399c5de8ecf575af1`.
-- W1I / Runner42: `pose_end_percent 1.0 -> 0.70`; blur/structural failure materially unchanged; NOT PREFERRED.
-- W1J / Runner43 and W1K / Runner44 were prepared but never executed; superseded before run.
-
-## W1L / Runner45 — COMPLETE / WAN PAUSED
-
-Parent = exact completed W1H.
-
-Compound configuration search:
-
-- `reference_image_strength 1.5 -> 1.0`;
-- `pose_strength 1.00 -> 0.80`;
-- `steps 20 -> 30`;
-- everything else remained W1H: raw driver untouched, `512×912`, pose window0–1, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
-
-The user reported the run finished on 2026-09-08 and explicitly chose to move to MiniMax H3. Runner46 subsequently verified local W1L video/prompt/manifest with `status=INFERENCE_COMPLETE` before H3 bootstrap proceeded. **No W1L visual verdict is invented without reviewing the local video.**
-
-Preserve:
-
-- `Z:\AI\WanAnimate2\w1l_exilada_aspectmatched_ref10_pose80_steps30.mp4`
-- `Z:\AI\WanAnimate2\w1l_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1l_api_prompt.json`
-- `Z:\AI\WanAnimate2\w1l_executor.log`
-
-Do not launch another Wan inference while H3 is active.
+- W1G / Runner40: tracked/recentered driver worsened ghosting and temporal anatomy; CLOSED.
+- W1H / Runner41: `512×912` with untouched raw driver resolved dominant crop and became best documented Wan geometry baseline.
+- W1I / Runner42: pose-end0.70 did not materially improve blur/structural failure; NOT PREFERRED.
+- W1J / Runner43 and W1K / Runner44 were prepared but never executed.
+- W1L / Runner45: completed compound branch ref1.0 + pose0.80 +30 steps; Wan paused afterward. Preserve local proof. No visual verdict invented without reviewing the local video.
 
 ## MiniMax H3 Ref2VA — ACTIVE
 
@@ -111,96 +89,120 @@ Why it qualifies:
 - Ref2VA natively accepts image and video references;
 - `<Picture 1>` maps to Exilada appearance/identity;
 - `<Video 1>` maps to real motion/performance;
-- the final output is a complete generated video character rather than a skeleton-only representation.
+- output is a complete generated video character rather than a skeleton-only representation.
 
-### Runner46 / bootstrap — PASS 2026-09-08
+### Runner46 / bootstrap — PASS WITH LATER-DISCOVERED GRAPH OMISSION
 
-Operator result:
+Runner46 completed local install/preflight successfully and verified:
 
-`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+- pinned ComfyUI v0.34.0;
+- Ref2VA diffusion checkpoint;
+- NVFP4 Qwen3-VL encoder;
+- video VAE;
+- prepared Exilada and 24fps/124f driver;
+- presence of required node classes and object-info.
 
-Verified/prepared local evidence:
+This remains an **INFRASTRUCTURE BOOTSTRAP PASS**, but it was **not a complete graph-integration proof**: the live node class existed, yet the first actual API prompt later revealed a required `audio_vae` input that Runner46 had not wired or downloaded.
 
-- Comfy root: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
-- bootstrap manifest: `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
-- driver manifest: `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
-- required object info: `Z:\AI\MiniMaxH3\h3_required_object_info.json`;
-- selected model payload: Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE only, approximately `41.9 GB`.
+### Runner47 / first H0 submission — PRE-INFERENCE INTEGRATION FAIL
 
-Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. This proves the pinned local H3 stack, hashes, prepared inputs and required Comfy node schemas are ready. **No H3 model-quality inference has happened yet.**
+Observed terminal error:
 
-### Pinned H0 local stack
+```text
+HTTP 400
+prompt_outputs_failed_validation
+MiniMaxH3ReferenceToVideo
+Required input is missing: audio_vae
+```
 
-- ComfyUI Windows NVIDIA portable **v0.34.0**;
-- dedicated workspace `Z:\AI\MiniMaxH3`;
-- port `8190`;
-- default ComfyUI DynamicVRAM behavior;
-- no custom nodes for H0;
+Classification: **INTEGRATION_FAIL / PROMPT VALIDATION / PRE-INFERENCE**.
+
+Important:
+
+- no `prompt_id` was issued;
+- no H3 denoising/inference occurred;
+- this is **zero model-quality evidence**;
+- H0 quality settings were never exercised.
+
+Root cause: pinned ComfyUI v0.34.0 declares `MiniMaxH3ReferenceToVideo.audio_vae` as required even when H0 provides no audio reference and does not decode audio.
+
+Incident record:
+
+`docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`
+
+### Corrected H0 required model set
+
+The original three files remain:
+
 - `minimax_h3_ref2va_pruned_int8_convrot.safetensors` (~21 GB);
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors` (~15.7 GB);
 - `minimax_h3_video_vae_fp16.safetensors` (~5.21 GB).
 
-H0 deliberately does **not** download FL2VA, Turbo LoRA, style embeddings, alternate Ref2VA quantizations or the audio VAE. Selected H3 model payload is ~41.9 GB.
+A fourth **schema-required** file is now added:
 
-### H0 exact settings — CURRENT INFERENCE GATE
+- `minimax_h3_audio_vae_fp32.safetensors`;
+- size `605,254,808` bytes (~605 MB);
+- SHA256 `8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48`.
 
-- task: Base Ref2VA;
-- canvas: **`448×800`**;
-- length: **124 frames**;
-- FPS: **24**;
+Corrected H0 H3 payload is approximately **42.5 GB**.
+
+The audio VAE does **not** change the experiment into an audio task. H0 still:
+
+- supplies no audio reference;
+- performs no audio decode/output;
+- uses the audio VAE only because the Ref2VA node schema requires the input.
+
+### H0 exact quality settings — UNCHANGED
+
+- Base Ref2VA;
+- canvas `448×800`;
+- 124 frames @24fps;
 - `ref_image_size=match`;
-- 50 inference steps;
+- 50 steps;
 - sampler `res_multistep`;
 - scheduler `beta`;
 - seed0;
 - H3 default sigma shifts video12/audio3;
-- appearance = canonical `exilada_master.png`;
-- motion = same raw driver used by W1H, automatically timestamp-resampled to24fps/124f with **no crop, resize, tracking or recentering**.
+- canonical Exilada master as Picture1;
+- same raw Wan comparison driver as Video1, timestamp-resampled to24fps/124f with **no crop, resize, tracking or recentering**;
+- no FL2VA;
+- no Turbo LoRA;
+- no style embedding.
 
-## H3 resolution strategy — LOCKED FOR FIRST SPIKE
+## CURRENT GATE — Runner48 H0 integration repair + inference
 
-Runtime character height is about `128 px`, so full 768p-class generation is not automatically useful. Lower H3 generation resolution is deliberately part of the local production strategy, but **do not generate directly at 128 px**.
+New tooling:
 
-First H3 Ref2VA target: **`448×800`**.
+- `tools/minimax-h3-spike/run_h0_ref2va_audio_vae_required.py`
+- `tools/structured-2d-character-pipeline/48_run_minimax_h3_ref2va_h0_audio_vae_fix.ps1`
 
-- both dimensions are multiples of32;
-- aspect `0.56`, close to the current portrait driver;
-- 358,400 output pixels;
-- H3 visual latent grid about `28×50 = 1400` spatial cells versus `84×48 = 4032` at `1344×768`, about34.7% of that spatial cell count.
+Runner48:
 
-This reduces spatial activation/token work but does not reduce model-weight size or eliminate RAM/offload cost.
+1. downloads/resumes the official 605 MB audio VAE if absent;
+2. verifies SHA256 and byte size;
+3. launches the same pinned ComfyUI v0.34.0 environment;
+4. wires `audio_vae` into `MiniMaxH3ReferenceToVideo`;
+5. leaves every H0 quality variable unchanged;
+6. submits H0.
 
-Fallback resolution ladder only if H0 is under-resolved:
-
-1. `480×864`;
-2. `512×896`;
-3. one 768-short-edge control only if needed to separate low-resolution failure from model/task failure.
-
-If H0 motion/topology is excellent and identity alone is weak, test `ref_image_size=max` **before** raising output resolution.
-
-## Gameplay-scale QA — REQUIRED
-
-Every H3 candidate is judged twice:
-
-1. full generated resolution: anatomy, temporal topology, hair/cloth/restraint dynamics, identity and motion adherence;
-2. small gameplay proxy: frame downsampled to ~160px high so a subject occupying ~80% of the frame appears around the game's `128 px` character target.
-
-This first proxy is not alpha extraction. Final production still requires automatic extraction/packing.
-
-Downsampling may make minor local blur irrelevant, but it cannot excuse missing/reordered body parts, topology changes, detached limbs, broken silhouette or identity drift.
-
-## Current gate / exact operator action — Runner47 H0
-
-Runner46 has passed. Run H0 now:
+Exact operator action:
 
 ```powershell
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\47_run_minimax_h3_ref2va_h0.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\48_run_minimax_h3_ref2va_h0_audio_vae_fix.ps1"
 ```
 
-Expected H0 evidence:
+If terminal reaches:
+
+```text
+H3-H0: prompt_id=...
+```
+
+the integration fix passed prompt validation and actual H3 inference started.
+
+Expected proof after successful completion:
 
 - `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 - `Z:\AI\MiniMaxH3\h0_run_manifest.json`
@@ -208,21 +210,40 @@ Expected H0 evidence:
 - `Z:\AI\MiniMaxH3\h0_executor.log`
 - `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4` when preview encoding succeeds.
 
-Inference completion is a technical pass only; model quality remains a visual gate.
+## H3 resolution strategy — LOCKED
+
+First target remains `448×800`; do not change resolution because of the Runner47 integration failure.
+
+Finite escalation only after successful H0 inference and visual evidence:
+
+1. `480×864` if specifically under-resolved;
+2. `512×896` if still needed;
+3. one 768-short-edge control only if needed to distinguish low-resolution failure from model/task failure.
+
+If motion/topology is excellent and identity alone is weak, test `ref_image_size=max` before increasing output resolution.
+
+## Gameplay-scale QA — REQUIRED
+
+Judge H3 candidates twice:
+
+1. source scale — anatomy, temporal topology, identity, motion adherence, hair/cloth/restraint dynamics;
+2. gameplay-scale proxy — silhouette/readability near the ~128px runtime character target.
+
+Downsampling may make minor local blur irrelevant. It cannot excuse missing/reordered body parts, topology changes, detached limbs, broken silhouette or identity drift.
 
 ## Failure classification
 
-- hash/download/extract/version failure → infrastructure;
-- missing node/API contract failure → integration;
+- download/hash/extract/version → infrastructure;
+- missing/changed Comfy node/API graph → integration;
 - CUDA/DynamicVRAM/host-buffer/OOM/runtime crash → infrastructure until diagnosed;
-- successful video with bad topology/motion/identity → model/task or configuration evidence according to the observed defect.
+- completed video with bad topology/motion/identity → model/task or configuration evidence according to the observed defect.
 
-Do not treat a local H3 infrastructure failure as a model-quality failure.
+No pre-inference integration or infrastructure failure counts as model-quality evidence.
 
 ## Cleanup
 
-- H3 H0 installs one Ref2VA quantization only; do not accumulate FL2VA/alternate H3 variants.
-- Do not delete Wan W1L result/manifests/logs.
-- Once H3 is technically proven active enough that a return to Wan is not immediately needed, remove the paused Wan **large checkpoint set** to recover disk while preserving proof/results.
-- Preserve small manifests/logs/results.
-- Keep SSD comparison evidence until explicit abandonment/final model verdict.
+- do not accumulate alternate H3 task families/quantizations;
+- audio VAE is now part of the minimal Ref2VA dependency set and must be kept while H3 is active;
+- preserve Wan W1L proof/results/manifests;
+- after H3 is technically proven active enough that immediate Wan return is unnecessary, remove paused Wan large checkpoint weights while preserving proof/results;
+- keep SSD comparison evidence until explicit abandonment/final model verdict.
