@@ -9,15 +9,16 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 1. `docs/PROJECT_STATE.md`
 2. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 3. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
-4. `docs/VISUAL_DIRECTION.md`
-5. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-6. `docs/ANIMATION_PIPELINE.md`
-7. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-8. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-9. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
-10. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-11. `docs/CHARACTERS.md`
-12. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+4. `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
+5. `docs/VISUAL_DIRECTION.md`
+6. `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
+7. `docs/ANIMATION_PIPELINE.md`
+8. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+9. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+10. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
+11. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
+12. `docs/CHARACTERS.md`
+13. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 ## Living-document invariant — LOCKED
 
@@ -163,6 +164,18 @@ Executor:
 
 `tools/flux-kontext-spike/run_h0_dance12_pixelart_proof.py`
 
+### Runner50 parser incident — FIXED / ZERO MODEL EVIDENCE
+
+The first local invocation of Runner50 failed in the PowerShell parser before any model download, ComfyUI launch or Kontext inference. Classification: **INTEGRATION FAIL / PRE-INFERENCE**.
+
+Cause: PowerShell parsed `$Label:` as an invalid scoped/drive-style variable reference in two interpolated status strings.
+
+Repair commit `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2` changed those occurrences to `${Label}:` only. No model/settings/workflow variable changed.
+
+Incident record:
+
+`docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
+
 ### Separate local workspace
 
 `Z:\AI\FluxKontext`
@@ -229,18 +242,19 @@ Current candidate families include SDXL-class and FLUX text-to-image models. Kon
 ## Model-screening order
 
 1. **MiniMax H3 Ref2VA — ACTIVE / Base50 quality baseline locked for motion masters.**
-2. **FLUX.1 Kontext [dev] — ACTIVE renderer spike / Runner50 prepared.**
+2. **FLUX.1 Kontext [dev] — ACTIVE renderer spike / Runner50 parser repaired, inference not yet evidenced.**
 3. Wan-Animate-2 — paused after W1L, not exhausted.
 4. SCAIL-2 — later only if H3 fails a future motion-production gate.
 
 ## Immediate implementation order
 
-1. run **Runner50** and inspect the first H0 dance12 Kontext pixel-art sheet;
-2. classify renderer result separately for layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
-3. if FP8-scaled Kontext is structurally good but visibly under-resolved, test full BF16 Kontext as the next controlled variable;
-4. once the renderer passes, build the local Gradio orchestration UI around the proven H3 Base50 + Kontext stages;
-5. then implement semantic action presets/distillation, text-reference generation and relative-scale creature cases;
-6. only after downstream production is proven spend another Base50 H3 hour on a new action family.
+1. rerun **Runner50** after pulling commit `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2` or later;
+2. inspect the first H0 dance12 Kontext pixel-art sheet;
+3. classify renderer result separately for layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
+4. if FP8-scaled Kontext is structurally good but visibly under-resolved, test full BF16 Kontext as the next controlled variable;
+5. once the renderer passes, build the local Gradio orchestration UI around the proven H3 Base50 + Kontext stages;
+6. then implement semantic action presets/distillation, text-reference generation and relative-scale creature cases;
+7. only after downstream production is proven spend another Base50 H3 hour on a new action family.
 
 ## Cleanup
 
