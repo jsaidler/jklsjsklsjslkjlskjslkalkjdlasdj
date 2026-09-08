@@ -19,20 +19,16 @@ GitHub living docs are canonical.
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 - `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 - `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
+- `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
 - `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 - `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
-
-Historical Runner50 integration/preflight incidents:
-
-- `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
-- `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 
 ## Current production contract
 
 Final local pipeline:
 
-`existing or locally generated character reference + relative world scale + real action driver + action preset -> H3 Base50 complete-character motion master -> automatic coherent action-sequence extraction -> automatic alpha/pivot/alignment -> local pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
+`existing or locally generated character reference + relative world scale + real action driver + action preset -> H3 Base50 complete-character motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> local pixel-art reconstruction -> one horizontal row for that action + frames/preview/JSON/manifest -> runtime`
 
 No routine manual rigging/keyframing/mask repair/per-frame repainting/hand compositing.
 
@@ -54,11 +50,23 @@ Final renderer must preserve mature adult anatomy, danger, grime, sensuality, ta
 
 Approved adult characters may not be infantilized, made cute/chibi/adolescent-looking, shortened/thickened into juvenile proportions, given enlarged heads or rounded childlike faces. Renderer changes rendering language, not physical identity.
 
-## Spritesheet semantic lock
+## Spritesheet layout — HARD LOCK
 
-**One row = one temporally coherent animation sequence.**
+**One action = one spritesheet row.**
 
-Frames read left-to-right in time. A global contact sheet of scattered timestamps is not a valid final spritesheet.
+Frames read left-to-right in time.
+
+Internal renderer tiles/chunks do not define final rows.
+
+Current H0 `dance_or_gesture` proof:
+
+- 12 frames;
+- `12×1` final layout;
+- `192×192` cells;
+- `2304×192` final review sheet;
+- per-frame timing stored in JSON.
+
+A combined character sheet may later stack distinct actions vertically: idle, walk, run, jump, punch, kick, attacks, defenses, hit/death and specials.
 
 ## H3 H0 — COMPLETE / PREFERRED MOTION BASELINE
 
@@ -132,45 +140,57 @@ User visual verdict: **REJECTED**.
 Failures:
 
 1. Exilada body proportions changed shorter/thicker and more juvenile/infantilized;
-2. evenly distributed 12-frame H0 sample was a contact sheet, not correct animation rows;
+2. final asset was not a correct one-action row;
 3. mature Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell charge weakened;
-4. denoise1.0 and 12 small figures in one square gave excessive redraw freedom.
+4. denoise1.0 gave too much redraw freedom.
 
 Classification: **MODEL/TASK FAIL**.
 
+## Runner51 — DO NOT RUN
+
+Runner51 was prepared but its final-layout concept is wrong: it split one action into three final rows.
+
+Classification: **CONFIGURATION / TASK-FORMULATION FAIL — PRE-INFERENCE**.
+
+No model-quality evidence exists from Runner51.
+
 Record:
 
-`docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
+`docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
 
-## CURRENT GATE — Runner51
+## CURRENT GATE — Runner52
 
 Runner:
 
-`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
+`tools/structured-2d-character-pipeline/52_run_flux_kontext_h0_dance12_single_action_row.ps1`
 
 Executor:
 
-`tools/flux-kontext-spike/run_h0_dance3x4_temporal_rows_structure_lock.py`
+`tools/flux-kontext-spike/run_h0_dance12_single_action_row_structure_lock.py`
 
-No new H3 generation. No new model download should be required if Runner50 installation remains intact.
+No new H3 generation. No new model download should be required if the current Kontext installation remains intact.
 
-### Runner51 source-row selection
+### Runner52 action selection
 
-- split 124-frame H0 into three thirds;
-- inside each third calculate simple grayscale motion energy;
-- choose the highest-motion 16-frame local window;
-- select four ordered frames at offsets `0,5,10,15`;
-- each sequence becomes one final spritesheet row.
+The complete 124-frame H0 is treated as one known `dance_or_gesture` action interval.
 
-This is a proof policy, not final action-specific cycle detection.
+Selected source frames one-based:
 
-### Runner51 renderer formulation
+`1,12,23,35,46,57,68,79,90,102,113,124`
 
-Each row is rendered separately as a `2×2` `1024×1024` Kontext input:
+They are one temporally ordered action sequence, not separate rows.
 
-- four temporally ordered frames;
-- character materially larger during edit than Runner50;
-- canonical Exilada remains identity/art-direction reference;
+Source timing is preserved as per-frame duration metadata.
+
+### Runner52 renderer formulation
+
+The 12 frames are divided only for internal Kontext processing:
+
+- chunk1 = final action frames1–4;
+- chunk2 = frames5–8;
+- chunk3 = frames9–12;
+- each chunk = `2×2` `1024×1024` processing tile;
+- canonical Exilada is the second identity/art-direction reference;
 - same FP8-scaled Kontext model;
 - 20 steps;
 - guidance2.5;
@@ -181,54 +201,56 @@ Each row is rendered separately as a `2×2` `1024×1024` Kontext input:
 
 Hard prompt locks:
 
+- internal `2×2` tile is not final layout;
+- final asset = one 12-frame horizontal row;
 - mature adult body proportions and age;
 - no infantilization/cute/chibi/adolescent drift;
 - preserve pose/silhouette/hair/cloth/restraints;
 - preserve Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell mature sword-and-sorcery charge;
 - change rendering language only.
 
-### Runner51 final packing
+### Runner52 final packing
 
-Three row outputs are split and repacked as:
+Final output:
 
-- final `4×3` sheet;
+- `12×1` sheet;
 - `192×192` cells;
-- `768×576` total;
-- one coherent animation sequence per row;
+- `2304×192` total;
+- one full `dance_or_gesture` action left-to-right;
 - opaque + RGBA outputs;
-- one GIF preview per row;
-- manifest with exact selected source frames/settings.
+- 12 individual RGBA frames;
+- one full-action GIF preview;
+- manifest with exact source frames, durations and renderer settings.
 
 Expected outputs under `Z:\AI\FluxKontext`:
 
-- `h0_dance3x4_source_temporal_rows.png`
-- `h0_dance3x4_temporal_selection_manifest.json`
-- `h0_dance_row01_input_2x2.png`
-- `h0_dance_row02_input_2x2.png`
-- `h0_dance_row03_input_2x2.png`
-- row-specific Kontext full outputs/prompts;
-- `h0_dance_row01_preview.gif`
-- `h0_dance_row02_preview.gif`
-- `h0_dance_row03_preview.gif`
-- `h0_dance3x4_pixelart_sheet_opaque.png`
-- `h0_dance3x4_pixelart_sheet_rgba.png`
-- `h0_dance3x4_kontext_manifest.json`
-- `h0_dance3x4_kontext_executor.log`.
+- `h0_dance12_source_action_strip.png`
+- `h0_dance12_action_selection_manifest.json`
+- `h0_dance12_chunk01_input_2x2.png`
+- `h0_dance12_chunk02_input_2x2.png`
+- `h0_dance12_chunk03_input_2x2.png`
+- chunk-specific Kontext full outputs/prompts;
+- `h0_dance12_pixelart_sheet_opaque.png`
+- `h0_dance12_pixelart_sheet_rgba.png`
+- `h0_dance12_preview.gif`
+- `h0_dance12_kontext_manifest.json`
+- `h0_dance12_kontext_executor.log`.
 
-### Runner51 pass criteria
+### Runner52 pass criteria
 
 Review separately:
 
-- row temporal coherence;
+- one-action temporal coherence left-to-right;
 - mature adult body preservation;
 - no infantilization;
 - pose/silhouette fidelity;
+- cross-chunk style/body consistency;
 - high-quality deliberate pixel art;
 - locked 1980s sword-and-sorcery art direction;
 - hair/cloth/restraint readability;
 - automatic alpha quality.
 
-If Runner51 still changes adult structure at denoise0.45, classify that exact failure before switching precision/model family.
+If Runner52 still changes adult structure at denoise0.45, classify that exact failure before switching precision/model family.
 
 ## Exact next operator command
 
@@ -236,23 +258,21 @@ If Runner51 still changes adult structure at denoise0.45, classify that exact fa
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\52_run_flux_kontext_h0_dance12_single_action_row.ps1"
 ```
 
-## When Runner51 finishes
+## When Runner52 finishes
 
 Ask for at least:
 
-- `h0_dance3x4_source_temporal_rows.png`
-- `h0_dance_row01_preview.gif`
-- `h0_dance_row02_preview.gif`
-- `h0_dance_row03_preview.gif`
-- `h0_dance3x4_pixelart_sheet_opaque.png`
-- `h0_dance3x4_pixelart_sheet_rgba.png`
-- `h0_dance3x4_kontext_manifest.json`
-- `h0_dance3x4_kontext_executor.log`
+- `h0_dance12_source_action_strip.png`
+- `h0_dance12_preview.gif`
+- `h0_dance12_pixelart_sheet_opaque.png`
+- `h0_dance12_pixelart_sheet_rgba.png`
+- `h0_dance12_kontext_manifest.json`
+- `h0_dance12_kontext_executor.log`
 
-Inspect source-row semantics before blaming the renderer for a bad sequence selection.
+Inspect the source `1×12` strip before blaming the renderer for a bad frame-selection sequence.
 
 ## Local authoring UI — AFTER RENDERER PASS
 
@@ -265,7 +285,7 @@ Finished tool must expose:
 - action preset dropdown;
 - locked H3 Base50 production preset by default;
 - progress/previews;
-- row animation previews;
+- final one-row action preview;
 - final sheet/frames/JSON/manifest access.
 
 Gradio remains V1 choice.
