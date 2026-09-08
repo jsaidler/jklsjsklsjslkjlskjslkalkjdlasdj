@@ -74,6 +74,11 @@ def main() -> None:
         try:
             with open(manifest_path, "r", encoding="utf-8-sig") as fh:
                 manifest = json.load(fh)
+            # The base executor predates the discovered Ref2VA schema requirement and writes audio_vae=null.
+            # Correct the canonical manifest after the repaired run so future evidence is self-consistent.
+            manifest["audio_vae"] = AUDIO_VAE
+            manifest["audio_reference_used"] = False
+            manifest["audio_decoded"] = False
             manifest["integration_fix"] = {
                 "incident": "Runner47 initial prompt validation failed before inference because MiniMaxH3ReferenceToVideo.audio_vae is required in ComfyUI v0.34.0",
                 "classification": "INTEGRATION_FAIL",
