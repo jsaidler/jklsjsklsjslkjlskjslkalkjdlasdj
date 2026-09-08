@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / KONTEXT RUNNER50 VISUAL FAIL RECORDED / RUNNER51 TEMPORAL-ROW + BODY-STRUCTURE REPAIR PREPARED / UI AFTER RENDERER PASS**
+Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / FLUX KONTEXT ACTIVE / RUNNER51 LAYOUT CONCEPT REJECTED / RUNNER52 SINGLE-ACTION 1x12 CURRENT GATE / UI AFTER RENDERER PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -10,9 +10,11 @@ Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
 
 Runner50 visual-failure record: `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`.
 
+Runner51 layout-correction record: `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`.
+
 ## Purpose
 
-Define the local authoring application that takes a character concept plus a real action video and returns a runtime-ready pixel-art animation asset.
+Define one local authoring application that takes a character concept plus a real action video and returns a runtime-ready pixel-art action asset.
 
 Target operator experience:
 
@@ -21,7 +23,7 @@ Target operator experience:
 3. provide a real reference video containing the desired action;
 4. choose the action type from a preset list or `custom`;
 5. run one local job;
-6. receive a finished transparent pixel-art spritesheet, previews and metadata.
+6. receive the finished transparent pixel-art action row, preview, frames and metadata.
 
 The same workflow must support humanoids, animals, monsters, fantastic creatures and bosses of materially different sizes.
 
@@ -41,7 +43,7 @@ Current local stages:
 
 ## Canonical pipeline
 
-`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic coherent action-sequence extraction -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> transparent spritesheet/atlas + metadata`
+`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> one horizontal spritesheet row for that action + frames/preview/atlas metadata`
 
 The H3 video is an **intermediate motion master**, not final runtime art.
 
@@ -126,7 +128,7 @@ Preset responsibilities:
 - asset naming;
 - loop/non-loop policy;
 - suggested frame count;
-- sequence/cycle detection heuristic;
+- action/cycle detection heuristic;
 - pivot policy;
 - optional gameplay events such as foot contacts, hit frames, release frames or guard windows.
 
@@ -155,40 +157,61 @@ H0 elapsed: `4504.8s`.
 
 Turbo4 was run and visually rejected. It is not the production default.
 
-## Stage F — Automatic action/sequence distillation
+## Stage F — Automatic action distillation
 
 The 124-frame H3 motion master is not the runtime animation.
 
 Downstream automation must:
 
 1. decode all frames;
-2. locate useful action intervals or loops;
-3. select compact temporally coherent sequences;
+2. locate the desired action interval or cycle;
+3. select a compact ordered frame set for that action;
 4. reject obvious crop/structure failures where confidence permits;
 5. preserve timing metadata.
 
-### Spritesheet row invariant — HARD LOCK
+### Spritesheet layout invariant — HARD LOCK
 
-**One row = one temporally coherent animation sequence.**
+**One action = one spritesheet row.**
 
-Frames inside each row read left-to-right in time.
+Frames inside the row read left-to-right in time.
 
-Do not use a global evenly spaced sample of unrelated timestamps as a finished spritesheet.
+For the current H0 `dance_or_gesture` proof:
 
-If an action spans several rows, each row must be an explicitly meaningful temporal chunk and the manifest must describe the relationship between rows.
+- all 12 selected frames belong to the same action;
+- final layout = `12 columns × 1 row`;
+- cell size = `192×192`;
+- final review sheet = `2304×192`;
+- frame timing is stored in metadata/JSON.
 
-Runner50 violated this rule by sampling frames `1,12,23,35,46,57,68,79,90,102,113,124` across the entire H0 and treating the resulting `4×3` contact sheet as an animation asset.
+A later multi-action sheet may stack several distinct actions vertically, for example:
 
-### Runner51 temporary extraction policy
+- row 1 = idle;
+- row 2 = walk;
+- row 3 = run;
+- row 4 = jump;
+- row 5 = punch;
+- row 6 = kick;
+- additional rows = weapon attacks, defenses, hit/death, specials.
 
-For the current H0 renderer proof only:
+Do **not** split one action across several final rows merely because the renderer processes it in chunks.
 
-- split the 124-frame timeline into three thirds;
-- inside each third, find the 16-frame window with highest simple motion energy;
-- select four ordered frames at offsets `0,5,10,15`;
-- each resulting four-frame sequence becomes one final spritesheet row.
+### Internal processing chunks — HARD DISTINCTION
 
-This is a controlled proof of row semantics, not the final action-specific cycle detector.
+The renderer may use temporary high-resolution `2×2` tiles internally.
+
+For a 12-frame action:
+
+- chunk 1 = final action frames 1–4;
+- chunk 2 = final action frames 5–8;
+- chunk 3 = final action frames 9–12.
+
+These chunks are processing devices only. After inference the 12 cells are extracted and concatenated into a single horizontal action row.
+
+Runner51 was rejected before execution because it incorrectly promoted three processing/temporal chunks into three final spritesheet rows.
+
+Record:
+
+`docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
 
 ## Stage G — Automatic alpha, alignment and pivot
 
@@ -234,10 +257,9 @@ Useful evidence:
 Failures:
 
 - adult body/identity proportions drifted and became juvenile/infantilized;
-- one global `4×3` contact sheet did not preserve correct animation-row semantics;
-- the mature 1980s sword-and-sorcery charge weakened.
-
-Therefore do not jump renderer family yet. The next test changes task formulation only.
+- the output layout was not a correct one-action row;
+- mature 1980s sword-and-sorcery charge weakened;
+- denoise1.0 gave excessive redraw freedom.
 
 ### Approved adult-body invariant — HARD LOCK
 
@@ -266,69 +288,82 @@ The desired charge includes mature adult anatomy, danger, grime, sensuality, pul
 
 A clean pixel-art result that loses this charge is not a PASS.
 
-### Runner51 — CURRENT GATE
+## Runner51 — REJECTED BEFORE EXECUTION
+
+Runner51 is retained only as history.
+
+Its useful structure-preservation ideas are carried forward, but its final `4×3` layout interpretation is wrong for a single action.
+
+Classification:
+
+**CONFIGURATION / TASK-FORMULATION FAIL — PRE-INFERENCE**.
+
+No model-quality evidence exists from Runner51.
+
+## Runner52 — CURRENT GATE
 
 Runner:
 
-`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
+`tools/structured-2d-character-pipeline/52_run_flux_kontext_h0_dance12_single_action_row.ps1`
 
 Executor:
 
-`tools/flux-kontext-spike/run_h0_dance3x4_temporal_rows_structure_lock.py`
+`tools/flux-kontext-spike/run_h0_dance12_single_action_row_structure_lock.py`
 
-Controlled differences from Runner50:
+Runner52 keeps:
 
-1. one coherent temporal sequence per final row;
-2. each four-frame row is rendered separately;
-3. renderer input for each row is a `2×2` `1024×1024` square, giving each character much more working resolution;
-4. same canonical Exilada reference remains the identity/art-direction authority;
-5. Kontext denoise reduced from `1.0` to **`0.45`** to preserve source structure;
-6. prompt explicitly forbids infantilization/body redesign;
-7. prompt explicitly retains the mature 1980s sword-and-sorcery lineage;
-8. three four-frame row results are repacked into a final `4×3` sheet.
+- same installed FP8-scaled Kontext runtime;
+- canonical Exilada reference;
+- 20 steps;
+- guidance `2.5`;
+- CFG `1.0`;
+- Euler/simple;
+- seed0;
+- `denoise=0.45`;
+- mature-adult body lock;
+- Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell lock.
 
-Same model/runtime:
+Runner52 corrects the layout:
 
-- `flux1-dev-kontext_fp8_scaled.safetensors`;
-- `clip_l.safetensors`;
-- `t5xxl_fp16.safetensors`;
-- `ae.safetensors`;
-- ComfyUI v0.34.0;
-- workspace `Z:\AI\FluxKontext`;
-- port `8191`.
+1. the complete H0 is treated as one known `dance_or_gesture` action interval;
+2. 12 ordered samples span that action;
+3. frames are grouped into three internal 4-frame `2×2` Kontext tiles only for working resolution;
+4. all 12 rendered cells are concatenated into one final horizontal action row;
+5. final sheet = `2304×192`, `12×1`, transparent RGBA plus opaque QA version;
+6. one full-action GIF preview is generated;
+7. per-frame source index and duration are recorded in the manifest.
 
-No new H3 generation and no new model download should be required if Runner50 installation remains intact.
-
-### Runner51 expected outputs
+### Runner52 expected outputs
 
 Under `Z:\AI\FluxKontext`:
 
-- `h0_dance3x4_source_temporal_rows.png`
-- `h0_dance3x4_temporal_selection_manifest.json`
-- `h0_dance_row01_input_2x2.png`
-- `h0_dance_row02_input_2x2.png`
-- `h0_dance_row03_input_2x2.png`
-- three row-specific Kontext outputs/prompts/manifests;
-- `h0_dance_row01_preview.gif`
-- `h0_dance_row02_preview.gif`
-- `h0_dance_row03_preview.gif`
-- `h0_dance3x4_pixelart_sheet_opaque.png`
-- `h0_dance3x4_pixelart_sheet_rgba.png`
-- `h0_dance3x4_kontext_manifest.json`
+- `h0_dance12_source_action_strip.png`
+- `h0_dance12_action_selection_manifest.json`
+- `h0_dance12_chunk01_input_2x2.png`
+- `h0_dance12_chunk02_input_2x2.png`
+- `h0_dance12_chunk03_input_2x2.png`
+- three chunk-specific Kontext outputs/prompts/manifests;
+- `h0_dance12_pixelart_sheet_opaque.png`
+- `h0_dance12_pixelart_sheet_rgba.png`
+- `h0_dance12_preview.gif`
+- `h0_dance12_kontext_manifest.json`
+- `h0_dance12_kontext_executor.log`
 
-### Runner51 pass boundary
+### Runner52 pass boundary
 
 PASS requires:
 
-- each row reads as one coherent four-frame animation;
+- all 12 cells read as one coherent dance_or_gesture action left-to-right;
 - mature Exilada anatomy/proportions remain materially stable;
 - no infantilization/cute/chibi drift;
-- poses/silhouettes remain recognizably sourced from H0;
+- H0 poses/silhouettes remain recognizably preserved;
+- cross-chunk style/body consistency is acceptable;
 - deliberate high-quality pixel-art reading;
 - locked 1980s sword-and-sorcery charge remains visible;
-- automatic alpha packaging remains usable.
+- hair/cloth/restraints readable;
+- automatic alpha usable without routine manual repair.
 
-If Runner51 still fails body preservation at denoise `0.45`, classify that specific failure before changing precision/model family.
+If Runner52 still changes adult body structure at denoise0.45, classify that exact renderer failure before changing precision/model family.
 
 ### License caveat
 
@@ -338,12 +373,12 @@ SDXL/img2img remains a fallback candidate if Kontext ultimately fails quality, h
 
 ## Stage I — Runtime packaging
 
-Every completed job should return at minimum:
+Every completed action job should return at minimum:
 
 - `<character>_<action>_motion_master.mp4`
 - `<character>_<action>_frames/`
-- `<character>_<action>_pixelart_sheet.png`
-- row/action preview GIFs or equivalent;
+- `<character>_<action>_pixelart_row.png`
+- `<character>_<action>_preview.gif`
 - `<character>_<action>_atlas.png` optionally;
 - `<character>_<action>_atlas.json` with rectangles, pivots, durations/events;
 - `<character>_<action>_manifest.json` with source hashes, model/settings, scale, action preset and provenance.
@@ -380,14 +415,13 @@ Default H3 controls remain hidden/locked to Base50. Advanced controls may expose
 
 - job progress/stage status;
 - motion-master preview;
-- selected coherent-row/contact-sheet preview;
-- row animation previews;
-- final pixel-art spritesheet preview;
-- direct file/manifest access.
+- selected source-action strip preview;
+- final one-row pixel-art action preview;
+- direct frames/sheet/JSON/manifest access.
 
 ## UI implementation
 
-**Gradio remains the V1 implementation choice**, after the renderer behavior is proven.
+**Gradio remains the V1 implementation choice**, after renderer behavior passes.
 
 ## Failure classification
 
@@ -404,14 +438,16 @@ A renderer failure does not retroactively invalidate a good H3 motion master.
 
 ## Immediate implementation order
 
-1. run Runner51 on the existing H0 dance/gesture motion master;
-2. inspect `h0_dance3x4_source_temporal_rows.png` first to confirm row semantics;
-3. inspect each row GIF for temporal coherence;
-4. inspect final sheet for adult-body preservation, pose fidelity, pixel-art quality, alpha and 1980s art direction;
-5. if Runner51 passes, build the Gradio orchestration UI around H3 Base50 + the proven renderer formulation;
-6. then implement action-specific cycle detection, text-reference generation and creature-scale cases;
-7. do not spend another Base50 H3 hour solely to debug the renderer.
+1. do not run Runner51;
+2. run Runner52 on the existing H0 dance/gesture motion master;
+3. inspect `h0_dance12_source_action_strip.png` first to confirm one ordered action row;
+4. inspect the full-action GIF for temporal coherence;
+5. inspect opaque final sheet for body maturity/proportions, pose fidelity, cross-chunk consistency, pixel-art quality and art direction;
+6. inspect RGBA/alpha;
+7. if renderer passes, build the Gradio orchestration UI around H3 Base50 + the proven renderer formulation;
+8. then implement action-specific cycle detection, text-reference generation and creature-scale cases;
+9. do not spend another Base50 H3 hour solely to debug the renderer.
 
 ## Current validation question
 
-> Can Runner51 keep one coherent temporal animation per row and preserve the Exilada's mature adult physical structure and locked 1980s sword-and-sorcery identity while converting the existing H0 motion into high-quality pixel art automatically?
+> Can Runner52 preserve the Exilada's mature adult physical identity and locked 1980s sword-and-sorcery direction while converting the existing H0 dance_or_gesture motion into one correct 12-frame horizontal pixel-art action row automatically?
