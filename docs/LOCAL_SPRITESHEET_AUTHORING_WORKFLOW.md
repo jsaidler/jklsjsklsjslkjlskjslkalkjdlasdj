@@ -2,15 +2,17 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / FLUX.1 KONTEXT [DEV] RUNNER50 PIXEL-ART PROOF PREPARED / UI AFTER RENDERER PASS**
+Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 MOTION MASTER LOCKED / KONTEXT RUNNER50 VISUAL FAIL RECORDED / RUNNER51 TEMPORAL-ROW + BODY-STRUCTURE REPAIR PREPARED / UI AFTER RENDERER PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
 
+Runner50 visual-failure record: `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`.
+
 ## Purpose
 
-Define the local authoring application that takes a character concept plus a real action video and returns a complete runtime-ready pixel-art animation asset.
+Define the local authoring application that takes a character concept plus a real action video and returns a runtime-ready pixel-art animation asset.
 
 Target operator experience:
 
@@ -19,85 +21,77 @@ Target operator experience:
 3. provide a real reference video containing the desired action;
 4. choose the action type from a preset list or `custom`;
 5. run one local job;
-6. receive a finished transparent pixel-art spritesheet, preview and metadata.
+6. receive a finished transparent pixel-art spritesheet, previews and metadata.
 
-The workflow must remain usable for humanoids, animals, monsters, fantastic creatures and bosses with materially different sizes.
+The same workflow must support humanoids, animals, monsters, fantastic creatures and bosses of materially different sizes.
 
 ## All-local requirement — LOCKED
 
-The intended production workflow runs locally after model installation. Normal asset production must not require a hosted generation API.
+Normal asset production must run locally after model installation. Hosted generation APIs are not part of the production dependency chain.
 
-The current H3 implementation already runs locally. Frame extraction, segmentation/alignment, pixel-art reconstruction and packing are also intended to run locally.
+Current local stages:
 
-The official MiniMax hosted `H3-Context-IR` and `H3-Regenerate-2K` services are **not** required by the currently validated Roguelite Base Ref2VA pipeline.
+- character reference generation: model choice still open;
+- motion generation: MiniMax H3 Base Ref2VA;
+- frame extraction/selection: Python automation;
+- alpha/alignment/pivot: Python automation;
+- pixel-art reconstruction: FLUX.1 Kontext [dev] active validation;
+- packing/preview/manifest: Python automation;
+- authoring UI: Gradio after renderer pass.
 
-## Pipeline — LOCKED
+## Canonical pipeline
 
-`character source -> complete reference image -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> FLUX.1 Kontext [dev] pixel-art reconstruction -> transparent spritesheet/atlas + metadata`
+`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic coherent action-sequence extraction -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> transparent spritesheet/atlas + metadata`
 
-The H3 video is an **intermediate motion master**, not the final runtime art.
+The H3 video is an **intermediate motion master**, not final runtime art.
 
 ## Stage A — Character source
 
-The interface must expose two mutually exclusive modes.
-
 ### A1. Existing reference image
 
-Upload a complete character reference image. This is the preferred mode when the character already has an approved visual identity.
+Upload a complete approved character reference image.
 
-For the Exilada, the canonical current source remains:
+For the Exilada:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
 ### A2. Text-described character generation
 
-Enter a text description and generate a complete reference image locally before action generation.
+Enter a description and generate a complete local reference before action generation.
 
-The exact local text-to-image model for this stage is **not yet locked**. It is a separate selection gate. Current candidates include SDXL-class or FLUX text-to-image models.
+The exact text-to-image model is not yet locked. SDXL-class and FLUX text-to-image families remain candidates.
 
-Do not misuse FLUX.1 Kontext [dev] as the mandatory text-to-image generator: its local open-weight role in this workflow is downstream image editing/reconstruction.
-
-The generated reference must be approved/selected before the H3 action job starts.
+The generated reference must be approved before H3 action generation.
 
 ## Stage B — Relative world scale
 
-The UI must include a numeric **relative scale** independent of image resolution.
+The UI must expose a numeric **relative scale** independent of image resolution.
 
-Baseline semantics:
+Baseline:
 
-- `1.0` = baseline adult-human/Exilada scale;
-- Exilada remains approximately `128px` tall in the canonical gameplay composition at scale `1.0`;
-- smaller/larger creatures multiply the intended world/render scale rather than stretching the character non-uniformly.
+- `1.0` = adult-human/Exilada baseline;
+- approximately `128px` visible height in canonical gameplay composition;
+- larger/smaller creatures change intended world/render scale rather than being stretched arbitrarily.
 
-The exact allowed numeric range is not yet locked.
-
-Relative scale influences:
-
-- target visible runtime sprite height;
-- required cell/atlas dimensions;
-- camera/composition QA for very large creatures;
-- source-render resolution policy when a larger runtime sprite needs more detail;
-- metadata consumed by the game/content pipeline.
-
-It may also be supplied semantically to character-reference generation (`tiny`, `human-sized`, `giant`, etc.), but deterministic runtime scale remains explicit metadata.
+Scale influences target sprite height, cell/atlas size, source resolution and metadata.
 
 ## Stage C — Action input
 
 Upload a real reference video containing the desired action.
 
-The **video is authoritative for the actual motion**. The action-type selector does not replace the driver and must not synthesize unrelated motion by name alone.
+The **video is authoritative for motion**. The action preset names/organizes the asset and chooses extraction heuristics; it does not replace the driver.
 
-Driver preferences:
+Preferred driver properties:
 
 - fixed camera when practical;
 - complete action visible;
-- body/extremities remain inside the source frame;
-- sufficient margin for generated hair, cloth, weapons and accessories;
-- performer identity/costume/body may differ completely from the target character.
+- extremities remain in frame;
+- margin for hair, cloth, weapons and accessories;
+- performer identity/costume/body may differ from the target character.
 
-## Stage D — Action type presets
+## Stage D — Action presets
 
-The UI must provide at least these initial presets plus `custom`:
+Initial presets:
 
 - `idle`
 - `walk`
@@ -130,23 +124,19 @@ The UI must provide at least these initial presets plus `custom`:
 Preset responsibilities:
 
 - asset naming;
-- default loop/non-loop policy;
-- suggested final frame count;
-- action-segment/cycle detection heuristic;
-- pivot/alignment policy;
-- optional gameplay-event metadata such as foot contacts, hit frames, release frames or guard windows.
-
-The driver video still owns the detailed performance.
+- loop/non-loop policy;
+- suggested frame count;
+- sequence/cycle detection heuristic;
+- pivot policy;
+- optional gameplay events such as foot contacts, hit frames, release frames or guard windows.
 
 ## Stage E — Motion master: MiniMax H3 Base Ref2VA
 
 ### Canonical quality configuration — LOCKED
 
-The H0 Base50 result is the quality baseline and is restored as the production motion-master configuration:
-
 - MiniMax H3 Base Ref2VA;
 - `448×800`;
-- `124 frames @ 24fps`;
+- `124 frames @24fps`;
 - `ref_image_size=match`;
 - `50 steps`;
 - sampler `res_multistep`;
@@ -155,149 +145,214 @@ The H0 Base50 result is the quality baseline and is restored as the production m
 - no Turbo LoRA;
 - no FL2VA;
 - no style embedding;
-- schema-required audio VAE remains wired, with no audio reference/decode requirement for the current job.
+- schema-required audio VAE wired, no audio reference/decode for the current job.
 
-The completed H0 output remains the quality proof:
+Canonical H0 evidence:
 
 `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 
-H0 required about `4504.8s` on the current machine. This cost is accepted as the current quality-first baseline until a faster setting is proven to match it.
+H0 elapsed: `4504.8s`.
 
-### Turbo4 — REJECTED FOR PRODUCTION QUALITY
+Turbo4 was run and visually rejected. It is not the production default.
 
-The 4-step Ref2V Turbo experiment was executed and visually rejected by the user. It does not replace Base50.
+## Stage F — Automatic action/sequence distillation
 
-Do not use Turbo4 as the default path merely because it is faster. Preserve the test as failure history; exact local timing/hash evidence must not be invented if not captured in repository documentation.
-
-## Stage F — Automatic action-frame distillation
-
-The H3 124-frame video is not the runtime animation.
+The 124-frame H3 motion master is not the runtime animation.
 
 Downstream automation must:
 
-1. extract all video frames;
-2. locate the useful action interval or one stable loop/cycle when applicable;
-3. select a compact final frame set appropriate to the action;
-4. reject obvious structural/crop failures where automatic confidence permits;
-5. preserve action timing in metadata.
+1. decode all frames;
+2. locate useful action intervals or loops;
+3. select compact temporally coherent sequences;
+4. reject obvious crop/structure failures where confidence permits;
+5. preserve timing metadata.
 
-Default frame count is action-dependent rather than globally fixed. Typical initial targets may be 8–16 frames, with 12 as a useful general review target.
+### Spritesheet row invariant — HARD LOCK
 
-The previously produced H0 dance/gesture sheets proved that ordinary video frames can be extracted and packed; they were only raster/proxy proof and not final pixel art.
+**One row = one temporally coherent animation sequence.**
+
+Frames inside each row read left-to-right in time.
+
+Do not use a global evenly spaced sample of unrelated timestamps as a finished spritesheet.
+
+If an action spans several rows, each row must be an explicitly meaningful temporal chunk and the manifest must describe the relationship between rows.
+
+Runner50 violated this rule by sampling frames `1,12,23,35,46,57,68,79,90,102,113,124` across the entire H0 and treating the resulting `4×3` contact sheet as an animation asset.
+
+### Runner51 temporary extraction policy
+
+For the current H0 renderer proof only:
+
+- split the 124-frame timeline into three thirds;
+- inside each third, find the 16-frame window with highest simple motion energy;
+- select four ordered frames at offsets `0,5,10,15`;
+- each resulting four-frame sequence becomes one final spritesheet row.
+
+This is a controlled proof of row semantics, not the final action-specific cycle detector.
 
 ## Stage G — Automatic alpha, alignment and pivot
 
 The system must automatically:
 
 - isolate the complete visible character;
-- preserve hair, cloth, weapon and accessory extents;
+- preserve hair, cloth, weapons/accessories;
 - produce RGBA frames;
-- choose a stable pivot/root appropriate to the action;
-- preserve legitimate body bob and airborne motion rather than forcibly freezing the character;
-- allocate cells large enough for the action envelope and relative character scale.
+- choose a stable action-appropriate pivot/root;
+- preserve legitimate body bob/airborne motion;
+- allocate cells large enough for action envelope and relative scale.
 
 No routine manual masks or per-frame alignment.
 
 ## Stage H — Final pixel-art reconstruction
 
-### Preferred model — ACTIVE VALIDATION
+### Active renderer family
 
-**FLUX.1 Kontext [dev] is the preferred first local model for the final pixel-art reconstruction stage.**
+**FLUX.1 Kontext [dev] remains the active first renderer family.**
 
-Reason for the choice:
+Runner50 proved local operability but failed the production contract.
 
-- the task is image editing/transformation, not motion generation;
-- character identity and pose should survive while the visible rendering language changes;
-- Kontext is designed for context-aware image editing, character consistency and style transformation;
-- it is a better conceptual fit than asking H3 to preserve literal pixel clusters through video generation.
+### Runner50 result — MODEL/TASK FAIL
 
-### Runner50 — CURRENT GATE
+Completed evidence:
 
-`tools/structured-2d-character-pipeline/50_run_flux_kontext_h0_dance12_pixelart_proof.ps1`
-
-Separate renderer workspace:
-
-`Z:\AI\FluxKontext`
-
-The runner clones the proven pinned ComfyUI v0.34.0 runtime from the H3 portable install but excludes H3 models and state. It then installs only:
-
-- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB;
-- `clip_l.safetensors` ~246MB;
-- `t5xxl_fp16.safetensors` ~9.79GB;
-- `ae.safetensors` ~335MB.
-
-Total first renderer payload: ~22.3GB.
-
-This is deliberately the **native official ComfyUI path**: no GGUF/custom-node stack until the native route is judged. FP8-scaled diffusion is the practical RTX 3060 12GB starting point; T5 remains FP16 because system RAM is 48GB and quality is prioritized.
-
-If completed visual evidence specifically shows that FP8 diffusion is the limiting factor while layout/identity behavior is otherwise correct, full BF16 Kontext is the next single-variable quality branch.
-
-### First proof input/output
-
-Runner50 does **not** regenerate H3 motion. It uses the existing H0 dance/gesture video and selects deterministic frames:
-
-`1, 12, 23, 35, 46, 57, 68, 79, 90, 102, 113, 124`
-
-It builds a square `1024×1024` action sheet with a centered `4×3` grid, gives Kontext both the action sheet and canonical Exilada reference, and uses the action sheet itself as the output-composition latent authority.
-
-Initial Kontext settings:
-
+- prompt id `56576cf4-165a-4ad2-8a96-ec28bf75da1e`;
+- elapsed `296.63s`;
+- FP8-scaled Kontext;
 - 20 steps;
-- guidance 2.5;
-- CFG 1.0;
-- Euler;
-- simple scheduler;
-- seed 0.
+- guidance `2.5`;
+- CFG `1.0`;
+- Euler/simple;
+- seed0;
+- denoise `1.0`.
 
-The finalizer crops the generated 4×3 grid and nearest-neighbor reduces the **whole reconstructed set** to `768×576`, giving `192×192` review cells. This nearest-neighbor step happens only after generative reconstruction and is not a substitute for pixel-art generation.
+Useful evidence:
 
-Expected outputs include:
+- local Kontext inference works;
+- pixel-art-like rendering quality is promising;
+- alpha extraction is viable enough to continue.
 
-- full Kontext result;
-- opaque and RGBA sheets;
-- individual RGBA cells;
-- GIF preview;
-- prompt, selection and provenance manifests.
+Failures:
 
-### Set-level consistency strategy
+- adult body/identity proportions drifted and became juvenile/infantilized;
+- one global `4×3` contact sheet did not preserve correct animation-row semantics;
+- the mature 1980s sword-and-sorcery charge weakened.
 
-Do not default to independently re-generating each frame with no shared context.
+Therefore do not jump renderer family yet. The next test changes task formulation only.
 
-Preferred architecture:
+### Approved adult-body invariant — HARD LOCK
 
-- provide the canonical/reference character image;
-- provide the selected action frames as a coherent strip/contact sheet or otherwise shared-context set;
-- request deliberate high-quality pixel art while preserving frame order, silhouette, pose and attachments;
-- split the reconstructed set back into exact runtime cells;
-- apply deterministic palette/grid QA after reconstruction.
+The renderer changes rendering language, not approved body design.
 
-The goal is **authored-looking pixel art**, not nearest-neighbor reduction, blurred miniature illustration or simple palette quantization.
+For adult characters:
 
-### License caveat — MUST REMAIN VISIBLE
+- preserve adult age and head-to-body ratio;
+- preserve torso/limb length and major proportions;
+- preserve adult bust/hips/pelvis/legs relationship;
+- no shortened/thickened juvenile reinterpretation;
+- no enlarged head, rounded/widened childlike face, cute/chibi/adolescent drift;
+- preserve character-specific maturity, severity and physical presence.
 
-The open-weight FLUX.1 Kontext [dev] release uses the FLUX non-commercial license. It is suitable for local technical validation, but a commercial game release requires either appropriate Black Forest Labs commercial licensing or a production renderer whose license permits the intended commercial use.
+### Art-direction invariant — HARD LOCK
 
-Therefore Kontext is the preferred technical renderer candidate, **not yet a commercial-license lock**.
+The final renderer must preserve the active inspiration lineage:
 
-SDXL/img2img remains a fallback candidate if Kontext fails quality, hardware or licensing requirements.
+- Heavy Metal;
+- Conan;
+- Red Sonja;
+- Frank Frazetta;
+- Julie Bell.
+
+The desired charge includes mature adult anatomy, danger, grime, sensuality, pulp-fantasy excess and tactile skin/cloth/metal.
+
+A clean pixel-art result that loses this charge is not a PASS.
+
+### Runner51 — CURRENT GATE
+
+Runner:
+
+`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
+
+Executor:
+
+`tools/flux-kontext-spike/run_h0_dance3x4_temporal_rows_structure_lock.py`
+
+Controlled differences from Runner50:
+
+1. one coherent temporal sequence per final row;
+2. each four-frame row is rendered separately;
+3. renderer input for each row is a `2×2` `1024×1024` square, giving each character much more working resolution;
+4. same canonical Exilada reference remains the identity/art-direction authority;
+5. Kontext denoise reduced from `1.0` to **`0.45`** to preserve source structure;
+6. prompt explicitly forbids infantilization/body redesign;
+7. prompt explicitly retains the mature 1980s sword-and-sorcery lineage;
+8. three four-frame row results are repacked into a final `4×3` sheet.
+
+Same model/runtime:
+
+- `flux1-dev-kontext_fp8_scaled.safetensors`;
+- `clip_l.safetensors`;
+- `t5xxl_fp16.safetensors`;
+- `ae.safetensors`;
+- ComfyUI v0.34.0;
+- workspace `Z:\AI\FluxKontext`;
+- port `8191`.
+
+No new H3 generation and no new model download should be required if Runner50 installation remains intact.
+
+### Runner51 expected outputs
+
+Under `Z:\AI\FluxKontext`:
+
+- `h0_dance3x4_source_temporal_rows.png`
+- `h0_dance3x4_temporal_selection_manifest.json`
+- `h0_dance_row01_input_2x2.png`
+- `h0_dance_row02_input_2x2.png`
+- `h0_dance_row03_input_2x2.png`
+- three row-specific Kontext outputs/prompts/manifests;
+- `h0_dance_row01_preview.gif`
+- `h0_dance_row02_preview.gif`
+- `h0_dance_row03_preview.gif`
+- `h0_dance3x4_pixelart_sheet_opaque.png`
+- `h0_dance3x4_pixelart_sheet_rgba.png`
+- `h0_dance3x4_kontext_manifest.json`
+
+### Runner51 pass boundary
+
+PASS requires:
+
+- each row reads as one coherent four-frame animation;
+- mature Exilada anatomy/proportions remain materially stable;
+- no infantilization/cute/chibi drift;
+- poses/silhouettes remain recognizably sourced from H0;
+- deliberate high-quality pixel-art reading;
+- locked 1980s sword-and-sorcery charge remains visible;
+- automatic alpha packaging remains usable.
+
+If Runner51 still fails body preservation at denoise `0.45`, classify that specific failure before changing precision/model family.
+
+### License caveat
+
+FLUX.1 Kontext [dev] open weights are non-commercial. Technical validation is acceptable; commercial shipping later requires appropriate BFL licensing or a renderer with compatible terms.
+
+SDXL/img2img remains a fallback candidate if Kontext ultimately fails quality, hardware or licensing requirements.
 
 ## Stage I — Runtime packaging
 
 Every completed job should return at minimum:
 
 - `<character>_<action>_motion_master.mp4`
-- `<character>_<action>_frames/` — selected transparent frames
-- `<character>_<action>_pixelart_sheet.png` — final review/runtime sheet
-- `<character>_<action>_preview.gif` or equivalent loop/preview
-- `<character>_<action>_atlas.png` — optional trimmed atlas
-- `<character>_<action>_atlas.json` — rectangles, pivots, durations and events
-- `<character>_<action>_manifest.json` — source hashes, model/settings, scale, action preset and provenance
+- `<character>_<action>_frames/`
+- `<character>_<action>_pixelart_sheet.png`
+- row/action preview GIFs or equivalent;
+- `<character>_<action>_atlas.png` optionally;
+- `<character>_<action>_atlas.json` with rectangles, pivots, durations/events;
+- `<character>_<action>_manifest.json` with source hashes, model/settings, scale, action preset and provenance.
 
 Runtime-visible cells remain complete precomposed character images.
 
 ## Local interface — REQUIRED
 
-The production workflow must be exposed through one local UI rather than requiring the operator to run individual scripts manually.
+The production workflow must be exposed through one local UI.
 
 Minimum controls:
 
@@ -319,23 +374,24 @@ Minimum controls:
 
 ### Generation
 
-Default H3 controls should remain hidden/locked to the approved Base50 preset. An advanced panel may expose settings for controlled experiments, but production defaults must not silently drift.
+Default H3 controls remain hidden/locked to Base50. Advanced controls may expose controlled experimental settings, but production defaults must not silently drift.
 
 ### Output
 
 - job progress/stage status;
 - motion-master preview;
-- selected-frame/contact-sheet preview;
+- selected coherent-row/contact-sheet preview;
+- row animation previews;
 - final pixel-art spritesheet preview;
-- direct access to output files and manifest.
+- direct file/manifest access.
 
 ## UI implementation
 
-**Gradio remains the V1 implementation choice**, but implementation follows the renderer proof rather than preceding it. The UI should orchestrate proven stages, not hide unresolved renderer behavior behind controls.
+**Gradio remains the V1 implementation choice**, after the renderer behavior is proven.
 
 ## Failure classification
 
-Keep the project-wide failure vocabulary:
+Use project-wide vocabulary:
 
 - `INFRASTRUCTURE FAIL`
 - `INTEGRATION FAIL`
@@ -344,17 +400,18 @@ Keep the project-wide failure vocabulary:
 - `MODEL/TASK FAIL`
 - `EXHAUSTED_FAIL`
 
-Each stage records its own failure. A failure in pixel-art reconstruction does not retroactively invalidate a good H3 motion master, and a good final render does not excuse bad motion topology.
+A renderer failure does not retroactively invalidate a good H3 motion master.
 
 ## Immediate implementation order
 
-1. run Runner50 on the existing H0 dance/gesture motion master;
-2. inspect layout/pose preservation, Exilada identity, pixel-art quality, alpha and gameplay-scale readability separately;
-3. if native FP8-scaled Kontext is structurally correct but under-resolved, test full BF16 Kontext as the next controlled variable;
-4. once the renderer passes, build the Gradio orchestration UI around H3 Base50 + Kontext;
-5. then implement semantic action presets/distillation, text-reference generation and relative-scale creature cases;
-6. do not spend another Base50 H3 hour on a new action solely to debug the renderer.
+1. run Runner51 on the existing H0 dance/gesture motion master;
+2. inspect `h0_dance3x4_source_temporal_rows.png` first to confirm row semantics;
+3. inspect each row GIF for temporal coherence;
+4. inspect final sheet for adult-body preservation, pose fidelity, pixel-art quality, alpha and 1980s art direction;
+5. if Runner51 passes, build the Gradio orchestration UI around H3 Base50 + the proven renderer formulation;
+6. then implement action-specific cycle detection, text-reference generation and creature-scale cases;
+7. do not spend another Base50 H3 hour solely to debug the renderer.
 
 ## Current validation question
 
-> Can the isolated local FLUX.1 Kontext [dev] Runner50 preserve the existing H3 Base50 action poses and Exilada identity while reconstructing the 12-frame set as coherent, high-quality pixel art that can be automatically split, alpha-extracted and packaged as a runtime-ready review spritesheet?
+> Can Runner51 keep one coherent temporal animation per row and preserve the Exilada's mature adult physical structure and locked 1980s sword-and-sorcery identity while converting the existing H0 motion into high-quality pixel art automatically?
