@@ -39,7 +39,7 @@ function Download-Verified([string]$Url, [string]$Destination, [string]$Expected
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
 
     if (Test-Path $Destination -PathType Leaf) {
-        Write-Host "Hash-checking existing $Label: $Destination" -ForegroundColor DarkCyan
+        Write-Host "Hash-checking existing ${Label}: $Destination" -ForegroundColor DarkCyan
         $existingHash = Get-Sha256 $Destination
         if ($existingHash -eq $ExpectedSha.ToLowerInvariant()) {
             Write-Host "  $Label already present and verified." -ForegroundColor Green
@@ -53,7 +53,7 @@ function Download-Verified([string]$Url, [string]$Destination, [string]$Expected
     $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
     if (-not $curl) { Fail 'curl.exe is required for resumable verified downloads.' }
 
-    Write-Host "Downloading $Label: $Url" -ForegroundColor Cyan
+    Write-Host "Downloading ${Label}: $Url" -ForegroundColor Cyan
     & $curl.Source '--fail' '--location' '--retry' '5' '--retry-delay' '5' '--retry-all-errors' '--continue-at' '-' '--output' $partial $Url
     if ($LASTEXITCODE -ne 0) { Fail "$Label download failed with curl exit code $LASTEXITCODE" }
 
