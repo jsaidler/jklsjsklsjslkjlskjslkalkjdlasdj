@@ -18,32 +18,49 @@ GitHub living docs are canonical.
 - `docs/PROJECT_STATE.md`
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 - `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
-- `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
-- `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
+- `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
-- `docs/G3S_ANIMATION_ARCHITECTURE_LOCK.md`
-- `docs/ANIMATION_PIPELINE.md`
-- `docs/CHARACTER_PRODUCTION_PIPELINE.md`
 - `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 - `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
+
+Historical Runner50 integration/preflight incidents:
+
+- `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`
+- `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 
 ## Current production contract
 
 Final local pipeline:
 
-`existing or locally generated character reference + relative world scale + real action driver + action preset -> H3 Base50 complete-character motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> FLUX.1 Kontext [dev] pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
+`existing or locally generated character reference + relative world scale + real action driver + action preset -> H3 Base50 complete-character motion master -> automatic coherent action-sequence extraction -> automatic alpha/pivot/alignment -> local pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
 
 No routine manual rigging/keyframing/mask repair/per-frame repainting/hand compositing.
 
-## Final visible art
+## Final visible art — HARD LOCKS
 
 Runtime characters are deliberate high-quality pixel art.
 
-H3/Wan painterly/raster outputs are intermediate motion/pictorial masters only. The tiny H0 proxy is historical QA, not a production asset.
+H3/Wan painterly/raster outputs are intermediate motion masters only.
 
-Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and mature 1980s sword-and-sorcery direction remain active.
+Active inspiration lineage remains:
 
-## H3 H0 / Runner48 — COMPLETE / PREFERRED QUALITY BASELINE
+- Heavy Metal;
+- Conan;
+- Red Sonja;
+- Frank Frazetta;
+- Julie Bell.
+
+Final renderer must preserve mature adult anatomy, danger, grime, sensuality, tactile materials and pulp-fantasy physicality.
+
+Approved adult characters may not be infantilized, made cute/chibi/adolescent-looking, shortened/thickened into juvenile proportions, given enlarged heads or rounded childlike faces. Renderer changes rendering language, not physical identity.
+
+## Spritesheet semantic lock
+
+**One row = one temporally coherent animation sequence.**
+
+Frames read left-to-right in time. A global contact sheet of scattered timestamps is not a valid final spritesheet.
+
+## H3 H0 — COMPLETE / PREFERRED MOTION BASELINE
 
 Canonical Base50 configuration:
 
@@ -60,141 +77,158 @@ Canonical Base50 configuration:
 Evidence:
 
 - prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
-- elapsed `4504.8s` (~75m05s);
+- elapsed `4504.8s`;
 - video `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
 - SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`.
 
-Visual verdict: **PASS_CANDIDATE / preferred motion-master quality baseline.** Stable body topology, coherent hair/cloth response, no destructive global smear. Chain detail still drifts somewhat. Late foot crop follows driver/source envelope.
+Visual verdict: **PASS_CANDIDATE / preferred motion-master quality baseline**.
 
-## Turbo4 / Runner49 — REJECTED
+Turbo4 was run and visually rejected. Base50 remains production default.
 
-The 4-step Ref2V Turbo experiment was run and visually rejected by the user.
+## Existing H0 action
 
-The user wants the original H0 Base50 quality back.
+The current H0 is a **dance/gesture-like action**, not a walk.
 
-Therefore:
+Do not generate a new walk merely to debug the renderer.
 
-- Turbo4 is closed as default production setting;
-- Base50 is restored;
-- do not invent Turbo4 timing/hash/prompt evidence if not recovered locally;
-- preserve local output/log/manifest if available, then the Turbo LoRA may be removed.
+## FLUX Kontext local runtime — INSTALLED / OPERATIONAL
 
-Record: `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`.
+Workspace:
 
-## Existing H0 action clarification
+`Z:\AI\FluxKontext`
 
-The existing H0 result is a **dance/gesture-like action**, not a walk.
+Runtime/model set:
 
-This is now the renderer proof source. Do not generate a new walk merely to test spritesheet conversion.
+- ComfyUI v0.34.0;
+- port `8191`;
+- `flux1-dev-kontext_fp8_scaled.safetensors`;
+- `clip_l.safetensors`;
+- `t5xxl_fp16.safetensors`;
+- `ae.safetensors`.
 
-## CURRENT GATE — Runner50 / FLUX.1 Kontext [dev]
+Local inference is proven; reuse this installation.
 
-Canonical renderer spike:
+## Runner50 — COMPLETED / VISUAL FAIL
 
-`docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
+Runner50 completed technically:
 
-Runner:
-
-`tools/structured-2d-character-pipeline/50_run_flux_kontext_h0_dance12_pixelart_proof.ps1`
-
-Executor:
-
-`tools/flux-kontext-spike/run_h0_dance12_pixelart_proof.py`
-
-### Runner50 initial parser incident — FIXED
-
-The first operator invocation failed immediately in the PowerShell parser at two `$Label:` interpolations.
-
-Classification: **INTEGRATION FAIL / PRE-INFERENCE**. No downloads, ComfyUI launch or Kontext inference occurred; zero model-quality evidence.
-
-Repair: delimit the variable as `${Label}:` in the two affected status strings only.
-
-Repair commit: `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2`.
-
-Do not change renderer settings because of this incident.
-
-### Runner50 CLIP-L hash preflight incident — FIXED
-
-The next attempt successfully downloaded and verified the ~11.9GB Kontext FP8-scaled diffusion file, then downloaded the ~246MB CLIP-L file.
-
-Runner50 rejected that CLIP-L because the repository contained the wrong expected SHA256. The downloaded file hash was:
-
-`660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`
-
-Independent Hugging Face metadata confirms this is the correct CLIP-L hash. The previous project value omitted one `c0` sequence.
-
-Classification: **INTEGRATION FAIL / PRE-INFERENCE / ZERO KONTEXT QUALITY EVIDENCE**.
-
-Both the PowerShell runner and Python executor are corrected. Remaining first-spike model hashes were independently rechecked. The already verified ~11.9GB Kontext file remains reusable; CLIP-L must download again because the failed runner deleted the valid file after the false mismatch.
-
-Incident record:
-
-`docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
-
-### Workspace/runtime
-
-- renderer workspace: `Z:\AI\FluxKontext`;
-- isolated ComfyUI port: `8191`;
-- Runner50 clones the proven H3 ComfyUI v0.34.0 portable runtime while excluding H3 models/input/output/user state;
-- no custom nodes for this first renderer proof.
-
-### First model set
-
-- `flux1-dev-kontext_fp8_scaled.safetensors` ~11.9GB; SHA256 `630ba795ec64283b4230ea23cf79406c2c68b7c578229ed139f30043eadb30a2`;
-- `clip_l.safetensors` ~246MB; SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`;
-- `t5xxl_fp16.safetensors` ~9.79GB; SHA256 `6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635`;
-- `ae.safetensors` ~335MB; SHA256 `afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38`.
-
-Total ~22.3GB.
-
-The native FP8-scaled diffusion is the practical official starting point for RTX 3060 12GB. T5 is kept FP16 because system RAM is 48GB and quality is prioritized. Full BF16 Kontext is the next controlled branch only if completed evidence shows the FP8 diffusion itself is the quality bottleneck.
-
-### First proof contract
-
-No new H3 inference.
-
-Runner50 uses deterministic H0 frames:
-
-`1, 12, 23, 35, 46, 57, 68, 79, 90, 102, 113, 124`
-
-It builds a square `1024×1024` input with a centered `4×3` action grid, conditions Kontext on:
-
-1. the 12-frame action sheet as pose/composition authority;
-2. canonical Exilada as identity/style authority.
-
-Kontext baseline:
-
+- prompt id `56576cf4-165a-4ad2-8a96-ec28bf75da1e`;
+- elapsed `296.63s`;
 - 20 steps;
 - guidance2.5;
 - CFG1.0;
 - Euler/simple;
-- seed0.
+- seed0;
+- denoise1.0.
+
+Useful evidence:
+
+- Kontext local inference works;
+- pixel-art-like output is promising;
+- alpha extraction remains viable enough to continue.
+
+User visual verdict: **REJECTED**.
+
+Failures:
+
+1. Exilada body proportions changed shorter/thicker and more juvenile/infantilized;
+2. evenly distributed 12-frame H0 sample was a contact sheet, not correct animation rows;
+3. mature Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell charge weakened;
+4. denoise1.0 and 12 small figures in one square gave excessive redraw freedom.
+
+Classification: **MODEL/TASK FAIL**.
+
+Record:
+
+`docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
+
+## CURRENT GATE — Runner51
+
+Runner:
+
+`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
+
+Executor:
+
+`tools/flux-kontext-spike/run_h0_dance3x4_temporal_rows_structure_lock.py`
+
+No new H3 generation. No new model download should be required if Runner50 installation remains intact.
+
+### Runner51 source-row selection
+
+- split 124-frame H0 into three thirds;
+- inside each third calculate simple grayscale motion energy;
+- choose the highest-motion 16-frame local window;
+- select four ordered frames at offsets `0,5,10,15`;
+- each sequence becomes one final spritesheet row.
+
+This is a proof policy, not final action-specific cycle detection.
+
+### Runner51 renderer formulation
+
+Each row is rendered separately as a `2×2` `1024×1024` Kontext input:
+
+- four temporally ordered frames;
+- character materially larger during edit than Runner50;
+- canonical Exilada remains identity/art-direction reference;
+- same FP8-scaled Kontext model;
+- 20 steps;
+- guidance2.5;
+- CFG1.0;
+- Euler/simple;
+- seed0;
+- **denoise0.45**.
+
+Hard prompt locks:
+
+- mature adult body proportions and age;
+- no infantilization/cute/chibi/adolescent drift;
+- preserve pose/silhouette/hair/cloth/restraints;
+- preserve Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell mature sword-and-sorcery charge;
+- change rendering language only.
+
+### Runner51 final packing
+
+Three row outputs are split and repacked as:
+
+- final `4×3` sheet;
+- `192×192` cells;
+- `768×576` total;
+- one coherent animation sequence per row;
+- opaque + RGBA outputs;
+- one GIF preview per row;
+- manifest with exact selected source frames/settings.
 
 Expected outputs under `Z:\AI\FluxKontext`:
 
-- `h0_dance12_input_sheet.png`
-- `h0_dance12_selection_manifest.json`
-- `h0_dance12_kontext_api_prompt.json`
-- `h0_dance12_kontext_full.png`
-- `h0_dance12_kontext_working_grid.png`
-- `h0_dance12_pixelart_sheet_opaque.png`
-- `h0_dance12_pixelart_sheet_rgba.png`
-- `h0_dance12_pixelart_frames/`
-- `h0_dance12_pixelart_preview.gif`
-- `h0_dance12_kontext_manifest.json`
-- `h0_dance12_kontext_executor.log`
+- `h0_dance3x4_source_temporal_rows.png`
+- `h0_dance3x4_temporal_selection_manifest.json`
+- `h0_dance_row01_input_2x2.png`
+- `h0_dance_row02_input_2x2.png`
+- `h0_dance_row03_input_2x2.png`
+- row-specific Kontext full outputs/prompts;
+- `h0_dance_row01_preview.gif`
+- `h0_dance_row02_preview.gif`
+- `h0_dance_row03_preview.gif`
+- `h0_dance3x4_pixelart_sheet_opaque.png`
+- `h0_dance3x4_pixelart_sheet_rgba.png`
+- `h0_dance3x4_kontext_manifest.json`
+- `h0_dance3x4_kontext_executor.log`.
 
-### Pass criteria
+### Runner51 pass criteria
 
-Runner50 is not accepted just because inference completes. Review separately:
+Review separately:
 
-- 12 source poses preserved;
-- Exilada identity/design coherent;
-- true high-quality pixel-art reading;
-- no destructive pose/topology rewrite;
-- hair/cloth/restraints retained;
-- runtime review readable;
-- automatic alpha usable without routine manual masks.
+- row temporal coherence;
+- mature adult body preservation;
+- no infantilization;
+- pose/silhouette fidelity;
+- high-quality deliberate pixel art;
+- locked 1980s sword-and-sorcery art direction;
+- hair/cloth/restraint readability;
+- automatic alpha quality.
+
+If Runner51 still changes adult structure at denoise0.45, classify that exact failure before switching precision/model family.
 
 ## Exact next operator command
 
@@ -202,46 +236,40 @@ Runner50 is not accepted just because inference completes. Review separately:
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\50_run_flux_kontext_h0_dance12_pixelart_proof.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1"
 ```
 
-On resume, the already verified Kontext diffusion file is reused. The runner re-downloads CLIP-L (~246MB), then continues with T5XXL FP16 and VAE as needed.
+## When Runner51 finishes
+
+Ask for at least:
+
+- `h0_dance3x4_source_temporal_rows.png`
+- `h0_dance_row01_preview.gif`
+- `h0_dance_row02_preview.gif`
+- `h0_dance_row03_preview.gif`
+- `h0_dance3x4_pixelart_sheet_opaque.png`
+- `h0_dance3x4_pixelart_sheet_rgba.png`
+- `h0_dance3x4_kontext_manifest.json`
+- `h0_dance3x4_kontext_executor.log`
+
+Inspect source-row semantics before blaming the renderer for a bad sequence selection.
+
+## Local authoring UI — AFTER RENDERER PASS
+
+Finished tool must expose:
+
+- reference image or local text-to-reference generation;
+- character name/category;
+- numeric relative world scale;
+- action video upload;
+- action preset dropdown;
+- locked H3 Base50 production preset by default;
+- progress/previews;
+- row animation previews;
+- final sheet/frames/JSON/manifest access.
+
+Gradio remains V1 choice.
 
 ## License caveat
 
-The open-weight Kontext [dev] release is non-commercial. Technical validation is fine; commercial game shipping later requires BFL commercial licensing or a renderer with compatible terms.
-
-SDXL/img2img remains fallback.
-
-## Local authoring UI — REQUIRED AFTER RENDERER PASS
-
-The finished tool must expose one local interface with:
-
-- reference image **or** text-described local reference generation;
-- character name/category;
-- numeric relative world scale;
-- action reference video upload;
-- action preset dropdown including common locomotion/combat/weapon/defense/taunt/dance/custom actions;
-- locked H3 Base50 production preset by default;
-- progress/previews;
-- final sheet/frames/preview/JSON/manifest file access.
-
-Gradio is the current V1 UI scaffold choice. Build it after the renderer behavior is proven so the UI orchestrates validated stages instead of hiding unresolved failures.
-
-The exact local text-to-reference model is not yet locked. SDXL-class and FLUX text-to-image families are candidates.
-
-## Relative scale
-
-`relative_scale=1.0` = baseline adult-human/Exilada size, about128px visible height in the canonical gameplay composition.
-
-Scale affects target sprite occupancy, cell/atlas dimensions and source-resolution policy. It is not arbitrary image stretching. Exact min/max remains open.
-
-## Immediate next actions
-
-1. pull the corrected Runner50 and rerun it;
-2. inspect the generated sheet/preview/manifest;
-3. classify renderer result by layout/pose, identity, pixel-art quality, alpha and gameplay-scale readability;
-4. only if FP8 is specifically under-resolved, test full BF16 Kontext;
-5. after renderer PASS, build Gradio orchestration UI;
-6. then expand semantic action distillation, reference generation and creature scales;
-7. do not spend another Base50 H3 hour solely to debug the renderer.
+FLUX.1 Kontext [dev] open weights are non-commercial. Technical validation is fine; commercial shipping later requires BFL licensing or a compatible renderer.
