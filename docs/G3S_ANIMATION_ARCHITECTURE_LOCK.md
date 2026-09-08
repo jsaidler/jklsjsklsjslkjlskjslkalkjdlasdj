@@ -1,8 +1,8 @@
 # G3S — Animation Architecture Lock
 
-Status date: **2026-09-07**
+Status date: **2026-09-08**
 
-Status: **CANONICAL / COMPLETE-CHARACTER 2D SPRITESHEET RUNTIME / RAW-VIDEO DUAL-REFERENCE AUTHORING REQUIRED / NO MANUAL ANIMATION/CLEANUP / WAN-ANIMATE-2 BASE BF16 W0 ACTIVE**
+Status: **CANONICAL / COMPLETE-CHARACTER 2D SPRITESHEET RUNTIME / H3 REF2VA MOTION-MASTER AUTHORING / FINAL HIGH-QUALITY PIXEL-ART RECONSTRUCTION / NO MANUAL ANIMATION OR PER-FRAME CLEANUP**
 
 ## Presentation lock
 
@@ -10,18 +10,30 @@ The game uses an elevated arcade beat'em-up / belt-scroller false-3D presentatio
 
 - fixed orthographic gameplay camera;
 - native raster `640×360`;
-- pitch `26 deg`;
-- protagonist about `128 px` tall;
+- pitch `26°`;
+- protagonist about `128px` tall;
 - first locomotion family screen-left and mostly lateral/three-quarter;
-- intended first gameplay facing remains `72 deg` azimuth from travel heading.
+- intended first gameplay facing `72°`.
 
 ## Final runtime representation — LOCKED
 
-The runtime consumes **complete, already-composed character frames**:
+Runtime consumes **complete, already-composed character frames**:
 
-`complete authored frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
+`complete pixel-art frames -> spritesheet/atlas + metadata -> ordinary sprite playback`
 
-Runtime visible-character assembly from body/hair/clothing/armor/accessory layers is abolished.
+No visible runtime body/hair/clothing/equipment layer assembly.
+
+## Final visual rendering — LOCKED 2026-09-08
+
+Final runtime character graphics are deliberate high-quality pixel art.
+
+H3 painterly/raster output is classified as a **motion-master intermediate**, not the final runtime raster style.
+
+Canonical production chain:
+
+`pixel-art appearance reference + real driving video -> H3 complete-character motion master -> automatic action/cycle distillation -> automatic segmentation/alignment -> high-quality pixel-art reconstruction -> complete transparent spritesheet/atlas -> runtime`
+
+The exact pixel-art reconstruction model/tool is still a separate validation gate.
 
 ## Complete-frame motion requirement — LOCKED
 
@@ -35,24 +47,24 @@ Every valid exported animation must bake together, where present:
 - shackles/chains/restraints/accessories;
 - final occlusion changes.
 
-## Initial Exilada state — LOCKED
+## Initial Exilada source — LOCKED
 
 Canonical appearance reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-It owns the entire initial visible state.
+It owns the complete initial visible state for current authoring.
 
-## Dual-reference authoring contract — LOCKED
+## Dual-reference motion-authoring contract — LOCKED
 
-Production animation requires two semantically separate sources:
+Motion authoring uses two semantically separate sources:
 
 1. **appearance:** complete Exilada master;
 2. **movement:** arbitrary real driving video.
 
-The driving performer may come from Internet footage and does not need matching costume, hair, body or identity.
+The driving performer does not need matching costume, hair, body or identity.
 
-The production model must consume motion information richer than a skeleton/body-pose sequence so it can exploit non-rigid temporal evidence for hair, cloth, soft-body response, wind and accessory dynamics.
+The motion model must consume richer evidence than skeleton pose so it can infer non-rigid temporal behavior for hair, cloth, soft tissue, wind and accessories.
 
 ## No-manual-production rule — LOCKED
 
@@ -61,136 +73,104 @@ Disallowed as required production steps:
 - manual rigging/weight painting;
 - manual keyframing;
 - manual hair animation;
-- manual cloth simulation setup/repair;
-- manual chain animation;
+- manual cloth/chain setup or repair;
 - manual pose alignment;
 - manual mask repair;
 - per-frame repainting/retouching;
 - hand compositing or cleanup.
 
-Allowed: fully automatic preprocessing, segmentation, crop/resize, background removal, frame extraction, spritesheet packing, QA and metadata.
+Allowed: fully automatic preprocessing, segmentation, crop/resize, background removal, cycle/action detection, frame extraction, alignment, pixel-art reconstruction, packing, QA and metadata.
 
-## Model-exhaustion rule — LOCKED
+## Model-screening state
 
-Do not change model families because one configuration produces a bad result.
+1. **MiniMax H3 Ref2VA — ACTIVE / H0 PASS_CANDIDATE as motion-master family.**
+2. Wan-Animate-2 — paused after W1L, not exhausted.
+3. SCAIL-2 — later only if H3 fails a later production gate.
 
-`EXHAUSTED_FAIL` requires:
+Pose-only Moore/SSD routes remain research evidence and do not satisfy the richer raw-video motion contract.
 
-1. official/reference baseline reproduction where practical;
-2. loader/checkpoint/input semantics validated;
-3. controlled cross-identity/project tests;
-4. meaningful high-leverage variants one at a time with fixed input/seed;
-5. repeated decisive failure;
-6. no manual rescue and no random seed fishing.
+## H3 H0 quality baseline
 
-## Pose-only routes — research only for the final contract
+Completed local H0:
 
-Runner 34 proved complete-character export/packing/playback, but the current Moore/AnimateAnyone + released SSD-UNet compatibility route is body-pose-conditioned. It therefore cannot be the final complete-motion production foundation under the raw-video contract because the control signal discards the non-rigid dynamics we explicitly require.
+-448×800;
+-124f @24fps;
+-50 steps;
+- `res_multistep/beta`;
+- seed0;
+- `ref_image_size=match`;
+- prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
+- elapsed `4504.8s`.
 
-Exact public SSD remains separately `BLOCKED` by the missing custom SSD pose-guider checkpoint.
+Visual verdict: **PASS_CANDIDATE**. Stable body topology, coherent hair/cloth motion, no destructive whole-body smear. Chain detail still drifts. Late crop follows source driver envelope.
 
-## Raw-video candidate order — LOCKED
+## H3 temporal production rule
 
-1. **Wan-Animate-2** — exhaust first.
-2. **SCAIL-2** — next open/local candidate only after Wan reaches `EXHAUSTED_FAIL`.
-3. DreamActor-M2 — benchmark until a self-hostable release exists.
-4. Kling Motion Control — hosted benchmark only.
+Do not assume the production route should ask H3 for only8–12 generated frames.
 
-## Wan historical test — evidence only
+Current H3 uses the `17k+5` temporal grid and documents its trained video range around124–362 frames @24fps.
 
-The 2026-09-04 project test used a constrained Base INT8 / UMT5 FP8 setup around `384×576`, 17 frames and seed 42. It produced weak locomotion transfer and a smooth painted result.
+Production baseline:
 
-That configuration failed, but it did not exhaust Wan-Animate-2.
+`fast124-frame motion master -> automatic cycle/action distillation -> ~12 selected game frames -> final pixel-art reconstruction`
 
-## Wan checkpoint-quality lock — 2026-09-07
+Shorter H3 windows are optional later optimization only after evidence.
 
-Hardware no longer selects the checkpoint.
+## Current gate — H0T / Runner49
 
-Canonical W0 set:
+H0 Base50 quality is good but ~75 minutes per run is too slow for ordinary action iteration.
 
-- `wan_animate_2_bf16.safetensors` — ~32.8 GB;
-- `umt5_xxl_fp16.safetensors` — ~11.4 GB;
-- `clip_vision_h.safetensors` — ~1.26 GB;
-- `Wan2_1_VAE_bf16.safetensors` — ~0.254 GB.
+Runner49 tests the official Ref2V Turbo4 path on the exact H0 inputs:
 
-Total model payload: ~45.7 GB.
+- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
+- LoRA strength1.0;
+-4 steps;
+- `res_multistep/simple`;
+- same Picture1/Video1;
+- same448×800/124f/24fps;
+- same `ref_image_size=match`, seed0 and prompt.
 
-Not part of W0 and intentionally removed if found:
+Speed and quality must both pass before Turbo becomes the H1-S production path.
 
-- Base INT8 ConvRot;
-- Distilled BF16;
-- Distilled INT8 ConvRot;
-- LightX2V distillation LoRA;
-- UMT5 FP8.
+## H1-S walk architecture
 
-Those variants are downloaded later only if an explicit W4 comparison requires them.
+After throughput choice:
 
-## Hardware-concession order — LOCKED
+1. use a fixed-camera full-body screen-left real walk with safe margins and one clear gait cycle;
+2. keep the proven124-frame H3 temporal regime; a clean cycle may be automatically tiled/repeated in the driver;
+3. generate a complete H3 motion master;
+4. automatically select one stable gait cycle;
+5. distill to ~12 useful frames;
+6. automatically segment and pivot-align complete character frames;
+7. reconstruct the full selected set as coherent high-quality pixel art;
+8. pack final transparent spritesheet/atlas + metadata.
 
-If RTX 3060 12 GB + 48 GB RAM cannot execute the reference-quality W0 set, reduce execution one controlled variable at a time:
+## First runtime locomotion target
 
-1. offload/cache strategy;
-2. temporal frame window;
-3. spatial resolution;
-4. text-encoder precision if necessary;
-5. main-model quantization only later as an explicit comparison.
-
-Do not begin by replacing the Base BF16 main checkpoint.
-
-## Runner 35 — CURRENT GATE
-
-`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
-
-Runner 35 performs setup only:
-
-- requires 70 GB free-space headroom;
-- rebuilds/restores isolated `D:\AI\WanAnimate2`;
-- removes superseded Wan-specific model/material variants;
-- downloads only the ~45.7 GB BF16/FP16 W0 model set;
-- downloads upstream demo1 `reference.png` + `template.mp4`;
-- copies Exilada master for later W1;
-- removes completed HF/Xet cache;
-- launches ComfyUI headlessly;
-- captures exact installed node schemas;
-- stops before inference.
-
-Expected marker:
-
-`RUNNER35-WAN-BF16-PREP: PASS — READY TO AUTHOR W0 WORKFLOW`
-
-The schema-first stop is mandatory so the W0 workflow is built against the actual fresh `WanAnimate2ToVideo` and loader contracts rather than stale template assumptions.
-
-## W0–W4 sequence
-
-- **W0:** official upstream reference + official driver;
-- **W1:** same known-good driver/settings, replace only appearance with Exilada master;
-- **W2:** clean real Internet walk clip;
-- **W3:** real secondary-motion stress clip with body bounce/hair/cloth/wind;
-- **W4:** finite documented variants only.
-
-After W4: `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
+- visible character ~128px;
+-12 unique frames;
+- initial cell192×192;
+-4×3 review sheet =768×576;
+- transparent RGBA;
+- optional trimmed atlas with frame rectangles, pivots and durations.
 
 ## Cleanup discipline — LOCKED
 
-Do not accumulate duplicate large checkpoints/materials.
-
-- Keep only variants tied to an active test hypothesis.
-- Remove superseded local model-specific material when no longer used.
-- Preserve small logs/manifests/results.
-- Do not delete the active Wan BF16 workspace because of one bad output.
-- Keep SSD comparison evidence temporarily until Wan W0 is established or SSD research is explicitly abandoned.
+- keep Base H3 Ref2VA files;
+- add only the single official Turbo4 LoRA for the explicit throughput hypothesis;
+- do not accumulate FL2VA/style/alternate quantizations without evidence;
+- Wan large weights may be removed while W1H/W1L proof/results remain;
+- keep SSD comparison evidence until explicit abandonment/final verdict.
 
 ## Closed routes / assumptions
 
 - runtime visible-character layer assembly — CLOSED;
-- body-pose-only animation as final complete-motion production solution — CLOSED;
-- manual hidden-3D/2D secondary animation as required production method — CLOSED;
-- hidden 3D render as final visible pixel art — CLOSED;
+- body-pose-only animation as final motion foundation — CLOSED;
+- manual hidden secondary animation as required production method — CLOSED;
 - independent unconstrained full-body redraw per frame — CLOSED;
-- C0 nearest-segment hard partition — CLOSED;
-- single-still whole-body chain/cage warp — CLOSED;
-- MPFB skinned body as mandatory visible guide — CLOSED.
+- using the tiny H0 gameplay proxy as final production art — CLOSED;
+- treating H3 painterly video itself as the final mandatory runtime pixel style — CLOSED.
 
 ## Current validation question
 
-> Can Wan-Animate-2 Base BF16, tested first on its official raw-video baseline and then through the finite no-manual W1–W4 matrix, preserve the complete Exilada while automatically transferring body and non-rigid secondary dynamics strongly enough for complete-character spritesheet production?
+> Can the official H3 Ref2V Turbo4 path retain the H0 motion/topology quality while reducing wall-clock cost enough that a 124-frame motion master can be a practical upstream source for automatic ~12-frame high-quality pixel-art spritesheets?
