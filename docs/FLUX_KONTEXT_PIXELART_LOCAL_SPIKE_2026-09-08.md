@@ -2,11 +2,13 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / RUNNER50 PREPARED / EXISTING H0 DANCE-GESTURE VIDEO IS THE FIRST DOWNSTREAM PROOF INPUT**
+Status: **CANONICAL / RUNNER50 PREPARED AND POWERSHELL PARSER FIXED / EXISTING H0 DANCE-GESTURE VIDEO IS THE FIRST DOWNSTREAM PROOF INPUT**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Canonical end-to-end workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
+
+Runner50 parser incident: `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`.
 
 ## Purpose
 
@@ -121,6 +123,20 @@ Runner50 performs the whole first local renderer proof:
 5. executes the H0 dance12 Kontext proof;
 6. stops managed ComfyUI after completion/failure.
 
+### Initial PowerShell parser failure — FIXED
+
+The first operator invocation failed before any download/runtime/inference because two interpolated status strings used `$Label:`. PowerShell parsed this as an invalid scoped/drive-style variable reference.
+
+Classification: **INTEGRATION FAIL / PRE-INFERENCE**. Zero renderer/model-quality evidence.
+
+The only repair was:
+
+- `$Label:` -> `${Label}:` in the two affected `Write-Host` strings.
+
+Repair commit: `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2`.
+
+No model URL/hash, ComfyUI version, prompt, graph, frame selection, sampler, resolution or workspace setting changed.
+
 ## Action-sheet preparation
 
 The first proof intentionally avoids pretending semantic action distillation is already solved.
@@ -228,6 +244,7 @@ This spike is a local technical R&D validation. A commercial game release requir
 
 ## Next decision after Runner50
 
+- Pull the repaired Runner50 and rerun the same command; the parser incident does not justify any model/settings change.
 - If Kontext FP8 passes: make this the first renderer backend and build the Gradio orchestration UI around the proven H3 Base50 + Kontext stages.
 - If the renderer is structurally good but visibly under-resolved: test full BF16 Kontext as the next controlled variable.
 - If Kontext rewrites poses/layout/identity despite controlled prompting and multi-reference conditioning: classify the specific failure before trying another renderer family.
