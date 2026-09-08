@@ -186,15 +186,24 @@ The first W1G preprocessor used a single global temporal-activity union over the
 
 Classification: **PREPROCESSOR/INTEGRATION FAIL, not Wan/model failure.** The guard prevented a meaningless ~30 minute inference.
 
-Finding: the official driver's temporal activity spans essentially the whole frame, so a global union box cannot distinguish performer traversal from subject extent. A fixed global affine therefore cannot solve this clip.
+Finding: the official driver's temporal activity spans essentially the whole frame, so a global union box cannot distinguish performer traversal from subject extent.
 
-### W1G v2 — CURRENT IMPLEMENTATION
+### W1G v2 — PRE-INFERENCE EXECUTOR FAIL / NO WAN PROMPT
 
-The preprocessor now:
+V2 replaced the global union with OpenCV HOG person detection, interpolation, smoothed translation and constant scale. The surfaced terminal excerpt shows the executor still exited with code 2 before any `W1G: prompt_id=...` was produced.
 
-- uses OpenCV's built-in HOG person detector independently on the first 37 frames;
-- selects a temporally coherent performer box;
-- interpolates frames where detection is missing;
+The excerpt did **not** include the executor's specific `W1G: FAIL - ...` line, so the exact v2 sub-cause is not asserted. Classification remains **PREPROCESSOR/INTEGRATION FAIL; no Wan/model inference**.
+
+Independent of that missing diagnostic, HOG-only person detection is too semantically brittle for the production contract because driving footage may contain arbitrary subject appearance, non-upright poses or non-human reference motion. That detector-specific path is therefore superseded.
+
+### W1G v3 — CURRENT IMPLEMENTATION
+
+The preprocessor now uses a detector-agnostic method for the fixed-camera official baseline:
+
+- estimates a temporal-median background from the first 37 source frames;
+- segments moving foreground independently per frame;
+- tracks the dominant coherent foreground component instead of unioning the entire trajectory;
+- interpolates missed boxes;
 - expands boxes for head/hair/hands/feet safety;
 - smooths **translation only** over time;
 - keeps **one constant scale** for all frames, so there is no zoom/camera breathing;
@@ -202,6 +211,12 @@ The preprocessor now:
 - hard-fails before inference if top/bottom/side margins are unsafe;
 - separately guards the central square used by `CLIPVisionEncode(crop="center")`;
 - uses only existing `cv2` + `numpy`; no detector checkpoint/model download.
+
+Runner 40 also now tees all executor stdout/stderr to:
+
+`Z:\AI\WanAnimate2\w1g_executor.log`
+
+and prints the executor diagnostics on failure, so future code-2 exits can no longer be masked by unrelated ComfyUI stderr.
 
 Everything else remains W1A:
 
@@ -213,12 +228,13 @@ Everything else remains W1A:
 - negative prompt;
 - `--disable-pinned-memory`.
 
-Expected evidence after a valid v2 run:
+Expected evidence after a valid v3 run:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1g_api_prompt.json`
 - `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`
+- `Z:\AI\WanAnimate2\w1g_executor.log`
 
 Success criterion: complete head/hair/body remain in frame while W1A's stronger body-structure retention survives. If so, **blur reduction becomes the next isolated axis**.
 
