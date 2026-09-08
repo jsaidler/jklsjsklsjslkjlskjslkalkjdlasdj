@@ -1,45 +1,61 @@
 # Visual Direction — Living Document
 
-Status date: **2026-09-07**
+Status date: **2026-09-08**
 
-Status: **the previous hard lock to deliberate modern pixel art is superseded. The Wan-Animate-2 W1 painterly 2D result is now the preferred visible-art direction under gameplay-scale validation, with an explicit 1980s sword-and-sorcery / dark-fantasy charge.**
+Status: **FINAL RUNTIME ART RETURNS TO DELIBERATE HIGH-QUALITY PIXEL ART. H3 PAINTERLY VIDEO IS AN INTERMEDIATE MOTION MASTER, NOT THE FINAL RUNTIME RENDER. 1980s SWORD-AND-SORCERY DIRECTION REMAINS LOCKED.**
 
-## Process rule — living documentation
+## Process rule
 
 All material visual-direction decisions, accepted/rejected approaches and validation results must be recorded here or in the relevant linked canonical document. When a decision changes, edit the living document rather than relying on chat history.
 
-The high-level game vision is defined in `docs/GAME_VISION.md`.
+High-level game vision: `docs/GAME_VISION.md`.
+
+H1-S production definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
 
 ## Core production constraint
 
-The project must be producible end-to-end through ChatGPT and project tooling without routine bespoke manual art/animation work from the user or a hired art team.
+The project must remain producible end-to-end through ChatGPT and project tooling without routine bespoke manual art/animation work from the user or a hired art team.
 
-A visual direction is invalid if it can make one attractive concept but cannot be animated, varied, maintained and expanded by the same production system.
+A direction is invalid if it can produce one attractive frame but cannot be animated, varied, maintained and expanded through the same automatic production system.
 
-## Current preferred visible-art language — LOCKED AS DIRECTION, STILL UNDER GAMEPLAY-SCALE VALIDATION
+## Final runtime visible-art language — LOCKED 2026-09-08
 
-The Wan-Animate-2 W1 Exilada result changed the visual target materially.
+The canonical Exilada source is pixel-art based. MiniMax H3 H0 proved that a painterly/raster reinterpretation can be an excellent **motion-solving intermediate**, but the tiny gameplay proxy also made clear that simple downscaling is not an acceptable final-art pipeline.
 
-The user explicitly approved the result as exceptionally beautiful and stated that a whole game at this quality/language would be highly desirable. Therefore the earlier requirement that final gameplay art must read as deliberate pixel art is **no longer a hard constraint**.
+Final runtime character art therefore returns to:
 
-Current preferred language:
-
-- high-quality painterly / illustrated 2D character rendering;
-- severe, physical, mature dark fantasy;
+- deliberate high-quality pixel art;
+- coherent pixel clusters rather than blurred miniature illustration;
+- exact pixel-grid rendering;
 - strong silhouette and readable large masses;
-- rich skin, hair and fabric rendering without requiring visible pixel clusters;
-- localized, restrained motion blur is allowed and may be desirable because it prevents the animation from reading as a rigid sequence of still illustrations;
-- blur must remain motion-local and controlled rather than globally softening the image;
-- temporal coherence and complete-character readability matter more than preserving a pixel-art construction doctrine;
-- output must still survive actual gameplay scale, background extraction/composition and ordinary complete-sprite playback.
+- controlled palette/material separation;
+- enough detail to feel contemporary at ~128px character height;
+- no dependence on facial microdetail as the sole identity carrier.
 
-This does **not** mean any smooth AI-video output is accepted automatically. Identity, topology, restraints/accessories, framing, motion readability and production reproducibility remain hard QA requirements.
+The desired final quality is **better than the current canonical reference**, not merely a nearest-neighbor reduction of it.
 
-## 1980s sword-and-sorcery charge — LOCKED 2026-09-07
+## H3 painterly result — RECLASSIFIED AS INTERMEDIATE
 
-The game should deliberately carry an **1980s fantasy / sword-and-sorcery visual charge**, consistent with the golden period of its central inspirations.
+The Wan W1 and MiniMax H3 H0 painterly outputs remain strongly approved as pictorial/motion evidence. Their qualities should inform the final pixel-art renderer:
 
-Canonical inspiration lineage includes:
+- physical body mass;
+- rich hair volume;
+- material differentiation;
+- mature dark-fantasy severity;
+- useful localized motion blur during fast motion;
+- illustrated sword-and-sorcery charge.
+
+However, H3 output is now classified as a **motion master**, not the final runtime sprite.
+
+Production architecture:
+
+`canonical pixel-art appearance + real driving video -> H3 complete-character motion master -> automatic action-frame extraction/alignment -> high-quality pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> ordinary runtime playback`
+
+The exact pixel-art reconstruction model/tool remains a separate validation gate. A naive low-resolution proxy or palette reduction is not assumed sufficient.
+
+## 1980s sword-and-sorcery charge — LOCKED
+
+Canonical inspiration lineage remains:
 
 - **Heavy Metal**;
 - **Conan**;
@@ -50,10 +66,10 @@ Canonical inspiration lineage includes:
 Interpretation:
 
 - adult sensuality, heroic anatomy, danger, grime, erotic charge and pulp-fantasy excess may coexist;
-- the game should not sanitize its mature body language;
-- materials may feel painted, illustrated, tactile and dramatic rather than digitally sterile;
-- the 1980s influence is a tonal/art-direction layer, not a requirement to imitate VHS defects, CRT scanlines or retro UI clichés;
-- the result should feel like the fantasy imagery of that period made playable with contemporary animation/systemic production quality.
+- the game should not sanitize mature body language;
+- materials should feel tactile, physical and illustrated even after pixel-art reconstruction;
+- the 1980s influence is tonal/art-directional, not VHS/CRT gimmicks;
+- the objective is the imagery of that period made playable with contemporary systemic and animation quality.
 
 ## Exilada appearance reference
 
@@ -61,9 +77,9 @@ Canonical Exilada identity/state reference:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-It remains the canonical complete initial-state appearance reference for current animation work.
+It remains the complete initial-state appearance source for current work.
 
-The W1 output demonstrated that the reference can be reinterpreted into the preferred painterly animation language while preserving the coarse Exilada package. Exact face/body detail, restraints and framing still require improvement.
+The current reference is a usable pixel-art source, but it is not the final ceiling of runtime-art quality. Final production should preserve identity while improving pixel-art construction, material reading and consistency.
 
 ## Exilada initial-state erotic/body direction — LOCKED IN PRINCIPLE
 
@@ -72,121 +88,93 @@ The Exilada does not need to be visually desexualized to be treated seriously.
 Her initial deprivation/captivity state may include:
 
 - much more severely torn cloth;
-- irregular holes and edge loss that expose additional skin;
-- partial breast exposure where consistent with the torn garment state;
+- irregular holes and edge loss exposing additional skin;
+- partial breast exposure where consistent with torn-garment state;
 - asymmetrical coverage rather than a neat fantasy bandeau;
 - simultaneous vulnerability, danger, sensuality and physical presence.
 
-This is an intentional mature sword-and-sorcery vocabulary, not a censoring problem. Exact tear geometry and exact amount of exposure are still subject to final visual-state approval rather than being fixed by a temporary prompt.
+Exact tear geometry and exposure remain subject to visual-state approval rather than temporary prompt wording.
 
 ## Erotic charge and adult-body language — LOCKED
 
-The project does **not** treat erotic charge as something to be automatically removed or sanitized.
+Adult characters may be beautiful, sensual, sexualized, nude or partially nude when appropriate to state/scene. Heroic, violent, grotesque, vulnerable, erotic and matter-of-fact body readings may coexist.
 
-Adult characters may be beautiful, sensual, sexualized, nude or partially nude when appropriate to character/state/scene. Heroic, violent, grotesque, vulnerable, erotic and matter-of-fact body readings may coexist.
-
-For the Exilada specifically, her body may carry erotic charge even while wounded, dirty, deprived or minimally clothed. Captivity itself does not have to become the erotic subject; framing and narrative intent remain deliberate.
+For the Exilada, erotic charge may remain present while wounded, dirty, deprived or minimally clothed. Captivity itself does not need to become the erotic subject.
 
 ## Systemic visual rule
 
-Whenever feasible, visually relevant state should follow simulation/history rather than arbitrary decoration.
+Whenever feasible, visually relevant state follows simulation/history rather than arbitrary decoration.
 
-Examples include scars, equipment wear, blood, dirt, wetness, burns, frost, fatigue, hunger, injury posture and clothing damage.
+Examples: scars, equipment wear, blood, dirt, wetness, burns, frost, fatigue, hunger, injury posture and clothing damage.
 
 Procedural variation must be causal and constrained rather than random noise.
 
-## Character visual principles
+## Character visual principles at gameplay scale
 
-Characters must remain identifiable first through silhouette, large masses, posture and controlled contrast.
-
-At gameplay scale:
+At roughly 128px protagonist height:
 
 - hair mass, body proportions, clothing asymmetry and equipment shapes must remain readable;
 - facial microdetail cannot be the only identity carrier;
 - clothing/equipment may evolve without erasing body/hair/posture identity;
 - anatomy remains adult and materially grounded;
 - exposed skin, partial nudity and full adult nudity are valid states;
-- motion-local blur is allowed only where it improves motion reading without erasing silhouette/anatomy.
+- final pixel clusters must remain deliberate and stable across animation frames;
+- localized motion impression is allowed, but destructive blur/ghosting is not.
 
 ## Runtime / production architecture
 
-Visible runtime characters are complete precomposed frames:
+Visible runtime characters are complete precomposed frames. There is no visible runtime body/hair/clothing/equipment layer assembly.
 
-`reference image + raw driving video -> complete animated character frames -> automatic extraction/packing -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
+Current chain:
 
-There is no visible runtime body/hair/clothing/equipment layer assembly.
+`reference image + raw driving video -> complete H3 motion master -> automatic cycle/action distillation -> automatic segmentation/alignment -> pixel-art reconstruction -> complete-character spritesheet/atlas + metadata -> sprite playback`
 
-Routine manual rigging, keyframing, mask repair, repainting and per-frame cleanup remain disallowed.
+Routine manual rigging, keyframing, mask repair, repainting, per-frame retouching and hand compositing remain disallowed.
 
 ## Gameplay projection — LOCKED BASELINE
 
-The game remains an **elevated 2D belt-scroller / 2.5D false-3D presentation** inspired by arcade beat'em-up spatial language but updated for a contemporary systemic action RPG/roguelite.
+The game remains an elevated 2D belt-scroller / false-3D action presentation:
 
-Core principles:
+- native raster `640×360`;
+- camera pitch `26°`;
+- protagonist about `128px` tall;
+- first locomotion family screen-left, mostly lateral/slight3/4;
+- current facing baseline `72°`;
+- strong lateral travel plus continuous walkable depth;
+- combat readability over geometric purity.
 
-- strong lateral travel axis plus continuous walkable depth axis;
-- elevated camera exposing the ground plane;
-- large readable mostly lateral / three-quarter characters;
-- foreground/background layering and depth ordering;
-- combat readability over geometric purity;
-- not a pure side-scroller and not the superseded high-oblique 360-degree system.
+## H3 H0 visual evidence
 
-Current gameplay composition locks elsewhere include native `640×360`, camera pitch `26°` and protagonist about `128 px` tall, subject to final visual integration QA.
+MiniMax H3 Ref2VA H0 at `448×800`, 124f, Base50 produced a materially stable complete character with coherent hair/cloth motion and without the destructive whole-body smear that blocked Wan.
 
-## Animation direction — CURRENT
+This validates H3 as a strong **motion-master candidate** and validates `448×800` for motion generation. It does **not** validate the 90×160 whole-frame proxy as final art.
 
-Wan-Animate-2 Base BF16 is the active complete-character animation model family under exhaustion testing.
-
-W0 official baseline proved raw-video motion transfer locally. W1 with the Exilada produced the newly preferred painterly visual language and meaningful non-rigid hair/cloth behavior, but exposed problems in framing and accessory/identity persistence.
-
-The user approved the W1 painterly look and specifically accepted **localized, restrained blur** as potentially beneficial.
-
-W1A (`reference_image_strength 1.5`) did not materially improve the result and introduced more blur/ghosting in several motion phases; current preferred conditioning balance therefore remains W1 `reference_image_strength=1.0` unless later evidence changes it.
-
-The current gate is automatic driver safe-framing before any 1980s/torn-clothing prompt variant or Internet walking driver.
-
-## Framing rule — PRODUCTION BLOCKER
-
-The complete body, head and hair must remain safely inside frame throughout a generated sequence.
-
-Post-generation cropping repair is not acceptable because missing pixels cannot be reconstructed without another generative/manual step.
-
-Current correction strategy is automatic **pre-driver safe framing**:
-
-- preserve the complete original raw driver frame;
-- scale it into a smaller fixed centered safe box;
-- add stable margins without temporal camera breathing;
-- feed that still-raw temporal video to Wan;
-- no manual tracking/alignment.
-
-Runner 39 tests an 80% fixed safe box at `640×800` while holding W1 model/seed/prompt/conditioning fixed.
-
-## Historical modern-pixel-art direction — SUPERSEDED AS HARD LOCK
-
-The project previously required deliberate modern pixel art with coherent raster clusters as the final visible language. That work and its assets remain useful research/reference evidence, but the W1 visual approval supersedes the requirement that production output itself must be pixel-art constructed.
-
-Do not revive pixel art as a mandatory acceptance criterion unless explicitly re-approved.
+The proxy is retired as a production-art concept; it may remain historical QA evidence only.
 
 ## Current visual gates
 
-1. **W1F framing proof:** remove inherited edge/head crop without damaging scale/motion quality.
-2. **1980s Exilada appearance variant:** same successful technical setup, then test stronger sword-and-sorcery art direction and more severely torn/exposing cloth.
-3. **W2 locomotion:** clean real Internet walking driver.
-4. **W3 secondary-motion stress:** body bounce, hair, loose cloth/wind and restraint dynamics.
-5. validate the preferred painterly language at actual ~128 px gameplay occupancy inside the belt-scroller scene.
+1. **H0T throughput gate:** determine whether official Ref2V Turbo4 retains H0-level motion/topology at practical iteration speed.
+2. **H1-S walk motion master:** real game-relevant screen-left gait with safe source margins.
+3. **Action distillation:** automatically reduce the 124-frame motion master to ~12 useful animation frames.
+4. **Pixel-art reconstruction gate:** turn the selected coherent frames into final high-quality pixel art while preserving pose/identity across the whole set.
+5. **Scene-scale validation:** test the resulting ~128px sprites in the actual `640×360` belt-scroller composition.
+
+## Superseded decisions
+
+The 2026-09-07 decision that painterly H3/Wan video itself could become the final visible runtime language is superseded by the 2026-09-08 clarification that the canonical pixel-art reference must return to a **higher-quality final pixel-art runtime rendering**.
+
+The painterly result remains valuable as an intermediate motion/pictorial guide and is not discarded.
 
 ## Current decision
 
-**LOCKED:** W1-style painterly illustrated 2D is the preferred visible-art direction under gameplay-scale validation; modern pixel art is no longer a hard final-art requirement.
+**LOCKED:** final runtime character graphics are deliberate high-quality pixel art.
 
-**LOCKED:** 1980s sword-and-sorcery visual charge should be intentionally present.
+**LOCKED:** H3 painterly/raster output is a motion-master intermediate, not the final spritesheet style.
 
-**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell remain active reference lineage.
+**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and the 1980s sword-and-sorcery charge remain active.
 
-**LOCKED:** mature erotic charge, nudity and partial nudity are legitimate parts of the visual language and must not be sanitized by default.
+**LOCKED:** mature erotic charge, nudity and partial nudity remain legitimate.
 
-**LOCKED:** localized, restrained motion blur may be aesthetically positive.
+**LOCKED:** runtime remains complete-character 2D sprite playback and production must scale without routine manual art labor.
 
-**LOCKED:** runtime remains complete-character 2D playback and production must remain scalable without routine manual art labor.
-
-**CURRENT GATE:** automatic safe-framing proof (Runner 39), then the 1980s/torn-clothing Exilada appearance variant.
+**CURRENT GATE:** H0T official Turbo4 throughput comparison before spending another long inference on a new walking driver.
