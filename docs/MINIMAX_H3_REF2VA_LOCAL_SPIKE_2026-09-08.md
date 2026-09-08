@@ -2,24 +2,26 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / H0 COMPLETE PASS_CANDIDATE / H0T TURBO4 THROUGHPUT GATE CURRENT / H1-S WALK AFTER SPEED DECISION**
+Status: **CANONICAL / H0 BASE50 COMPLETE PASS_CANDIDATE / TURBO4 REJECTED / BASE50 RESTORED AS MOTION-MASTER QUALITY DEFAULT**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
-H1-S production definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
+Current end-to-end workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
+
+Turbo4 rejection record: `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`.
 
 Runner47 integration incident: `docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`.
 
-## Role of H3 in the production architecture
+## Role of H3
 
-MiniMax H3 Ref2VA is now screened as the **complete-character motion-master generator**.
+MiniMax H3 Ref2VA is the **complete-character motion-master generator**.
 
-It maps:
+Mapping:
 
-- `<Picture 1>` -> Exilada appearance/identity/anatomy/clothing/hair;
+- `<Picture 1>` -> target character appearance/identity/anatomy/clothing/hair;
 - `<Video 1>` -> real movement/performance/timing/weight transfer.
 
-H3 output may be painterly/raster. Final runtime art is now a separate high-quality pixel-art reconstruction stage downstream of automatic action-frame extraction.
+H3 output may be painterly/raster. Final runtime art is downstream deliberate pixel-art reconstruction.
 
 ## Integration history
 
@@ -38,17 +40,18 @@ Runner48 added only the official audio VAE dependency and completed the otherwis
 
 Base payload ~42.5GB.
 
-## H0 exact completed quality baseline
+## H0 exact completed quality baseline — LOCKED
 
 - task Ref2VA;
 - Picture1 = canonical Exilada master;
 - Video1 = comparison driver, timestamp-resampled only;
 - `448×800`;
--124 frames @24fps;
+- `124 frames @24fps`;
 - `ref_image_size=match`;
--50 steps;
-- `res_multistep/beta`;
-- seed0;
+- `50 steps`;
+- `res_multistep`;
+- `beta`;
+- seed `0`;
 - no crop/resize/tracking/recentering;
 - no Turbo/FL2VA/style embedding.
 
@@ -61,134 +64,89 @@ Evidence:
 
 ## H0 quality verdict
 
-**PASS_CANDIDATE / FAMILY ADVANCES.**
+**PASS_CANDIDATE / PREFERRED CURRENT MOTION-MASTER QUALITY BASELINE.**
 
 Observed:
 
-- stable complete-body topology across the sequence;
+- stable complete-body topology;
 - no destructive whole-body smear/ghost-double;
 - coherent face/torso/limbs/body proportions/hair/costume language;
 - visible long-hair and torn-cloth secondary response;
-- restraints remain accessory geometry rather than becoming body parts;
-- motion remains structurally readable and materially sharper than problematic Wan runs.
+- restraints remain accessory geometry;
+- motion is structurally readable and materially sharper than problematic Wan branches.
 
 Residuals:
 
 - chain detail drifts somewhat in curve/length/attachment;
 - late right-foot crop follows the driver's source envelope rather than observed anatomy collapse.
 
-`448×800` therefore passes as a motion-master generation resolution.
+`448×800` passes as motion-master generation resolution.
 
 ## Proxy clarification
 
-The 90×160 H0 whole-frame proxy is **not** a final runtime-art pipeline and is retired as a production target. It was only a silhouette/legibility diagnostic.
+The 90×160 H0 whole-frame proxy is not a final runtime-art pipeline. It was only a silhouette/legibility diagnostic.
 
-Final runtime output must be reconstructed as deliberate high-quality pixel art after automatic action-frame extraction/alignment.
+The existing H0 video itself is a **dance/gesture-like action**, not a walk.
 
-## Temporal-production correction
+It has already been used for basic frame extraction/raster sheet proof and is now the correct existing motion master for downstream pixel-art reconstruction testing.
 
-Do not assume production should reduce H3 generation itself to 8–12 frames.
+## Temporal rule
 
-Current H3 uses the `17k+5` temporal grid and documents a trained video range around `124–362` frames @24fps. The safe production baseline remains 124 frames until evidence shows a shorter window preserves quality.
+Do not assume normal production should request only 8–12 H3 frames.
+
+The currently proven regime is `124f@24fps`. Production therefore remains:
+
+`124-frame Base50 motion master -> automatic action-frame distillation -> compact action set -> final pixel-art reconstruction`
+
+Typical first final sets may be 8–16 frames, action-dependent.
+
+## H0T / Runner49 Turbo4 — REJECTED FOR PRODUCTION QUALITY
+
+The official 4-step Ref2V Turbo path was tested and visually rejected by the user.
+
+The user explicitly requested returning to the H0 configuration that produced the preferred video.
 
 Therefore:
 
-`fast 124-frame motion master -> automatic action/cycle distillation -> ~12 selected sprite frames -> pixel-art reconstruction`
+- `50 steps + res_multistep/beta` is restored;
+- Turbo4 is not the default production path;
+- no claim of exact Turbo4 elapsed time, prompt id or output hash should be made unless recovered from local Runner49 evidence;
+- future speed work must be a separate controlled hypothesis and must match Base50 quality.
 
-## Why throughput is now the immediate gate
+The Turbo4 LoRA is no longer an active dependency after evidence preservation.
 
-H0 took ~75 minutes. That is acceptable for one quality spike but too slow for ordinary per-action iteration.
+## Current downstream direction
 
-The next walking inference should **not** be another Base50 hour-long job until a practical throughput path is tested.
+Do **not** generate another long action merely to prove spritesheet rendering.
 
-## H0T / Runner49 — CURRENT
+Immediate pipeline work uses the existing H0 dance/gesture video:
 
-The official ComfyUI R2V workflow exposes a Lightning/Turbo switch using:
+1. extract/select a coherent action frame set;
+2. create automatic alpha/pivot/alignment;
+3. install/validate FLUX.1 Kontext [dev] locally as the preferred first pixel-art renderer candidate;
+4. reconstruct the selected set as deliberate high-quality pixel art;
+5. split/pack final spritesheet + preview + atlas/manifest.
 
-- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
-- LoRA strength `1.0`;
--4 steps.
+## H3 integration into future local UI
 
-Official LoRA evidence:
+The local authoring interface will expose H3 as a locked production preset by default:
 
-- size ~1.96GB;
-- SHA256 `5b9ab5ade15d0775676d01a907268a69a1468dc6033b3b0d3ded5502f3ebb84c`.
+- Base Ref2VA;
+-448×800;
+-124f@24fps;
+-50 steps;
+- res_multistep/beta;
+- seed0;
+- ref_image_size=match.
 
-Runner49 exact comparison:
+Advanced controls may exist for controlled experiments, but normal jobs must not silently drift from the approved preset.
 
-- same H0 Picture1/Video1;
-- same448×800;
-- same124f@24fps;
-- same `ref_image_size=match`;
-- same seed0 and prompt;
-- add Turbo4 LoRA strength1.0;
--4 steps;
-- `res_multistep/simple`, matching the official template's Turbo switch path.
-
-Runner:
-
-`tools/structured-2d-character-pipeline/49_run_minimax_h3_ref2va_h0t_turbo4.ps1`
-
-Expected evidence:
-
-- `Z:\AI\MiniMaxH3\h0t_exilada_ref2va_448x800_124f_turbo4.mp4`;
-- `Z:\AI\MiniMaxH3\h0t_run_manifest.json`;
-- `Z:\AI\MiniMaxH3\h0t_api_prompt.json`;
-- `Z:\AI\MiniMaxH3\h0t_executor.log`.
-
-H0T passes only if speed improves materially **and** H0-level topology, identity, motion and secondary dynamics survive.
-
-## H1-S walk after H0T
-
-If Turbo4 passes, use it for the first real game walk motion master.
-
-Driver:
-
-- fixed camera;
-- one adult full-body performer;
-- screen-left travel;
-- mostly lateral/slight3/4 near locked `72°`;
-- safe real margins around head, feet and lateral motion;
-- one clear gait cycle;
-- performer appearance irrelevant.
-
-A clean gait cycle may be automatically repeated/tiled to fill the proven124-frame H3 conditioning interval.
-
-The generated124 frames are a motion master, not the final runtime walk.
-
-## Action distillation / runtime frame target
-
-First walk target: **12 unique frames** across one stable generated gait cycle.
-
-Automatic downstream steps:
-
-1. detect/select one coherent gait cycle;
-2. distribute 12 frames across cycle phase/motion;
-3. reject obvious crop/structural failure frames;
-4. segment complete character including hair/cloth/chains;
-5. align stable ground/pivot while preserving valid vertical bob;
-6. build transparent high-resolution action strip/contact sheet;
-7. send the whole selected set to the final pixel-art reconstruction gate.
-
-No manual masks or per-frame repair.
-
-## Final pixel-art target
-
-Initial runtime review target:
-
-- character ~128px tall;
--12 frames;
-- cell192×192;
--4×3 sheet =768×576;
-- transparent RGBA complete-character sprites;
-- optional trimmed atlas + JSON frame/pivot/duration metadata.
-
-The exact pixel-art reconstruction model/tool is not yet proven and must be validated separately.
+The interface will additionally accept character reference or text-generated reference, relative world scale, driver video and action preset. Those orchestration responsibilities are defined in `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
 
 ## Cleanup
 
 - keep Base H3 set;
-- add only the official Ref2V Turbo4 LoRA for the explicit throughput hypothesis;
-- do not accumulate FL2VA/style/alternate quantizations;
+- Turbo4 LoRA may be deleted after preserving local output/log/manifest evidence;
+- do not accumulate FL2VA/style/alternate quantizations without evidence;
 - Wan large weights may be removed while preserving W1H/W1L proof/results;
 - keep SSD comparison evidence until explicit abandonment/final verdict.
