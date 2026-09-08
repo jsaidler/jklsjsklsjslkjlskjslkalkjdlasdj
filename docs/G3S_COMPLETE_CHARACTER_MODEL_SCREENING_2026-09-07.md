@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / WAN ACTIVE / W1 PAINTERLY LOOK APPROVED / W1H GEOMETRY PASS / W1I POSE-END 0.70 NOT PREFERRED / W1J AND W1K SUPERSEDED BEFORE RUN / W1L REF1.0 + POSE0.80 + 30 STEPS CURRENT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
+Status: **CANONICAL / WAN W1L RUNNING AS FINAL CURRENT WAN RUN / MINIMAX H3 REF2VA NEXT / WAN PAUSES AFTER W1L / SCAIL-2 LATER IF NEEDED**
 
 ## Purpose
 
@@ -11,136 +11,105 @@ Select a production model that generates the complete Exilada from:
 1. `exilada_master.png` for appearance/state;
 2. arbitrary real driving video for movement/performance.
 
-It must consume richer information than skeleton-only pose and automatically infer locomotion, soft-body response, long-hair inertia, cloth/material/wind behavior and restraints/accessories. Routine manual repair is forbidden.
+The model must consume richer information than skeleton-only pose and automatically infer locomotion, soft-body response, long-hair inertia, cloth/material/wind behavior and restraints/accessories. Routine manual repair is forbidden.
 
-## Candidate order
+## Screening order — LOCKED 2026-09-08
 
-1. Wan-Animate-2 / Wan2.2-Animate-2-14B — active exhaustion.
-2. SCAIL-2 — only after documented Wan `EXHAUSTED_FAIL`.
+1. finish the already-running Wan W1L and preserve its evidence;
+2. screen **MiniMax H3 Base Ref2VA** locally next;
+3. Wan becomes **PAUSED**, not exhausted, after W1L;
+4. SCAIL-2 remains a later candidate if H3 does not satisfy the contract.
 
-## Model-exhaustion protocol — LOCKED
+This supersedes the previous rule that Wan had to reach `EXHAUSTED_FAIL` before moving to another family.
 
-- one ugly run does not kill a family;
-- distinguish infrastructure/integration/configuration/model-task failures;
-- fixed seed/input unless that variable is explicitly tested;
-- one high-leverage variable at a time by default;
-- compound tests are allowed when explicitly labeled as configuration search rather than causal attribution;
-- no manual rescue or seed fishing.
+## Model-exhaustion / comparison protocol
 
-## Active Wan BF16 route
+- distinguish infrastructure, integration, configuration and model/task failures;
+- fixed inputs/seeds unless the variable is intentionally changed;
+- one-variable experiments by default;
+- compound configuration searches allowed when explicitly labeled as such;
+- no seed fishing or manual rescue;
+- do not delete an active model family until evidence is secured and the route is genuinely paused/abandoned.
 
-- `wan_animate_2_bf16.safetensors`
-- `umt5_xxl_fp16.safetensors`
-- `clip_vision_h.safetensors`
-- `Wan2_1_VAE_bf16.safetensors`
+## Wan canonical history
 
-`--disable-pinned-memory` retained.
+- W0: local Base-BF16 route passed with `--disable-pinned-memory`.
+- W1 ref1.0: approved painterly/motion language; crop/restraint/limb issues.
+- W1A ref1.5: stronger apparent topology but more ghosting under old geometry.
+- W1F: whole-frame letterbox failed crop; closed.
+- W1G: tracked/recentered raw driver worsened ghosting and temporal anatomy; closed permanently.
+- W1H: `512×912` with untouched `480×854` driver fixed dominant crop and became best Wan geometry baseline; heavy fast-motion smear plus structural changes remain.
+- W1I: pose-end0.70 did not materially improve those defects; not preferred.
+- W1J / W1K: prepared, never executed, superseded before run.
 
-## W0 / W1 / W1A
-
-W0 proved the local BF16 route.
-
-W1 ref1.0 established the approved painterly/motion language but had crop, restraint and limb artifacts.
-
-W1A ref1.5 appeared structurally stronger but more ghosted. That comparison was performed under the old `640×800` geometry and is not treated as a clean final identity-vs-blur verdict.
-
-## W1F / W1G — CLOSED
-
-- W1F whole-frame letterbox failed to solve generated crop.
-- W1G tracked/recentered raw-driver geometry produced a valid inference but materially worsened ghosting, elongated/unstable limbs and temporal coherence.
-
-Do not return to tracked/recentered driver manipulation.
-
-## Geometry rule from W1H
-
-Current ComfyUI `WanAnimate2ToVideo` center-resizes/crops `pose_video` to generation geometry.
-
-Raw driver `480×854` versus old project canvas `640×800` implies a large vertical center crop in the Comfy path. W1H changed only the generation canvas to `512×912` and the result materially improved full-body retention.
-
-Upstream correction: Wan's repository contains different example defaults (`640×800` in the YAML and `720×1280` in the demo CLI), so no single upstream default is used as proof of the aspect rule. The rule is retained from Comfy preprocessing semantics plus W1H's empirical result.
-
-Production rule: preserve raw-driver pixels/trajectory and choose generation geometry compatible with driver aspect.
-
-## W1H — GEOMETRY PASS / CURRENT BEST BASELINE
-
-Runner 41 changed only `640×800 -> 512×912`, kept raw driver untouched and ref strength1.5.
-
-Evidence:
-
-- prompt `5299b50f-a38d-4cf1-b71e-7022319067d7`;
-- elapsed `1672.46s`;
-- SHA256 `84756f74af5f01aed8329b6a9b7b116149c6abcfd6e6349399c5de8ecf575af1`.
-
-Visual verdict:
-
-- dominant crop fixed;
-- body topology/temporal coherence materially improved;
-- hair/cloth remain dynamic;
-- residual high-motion blur/smear remains strong around frames ~8–10;
-- structural deformation still appears in motion phases;
-- chain/restraint topology remains imperfect.
-
-Classification: **geometry PASS, best current Wan baseline, not yet production quality.**
-
-## W1I — POSE END 0.70 / NOT PREFERRED
-
-Runner 42 changed only `pose_end_percent: 1.00 -> 0.70`.
-
-- prompt `5d4f23ed-f4bf-4b01-a13f-108b2bf31fe0`;
-- elapsed `1526.52s`;
-- SHA256 `9a9052f40221878ded69f61e452abeda87cfaa42bde475bb5e9809c04763d054`.
-
-Frame-by-frame output remained extremely close to W1H. Blur and structural deformation persisted. **Not preferred.**
-
-## W1J / W1K — PREPARED BUT SUPERSEDED BEFORE EXECUTION
-
-- W1J / Runner43 prepared `reference_image_strength 1.5 -> 1.0` alone.
-- W1K / Runner44 prepared `pose_strength 1.0 -> 0.80` alone.
-
-Neither was executed. The user requested a combined quality search because the remaining defect is broad: heavy motion blur plus multiple structural changes. Keep both as small diagnostic tooling, not as current gates.
-
-## W1L — CURRENT: COMPOUND QUALITY SEARCH
+## W1L — RUNNING / FINAL CURRENT WAN GATE
 
 Runner:
 
 `tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
 
-Executor:
+Parent = exact W1H.
 
-`tools/wan-animate2-spike/run_w1l_ref10_pose80_steps30.py`
+Compound changes:
 
-Parent = exact completed W1H.
+- `reference_image_strength 1.5 -> 1.0`;
+- `pose_strength 1.00 -> 0.80`;
+- `steps 20 -> 30`.
 
-Deliberate compound changes:
+Everything else remains W1H. Classification policy: **COMPOUND_CONFIGURATION_SEARCH**.
 
-- `reference_image_strength: 1.5 -> 1.0`;
-- `pose_strength: 1.00 -> 0.80`;
-- `steps: 20 -> 30`.
+After W1L completes, preserve its output/manifest and do not launch another Wan inference before the H3 spike.
 
-Everything else remains W1H: untouched raw driver, `512×912`, pose start0.0, pose end1.0, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
+## MiniMax H3 Ref2VA — NEXT ACTIVE FAMILY
 
-Experiment policy: **COMPOUND_CONFIGURATION_SEARCH**. W1L is not a causal one-variable experiment. It asks whether a materially better operating point exists when identity tightness, pose forcing and sampling budget are adjusted together.
+Why it qualifies for screening:
 
-Pass only if destructive blur **and** structural deformation fall materially while choreography, identity, hair/cloth dynamics and framing remain acceptable.
+- Ref2VA accepts multimodal reference inputs including images and videos;
+- this maps directly to Exilada appearance reference + arbitrary real driving video;
+- it generates a complete video character rather than a skeleton-only motion representation;
+- current ComfyUI support exposes consumer-GPU quantized/offloaded execution suitable for a local RTX 3060-class screening route.
 
-If W1L succeeds, isolate contributing controls later only if needed. If W1L fails, do not blindly grid-search nearby values; reassess whether the failure is intrinsic to this model/task/driver regime.
+Only **Ref2VA** is relevant initially. Do not download FL2VA in parallel.
 
-## Sequence
+## H3 local-resolution strategy
 
-- W0 — PASS_BASELINE
-- W1 — approved visual/motion baseline
-- W1A — ref1.5 structural branch under old geometry
-- W1F — CLOSED FAIL
-- W1G — CLOSED VALID METHOD FAIL
-- W1H — **GEOMETRY PASS / BEST BASELINE**
-- W1I — **NOT PREFERRED**
-- W1J — **SUPERSEDED BEFORE RUN**
-- W1K — **SUPERSEDED BEFORE RUN**
-- W1L ref1.0 + pose0.80 + 30steps — **CURRENT**
-- separate 1980s/torn-clothing/body-exposure art gate only after technical quality is adequate
-- W2 real walking driver with safe margins
-- W3 secondary-motion stress driver
+The game uses a protagonist around `128 px` tall, so screening must optimize for the final sprite use case rather than blindly generating at 768p or 2K.
+
+First local H3 target: **`448×800`**.
+
+Rationale:
+
+- divisible by 32 in both axes;
+- aspect `0.56`, matching the current portrait driving video closely;
+- only about 34.7% as many spatial pixels/cells as `1344×768`;
+- still several times larger than the final 128px-tall runtime character, leaving useful supersampling for anatomy, hair, cloth and alpha extraction.
+
+Escalation ladder only if needed:
+
+1. `448×800` first;
+2. `480×864` if structure/identity is under-resolved;
+3. `512×896` if still needed;
+4. one 768-short-edge control to distinguish low-resolution failure from model failure.
+
+Do not generate directly at 128px. Very low model-space resolution can destroy anatomy/identity/temporal coherence before downsampling.
+
+## Required H3 QA
+
+Every candidate is judged at:
+
+1. full generated resolution — topology, anatomy, identity, motion adherence, hair/cloth/restraint dynamics;
+2. automatically downsampled gameplay preview — character approximately `128 px` tall.
+
+Minor local blur may become irrelevant at gameplay scale. Missing body parts, topology changes, silhouette failure and identity drift remain hard failures even if downsampling hides detail.
+
+## H3 install policy
+
+- no H3 download while W1L is still running;
+- planned workspace: `Z:\AI\MiniMaxH3`;
+- use only the chosen Ref2VA quantized/pruned route plus required encoder/VAE components;
+- do not accumulate FL2VA or alternative quantizations without an explicit hypothesis;
+- preserve Wan W1L evidence before any large-asset cleanup.
 
 ## Cleanup
 
-No large asset added by W1F–W1L tooling. Keep small proof/failure evidence; do not pre-download alternate Wan checkpoints. Keep SSD comparison evidence until Wan verdict.
+Wan BF16 assets remain until W1L is complete. Once H3 becomes the validated active route, reevaluate whether to remove the Wan ~45.7GB asset set. Preserve small proof files and SSD comparison evidence until explicit abandonment/final verdict.
