@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / WAN PAUSED AFTER OPERATOR-REPORTED W1L COMPLETION / MINIMAX H3 BASE REF2VA ACTIVE / RUNNER46 BOOTSTRAP NEXT / H0 448×800 BASE50 DEFINED / SCAIL-2 LATER IF NEEDED**
+Status: **CANONICAL / WAN PAUSED AFTER W1L / MINIMAX H3 BASE REF2VA ACTIVE / RUNNER46 BOOTSTRAP PASS / RUNNER47 H0 CURRENT / SCAIL-2 LATER IF NEEDED**
 
 ## Purpose
 
@@ -42,7 +42,7 @@ The prior rule that Wan had to reach `EXHAUSTED_FAIL` before another family coul
 - W1I: pose-end0.70 did not materially improve those defects; not preferred.
 - W1J / W1K: prepared, never executed, superseded before run.
 
-## W1L — OPERATOR-REPORTED COMPLETE / WAN PAUSED
+## W1L — COMPLETE / WAN PAUSED
 
 Runner45 used the exact W1H parent and deliberately changed:
 
@@ -50,7 +50,7 @@ Runner45 used the exact W1H parent and deliberately changed:
 - `pose_strength 1.00 -> 0.80`;
 - `steps 20 -> 30`.
 
-The user reported completion and chose to move immediately to H3. The repository does **not** invent a W1L visual verdict without seeing the local result. Runner46 requires the local W1L video/prompt/manifest and verifies `status=INFERENCE_COMPLETE` before H3 bootstrap proceeds.
+The user reported completion and chose to move immediately to H3. Runner46 then independently verified the local W1L video/prompt/manifest and `status=INFERENCE_COMPLETE` before H3 bootstrap. The repository does **not** invent a W1L visual verdict without reviewing the local result.
 
 Preserve W1L evidence in `Z:\AI\WanAnimate2` for comparison. Do not launch another Wan inference while H3 is active.
 
@@ -70,6 +70,23 @@ Why it qualifies:
 
 Only **Ref2VA** is installed for H0. Do not download FL2VA in parallel.
 
+## Runner46 — BOOTSTRAP/PREFLIGHT PASS
+
+Operator result on 2026-09-08:
+
+`RUNNER46-H3-PREP: PASS - H3 REF2VA H0 BOOTSTRAP READY`
+
+Verified local artifacts:
+
+- `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`;
+- `Z:\AI\MiniMaxH3\h3_bootstrap_manifest.json`;
+- `Z:\AI\MiniMaxH3\h0_driver_manifest.json`;
+- `Z:\AI\MiniMaxH3\h3_required_object_info.json`.
+
+Downloaded model payload is only Ref2VA diffusion + NVFP4 Qwen3-VL encoder + video VAE (~41.9GB).
+
+Classification: **INFRASTRUCTURE/INTEGRATION BOOTSTRAP PASS**. This is not model-quality evidence because Runner46 performs no H3 inference.
+
 ## H3 pinned H0 stack
 
 - ComfyUI NVIDIA Windows portable **v0.34.0**, dedicated workspace;
@@ -82,14 +99,14 @@ Only **Ref2VA** is installed for H0. Do not download FL2VA in parallel.
 
 Selected H0 model payload is ~41.9 GB. H0 does not install FL2VA, Turbo LoRA, embeddings, alternate quantizations or audio VAE.
 
-## H0 — CURRENT EXPERIMENT
+## H0 — CURRENT EXPERIMENT / Runner47
 
 Exact baseline:
 
 - Base Ref2VA;
 - `<Picture 1>` = canonical Exilada appearance only;
 - `<Video 1>` = motion/performance only;
-- same raw driver used for the Wan comparison branch, timestamp-resampled to 24fps/124 frames with no spatial crop/resize/tracking/recentering;
+- same raw driver used for the Wan comparison branch, timestamp-resampled to24fps/124 frames with no spatial crop/resize/tracking/recentering;
 - output `448×800`;
 - 124 frames at24fps;
 - `ref_image_size=match`;
@@ -100,7 +117,7 @@ Exact baseline:
 - H3 model default sigma shifts video12/audio3;
 - no Turbo LoRA.
 
-Runner46 prepares/verifies the environment and performs no inference. Runner47 runs H0 only after Runner46 PASS.
+Runner47 now owns the active gate. A completed H0 video is only a **technical inference PASS** until visual QA is performed.
 
 ## H3 local-resolution strategy
 
@@ -147,9 +164,9 @@ No infrastructure failure counts as model-quality evidence.
 ## Current sequence
 
 - Wan W0–W1I — documented history;
-- Wan W1L — **operator-reported complete; visual verdict not invented; Wan paused**;
-- H3 Runner46 — **CURRENT: bootstrap/preflight**;
-- H3 Runner47 / H0 Base50 `448×800` — next after Runner46 PASS;
+- Wan W1L — complete; Wan paused; visual verdict not invented;
+- H3 Runner46 — **PASS bootstrap/preflight**;
+- H3 Runner47 / H0 Base50 `448×800` — **CURRENT**;
 - if needed: identity-only `ref_image_size=max` or finite resolution ladder;
 - walking/secondary-motion driver only after H0 proves the family technically useful;
 - SCAIL-2 only later if H3 fails the contract.
