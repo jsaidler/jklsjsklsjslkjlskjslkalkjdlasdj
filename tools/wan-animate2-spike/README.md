@@ -1,6 +1,6 @@
 # Wan-Animate-2 validation / exhaustion tooling
 
-Status: **ACTIVE — W0 PASS_BASELINE / W1 PAINTERLY LOOK APPROVED / W1A 1.5 RETAINED AS STRONGER STRUCTURAL BRANCH / W1F WHOLE-FRAME SAFE FRAMING FAILED / W1G TRACKED SUBJECT FRAMING ACTIVE.**
+Status: **ACTIVE — W0 PASS_BASELINE / W1 PAINTERLY LOOK APPROVED / W1A 1.5 RETAINED AS STRONGER STRUCTURAL BRANCH / W1F WHOLE-FRAME SAFE FRAMING FAILED / W1G DETECTOR-AGNOSTIC SUBJECT FRAMING ACTIVE.**
 
 ## Active local paths
 
@@ -47,33 +47,11 @@ First attempt failed in AIMDO host-buffer streaming. Relaunching with only `--di
 
 ## W1
 
-`run_w1_from_w0_prompt.py` + Runner 37 used the exact successful W0 graph but changed the target package to Exilada.
-
-Observed positives:
-
-- substantial cross-identity raw-video motion transfer;
-- no cat/costume leakage;
-- long hair visibly moves as a non-rigid mass;
-- ragged hip cloth changes drape;
-- coarse Exilada package survives;
-- painterly illustrated result explicitly approved as the preferred visual direction.
-
-Technical issues:
-
-- wrist restraint/chain largely lost;
-- ankle chain unstable;
-- some hand/foot blur/stretch and transient artifacting;
-- later crop inherited from driver framing.
+`run_w1_from_w0_prompt.py` + Runner 37 proved substantial cross-identity raw-video motion transfer, non-rigid hair/cloth behavior and an explicitly approved painterly illustrated visual language. Open technical issues remain crop, restraint/chain stability and destructive limb blur/artifacts.
 
 ## W1A — `reference_image_strength=1.5`
 
 `run_w1a_reference_strength.py` + Runner 38 changed exactly one variable from W1: reference strength 1.0 -> 1.5.
-
-Uploaded result:
-
-- `INFERENCE_COMPLETE`;
-- elapsed 1912.32 s;
-- output SHA256 `2661d339f332a28ca25a3a03aa6a59ccd93a572751fb488de04540a764315bef`.
 
 Revised interpretation after user review:
 
@@ -84,13 +62,7 @@ Revised interpretation after user review:
 
 ## `run_w1f_safe_framing.py` — COMPLETE / CROP FAIL
 
-Runner 39 retry completed validly after OpenCV preflight was added.
-
-The complete `480×854` source frame was placed at `360×640` inside `640×800`, offset `(140,80)`, with no source crop and no camera breathing.
-
-Visual verdict: **crop remained**. Head/hair still leave the top later and the character still pushes right.
-
-Conclusion: whole-frame letterbox margins do not map to equivalent Wan output margins. Do not iterate simple 70%/60%/50% letterbox-only variants.
+Runner 39 retry completed validly after OpenCV preflight was added. Whole-frame letterboxing did **not** solve the generated crop. Do not iterate simple 70%/60%/50% letterbox-only variants.
 
 ## `run_w1g_subject_framing_ref15.py` — CURRENT
 
@@ -102,28 +74,33 @@ Parent = exact W1A prompt, so reference strength stays 1.5.
 
 ### W1G v1 — PRE-INFERENCE FAIL
 
-The initial implementation used a single temporal-activity union over the first 37 source frames. It aborted before inference with:
+A single temporal-activity union across the first 37 frames expanded to essentially the whole source frame (`1.000`) and aborted before inference. Classification: preprocessor/integration fail; no Wan inference.
 
-`automatic subject bbox covers almost the whole source frame (1.000)`
+### W1G v2 — PRE-INFERENCE FAIL
 
-Classification: preprocessor/integration fail; no Wan inference.
+OpenCV HOG person tracking also exited with code 2 before any `W1G: prompt_id=...`. The user-surfaced terminal excerpt did not contain the specific executor error line, so the exact sub-cause is not asserted. HOG-only detection is closed as too semantically brittle for arbitrary driving footage.
 
-The safety guard worked. The global activity-union assumption is closed for this clip.
-
-### W1G v2 — ACTIVE
+### W1G v3 — ACTIVE
 
 The executor now:
 
-1. runs OpenCV built-in HOG person detection per frame;
-2. selects a temporally coherent performer box;
-3. interpolates missing boxes;
-4. expands for head/hair/hands/feet safety;
-5. smooths translation only;
-6. keeps one constant scale for all frames, so there is no zoom/camera breathing;
-7. targets envelope-height ratio 0.48, center x 300, bottom y 620 on 640×800;
-8. preflights minimum canvas margins and CLIP center-square margins;
-9. aborts before Wan if person detection or margins are insufficient;
-10. downloads no new detector checkpoint/model.
+1. estimates a temporal-median background over the first 37 frames;
+2. segments moving foreground independently per frame;
+3. tracks the dominant coherent foreground component without assuming person/cat/dog class;
+4. interpolates missing boxes;
+5. expands for head/hair/hands/feet safety;
+6. smooths translation only;
+7. keeps one constant scale for all frames, so there is no zoom/camera breathing;
+8. targets envelope-height ratio 0.48, center x 300, bottom y 620 on 640×800;
+9. preflights minimum canvas margins and CLIP center-square margins;
+10. aborts before Wan if tracking or margins are insufficient;
+11. downloads no detector checkpoint/model.
+
+Runner 40 now writes executor stdout/stderr to:
+
+`Z:\AI\WanAnimate2\w1g_executor.log`
+
+and prints that diagnostic log on any executor failure.
 
 Everything else remains exact W1A: Exilada reference/prompt, BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, reference strength 1.5, negative prompt and `--disable-pinned-memory`.
 
@@ -133,6 +110,7 @@ Expected evidence after a valid run:
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
 - `Z:\AI\WanAnimate2\w1g_api_prompt.json`
 - `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`
+- `Z:\AI\WanAnimate2\w1g_executor.log`
 
 If framing passes while structure survives, the next isolated axis is destructive-blur reduction.
 
