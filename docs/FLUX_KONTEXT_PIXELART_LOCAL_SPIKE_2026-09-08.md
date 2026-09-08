@@ -2,13 +2,15 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / RUNNER50 PREPARED AND POWERSHELL PARSER FIXED / EXISTING H0 DANCE-GESTURE VIDEO IS THE FIRST DOWNSTREAM PROOF INPUT**
+Status: **CANONICAL / RUNNER50 PREPARED / POWERSHELL PARSER FIXED / CLIP-L HASH PREFLIGHT FIXED / EXISTING H0 DANCE-GESTURE VIDEO IS THE FIRST DOWNSTREAM PROOF INPUT**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Canonical end-to-end workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
 
 Runner50 parser incident: `docs/RUNNER50_POWERSHELL_PARSE_FAIL_2026-09-08.md`.
+
+Runner50 CLIP-L hash incident: `docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`.
 
 ## Purpose
 
@@ -92,7 +94,7 @@ If and only if completed visual evidence points specifically to FP8 diffusion qu
 `clip_l.safetensors`
 
 - ~246MB;
-- SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c8576cd796491d9a6cdd`.
+- SHA256 `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`.
 
 `t5xxl_fp16.safetensors`
 
@@ -136,6 +138,33 @@ The only repair was:
 Repair commit: `300f39179ceb01d5689f6c5ba7cc52ca2aaf38d2`.
 
 No model URL/hash, ComfyUI version, prompt, graph, frame selection, sampler, resolution or workspace setting changed.
+
+### CLIP-L SHA256 preflight failure — FIXED
+
+The next Runner50 attempt successfully downloaded and verified the ~11.9GB Kontext diffusion file, then downloaded `clip_l.safetensors` from the intended Hugging Face source.
+
+The runner rejected that CLIP-L file because the project had the wrong expected SHA256 embedded in both the PowerShell runner and Python executor.
+
+Observed downloaded SHA256:
+
+`660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`
+
+That observed value matches independent Hugging Face file metadata for the standard 246MB FLUX CLIP-L. The old repository value omitted one `c0` sequence.
+
+Classification: **INTEGRATION FAIL / PRE-INFERENCE / ZERO KONTEXT QUALITY EVIDENCE**.
+
+Because the runner treated the valid file as corrupt, it deleted CLIP-L. The corrected rerun therefore has to download only that ~246MB file again before continuing to T5/VAE. The already verified Kontext diffusion file remains in place and is reused.
+
+Before asking for another run, all four first-spike hashes were rechecked:
+
+- Kontext FP8-scaled: `630ba795ec64283b4230ea23cf79406c2c68b7c578229ed139f30043eadb30a2`
+- CLIP-L: `660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd`
+- T5XXL FP16: `6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635`
+- Flux AE/VAE: `afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38`
+
+Incident record:
+
+`docs/RUNNER50_CLIP_L_SHA256_PREFLIGHT_FAIL_2026-09-08.md`
 
 ## Action-sheet preparation
 
@@ -244,7 +273,8 @@ This spike is a local technical R&D validation. A commercial game release requir
 
 ## Next decision after Runner50
 
-- Pull the repaired Runner50 and rerun the same command; the parser incident does not justify any model/settings change.
+- Pull the repaired Runner50 and rerun the same command; neither pre-inference incident justifies any model/settings change.
+- The already verified ~11.9GB Kontext diffusion file should be reused; only CLIP-L must be downloaded again because the false hash mismatch deleted it.
 - If Kontext FP8 passes: make this the first renderer backend and build the Gradio orchestration UI around the proven H3 Base50 + Kontext stages.
 - If the renderer is structurally good but visibly under-resolved: test full BF16 Kontext as the next controlled variable.
 - If Kontext rewrites poses/layout/identity despite controlled prompting and multi-reference conditioning: classify the specific failure before trying another renderer family.
