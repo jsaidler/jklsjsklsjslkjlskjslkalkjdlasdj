@@ -2,11 +2,11 @@
 
 Status date: **2026-09-08**
 
-Status: **COMPLETE-CHARACTER RAW-VIDEO GENERATION ACTIVE. MINIMAX H3 BASE REF2VA H0 IS PASS_CANDIDATE. NEXT GATE IS GAME-RELEVANT WALK. WAN IS PAUSED.**
+Status: **MINIMAX H3 REF2VA H0 PASS_CANDIDATE AS MOTION MASTER. FINAL RUNTIME OUTPUT IS HIGH-QUALITY PIXEL ART. H0T TURBO4 THROUGHPUT GATE PRECEDES H1-S WALK PRODUCTION.**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
-Detailed H3 procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
+Detailed H1-S production definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
 
 ## Hard production constraints
 
@@ -16,47 +16,52 @@ Detailed H3 procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
 - no routine manual rigging, keyframing, simulation repair, mask repair, repainting or hand compositing;
 - runtime consumes complete precomposed sprite frames.
 
-## Visual direction
+## Final rendering architecture — UPDATED
 
-Painterly illustrated dark fantasy with explicit 1980s sword-and-sorcery charge: Heavy Metal, Conan, Red Sonja, Frank Frazetta and Julie Bell. Adult sensuality/nudity is legitimate. Localized motion blur may be positive; global smear, anatomy loss and topology drift are defects.
+H3 is now treated as the **motion-master generator**, not the final visible-art renderer.
+
+Production chain:
+
+`pixel-art Exilada reference + real driver -> H3 complete-character motion master -> automatic action/cycle distillation -> automatic segmentation/alignment -> high-quality pixel-art reconstruction -> complete transparent spritesheet/atlas + metadata -> runtime playback`
+
+The tiny H0 whole-frame proxy is historical legibility evidence only. It is not a production asset and does not define final game quality.
+
+## Final visual target
+
+Runtime sprites must be deliberate high-quality pixel art at roughly `128px` visible protagonist height, preserving the locked Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell sword-and-sorcery language.
+
+H3 painterly output remains useful because it carries coherent anatomy, hair, cloth and material motion into the next stage.
 
 ## Wan record — PAUSED
 
-- W1 established approved painterly/motion language.
-- W1F letterbox and W1G tracked/recentered framing are closed failures.
-- W1H `512×912` with untouched raw driver solved dominant crop and improved temporal body coherence.
-- W1I pose-end0.70 did not materially improve heavy blur/structure.
+- W1 established useful painterly/motion language.
+- W1F and W1G are closed framing methods.
+- W1H solved dominant crop with raw-driver geometry.
+- W1I did not materially improve blur/structure.
 - W1L completed ref1.0 + pose0.80 +30 steps; Wan paused afterward.
 
-Preserve W1H/W1L proof. H3 has now advanced enough that Wan large weights may be cleaned while proof remains.
+Preserve W1H/W1L proof. H3 has advanced enough that Wan large weights may be cleaned while results remain.
 
 ## Screening order
 
-1. MiniMax H3 Base Ref2VA — active / H0 PASS_CANDIDATE;
+1. MiniMax H3 Ref2VA — active / H0 PASS_CANDIDATE as motion master;
 2. Wan-Animate-2 — paused, not exhausted;
 3. SCAIL-2 — later only if H3 fails a later production gate.
 
-## H3 architecture
-
-`<Picture 1> Exilada appearance + <Video 1> real movement/performance -> complete generated character video -> automatic extraction/downsample/packing -> spritesheet`
-
-The prompt treats Picture1 as the only appearance/identity/anatomy/clothing/hair/art-language source and Video1 as movement/timing/weight-transfer only.
-
-## Minimal H3 local stack
+## H3 minimal local stack
 
 Workspace: `Z:\AI\MiniMaxH3`.
 
-- ComfyUI Windows NVIDIA portable v0.34.0;
-- Ref2VA pruned INT8 ConvRot diffusion;
-- Qwen3-VL NVFP4 AWQ encoder;
-- video VAE;
-- schema-required H3 audio VAE.
+Base Ref2VA set:
 
-Total model payload ~42.5GB. Audio VAE is required by the Ref2VA node but H0 uses no audio reference and does not decode/output audio.
+- `minimax_h3_ref2va_pruned_int8_convrot.safetensors`;
+- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`;
+- `minimax_h3_video_vae_fp16.safetensors`;
+- schema-required `minimax_h3_audio_vae_fp32.safetensors`.
 
-No FL2VA, Turbo, style embedding or alternate Ref2VA quantization is active.
+Base payload ~42.5GB.
 
-## H0 completed baseline
+## H0 completed quality baseline
 
 - `448×800`;
 -124 frames @24fps;
@@ -64,65 +69,105 @@ No FL2VA, Turbo, style embedding or alternate Ref2VA quantization is active.
 -50 steps;
 - `res_multistep/beta`;
 - seed0;
-- canonical Exilada as Picture1;
-- same raw Wan comparison driver as Video1, timestamp-resampled only;
-- no spatial driver transforms;
-- no Turbo.
+- canonical Exilada Picture1;
+- raw comparison driver Video1 with timestamp resampling only.
 
 Evidence:
 
 - prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
 - elapsed `4504.8s`;
-- output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
-- gameplay proxy `Z:\AI\MiniMaxH3\h0_gameplay_scale_proxy_frame160.mp4`.
+- output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`.
 
-## H0 quality verdict
+Verdict: **PASS_CANDIDATE / family advances.** Stable body topology, coherent hair/cloth motion, no destructive whole-body smear. Chain details drift somewhat. Late crop follows the driver/source envelope.
 
-**PASS_CANDIDATE / FAMILY ADVANCES.**
+## Temporal-production correction
 
-The uploaded full output and proxy show:
+Do not assume the normal H3 production route can simply generate 8–12 frames.
 
-- materially stable full-body topology;
-- no destructive whole-body ghosting/smear;
-- stable face/torso/limbs/body proportions/hair/costume language;
-- visible coherent hair and torn-cloth secondary motion;
-- restraints remain accessories rather than morphing into body parts;
-- sharp enough anatomy for motion readability;
-- strong compatibility with the locked painterly dark-fantasy art direction;
-- clear gameplay-scale silhouette near the ~128px runtime target.
+The current H3 implementation uses the model's valid `17k+5` frame grid and documents its trained video range around `124–362` frames at24fps. H0 therefore remains the proven temporal regime.
 
-Residuals:
+For production:
 
-- chain details drift somewhat;
-- right foot becomes partially cropped at the right edge late in the clip; treat as driver/framing envelope rather than topology collapse.
+- generate a 124-frame motion master using a fast acceptable sampling path;
+- extract only the useful action/cycle;
+- distill to roughly 12 unique gameplay frames;
+- pixel-art-render those selected frames.
 
-## Resolution policy
+Shorter H3 generation windows may be tested later as explicit optimization, not assumed safe now.
 
-`448×800` passes. Do not raise output resolution or use `ref_image_size=max` unless a later test produces a specific under-resolution/identity failure.
+## CURRENT GATE — H0T / Runner49
 
-This validates the production hypothesis that source generation can be materially smaller than the model's usual 768-short-edge regime because runtime sprites are ~128px tall.
+H0 took ~75 minutes and is too slow for ordinary per-action iteration.
 
-## NEXT GATE — H1 WALK
+Before generating a new walking clip, benchmark the official Ref2V Turbo4 path on the exact same H0 inputs.
 
-Use a real fixed-camera full-body walk with safe margins, screen-left mostly lateral/slight3/4, targeting the locked `72°` locomotion baseline and containing at least one complete gait cycle.
+Runner49:
 
-Keep H0 settings initially:
+`tools/structured-2d-character-pipeline/49_run_minimax_h3_ref2va_h0t_turbo4.ps1`
 
-- `448×800`;
-- Base50;
-- `res_multistep/beta`;
+Changes from H0:
+
+- official `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`;
+- LoRA strength1.0;
+- 4 steps;
+- `res_multistep/simple`, following the official R2V template's Lightning/Turbo switch.
+
+Unchanged:
+
+- Picture1/Video1;
+-448×800;
+-124f@24fps;
+- `ref_image_size=match`;
 - seed0;
-- `ref_image_size=match`.
+- prompt.
 
-H1 must prove usable locomotion timing/weight transfer, H0-level topology, secondary hair/cloth/restraint response and gameplay-scale readability. Only after H1 passes should the pipeline stress wind/restraints/secondary dynamics and later optimize speed/Turbo.
+H0T must be compared directly to H0 for topology, identity, motion and secondary dynamics. Speed alone is not enough.
 
-## Dual-resolution QA — REQUIRED
+## H1-S walk motion master — after H0T decision
 
-Every candidate is evaluated at source scale and gameplay scale. Downsampling may erase harmless texture noise/local blur but cannot excuse topology loss, missing limbs, broken silhouette or identity drift.
+Use a fixed-camera full-body screen-left walk, mostly lateral/slight3/4 near the locked `72°` direction, with safe real margins and one clear gait cycle.
+
+To remain inside the proven 124-frame H3 regime, a clean gait cycle may be automatically repeated/tiled through the conditioning interval.
+
+The 124-frame result is a **motion master**, not a 124-frame runtime walk.
+
+## Action distillation
+
+First walk target: **12 unique sprite frames**.
+
+Automatic stage must:
+
+1. detect/select one coherent full gait cycle;
+2. phase-distribute 12 useful frames;
+3. reject obvious crop/structural failure frames;
+4. segment complete character including hair/cloth/chains;
+5. align a stable ground/pivot reference without deleting legitimate vertical motion;
+6. output high-resolution transparent frames/contact sheet.
+
+No manual masks or per-frame repair.
+
+## Pixel-art reconstruction — separate gate
+
+Selected frames then enter a dedicated pixel-art reconstruction stage with the canonical Exilada reference.
+
+Preferred validation strategy is to present the whole selected action strip/contact sheet to the renderer so palette, silhouette and design remain coherent across frames rather than independently redrawing each frame.
+
+Simple downscale/nearest-neighbor/palette quantization is only a cheap control and is not assumed sufficient for final quality.
+
+## First runtime spritesheet target
+
+- visible character height ~`128px`;
+-12 unique walk frames;
+- approximate art playback rate `12fps`, with timing controlled by gameplay metadata;
+- transparent RGBA complete-character cells;
+- initial review cell `192×192`;
+-4×3 sheet = `768×576`;
+- optional trimmed atlas + JSON pivots/durations for production.
 
 ## Cleanup
 
-- keep only minimal active H3 Ref2VA files;
-- paused Wan large checkpoint weights may now be removed while preserving W1H/W1L videos/prompts/manifests/logs;
-- do not accumulate H3 FL2VA/Turbo/style/alternate quantizations without an explicit later hypothesis;
+- keep minimal H3 Base set;
+- Runner49 adds only the official ~1.96GB Ref2V Turbo4 LoRA for an explicit throughput hypothesis;
+- do not add FL2VA/style/alternate quantizations without evidence;
+- paused Wan large checkpoints may be removed while preserving W1H/W1L proof;
 - keep SSD comparison evidence until explicit abandonment/final verdict.
