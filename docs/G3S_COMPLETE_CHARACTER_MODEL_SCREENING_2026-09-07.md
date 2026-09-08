@@ -2,33 +2,33 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / MINIMAX H3 REF2VA H0 PASS_CANDIDATE / H0T TURBO4 THROUGHPUT GATE CURRENT / H1-S WALK AFTER SPEED DECISION / WAN PAUSED / SCAIL-2 LATER IF NEEDED**
+Status: **CANONICAL / MINIMAX H3 REF2VA H0 BASE50 PASS_CANDIDATE AND PREFERRED QUALITY BASELINE / TURBO4 REJECTED / WAN PAUSED / FINAL PIXEL-ART RENDERER SCREENED SEPARATELY**
 
 ## Purpose
 
-Select a production family that generates a coherent complete Exilada motion master from:
+Select a production family that generates a coherent complete-character motion master from:
 
-1. `exilada_master.png` for appearance/state;
+1. approved character appearance reference;
 2. arbitrary real driving video for movement/performance.
 
-The motion model must consume richer information than skeleton-only pose and automatically infer locomotion, soft-body response, long-hair inertia, cloth/material/wind behavior and restraints/accessories. Routine manual repair is forbidden.
+The motion model must consume richer information than skeleton-only pose and automatically infer locomotion/action, soft-body response, hair inertia, cloth/material/wind behavior and restraints/accessories. Routine manual repair is forbidden.
 
-Final runtime pixel-art reconstruction is now explicitly a **separate downstream rendering gate**; H3 is screened here primarily as the motion-master family.
+Final runtime pixel-art reconstruction is explicitly a **separate downstream rendering gate**.
 
 ## Screening order
 
-1. **MiniMax H3 Ref2VA — ACTIVE / H0 PASS_CANDIDATE.**
-2. Wan-Animate-2 — **PAUSED AFTER W1L**, not exhausted.
-3. SCAIL-2 — later only if H3 fails a later production gate.
+1. **MiniMax H3 Ref2VA — ACTIVE / H0 Base50 PASS_CANDIDATE and current preferred quality baseline.**
+2. Wan-Animate-2 — paused after W1L, not exhausted.
+3. SCAIL-2 — later only if H3 fails a future motion-production gate.
 
 ## Comparison protocol
 
 - distinguish infrastructure, integration, configuration and model/task failures;
 - fixed inputs/seeds unless a variable is intentionally changed;
 - no seed fishing or manual rescue;
-- successful inference is not automatically a model-quality PASS;
+- successful inference is not automatically a quality PASS;
 - pre-inference integration failures are zero model-quality evidence;
-- after a family shows a strong quality baseline, test production throughput before spending long runs on new action families.
+- faster settings do not replace the quality baseline unless they are visually equivalent.
 
 ## Wan compact history
 
@@ -44,8 +44,6 @@ Final runtime pixel-art reconstruction is now explicitly a **separate downstream
 
 Canonical procedure: `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`.
 
-H1-S production definition: `docs/H1S_MINIMAX_H3_SPRITESHEET_PRODUCTION_PASS_2026-09-08.md`.
-
 Integration incident: `docs/H3_H0_RUNNER47_AUDIO_VAE_INTEGRATION_FAIL_2026-09-08.md`.
 
 Minimal Base stack:
@@ -55,14 +53,14 @@ Minimal Base stack:
 - video VAE ~5.21GB;
 - schema-required audio VAE ~605MB.
 
-## H0 exact completed baseline
+## H0 exact completed baseline — PREFERRED
 
 - Picture1 = canonical Exilada master;
-- Video1 = same raw comparison driver, timestamp-resampled only;
+- Video1 = raw comparison driver, timestamp-resampled only;
 - `448×800`;
--124f @24fps;
+- `124f@24fps`;
 - `ref_image_size=match`;
--50 steps;
+- `50 steps`;
 - `res_multistep/beta`;
 - seed0;
 - no spatial driver transforms;
@@ -80,7 +78,7 @@ Evidence:
 
 Strengths:
 
-- stable complete-body topology across the sequence;
+- stable complete-body topology;
 - no destructive global smear/ghost-double;
 - coherent face/torso/limbs/body proportions/hair/costume language;
 - visible hair and torn-cloth secondary motion;
@@ -91,69 +89,68 @@ Residuals:
 
 - chain detail still drifts somewhat;
 - late right-foot crop follows driver/source envelope;
-- H3 painterly appearance is no longer treated as the final runtime raster style.
+- H3 painterly appearance is intermediate rather than final runtime art.
 
 `448×800` passes as motion-master generation size.
 
-## Production-throughput problem
+## Turbo4 / Runner49 — SETTING QUALITY FAIL
 
-H0 took ~75 minutes. That is acceptable as an offline quality baseline but not as the ordinary action-iteration loop.
+Runner49 tested the official Ref2V Turbo4 path with the H0 comparison structure.
 
-Do not solve this by assuming H3 should generate only 8–12 frames. Current H3 uses the `17k+5` temporal grid and documents its trained range around124–362 frames @24fps.
+The user visually rejected the 4-step result and explicitly requested returning to the original H0 Base50 settings.
 
-Production plan:
+Classification:
 
-`fast 124-frame motion master -> automatic action/cycle distillation -> ~12 selected game frames -> pixel-art reconstruction`
+**MODEL/SETTING QUALITY FAIL FOR TURBO4; NOT A FAILURE OF THE H3 FAMILY.**
 
-## CURRENT — H0T / Runner49
+Therefore:
 
-Runner49 compares the exact H0 references/geometry/prompt against the official Ref2V Turbo4 path.
+- Turbo4 is not production-default;
+- Base50 is restored;
+- exact Turbo4 elapsed time/prompt id/hash must not be invented if not recovered from local evidence;
+- future speed work must prove Base50-equivalent quality.
 
-Changes:
+Record: `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`.
 
-- `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors` ~1.96GB;
-- SHA256 `5b9ab5ade15d0775676d01a907268a69a1468dc6033b3b0d3ded5502f3ebb84c`;
-- LoRA strength1.0;
--4 steps;
-- `res_multistep/simple`.
+## Current H3 production stance
 
-Unchanged:
+Quality-first motion generation stays at:
 
-- Picture1/Video1;
--448×800;
--124f@24fps;
-- `ref_image_size=match`;
-- seed0;
-- same prompt.
+`448×800 / 124f@24fps / 50 steps / res_multistep-beta / seed0 / ref_image_size=match`
 
-Pass requires substantial wall-clock reduction **and** H0-level topology/identity/motion quality.
+The ~75-minute cost is accepted for now rather than knowingly degrading the motion master.
 
-Runner:
+Do not generate another long clip simply to prove downstream rendering. Reuse existing motion masters where possible.
 
-`tools/structured-2d-character-pipeline/49_run_minimax_h3_ref2va_h0t_turbo4.ps1`
+## Existing H0 action
 
-## H1-S after H0T
+The H0 result is a **dance/gesture-like action**, not a walk.
 
-If H0T passes, use Turbo4 for a real screen-left walk motion master with fixed camera, full body, safe real margins, mostly lateral/slight3/4 near `72°`, and one clear gait cycle.
-
-A clean gait cycle may be automatically repeated/tiled to fill the proven 124-frame H3 conditioning regime.
-
-Then distill one coherent generated gait cycle to about **12 unique sprite frames** before the separate final pixel-art renderer.
+It is the immediate downstream test source for final pixel-art reconstruction.
 
 ## Final-runtime art boundary
 
-The project now explicitly separates:
+The project explicitly separates:
 
 - H3 motion quality;
-- frame/cycle extraction quality;
+- action/frame extraction quality;
 - final pixel-art rendering quality.
 
-A family does not need to preserve literal input pixel clusters inside its intermediate video if the downstream pixel-art renderer can reconstruct the selected coherent poses consistently. Conversely, a beautiful H3 video is not sufficient unless the pixel-art runtime stage succeeds.
+A beautiful H3 video is insufficient unless the runtime renderer succeeds. Conversely, failure of a downstream pixel-art renderer does not retroactively invalidate a good H3 motion master.
+
+## Next model gate is downstream, not another motion family
+
+Preferred first final pixel-art renderer candidate: **FLUX.1 Kontext [dev]**, pending local quality/hardware/license validation.
+
+This is not part of the H3 motion-family screening itself.
+
+The local authoring architecture and UI are defined in:
+
+`docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 
 ## Cleanup
 
 - keep Base H3 set;
-- add only the official Ref2V Turbo4 LoRA for the current throughput hypothesis;
-- do not accumulate FL2VA/style/alternate quantizations;
+- Turbo4 LoRA may be removed after preserving local rejection evidence;
 - paused Wan large weights may be deleted while preserving W1H/W1L proof;
 - keep SSD comparison evidence until explicit abandonment/final verdict.
