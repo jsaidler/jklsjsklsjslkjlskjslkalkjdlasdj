@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL / WAN ACTIVE / W1 PAINTERLY LOOK APPROVED / W1H ASPECT-MATCHED GEOMETRY PASS / W1I POSE-END 0.70 NOT PREFERRED / W1J REF-ONLY RETEST SUPERSEDED BEFORE RUN / W1K POSE-STRENGTH 0.80 CURRENT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
+Status: **CANONICAL / WAN ACTIVE / W1 PAINTERLY LOOK APPROVED / W1H GEOMETRY PASS / W1I POSE-END 0.70 NOT PREFERRED / W1J AND W1K SUPERSEDED BEFORE RUN / W1L REF1.0 + POSE0.80 + 30 STEPS CURRENT / SCAIL-2 NEXT ONLY IF WAN EXHAUSTS**
 
 ## Purpose
 
@@ -23,7 +23,8 @@ It must consume richer information than skeleton-only pose and automatically inf
 - one ugly run does not kill a family;
 - distinguish infrastructure/integration/configuration/model-task failures;
 - fixed seed/input unless that variable is explicitly tested;
-- one high-leverage variable at a time;
+- one high-leverage variable at a time by default;
+- compound tests are allowed when explicitly labeled as configuration search rather than causal attribution;
 - no manual rescue or seed fishing.
 
 ## Active Wan BF16 route
@@ -83,7 +84,7 @@ Classification: **geometry PASS, best current Wan baseline, not yet production q
 
 ## W1I — POSE END 0.70 / NOT PREFERRED
 
-Runner 42 changed only `pose_end_percent 1.00 -> 0.70`.
+Runner 42 changed only `pose_end_percent: 1.00 -> 0.70`.
 
 - prompt `5d4f23ed-f4bf-4b01-a13f-108b2bf31fe0`;
 - elapsed `1526.52s`;
@@ -91,40 +92,38 @@ Runner 42 changed only `pose_end_percent 1.00 -> 0.70`.
 
 Frame-by-frame output remained extremely close to W1H. Blur and structural deformation persisted. **Not preferred.**
 
-## W1J — REF1.0 RETEST / SUPERSEDED BEFORE EXECUTION
+## W1J / W1K — PREPARED BUT SUPERSEDED BEFORE EXECUTION
 
-Runner 43 and its executor remain as prepared small tooling, but the user correctly identified that the remaining defect is not merely identity tightness: blur is still heavy and several structural changes occur.
+- W1J / Runner43 prepared `reference_image_strength 1.5 -> 1.0` alone.
+- W1K / Runner44 prepared `pose_strength 1.0 -> 0.80` alone.
 
-Therefore `reference_image_strength 1.5 -> 1.0` alone is not the next gate. Do not spend a full inference on W1J unless later evidence specifically justifies an isolated reference-strength comparison.
+Neither was executed. The user requested a combined quality search because the remaining defect is broad: heavy motion blur plus multiple structural changes. Keep both as small diagnostic tooling, not as current gates.
 
-## W1K — CURRENT: POSE STRENGTH 0.80
+## W1L — CURRENT: COMPOUND QUALITY SEARCH
 
 Runner:
 
-`tools/structured-2d-character-pipeline/44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1`
+`tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1k_pose_strength80_ref15.py`
+`tools/wan-animate2-spike/run_w1l_ref10_pose80_steps30.py`
 
-Parent = exact W1H.
+Parent = exact completed W1H.
 
-Only changed variable:
+Deliberate compound changes:
 
-- `pose_strength: 1.00 -> 0.80`.
+- `reference_image_strength: 1.5 -> 1.0`;
+- `pose_strength: 1.00 -> 0.80`;
+- `steps: 20 -> 30`.
 
-Everything else remains W1H: raw driver untouched, `512×912`, ref strength1.5, pose window0.0–1.0, seed0, 20 steps, CFG1, Euler/simple, shift5, same reference/prompt/negative/CLIP pose branch.
+Everything else remains W1H: untouched raw driver, `512×912`, pose start0.0, pose end1.0, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
 
-Rationale:
+Experiment policy: **COMPOUND_CONFIGURATION_SEARCH**. W1L is not a causal one-variable experiment. It asks whether a materially better operating point exists when identity tightness, pose forcing and sampling budget are adjusted together.
 
-- remaining failure is concentrated in motion phases and combines smear with structural deformation;
-- ComfyUI defines `pose_strength` as the direct scale of pose-video influence;
-- the Animate-2 model implementation directly scales pose-branch values when pose strength differs from1.0;
-- W1I showed that ending pose influence earlier does not materially help.
+Pass only if destructive blur **and** structural deformation fall materially while choreography, identity, hair/cloth dynamics and framing remain acceptable.
 
-W1K asks whether a moderate 20% reduction in pose forcing reduces destructive blur **and** anatomy deformation while keeping choreography and secondary dynamics acceptable.
-
-If W1K fails decisively, the next high-leverage axis is sampling quality/steps, not another blind reference-strength tweak.
+If W1L succeeds, isolate contributing controls later only if needed. If W1L fails, do not blindly grid-search nearby values; reassess whether the failure is intrinsic to this model/task/driver regime.
 
 ## Sequence
 
@@ -136,12 +135,12 @@ If W1K fails decisively, the next high-leverage axis is sampling quality/steps, 
 - W1H — **GEOMETRY PASS / BEST BASELINE**
 - W1I — **NOT PREFERRED**
 - W1J — **SUPERSEDED BEFORE RUN**
-- W1K pose_strength0.80 — **CURRENT**
-- then sampling-quality test if W1K fails
+- W1K — **SUPERSEDED BEFORE RUN**
+- W1L ref1.0 + pose0.80 + 30steps — **CURRENT**
 - separate 1980s/torn-clothing/body-exposure art gate only after technical quality is adequate
 - W2 real walking driver with safe margins
 - W3 secondary-motion stress driver
 
 ## Cleanup
 
-No large asset added by W1F–W1K tooling. Keep small proof/failure evidence; do not pre-download alternate Wan checkpoints. Keep SSD comparison evidence until Wan verdict.
+No large asset added by W1F–W1L tooling. Keep small proof/failure evidence; do not pre-download alternate Wan checkpoints. Keep SSD comparison evidence until Wan verdict.
