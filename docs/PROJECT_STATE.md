@@ -161,7 +161,7 @@ Current ComfyUI `WanAnimate2ToVideo` preprocesses `pose_video` to the requested 
 
 The current W0/W1/W1A/W1F graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
 
-Therefore the next driver normalizer must control the **subject envelope itself** and must keep that envelope safely inside both:
+Therefore the driver normalizer must control the **subject envelope itself** and keep it safe inside both:
 
 1. the `640×800` pose-video canvas; and
 2. the central square seen by the pose CLIPVision path.
@@ -176,18 +176,32 @@ Executor:
 
 `tools/wan-animate2-spike/run_w1g_subject_framing_ref15.py`
 
-W1G branches from the exact completed **W1A** prompt, so `reference_image_strength=1.5` remains unchanged. Relative to W1A, the only experimental axis is driver geometry.
+W1G branches from the exact completed **W1A** prompt, so `reference_image_strength=1.5` remains unchanged. Relative to W1A, driver geometry is the only experimental axis.
 
-Automatic subject-framing v1:
+### W1G v1 — PRE-INFERENCE SUBJECT-ANALYSIS FAIL
 
-- analyzes the first 37 source frames with temporal-activity segmentation;
-- derives one global moving-subject envelope;
-- expands it to include static body/head/feet margin;
-- applies **one fixed affine transform for the whole clip** — no per-frame camera breathing;
+The first W1G preprocessor used a single global temporal-activity union over the first 37 source frames. It correctly aborted before Wan inference with:
+
+`automatic subject bbox covers almost the whole source frame (1.000)`
+
+Classification: **PREPROCESSOR/INTEGRATION FAIL, not Wan/model failure.** The guard prevented a meaningless ~30 minute inference.
+
+Finding: the official driver's temporal activity spans essentially the whole frame, so a global union box cannot distinguish performer traversal from subject extent. A fixed global affine therefore cannot solve this clip.
+
+### W1G v2 — CURRENT IMPLEMENTATION
+
+The preprocessor now:
+
+- uses OpenCV's built-in HOG person detector independently on the first 37 frames;
+- selects a temporally coherent performer box;
+- interpolates frames where detection is missing;
+- expands boxes for head/hair/hands/feet safety;
+- smooths **translation only** over time;
+- keeps **one constant scale** for all frames, so there is no zoom/camera breathing;
 - targets subject-envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
 - hard-fails before inference if top/bottom/side margins are unsafe;
-- separately hard-checks that the subject envelope survives the center-square CLIPVision crop;
-- requires only existing `cv2` + `numpy`; no new detector checkpoint/model is downloaded.
+- separately guards the central square used by `CLIPVisionEncode(crop="center")`;
+- uses only existing `cv2` + `numpy`; no detector checkpoint/model download.
 
 Everything else remains W1A:
 
@@ -199,7 +213,7 @@ Everything else remains W1A:
 - negative prompt;
 - `--disable-pinned-memory`.
 
-Expected evidence:
+Expected evidence after a valid v2 run:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
