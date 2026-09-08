@@ -2,13 +2,15 @@
 
 Status date: **2026-09-08**
 
-Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / FLUX.1 KONTEXT [DEV] = ACTIVE RENDERER CANDIDATE / RUNNER50 VISUAL FAIL RECORDED / RUNNER51 STRUCTURE-LOCK PREPARED / 1980s SWORD-AND-SORCERY LOCKED**
+Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / FLUX.1 KONTEXT [DEV] = ACTIVE RENDERER CANDIDATE / RUNNER50 VISUAL FAIL / RUNNER51 LAYOUT REJECTED / RUNNER52 SINGLE-ACTION 1x12 CURRENT GATE / 1980s SWORD-AND-SORCERY LOCKED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Local authoring workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
 
 Runner50 visual-failure record: `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`.
+
+Runner51 layout-correction record: `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`.
 
 ## Core production constraint
 
@@ -61,25 +63,38 @@ H3 output is not the final runtime raster style.
 
 Canonical chain:
 
-`character reference + real action video -> H3 Base50 complete-character motion master -> automatic coherent action-frame extraction -> high-quality pixel-art reconstruction -> transparent complete-character spritesheet/atlas + metadata -> runtime`
+`character reference + real action video -> H3 Base50 complete-character motion master -> automatic action-frame extraction -> high-quality pixel-art reconstruction -> one horizontal action row + transparent frames/metadata -> runtime`
 
-## Spritesheet temporal organization — HARD LOCK
+## Spritesheet organization — HARD LOCK
 
 A spritesheet is not an arbitrary contact sheet.
 
-For the current `4×N` authoring convention:
+**One action = one spritesheet row.**
 
-- **one row = one temporally coherent animation sequence**;
-- frames inside a row read left-to-right in time;
-- do not scatter unrelated timestamps across one sheet and call it an animation;
-- if a selected action needs more than one row, each row must be an explicitly meaningful sequence/chunk according to the action preset and metadata;
-- final packing must preserve exact frame order and timing metadata.
+For each action:
 
-Runner50 violated this by evenly sampling the whole 124-frame H0 and placing unrelated stages of the gesture across a global `4×3` grid.
+- frames read left-to-right in time;
+- one action may use a variable number of columns;
+- all cells use the same action-specific scale/pivot/cell policy;
+- per-frame timing and gameplay events live in metadata;
+- the complete character remains visible in every cell.
+
+The renderer may process the action in smaller high-resolution tiles/chunks internally, but these processing tiles do not define final rows.
+
+For the current H0 `dance_or_gesture` proof:
+
+- 12 frames;
+- `12×1` final sheet;
+- `192×192` cells;
+- `2304×192` total.
+
+A later combined character sheet may stack different actions vertically, e.g. idle, walk, run, jump, punch, kick, weapon attacks, defenses, damage/death and specials.
+
+Runner51 was rejected before execution because it incorrectly split one action into three final rows.
 
 ## Final pixel-art reconstruction — ACTIVE CANDIDATE
 
-**FLUX.1 Kontext [dev] remains the active first local renderer family, but Runner50 did not pass the task contract.**
+**FLUX.1 Kontext [dev] remains the active first local renderer family.**
 
 Runner50 proved:
 
@@ -90,26 +105,27 @@ Runner50 proved:
 Runner50 failed:
 
 - adult identity/body-proportion preservation;
-- correct spritesheet temporal semantics;
+- correct one-action row semantics;
 - part of the locked mature art-direction charge.
 
-Therefore the next controlled test is Runner51 rather than a model-family jump.
+Runner51 was not run because its final-layout concept was wrong.
 
-### Runner51 controlled repair
+### Runner52 controlled repair
 
-Runner51 changes the task formulation while keeping the same model/runtime:
+Runner52 keeps the useful structure-lock changes while fixing final layout:
 
-- each final row is one short coherent temporal sequence;
-- one high-motion 16-frame window is selected inside each third of the existing H0;
-- four ordered frames are taken from each window;
-- each four-frame row is reconstructed separately as a `2×2` `1024×1024` input so each character is much larger during the edit;
-- Kontext denoise is reduced from `1.0` to `0.45` to preserve source structure;
-- the prompt explicitly forbids infantilization/body redesign;
-- the mature 1980s sword-and-sorcery inspiration lineage is a hard requirement.
+- complete H0 treated as one known `dance_or_gesture` action;
+- 12 ordered samples across the action;
+- three temporary `2×2` four-frame processing tiles only for working resolution;
+- Kontext denoise `0.45`;
+- canonical Exilada reference remains identity/art-direction authority;
+- explicit no-infantilization/body-redesign prompt;
+- same mature 1980s sword-and-sorcery inspiration lineage;
+- all rendered cells repacked into one final `12×1` action row.
 
-Runner51:
+Runner52:
 
-`tools/structured-2d-character-pipeline/51_run_flux_kontext_h0_dance3x4_temporal_rows_structure_lock.ps1`
+`tools/structured-2d-character-pipeline/52_run_flux_kontext_h0_dance12_single_action_row.ps1`
 
 ## 1980s sword-and-sorcery charge — LOCKED
 
@@ -224,13 +240,15 @@ Do not trade this quality away for speed until a faster path is proven visually 
 
 ## Current visual gate
 
-1. Runner50 is closed as **MODEL/TASK FAIL** for adult body preservation and spritesheet semantics;
-2. run Runner51 on the same H0 motion master;
-3. first inspect the automatically selected source temporal rows;
-4. inspect each row GIF independently for temporal coherence;
-5. inspect the final sheet for mature body preservation, pose fidelity, pixel-art quality and 1980s sword-and-sorcery charge;
-6. only after renderer behavior passes, build the Gradio orchestration UI;
-7. then expand to new actions and creature-scale cases.
+1. Runner50 is closed as **MODEL/TASK FAIL**;
+2. Runner51 is closed pre-inference as **CONFIGURATION / TASK-FORMULATION FAIL** because it split one action into three rows;
+3. run Runner52 on the same H0 motion master;
+4. inspect source `1×12` strip first;
+5. inspect the full-action GIF;
+6. inspect final opaque `1×12` sheet for mature body preservation, pose fidelity, cross-chunk consistency, pixel-art quality and 1980s charge;
+7. inspect RGBA/alpha;
+8. only after renderer behavior passes, build the Gradio orchestration UI;
+9. then expand to new actions and creature-scale cases.
 
 ## Current decision
 
@@ -238,11 +256,13 @@ Do not trade this quality away for speed until a faster path is proven visually 
 
 **LOCKED:** H3 Base50 painterly/raster output is a motion-master intermediate.
 
-**LOCKED:** one temporally coherent animation sequence per spritesheet row.
+**LOCKED:** one action = one horizontal spritesheet row.
+
+**LOCKED:** internal Kontext tiles/chunks never define final action rows.
 
 **LOCKED:** approved adult character body/age/proportions may not be infantilized or redesigned by the renderer.
 
-**ACTIVE RENDERER CANDIDATE:** FLUX.1 Kontext [dev], now under Runner51 structure-lock validation.
+**ACTIVE RENDERER CANDIDATE:** FLUX.1 Kontext [dev], now under Runner52 single-action structure-lock validation.
 
 **LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell and the mature 1980s sword-and-sorcery charge remain active.
 
