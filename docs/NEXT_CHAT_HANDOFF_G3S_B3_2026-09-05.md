@@ -92,9 +92,9 @@ Conclusion: whole-frame letterbox margins do not map to equivalent Wan output ma
 
 Current `WanAnimate2ToVideo` center-resizes `pose_video` to requested size. The project graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
 
-The next normalizer therefore must control the **subject envelope itself** and keep it safe inside both the 640×800 pose canvas and the CLIP center square.
+The normalizer therefore must control the **subject envelope itself** and keep it safe inside both the 640×800 pose canvas and the CLIP center square.
 
-## CURRENT GATE — RUNNER 40 / W1G SUBJECT FRAMING + REF 1.5
+## CURRENT GATE — RUNNER 40 / W1G TRACKED SUBJECT FRAMING + REF 1.5
 
 Runner:
 
@@ -106,22 +106,40 @@ Executor:
 
 Parent = exact completed W1A prompt, therefore reference strength remains 1.5. Relative to W1A, only driver geometry changes.
 
-Automatic subject-framing v1:
+### W1G v1 — PRE-INFERENCE FAIL
 
-- analyzes first 37 source frames with temporal-activity segmentation;
-- derives one global moving-subject envelope;
-- expands it for static body/head/feet margin;
-- applies one fixed affine transform to the whole clip — no per-frame breathing;
+The first subject-framing implementation used temporal-activity segmentation and one global activity union over the first 37 frames.
+
+It aborted before inference with:
+
+`automatic subject bbox covers almost the whole source frame (1.000)`
+
+Classification: **PREPROCESSOR/INTEGRATION FAIL; no Wan inference.**
+
+Interpretation: whole-frame temporal activity makes the global union meaningless for this clip. The safety guard worked and prevented wasting an inference.
+
+### W1G v2 — CURRENT IMPLEMENTATION
+
+The executor now:
+
+- detects the performer independently per frame using OpenCV's built-in HOG person detector;
+- selects a temporally coherent box;
+- interpolates missed detections;
+- expands for head/hair/hands/feet safety;
+- smooths translation across time;
+- uses **one constant scale** for the sequence, so there is no zoom/camera breathing;
 - target envelope height ratio `0.48`;
 - target center x `300`;
 - target bottom y `620`;
 - hard pre-inference margin guard on 640×800;
 - hard guard for the CLIP center-square crop;
-- uses `cv2` + `numpy`, no new detector checkpoint/model.
+- no new detector checkpoint/model download.
+
+If not enough credible person detections are found, the run aborts before Wan rather than reverting to the failed global-activity method.
 
 Everything else remains W1A: Exilada reference/prompt, Base BF16 stack, 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0, pose strength 1.0, ref strength 1.5, negative prompt and `--disable-pinned-memory`.
 
-Expected outputs:
+Expected outputs after a valid inference:
 
 - `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`
 - `Z:\AI\WanAnimate2\w1g_run_manifest.json`
