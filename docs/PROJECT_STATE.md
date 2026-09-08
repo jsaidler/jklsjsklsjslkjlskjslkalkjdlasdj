@@ -20,17 +20,12 @@ Every state-changing project action updates thematic docs, this file and the act
 
 ## Local path topology — LOCKED
 
-Project repository: `D:\GOOGLE DRIVE\DEV\Roguelite`
-
-AI/model root: `Z:\AI`
-
-Retained workspaces:
-
-- `Z:\AI\RogueliteCharacterPipeline`
-- `Z:\AI\SpriteSheetDiffusionSpike`
+- repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
+- AI/model root: `Z:\AI`
 - active Wan workspace: `Z:\AI\WanAnimate2`
-
-`D:\AI` is stale/historical and must not be used by current tooling.
+- retained comparison workspace: `Z:\AI\SpriteSheetDiffusionSpike`
+- retained character-pipeline workspace: `Z:\AI\RogueliteCharacterPipeline`
+- `D:\AI` is stale/historical and must not be used by current tooling.
 
 ## Game / projection — LOCKED
 
@@ -44,47 +39,42 @@ Retained workspaces:
 
 ## Runtime / production architecture — LOCKED
 
-Final runtime consumes complete precomposed character frames/spritesheets only.
+Runtime consumes complete precomposed character frames/spritesheets only.
 
 `complete appearance reference + raw driving video + automatic preprocessing -> complete animated frames -> automatic extraction/packing -> spritesheet/atlas + metadata -> ordinary sprite playback`
 
-No visible runtime body/hair/clothing/equipment assembly.
+No visible runtime body/hair/clothing/equipment assembly. No routine manual rigging, keyframing, simulation repair, mask repair, repainting or hand compositing.
 
-No routine manual rigging, keyframing, simulation repair, mask repair, repainting or hand compositing.
+## Visual direction — UPDATED 2026-09-07
 
-## Visual direction — MAJOR UPDATE 2026-09-07
+The earlier hard final-art modern-pixel-art requirement is superseded.
 
-The previous hard requirement that final visible gameplay art be deliberate modern pixel art is **superseded**.
-
-The Wan W1 Exilada output was explicitly approved by the user as a highly desirable whole-game visual language.
+The Wan W1 Exilada output was explicitly approved as a highly desirable whole-game visual language.
 
 Current preferred visible-art direction:
 
 - painterly / illustrated 2D dark fantasy;
 - explicit **1980s sword-and-sorcery charge**;
-- active inspiration lineage: **Heavy Metal, Conan, Red Sonja, Frank Frazetta, Julie Bell**;
+- active inspirations: **Heavy Metal, Conan, Red Sonja, Frank Frazetta, Julie Bell**;
 - adult sensuality/nudity are legitimate and must not be sanitized by default;
-- localized, restrained motion blur is allowed and may be aesthetically positive;
-- production still requires temporal coherence, silhouette readability, automatic reproducibility and actual gameplay-scale validation.
-
-For the Exilada, the desired initial-state direction may push the present master toward **more severely torn cloth and more exposed body, including possible partial breast exposure**, while keeping the deprivation/captivity logic. Exact tear/exposure geometry is not yet canonized.
-
-Canonical details: `docs/VISUAL_DIRECTION.md` and `docs/CHARACTERS.md`.
+- localized/restrained motion blur is allowed and may be aesthetically positive;
+- blur becomes a defect when it destroys anatomy/topology/gameplay readability;
+- Exilada initial state may later push toward more severely torn cloth and more body exposure, including possible partial breast exposure, while preserving the deprivation/captivity logic.
 
 ## Model exhaustion protocol — LOCKED
 
-A single bad run does not kill a model family. Distinguish infrastructure, integration, configuration, blocked and model/task failures. Exhaust one relevant model family before switching. Change one meaningful variable at a time with fixed seed/input. No seed fishing and no manual rescue.
+A single bad run does not kill a model family. Distinguish infrastructure, integration, configuration, blocked and model/task failures. Exhaust one meaningful model family before switching. Change one high-leverage variable at a time with fixed seed/input. No seed fishing and no manual rescue.
 
 ## Disk/model cleanup rule — LOCKED
 
-Do not accumulate unused large checkpoints/materials. Keep only variants tied to active hypotheses. Preserve small manifests/logs/evidence. Do not delete the active family after one poor result.
+Do not accumulate unused large checkpoints/materials. Keep only variants tied to active hypotheses. Preserve small manifests/logs/results. Do not delete the active family after one poor result.
 
-## Current candidate order
+## Candidate order
 
 1. **Wan-Animate-2** — exhaust first.
 2. **SCAIL-2** — only after documented Wan `EXHAUSTED_FAIL`.
 
-Moore/AnimateAnyone pose-only and current Moore+SSD compatibility route remain research evidence only for the final raw-video contract. Exact public SSD remains independently `BLOCKED` by the absent custom SSD pose-guider checkpoint.
+Moore/AnimateAnyone pose-only and current Moore+SSD compatibility remain research evidence only. Exact public SSD remains independently `BLOCKED` by the absent custom SSD pose-guider checkpoint.
 
 ## Wan active Base-BF16 set
 
@@ -93,35 +83,17 @@ Moore/AnimateAnyone pose-only and current Moore+SSD compatibility route remain r
 - `clip_vision_h.safetensors` ~1.26 GB
 - `Wan2_1_VAE_bf16.safetensors` ~0.254 GB
 
-Total ~45.7 GB.
-
 Lower-precision/Distilled variants are not retained in advance.
 
-## Runner 35 — PREPARATION PASS
+## W0 — PASS_BASELINE
 
-`tools/structured-2d-character-pipeline/35_prepare_wan_animate2_bf16_w0.ps1`
+Runner 36 reproduced the official Base-BF16 route at `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0.
 
-BF16 assets installed and native ComfyUI schema captured under `Z:\AI\WanAnimate2`.
+Attempt 1 hit AIMDO `hostbuf_file_reader_read failed`; relaunching ComfyUI with only `--disable-pinned-memory` fixed the infrastructure issue.
 
-## Runner 36 — W0 OFFICIAL BASELINE PASS
+## W1 — Exilada / reference strength 1.0
 
-Official demo1 reference + raw driver, Base BF16, `640×800`, 37 frames, 16 fps, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0.
-
-Attempt 1 hit `hostbuf_file_reader_read failed` inside ComfyUI AIMDO host-buffer streaming; infrastructure only.
-
-Attempt 2 changed only `--disable-pinned-memory` and completed successfully.
-
-Classification: **PASS_BASELINE**.
-
-## Runner 37 — W1 EXILADA COMPLETE
-
-Observed run:
-
-- same official driver/model stack/settings as W0;
-- Exilada master reference;
-- `reference_image_strength=1.0`;
-- elapsed `1746.69 s` (~29m07s);
-- output SHA256 `2bbbf3bd0c5b0db46bc1e9d33abd003b7f3627c8fba7880f45d62724f6ab233f`.
+Runner 37 completed with the official driver and Exilada master.
 
 Positive evidence:
 
@@ -129,115 +101,121 @@ Positive evidence:
 - no cat identity/costume leakage;
 - long black hair clearly moves as a non-rigid mass;
 - hip cloth changes drape;
-- coarse Exilada identity/state survives.
+- painterly result explicitly approved as preferred art direction.
 
-Remaining technical problems:
+Technical problems:
 
 - wrist restraints/chain largely disappear; ankle chain morphology drifts;
 - some hand/foot blur/stretch and transient artifacts;
-- later frames crop head/upper body because the official driver framing pushes the character to edges;
-- official driver is not suitable to judge target walking/jiggle/strong cloth/wind conclusively.
+- late sequence cuts head/upper body;
+- official driver is not sufficient to judge final walking/jiggle/wind quality.
 
-Important visual reclassification:
+## W1A — reference strength 1.5 / REVISED INTERPRETATION
 
-The smooth/painterly language is **no longer counted as a failure**. The user explicitly approved it as the preferred art direction. Localized, measured blur is allowed.
+Runner 38 changed only `reference_image_strength: 1.0 -> 1.5`.
 
-## Runner 38 — W1A reference strength 1.5 COMPLETE
-
-Uploaded W1A evidence confirms:
+Manifest:
 
 - status `INFERENCE_COMPLETE`;
-- same Exilada reference/driver/model/seed/sampler/settings as W1;
-- only `reference_image_strength: 1.0 -> 1.5` plus output prefix changed;
 - elapsed `1912.32 s` (~31m52s);
 - output SHA256 `2661d339f332a28ca25a3a03aa6a59ccd93a572751fb488de04540a764315bef`.
 
-Visual comparison against W1:
+Initial automated/assistant reading over-weighted sharpness and called 1.0 preferable. **User visual review corrected this.**
 
-- no material improvement in identity, clothing-layout or restraint retention;
-- painterly appearance remains essentially the same class;
-- several motion phases show **more blur/ghosting and weaker limb definition**;
-- framing/crop tendency remains because the driver is unchanged;
-- motion is still present, but the tradeoff is not better than W1.
+Current interpretation:
 
-Classification:
+- `1.5` appears to preserve **body structure/topology** better; fewer body parts are lost or displaced;
+- `1.0` is cleaner/less ghosted in some phases;
+- `1.5` carries more destructive blur/ghosting;
+- therefore `1.5` remains the **structural branch to preserve**, while blur becomes a separate later axis.
 
-**W1A = valid controlled diagnostic, but `reference_image_strength=1.5` is not preferred.**
+Do not collapse the tradeoff into a single “1.5 lost” verdict.
 
-Current preferred conditioning balance returns to **W1 `reference_image_strength=1.0`**.
+## W1F — fixed whole-frame safe framing 80% / VALID FAIL FOR CROP
 
-No need to keep escalating reference strength before fixing framing.
+Runner 39 retry completed successfully after OpenCV preflight was fixed.
 
-## Runner 39 — CURRENT GATE: W1F AUTOMATIC SAFE FRAMING
+Manifest facts:
+
+- status `INFERENCE_COMPLETE`;
+- driver: `wan_animate2_w1f/official_demo1_template_safe80.mp4`;
+- reference strength `1.0`;
+- elapsed `1737.61 s`;
+- source `480×854`, 337 frames @30 fps;
+- entire source frame placed at `360×640` inside `640×800`, offset `(140,80)`;
+- no source-frame crop or temporal camera breathing.
+
+Visual verdict:
+
+**W1F did NOT solve generated framing.** Head/hair still leave the top later in the sequence and the character still pushes into the right edge.
+
+Conclusion:
+
+- merely letterboxing/scaling the whole driver frame is insufficient;
+- Wan does not preserve those whole-frame margins as equivalent generated-character margins;
+- do not waste runs by trying only 70%/60%/50% whole-frame letterbox variants.
+
+## Native framing semantics discovered
+
+Current ComfyUI `WanAnimate2ToVideo` preprocesses `pose_video` to the requested width/height with `common_upscale(..., "area", "center")`.
+
+The current W0/W1/W1A/W1F graph also feeds the first driver frame through `CLIPVisionEncode(crop="center")` into `clip_vision_output_pose`.
+
+Therefore the next driver normalizer must control the **subject envelope itself** and must keep that envelope safely inside both:
+
+1. the `640×800` pose-video canvas; and
+2. the central square seen by the pose CLIPVision path.
+
+## Runner 40 — CURRENT GATE: W1G SUBJECT FRAMING ON STRUCTURAL 1.5 BRANCH
 
 Runner:
 
-`tools/structured-2d-character-pipeline/39_run_wan_animate2_bf16_w1f_safe_framing80.ps1`
+`tools/structured-2d-character-pipeline/40_run_wan_animate2_bf16_w1g_subject_framing_ref15.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1f_safe_framing.py`
+`tools/wan-animate2-spike/run_w1g_subject_framing_ref15.py`
 
-W1F branches from the preferred W1 prompt (`reference_image_strength=1.0`) and changes only driver framing:
+W1G branches from the exact completed **W1A** prompt, so `reference_image_strength=1.5` remains unchanged. Relative to W1A, the only experimental axis is driver geometry.
 
-- preserve the entire original raw driver frame;
-- fit it inside a fixed centered **80% safe box** on a `640×800` canvas;
-- add stable margins;
-- no crop, no temporal tracking/camera breathing, no manual alignment.
+Automatic subject-framing v1:
 
-Everything else stays W1:
+- analyzes the first 37 source frames with temporal-activity segmentation;
+- derives one global moving-subject envelope;
+- expands it to include static body/head/feet margin;
+- applies **one fixed affine transform for the whole clip** — no per-frame camera breathing;
+- targets subject-envelope height ratio `0.48`, center x `300`, bottom y `620` on `640×800`;
+- hard-fails before inference if top/bottom/side margins are unsafe;
+- separately hard-checks that the subject envelope survives the center-square CLIPVision crop;
+- requires only existing `cv2` + `numpy`; no new detector checkpoint/model is downloaded.
+
+Everything else remains W1A:
 
 - Exilada reference/prompt;
 - Base BF16 + UMT5 FP16 + CLIP Vision H + VAE BF16;
-- 37 frames, 16 fps, 20 steps;
-- CFG 1.0, Euler/simple, shift 5.0, seed 0;
+- 37 frames, 20 steps, CFG 1.0, Euler/simple, shift 5.0, seed 0;
 - pose strength 1.0;
-- reference strength 1.0;
+- reference strength 1.5;
 - negative prompt;
 - `--disable-pinned-memory`.
 
-### Runner 39 attempt 1 — INFRASTRUCTURE/PREFLIGHT FAIL
+Expected evidence:
 
-The surfaced terminal excerpt reached a healthy ComfyUI startup, then exited with:
+- `Z:\AI\WanAnimate2\w1g_exilada_subject_framed_ref15.mp4`
+- `Z:\AI\WanAnimate2\w1g_run_manifest.json`
+- `Z:\AI\WanAnimate2\w1g_api_prompt.json`
+- `Z:\AI\WanAnimate2\w1g_subject_driver_manifest.json`
 
-`RUNNER39-WAN-W1F: FAIL - W1F safe-framing inference exited with code 2`
+Success criterion: complete head/hair/body remain in frame while W1A's stronger body-structure retention survives. If so, **blur reduction becomes the next isolated axis**.
 
-No Wan/model-quality inference is valid from this attempt.
+## Sequence after W1G
 
-The W1F executor is the first current route that imports `cv2` for deterministic raw-video preprocessing. The isolated ComfyUI bootstrap does not explicitly guarantee OpenCV, and Runner 39 attempt 1 did not preflight this dependency.
-
-Current Runner 39 is hardened to:
-
-- verify `import cv2, numpy` before W1F;
-- install only `opencv-python-headless>=4.10,<5` in the isolated Wan Python environment if `cv2` is missing;
-- verify the import again before starting ComfyUI/inference;
-- keep every Wan/model/framing experiment variable unchanged.
-
-This is an infrastructure/preprocessor dependency correction, not a configuration experiment.
-
-Hypothesis remains unchanged: inherited head/body edge cropping can be eliminated by safe-framing the raw driver before Wan without materially reducing motion quality or causing camera breathing.
-
-Expected evidence after a valid retry:
-
-- `Z:\AI\WanAnimate2\w1f_exilada_safe_framing80.mp4`
-- `Z:\AI\WanAnimate2\w1f_run_manifest.json`
-- `Z:\AI\WanAnimate2\w1f_api_prompt.json`
-- `Z:\AI\WanAnimate2\w1f_safe_driver_manifest.json`
-
-## Sequence after W1F
-
-1. compare W1 vs W1F and lock a framing policy;
-2. test the approved **1980s / more severely torn / more exposed Exilada** appearance direction without mixing it into the framing diagnostic;
+1. if framing passes, isolate blur reduction while preserving the W1A/W1G structural branch;
+2. then run the separate approved 1980s / more severely torn / more exposed Exilada art-direction test;
 3. W2 clean real Internet walking driver;
 4. W3 secondary-motion stress driver;
 5. finite W4 variants only if evidence still justifies them;
-6. validate preferred painterly rendering at actual ~128 px gameplay occupancy in the belt-scroller scene.
-
-After W4 classify Wan as `PASS_CANDIDATE` or `EXHAUSTED_FAIL`.
-
-## SSD retention
-
-Keep `Z:\AI\SpriteSheetDiffusionSpike` temporarily as comparison/fallback evidence while Wan remains under active exhaustion.
+6. validate the painterly rendering at actual ~128 px gameplay occupancy.
 
 ## Exact current operator action
 
@@ -245,5 +223,5 @@ Keep `Z:\AI\SpriteSheetDiffusionSpike` temporarily as comparison/fallback eviden
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\39_run_wan_animate2_bf16_w1f_safe_framing80.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\40_run_wan_animate2_bf16_w1g_subject_framing_ref15.ps1"
 ```
