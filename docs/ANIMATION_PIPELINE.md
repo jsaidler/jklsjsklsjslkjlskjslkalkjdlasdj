@@ -2,7 +2,7 @@
 
 Status date: **2026-09-08**
 
-Status: **RAW-VIDEO COMPLETE-CHARACTER GENERATION ACTIVE. WAN BASE BF16 UNDER CONTROLLED EXHAUSTION. W1H IS THE BEST CURRENT GEOMETRY BASELINE. W1I POSE-END 0.70 DID NOT HELP. W1J REF-ONLY RETEST IS SUPERSEDED BEFORE RUN. W1K POSE-STRENGTH 0.80 IS CURRENT.**
+Status: **RAW-VIDEO COMPLETE-CHARACTER GENERATION ACTIVE. WAN BASE BF16 UNDER CONTROLLED EXHAUSTION. W1H IS THE BEST CURRENT GEOMETRY BASELINE. W1I POSE-END 0.70 DID NOT HELP. W1J/W1K WERE PREPARED BUT SUPERSEDED BEFORE RUN. W1L REF1.0 + POSE0.80 + 30 STEPS IS CURRENT.**
 
 Canonical state: `docs/PROJECT_STATE.md`
 
@@ -43,31 +43,33 @@ Upstream Wan examples contain conflicting dimensions (`640×800` YAML vs `720×1
 
 Result: major crop resolved and temporal body coherence improved, but fast-motion phases still show **heavy smear plus structural deformation**. Chain/restraint topology remains imperfect. W1H is not production quality yet.
 
-## W1J — SUPERSEDED BEFORE RUN
+## W1J / W1K — SUPERSEDED BEFORE RUN
 
-Runner43 ref1.0-only test remains available as small tooling but is not current. Lowering only reference strength does not target the main remaining motion-phase failure strongly enough to justify a full run now.
+Runner43 prepared ref1.0 alone; Runner44 prepared pose_strength0.80 alone. Neither was executed. Both remain as small diagnostic tooling only.
 
-## W1K — CURRENT
+## W1L — CURRENT COMPOUND QUALITY SEARCH
 
 Runner:
 
-`tools/structured-2d-character-pipeline/44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1`
+`tools/structured-2d-character-pipeline/45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1`
 
 Executor:
 
-`tools/wan-animate2-spike/run_w1k_pose_strength80_ref15.py`
+`tools/wan-animate2-spike/run_w1l_ref10_pose80_steps30.py`
 
-Only changed variable from W1H:
+Parent = exact W1H.
 
-`pose_strength 1.00 -> 0.80`
+Compound changes:
 
-Everything else remains W1H: raw driver,512×912,ref1.5,pose window0–1,seed0,20 steps,CFG1,Euler/simple,shift5,same Exilada reference/prompt/negative/CLIP pose branch.
+- `reference_image_strength 1.5 -> 1.0`;
+- `pose_strength 1.00 -> 0.80`;
+- `steps 20 -> 30`.
 
-Reason: ComfyUI defines pose strength as the direct scale of pose-video influence, and the Animate-2 model path directly scales pose-branch values. This is the first test that directly reduces motion forcing while preserving the whole temporal pose window.
+Everything else remains W1H: raw driver, `512×912`, pose window0–1, seed0, CFG1, Euler/simple, shift5, same Exilada reference/prompt/negative/CLIP pose branch.
 
-Pass only if **both** destructive blur and structural deformation improve materially while choreography, identity, long-hair motion and cloth dynamics remain acceptable.
+Policy: **COMPOUND_CONFIGURATION_SEARCH**. This run is deliberately not a one-variable causal experiment. It searches for a better operating point against the two coupled blockers: destructive blur and structural deformation.
 
-If W1K fails decisively, next technical axis = sampling quality/steps.
+Pass only if both improve materially while choreography, identity, long-hair motion, cloth dynamics and framing remain acceptable.
 
 ## Immediate operator action
 
@@ -75,9 +77,9 @@ If W1K fails decisively, next technical axis = sampling quality/steps.
 git -C "D:\GOOGLE DRIVE\DEV\Roguelite" pull --ff-only
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\44_run_wan_animate2_bf16_w1k_pose_strength80_ref15.ps1"
+  -File "D:\GOOGLE DRIVE\DEV\Roguelite\tools\structured-2d-character-pipeline\45_run_wan_animate2_bf16_w1l_ref10_pose80_steps30.ps1"
 ```
 
 ## Candidate order / cleanup
 
-Wan first; SCAIL-2 only after documented Wan `EXHAUSTED_FAIL`. Do not accumulate large model variants. W1K adds no large checkpoint.
+Wan first; SCAIL-2 only after documented Wan `EXHAUSTED_FAIL`. Do not accumulate large model variants. W1L adds no large checkpoint.
