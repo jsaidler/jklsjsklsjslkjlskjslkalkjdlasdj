@@ -9,17 +9,18 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 1. `docs/PROJECT_STATE.md`
 2. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 3. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
-4. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
-5. `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
-6. `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
-7. `docs/VISUAL_DIRECTION.md`
-8. `docs/ANIMATION_PIPELINE.md`
-9. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-10. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-11. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
-12. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-13. `docs/CHARACTERS.md`
-14. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+4. `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`
+5. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
+6. `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
+7. `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
+8. `docs/VISUAL_DIRECTION.md`
+9. `docs/ANIMATION_PIPELINE.md`
+10. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+11. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+12. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
+13. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
+14. `docs/CHARACTERS.md`
+15. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
 
 Historical preflight incidents remain documented separately.
 
@@ -43,11 +44,14 @@ Every state-changing action updates the thematic docs, this file and the active 
 - fixed orthographic-like gameplay camera;
 - native raster `640×360`;
 - pitch `26°`;
-- Exilada baseline about `128px` tall at `relative_scale=1.0`;
+- `relative_scale=1.0` means baseline adult-human/Exilada world scale, **not** a fixed pixel height;
+- protagonist gameplay visible height is **OPEN pending comparative viewport benchmarking**;
 - first locomotion family screen-left / mostly lateral-three-quarter;
 - facing baseline `72°`;
 - runtime consumes complete precomposed character sprites only;
 - no visible runtime body/hair/clothing/equipment layer assembly.
+
+The former `128px` Exilada hard baseline is retired. See `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`.
 
 ## Final visible-art target — LOCKED
 
@@ -73,7 +77,7 @@ For every action asset:
 - per-frame durations/events live in JSON metadata;
 - complete character remains visible in every cell.
 
-Current H0 `dance_or_gesture` proof uses 12 frames, `192×192` cells and a `12×1` final action row.
+Current H0 `dance_or_gesture` proof uses 12 frames. Runner52 used `192×192` diagnostic cells; that size is historical test packaging, **not** a production-scale recommendation.
 
 A later combined character sheet may stack distinct actions vertically.
 
@@ -117,9 +121,19 @@ Gradio remains the V1 UI choice **after renderer behavior passes**.
 
 ## Relative scale — CURRENT CONTRACT
 
-`relative_scale=1.0` = baseline adult-human/Exilada size, about `128px` visible height in canonical gameplay composition.
+`relative_scale=1.0` = baseline adult-human/Exilada **world scale only**.
 
-Scale is world/render metadata, not non-uniform image stretching. It influences sprite occupancy, cell/atlas dimensions and source-resolution policy.
+It does not imply a fixed visible pixel height.
+
+First gameplay-composition benchmark at native `640×360` will compare approximately:
+
+- `160px` visible standing height (~44% of viewport height);
+- `180px` (~50%);
+- `200px` (~56%).
+
+These are comparison candidates, not locks. Final scale must be chosen in a real gameplay composition with multiple enemies, depth movement, attack envelopes, HUD-safe area, hair/cloth/chain extents and at least one larger creature/boss case.
+
+Authoring/render masters remain materially larger than eventual gameplay display; current target is roughly `256–320px` visible subject height where practical, with `384×384` or larger cells when required by the action envelope.
 
 ## Motion model — MiniMax H3 Ref2VA ACTIVE / BASE50 LOCKED
 
@@ -190,7 +204,7 @@ Evidence from submitted manifest/log:
   - `65b26095-ccf5-4874-80d0-ca624b9cdb4b`;
 - elapsed: `288.49s + 280.52s + 280.34s = 849.35s` (~14m09s);
 - 20 steps, guidance2.5, CFG1, Euler/simple, seed0, denoise0.45;
-- final local layout `12×1`, `192×192` cells, `2304×192`.
+- final local layout `12×1`, `192×192` diagnostic cells.
 
 Verdict:
 
@@ -201,13 +215,15 @@ Verdict:
 - automatic alpha: **PASS_CANDIDATE**;
 - final high-level deliberate pixel art: **NOT YET PASS**.
 
-The result still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail rather than authored pixel clusters. Record:
+The result still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail rather than authored pixel clusters. The premature small review scale may contribute to that reading and is no longer treated as a production assumption.
+
+Record:
 
 `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
 
 Runner52 also does **not** prove final runtime action timing/cycle distillation; its `250–479ms` durations preserve broad source coverage only.
 
-## CURRENT GATE — Runner53 / dedicated pixel-art LoRA probe
+## CURRENT GATE — Runner53 / dedicated pixel-art LoRA probe at larger master scale
 
 Do not raise denoise yet: `0.45` is the current structure-preserving value.
 
@@ -221,16 +237,23 @@ Executor:
 
 `tools/flux-kontext-spike/run_h0_dance_chunk2_modern_pixelart_lora_probe.py`
 
-Controlled test:
+Controlled model test:
 
 - only Runner52 chunk2 / source frames `46,57,68,79`;
 - same Kontext FP8;
 - same canonical Exilada reference;
 - same 20 steps / guidance2.5 / CFG1 / Euler-simple / seed0 / denoise0.45;
-- only new variable: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`, `ume_modern_pixelart.safetensors`, strength1.0;
+- only model/style change: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`, `ume_modern_pixelart.safetensors`, strength1.0;
 - LoRA SHA256 `ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4`;
 - ~344MB, MIT license for the adapter itself;
 - underlying Kontext non-commercial license caveat remains.
+
+Packaging/master correction after scale review:
+
+- Runner53 no longer downpacks to `192×192` cells;
+- output review/master cells are `384×384`;
+- gameplay apparent height remains explicitly `UNLOCKED_PENDING_VIEWPORT_BENCHMARK`;
+- this packaging change does not alter Kontext inference conditioning/settings.
 
 This is deliberately one chunk (~one Kontext inference) before spending another full 12-frame pass.
 
@@ -253,12 +276,13 @@ FLUX.1 Kontext [dev] open weights are non-commercial. Technical validation is ac
 
 ## Immediate implementation order
 
-1. run Runner53 only;
-2. compare its four frames against Runner52 chunk2;
+1. run Runner53 only after pulling the scale-corrected runner;
+2. compare its four frames against Runner52 chunk2 at master/review scale;
 3. judge pixel-cluster quality separately from anatomy/pose fidelity;
-4. if the style adapter passes, apply it to the full 12-frame action;
+4. if the style adapter passes, apply it to the full 12-frame action at master scale;
 5. if it fails, reject the adapter specifically before changing denoise/precision/model family;
-6. after renderer quality passes, implement action-specific distillation/timing and build the Gradio authoring UI.
+6. once pixel-art renderer quality passes, run comparative `160/180/200px` viewport composition tests rather than assuming a fixed gameplay height;
+7. then implement action-specific distillation/timing and build the Gradio authoring UI.
 
 ## Cleanup
 
