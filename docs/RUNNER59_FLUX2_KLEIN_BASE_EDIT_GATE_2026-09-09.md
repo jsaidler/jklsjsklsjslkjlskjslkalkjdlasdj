@@ -2,192 +2,157 @@
 
 Status date: **2026-09-09**
 
-Status: **PREPARED / CURRENT GATE / ~4.34 GB ADDITIONAL DOWNLOAD**
+Status: **TECHNICAL PASS / VISUAL OUTPUT ANOMALOUS / RECIPE-PARITY INVALID FOR MODEL VERDICT**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner59 exists
+## Purpose
 
-Runner58 completed the distilled 4B calibration and failed the production edit-strength gate.
+Runner59 tested the non-distilled Apache-2.0 FLUX.2 Klein 4B Base branch after Runner58 showed that the distilled 4B branch could not provide strong enough production reference editing.
 
-The important distinction is:
+The Base test reused the existing Qwen3-4B encoder and downloaded only:
 
-- distilled 4B **can** execute reference-edit graphs;
-- it preserves source identity/camera well;
-- increasing 4 -> 8 -> 12 steps increases broad image drift;
-- that extra drift does **not** reliably execute explicit structural edits;
-- multi-reference material authority remains too weak.
+- `flux-2-klein-base-4b-fp8.safetensors`
+  - 4,089,498,488 bytes
+  - SHA256 `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
+- `full_encoder_small_decoder.safetensors`
+  - 249,519,092 bytes
+  - SHA256 `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
 
-Therefore the next test stays inside the same Apache-2.0 Klein 4B family and evaluates the **non-distilled Base variant**, rather than jumping immediately to a different model family.
+Existing:
 
-## Why Base is a legitimate separate hypothesis
+- `qwen_3_4b.safetensors`
+  - SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
 
-Current official ComfyUI material distinguishes:
+Runtime remained:
 
-- 4B Distilled: speed-first, 4-step path;
-- 4B Base: non-distilled / higher-flexibility path.
+- `Z:\AI\Flux2Klein`
+- ComfyUI commit `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
+- RTX 3060 12 GB / 48 GB RAM
 
-The current official Base image-edit template uses:
+## Actual technical result
 
-- Euler sampler;
-- CFG 5;
-- 20 steps;
-- Qwen3-4B text encoder;
-- `full_encoder_small_decoder.safetensors`.
+All four Base jobs completed successfully with no OOM or graph/runtime crash.
 
-The broader Base family is also documented as the full-step/fine-tuning branch, so Runner59 includes a controlled 50-step comparison rather than treating 20 steps as the only possible operating point.
+Controlled settings:
 
-## Runtime
-
-Existing isolated workspace:
-
-`Z:\AI\Flux2Klein`
-
-Existing ComfyUI commit remains pinned:
-
-`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
-
-Existing Qwen3-4B encoder is reused and hash-verified.
-
-No H3 or Kontext runtime is modified.
-
-## Additional payload
-
-Runner59 downloads only:
-
-### Base diffusion
-
-- file: `flux-2-klein-base-4b-fp8.safetensors`
-- bytes: `4,089,498,488`
-- SHA256: `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
-- license: Apache-2.0
-
-### Base edit VAE path
-
-- file: `full_encoder_small_decoder.safetensors`
-- bytes: `249,519,092`
-- SHA256: `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
-- license: Apache-2.0
-
-### Total additional payload
-
-`4,339,017,580` bytes (~4.34 GB decimal / ~4.04 GiB).
-
-The existing `qwen_3_4b.safetensors` is reused; it is not downloaded again.
-
-## Adapter architecture
-
-Runner59 does not mutate the already-proven distilled adapter.
-
-New sibling adapter:
-
-`tools/roguelite-asset-studio/flux2_klein_base_adapter.py`
-
-It inherits the generic HTTP execution, reference preparation, output/provenance and reference-latent behavior from the distilled adapter, while explicitly selecting Base checkpoint/VAE assets.
-
-This keeps the Studio architecture model-routed and avoids turning one adapter into an implicit mutable global mode.
-
-## Test sources
-
-### Structure/identity authority
-
-Runner56 original gate:
-
-`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_probe.png`
-
-### Material authority
-
-Runner58 severe-decay board:
-
-`Z:\AI\Flux2Klein\edit_strength_calibration\material_decay_reference.png`
-
-No new material board is generated, so the Base and distilled branches can be compared against the same semantic references.
-
-## Matrix
-
-Runner59 runs four jobs at 768×768, Euler, CFG 5, seed 0.
+- 768×768
+- CFG 5
+- Euler
+- seed 0
+- 20 and 50 steps
 
 ### Single-reference
 
-- 20 steps
-- 50 steps
+20 steps:
 
-Role:
+- elapsed: **78.442 s**
+- output SHA256: `9daeeb9b4922c0d368a6724bb2502343c49f4ef9066e327bc1ab1278f02917f9`
+- mean abs luma vs original: `74.1022`
+- changed ratio >24: `0.893911`
 
-`previous_approved_state`
+50 steps:
 
-Requested structural facts remain deliberately binary:
-
-1. remove one full-height plank from the left door leaf;
-2. remove one large top-left capstone/lintel mass;
-3. break/partially remove the lower strap on the right door leaf;
-4. strongly corrode surviving iron;
-5. visibly warp/split/water-damage timber.
+- elapsed: **188.464 s**
+- output SHA256: `e2625714562cca1c9a56623a16434e4c6a38b9c06c2a5d7724472796fd5a7e2c`
+- mean abs luma vs original: `80.1581`
+- changed ratio >24: `0.900733`
 
 ### Multi-reference
 
-- 20 steps
-- 50 steps
+20 steps:
 
-Roles:
+- elapsed: **120.351 s**
+- output SHA256: `57c7781d28bba6321f1ef2343552133d746d7948e80df1d689e4f256c1484111`
+- mean abs luma vs original: `77.3237`
+- changed ratio >24: `0.888847`
 
-- Image 1 = `structure`: original gate;
-- Image 2 = `material`: Runner58 decay board.
+50 steps:
 
-The same structural changes are requested while the second image is explicitly authoritative only for material severity.
+- elapsed: **294.981 s**
+- output SHA256: `44f3dd103432b2691fc5dfc7b33538816dbd58e0ef78cc765211bb1953e8eac2`
+- mean abs luma vs original: `81.2850`
+- changed ratio >24: `0.895187`
 
-## PASS contract
+Total elapsed: **695.251 s**.
 
-### Technical PASS
+Contact sheet SHA256:
 
-Requires:
+`214c4633983f4eac8b1e2c5e7816b8b68df0ca4b44f179ee95fdb82a2f6e25fc`
 
-- both additional files download/resume and exact SHA256 checks pass;
-- Base model loads on RTX 3060 12 GB without OOM;
-- all four jobs complete;
-- contact sheet and manifest are written.
+## Visual result
 
-### Visual PASS — single
+All four Base outputs show a severe cyan/blue cast, extreme contrast/posterization and edge-emphasis unlike the source material or the valid distilled T2I output.
 
-At least one 20/50-step output must:
+The effect is broadly shared by:
 
-- preserve recognizable gate identity and camera;
-- clearly remove a full door plank;
-- clearly remove a large top-left block;
-- clearly break/remove the requested strap;
-- show materially stronger decay.
+- single 20;
+- single 50;
+- multi 20;
+- multi 50.
 
-### Visual PASS — multi
+The requested structural edits also are not reliably executed strongly enough to satisfy the production contract.
 
-At least one output must:
+However, **this visual result must not be interpreted as a valid rejection of the Base model itself**.
 
-- preserve Image 1 structure/camera;
-- visibly import severe material qualities from Image 2;
-- execute the same structural facts;
-- avoid duplicated gates or material-board contamination.
+## Discovered graph-parity defect
 
-## Failure consequence
+After Runner59 completed, the project compared the custom Base adapter against the current official ComfyUI `image_flux2_klein_image_edit_4b_base` workflow.
 
-If Base also fails this gate:
+The current official Base workflow uses:
 
-- keep Klein distilled as T2I/concept backend;
-- do not route either Klein variant as the production strong editor;
-- retain Base as a future training/specialization candidate if useful;
-- move the production reference-edit problem to the next stronger specialized editor branch, with Qwen-Image-Edit currently first in line for a controlled low-VRAM spike;
-- do not keep increasing Klein steps without a new technical hypothesis.
+- `CLIPTextEncode` for the positive prompt;
+- a separate `CLIPTextEncode` with an empty string for the negative prompt;
+- `ReferenceLatent` applied to both positive and negative conditioning;
+- `ImageScaleToTotalPixels` using `nearest-exact`, target `1.0` MP;
+- output scheduler/latent dimensions derived from the scaled reference image;
+- Euler;
+- CFG 5;
+- 20 steps.
 
-## Runner
+Runner59's original custom Base adapter instead inherited the distilled shortcut and built the negative branch with:
 
-`tools/structured-2d-character-pipeline/59_bootstrap_and_run_flux2_klein_base_edit_gate.ps1`
+`ConditioningZeroOut(positive)`
 
-Executor:
+before applying the same reference latent.
 
-`tools/roguelite-asset-studio/flux2_klein_base_edit_gate.py`
+At CFG 5 this is not equivalent to the official empty-prompt negative conditioning and is a material recipe divergence.
 
-Expected terminal completion:
+Runner59 also kept the edit output at fixed 768×768 instead of following the official 1-MP reference geometry path.
 
-`RUNNER59-FLUX2-KLEIN-BASE-EDIT: PASS - TECHNICAL MATRIX COMPLETE / VISUAL VERDICT PENDING`
+## Classification
 
-Expected output directory:
+Runner59 is therefore classified as:
 
-`Z:\AI\Flux2Klein\base_edit_gate`
+**technical PASS / recipe-parity mismatch / invalid as a model-quality verdict**.
+
+It proves:
+
+- Base FP8 loads on the RTX 3060 12 GB;
+- full-encoder/small-decoder VAE loads;
+- 20/50-step single and multi graphs execute without OOM;
+- current payload/hardware feasibility is real.
+
+It does **not** prove:
+
+- that Base normally produces the cyan/posterized appearance;
+- that Base is unsuitable as the production strong editor;
+- that the project should move to Qwen immediately.
+
+## Corrective action
+
+The Base adapter is corrected in `main` to match the current official conditioning and reference-scaling semantics.
+
+The next gate is Runner60:
+
+`tools/structured-2d-character-pipeline/60_run_flux2_klein_base_official_parity_gate.ps1`
+
+Runner60 does not download any new model. It isolates:
+
+1. Base small-decoder VAE round-trip;
+2. full FLUX.2 VAE round-trip control;
+3. Base T2I with corrected graph;
+4. Base single-reference edit at official 20-step recipe;
+5. Base multi-reference edit at the same corrected recipe.
+
+Only after Runner60 can the project issue a valid visual verdict on Base or activate the next specialized editor branch.
