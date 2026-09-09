@@ -17,6 +17,7 @@ GitHub living docs are canonical.
 
 - `docs/PROJECT_STATE.md`
 - `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+- `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`
 - `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 - `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
 - `docs/VISUAL_DIRECTION.md`
@@ -24,7 +25,7 @@ GitHub living docs are canonical.
 
 ## Core production contract
 
-`reference image or local text-generated reference + relative world scale + real action driver + action preset -> H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> local pixel-art reconstruction -> one horizontal row for that action + frames/preview/JSON/manifest`
+`reference image or local text-generated reference + relative world scale + real action driver + action preset -> H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> local pixel-art reconstruction at master scale -> one horizontal row for that action + frames/preview/JSON/manifest -> gameplay-scale QA -> runtime`
 
 No routine manual rigging/keyframing/mask repair/per-frame repainting/hand compositing.
 
@@ -39,6 +40,24 @@ One action = one horizontal spritesheet row.
 Approved adult body design may not be infantilized or redesigned.
 
 Active art lineage remains Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell, with mature adult anatomy, danger, grime, sensuality and tactile materials.
+
+## Character-scale correction — IMPORTANT
+
+The old `128px` Exilada gameplay-height baseline is **retired**.
+
+It came from a narrow internal `112/128/144px` comparison and was promoted without sufficient genre benchmarking.
+
+`relative_scale=1.0` now means baseline adult-human/Exilada **world scale only**, not a pixel height.
+
+First deliberate gameplay comparison at native `640×360` will test approximately:
+
+- `160px` visible height;
+- `180px`;
+- `200px`.
+
+These are candidates, not locks.
+
+Authoring/render master scale is separate from gameplay apparent scale. Preserve roughly `256–320px` visible subject height where practical and use `384×384` or larger action cells when needed. Runner52's `192×192` output remains diagnostic history, not a production-scale recommendation.
 
 ## H3 motion baseline
 
@@ -95,13 +114,13 @@ Verdict:
 - alpha: PASS_CANDIDATE;
 - final deliberate high-level pixel art: NOT YET PASS.
 
-The remaining problem is art construction, not body/layout. Result still reads too much like reduced/filtered raster with noisy miniature detail.
+The remaining problem is art construction, not body/layout. Result still reads too much like reduced/filtered raster with noisy miniature detail. Its small `192×192` diagnostic packaging is no longer treated as a target.
 
 Runner52 timing values around `250–479ms` are provenance/source-coverage evidence, not final game timing.
 
 ## CURRENT GATE — Runner53
 
-Goal: strengthen pixel-art language without losing Runner52 structure preservation.
+Goal: strengthen pixel-art language without losing Runner52 structure preservation, while no longer prematurely shrinking the art master.
 
 Runner:
 
@@ -117,9 +136,11 @@ Only one representative chunk runs:
 - same Exilada reference;
 - same Kontext FP8;
 - same 20 steps / guidance2.5 / CFG1 / Euler-simple / seed0 / denoise0.45;
-- only new variable: `ume_modern_pixelart.safetensors` strength1.0;
+- only model/style variable: `ume_modern_pixelart.safetensors` strength1.0;
 - SHA256 `ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4`;
-- ~344MB.
+- ~344MB;
+- output review/master cells now `384×384`, four-frame strip `1536×384`;
+- gameplay apparent height remains explicitly unlocked.
 
 Expected outputs:
 
@@ -143,16 +164,17 @@ First run downloads only the ~344MB style LoRA if absent. No H3 generation and n
 
 When Runner53 finishes, compare directly against Runner52 chunk2. PASS requires visibly stronger authored pixel clusters while adult anatomy/pose fidelity remain intact.
 
-If the adapter passes, apply it to all 12 frames. If it fails, reject that adapter before changing denoise/precision/model family.
+If the adapter passes, apply it to all 12 frames at master scale. If it fails, reject that adapter before changing denoise/precision/model family.
 
 ## Later stages
 
 After renderer quality passes:
 
-1. implement action-specific frame distillation/runtime timing;
-2. build Gradio UI;
-3. add text-to-reference generation;
-4. validate creature/monster relative-scale cases.
+1. benchmark `160/180/200px` gameplay apparent heights in real `640×360` compositions;
+2. implement action-specific frame distillation/runtime timing;
+3. build Gradio UI;
+4. add text-to-reference generation;
+5. validate creature/monster relative-scale cases.
 
 ## License caveat
 
