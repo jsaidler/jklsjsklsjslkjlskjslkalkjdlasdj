@@ -36,7 +36,12 @@ function Require-Hash([string]$Path, [string]$ExpectedSha, [string]$Label) {
 
 function Stop-Managed([string]$PidFile) {
     if (-not (Test-Path $PidFile -PathType Leaf)) { return }
-    $pidText = (Get-Content -LiteralPath $PidFile -Raw).Trim()
+    $pidRaw = Get-Content -LiteralPath $PidFile -Raw
+    if ($null -eq $pidRaw) {
+        Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+        return
+    }
+    $pidText = ([string]$pidRaw).Trim()
     $managedPid = 0
     if ([int]::TryParse($pidText, [ref]$managedPid) -and $managedPid -gt 0) {
         $process = Get-Process -Id $managedPid -ErrorAction SilentlyContinue
@@ -59,6 +64,13 @@ function Print-TextFile([string]$Path, [string]$Header, [int]$Tail = 0) {
     } else {
         Get-Content -LiteralPath $Path
     }
+}
+
+function Read-TextFileOrEmpty([string]$Path) {
+    if (-not (Test-Path $Path -PathType Leaf)) { return '' }
+    $raw = Get-Content -LiteralPath $Path -Raw
+    if ($null -eq $raw) { return '' }
+    return [string]$raw
 }
 
 function Quote-ProcessArg([string]$Value) {
@@ -89,7 +101,7 @@ Write-Host '[ADAPTER] Execution goes through the generic Asset Studio adapter co
 Write-Host '[SINGLE] Original gate = previous_approved_state; revise damage/material without replacing identity.' -ForegroundColor Green
 Write-Host '[MULTI] Image 1 = structure authority; Image 2 = material/damage authority.' -ForegroundColor Green
 Write-Host '[SETTINGS] 768x768, 4 distilled steps, CFG 1.0, Euler, seed 0.' -ForegroundColor Green
-Write-Host '[DIAGNOSTICS] Python stdout/stderr are captured as files by Start-Process; PowerShell cannot truncate the traceback.' -ForegroundColor Green
+Write-Host '[DIAGNOSTICS] Python stdout/stderr are captured as files and empty streams are null-safe.' -ForegroundColor Green
 Write-Host ''
 
 Require-Hash (Join-Path $ComfyRoot "models\diffusion_models\$ModelName") $ModelSha256 'FLUX.2 Klein 4B distilled FP8'
@@ -172,8 +184,8 @@ try {
     Stop-Managed $PidFile
 }
 
-$stdoutText = if (Test-Path $ExecutorStdout) { Get-Content -LiteralPath $ExecutorStdout -Raw } else { '' }
-$stderrText = if (Test-Path $ExecutorStderr) { Get-Content -LiteralPath $ExecutorStderr -Raw } else { '' }
+$stdoutText = Read-TextFileOrEmpty $ExecutorStdout
+$stderrText = Read-TextFileOrEmpty $ExecutorStderr
 $combined = @()
 $combined += '=== PYTHON STDOUT ==='
 $combined += $stdoutText
@@ -182,7 +194,7 @@ $combined += $stderrText
 Set-Content -LiteralPath $ExecutorLog -Value ($combined -join [Environment]::NewLine) -Encoding UTF8
 
 Print-TextFile $ExecutorStdout '--- RUNNER57 PYTHON STDOUT ---'
-if ($stderrText.Trim().Length -gt 0) {
+if (-not [string]::IsNullOrWhiteSpace($stderrText)) {
     Print-TextFile $ExecutorStderr '--- RUNNER57 PYTHON STDERR ---'
 }
 
