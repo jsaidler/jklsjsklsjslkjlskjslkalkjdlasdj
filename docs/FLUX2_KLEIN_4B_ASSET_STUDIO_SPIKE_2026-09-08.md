@@ -1,8 +1,8 @@
 # FLUX.2 Klein 4B — Roguelite Asset Studio local feasibility spike
 
-Status date: **2026-09-08**
+Status date: **2026-09-09**
 
-Status: **RUNNER56 PREPARED / DOWNLOAD + TECHNICAL T2I TEST PENDING LOCAL EXECUTION / NO ACCEPTANCE YET**
+Status: **RUNNER56 PASS — LOCAL T2I TECHNICAL PASS + VISUAL CONTINUATION PASS / REFERENCE EDITING MOVED TO RUNNER57**
 
 Canonical umbrella architecture: `docs/ROGUELITE_ASSET_STUDIO.md`.
 
@@ -16,126 +16,43 @@ Validate whether **FLUX.2 Klein 4B distilled FP8** can become the first generic 
 - RTX 3060 12 GB VRAM;
 - 48 GB system RAM.
 
-This is deliberately not an Exilada-only test. The first generated asset is a reference-free `architecture_module`, proving text-to-image generation outside character work before the adapter is exposed to Character Lab.
+The first generated asset was deliberately a reference-free `architecture_module`, not a character, so the gate tested a generic Studio route rather than an Exilada-specific path.
 
-## Why this model is being tested first
-
-The 4B Klein family is a strong fit for the general Studio contract because it combines:
-
-- text-to-image generation;
-- image editing;
-- single/multi-reference editing;
-- consumer-GPU intent;
-- Apache-2.0 licensing for the 4B line;
-- a distilled 4-step path suitable for interactive authoring;
-- a related Base 4B model suitable for later project-specific fine-tuning.
-
-The model is not accepted merely because these capabilities exist on paper. Runner56 tests the exact local machine and exact runtime path.
-
-## Deliberate first-spike scope
-
-Runner56 tests **only reference-free text-to-image**.
-
-Reason: generation, single-reference editing and multi-reference editing are separate execution contracts. Testing all three simultaneously would make failures ambiguous.
-
-If T2I passes technically and visually enough to continue, the next spike adds single/multi-reference editing through the same isolated runtime before the registry status is promoted to an installed Studio adapter.
-
-## Exact first payload
-
-Runner56 downloads only these model files:
-
-### Diffusion
-
-- file: `flux-2-klein-4b-fp8.safetensors`
-- source: official Black Forest Labs `FLUX.2-klein-4b-fp8`
-- size: `4,070,624,520` bytes (~4.07 GB decimal)
-- SHA256: `97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6`
-- license: Apache-2.0
-
-### Text encoder
-
-- file: `qwen_3_4b.safetensors`
-- source: Comfy-Org Klein 4B repack
-- size: `8,044,982,048` bytes (~8.04 GB decimal)
-- SHA256: `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
-
-The first spike intentionally uses the **full** Qwen3-4B encoder rather than the smaller FP4 encoder. This avoids introducing encoder quantization as a second quality variable during the first model-feasibility test.
-
-### VAE
-
-- file: `flux2-vae.safetensors`
-- source: Comfy-Org Klein 4B repack
-- size: `336,211,292` bytes (~336 MB decimal)
-- SHA256: `868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`
-
-### Total model payload
-
-`12,451,817,860` bytes, approximately `12.45 GB` decimal / `11.60 GiB` binary.
-
-No Base 4B diffusion checkpoint and no Qwen FP4 encoder are downloaded by Runner56.
-
-## Isolated runtime
+## Exact runtime and payload — PROVEN
 
 Workspace:
 
 `Z:\AI\Flux2Klein`
 
-Runner56 does not modify the existing H3 or Kontext workspaces.
-
-It creates:
+Isolated ComfyUI:
 
 `Z:\AI\Flux2Klein\ComfyUI_windows_portable`
 
-The already-proven embedded Python from the Kontext portable installation is copied once as the starting Python runtime. The copy is then independent; dependency installation occurs only in the copied runtime.
-
-ComfyUI itself is cloned separately and pinned to:
+Pinned ComfyUI commit:
 
 `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
 
-This prevents future upstream Comfy changes from silently altering the spike after evidence is recorded.
+The runtime is independent of the existing H3 and Kontext workspaces.
 
-## Native ComfyUI graph
+Exact model payload:
 
-The probe uses current native/core nodes rather than a third-party custom-node stack:
+1. `flux-2-klein-4b-fp8.safetensors`
+   - 4,070,624,520 bytes
+   - SHA256 `97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6`
+2. `qwen_3_4b.safetensors`
+   - 8,044,982,048 bytes
+   - SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
+3. `flux2-vae.safetensors`
+   - 336,211,292 bytes
+   - SHA256 `868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`
 
-- `UNETLoader`;
-- `CLIPLoader` with `type=flux2`;
-- `VAELoader`;
-- `CLIPTextEncode` positive/negative;
-- `CFGGuider`;
-- `RandomNoise`;
-- `KSamplerSelect`;
-- `Flux2Scheduler`;
-- `EmptyFlux2LatentImage`;
-- `SamplerCustomAdvanced`;
-- `VAEDecode`;
-- `SaveImage`.
+Total model payload: `12,451,817,860` bytes (~12.45 GB decimal / ~11.60 GiB).
 
-## Controlled inference configuration
+The full Qwen3-4B encoder was intentionally used instead of an additional FP4 quantization so the first model-quality test did not change two variables at once.
 
-- model: FLUX.2 Klein 4B distilled FP8;
-- output: `768×768`;
-- steps: `4`;
-- CFG: `1.0`;
-- sampler: `euler`;
-- seed: `0`;
-- one image only.
+## Runner56 controlled inference — ACTUAL RESULT
 
-The reduced 768×768 first probe is a feasibility setting, not an Asset Studio production-resolution lock.
-
-## Probe asset
-
-Asset class:
-
-- `asset_type=architecture_module`;
-- `output_contract=static_master`;
-- no input references.
-
-Subject: one complete modular ruined stone gate suitable as a source asset for the living belt-scroller world.
-
-The prompt requests a neutral authoring background, complete object visibility, strong silhouette, believable construction and tactile dark-fantasy materials. It explicitly avoids people, characters and a full flattened gameplay-map composition.
-
-## Runner
+Runner:
 
 `tools/structured-2d-character-pipeline/56_bootstrap_and_run_flux2_klein_4b_spike.ps1`
 
@@ -143,66 +60,119 @@ Executor:
 
 `tools/roguelite-asset-studio/flux2_klein_t2i_probe.py`
 
-## Expected output
+Configuration:
 
-Under:
+- `asset_type=architecture_module`;
+- `output_contract=static_master`;
+- reference-free text-to-image;
+- `768×768`;
+- `4` distilled steps;
+- CFG `1.0`;
+- sampler `euler`;
+- seed `0`.
 
-`Z:\AI\Flux2Klein\spike`
+Actual inference result:
 
-- `flux2_klein_4b_t2i_probe.png`;
-- `flux2_klein_4b_t2i_prompt.json`;
-- `flux2_klein_4b_t2i_manifest.json`;
-- `flux2_klein_4b_t2i_executor.log`;
-- isolated Comfy stdout/stderr logs.
+- technical status: `INFERENCE_COMPLETE`;
+- no OOM;
+- no CUDA/runtime crash;
+- all three file hashes verified;
+- output decoded at exactly `768×768 RGB`;
+- inference elapsed: **12.054 s**;
+- output SHA256: `8ce5b54cf4f7ccabf3aee3583de9c76c8942115aed8592a9430b8ede68730a16`;
+- prompt id: `e65a7d0c-f8a5-479b-9995-78cf8978d79f`.
 
-## PASS / FAIL contract
+Output:
 
-### Technical PASS
+`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_probe.png`
 
-Requires all of the following:
+Manifest:
 
-- pinned isolated ComfyUI starts normally;
-- exact model/text-encoder/VAE hashes pass;
-- all required native nodes exist;
-- no OOM/runtime crash;
-- one valid 768×768 image is decoded and saved;
-- manifest/provenance is written.
+`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_manifest.json`
 
-### Technical FAIL classifications
+Executor log:
 
-- insufficient disk space;
-- download/hash failure;
-- pinned-Comfy integration failure;
-- missing native node;
-- model-load failure;
-- OOM or CUDA failure;
-- inference/API failure;
-- output decode/integration failure.
+`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_executor.log`
 
-A failure here rejects or modifies the **runtime configuration being tested**, not automatically the entire Klein family.
+## Technical verdict — PASS
 
-### Visual continuation gate
+Runner56 proved on the actual RTX 3060 12 GB machine that the installed distilled 4B stack can provide an interactive generic static-generation backend.
 
-After technical PASS, human review decides whether quality is sufficient to justify the editing spike.
+The ~12 s latency at 768×768 / 4 steps is fast enough to justify an interactive Asset Studio path. The 768×768 probe resolution is not a production-resolution lock.
 
-Review:
+## Visual continuation verdict — PASS, NOT ASSET APPROVAL
 
-- coherent architectural construction;
-- useful specificity rather than generic noise;
-- strong silhouette;
-- useful material detail;
-- no catastrophic text/composition artifacts;
-- enough source quality to make iterative static asset authoring plausible.
+The ruined-gate output is a useful static authoring master for the next editing gate:
 
-This first image does **not** need to prove final project pixel-art language. Rendering-language specialization/reconstruction remains a separate downstream problem.
+Strengths:
 
-## Next step after PASS
+- coherent load-bearing architectural construction;
+- complete isolated-object framing;
+- strong readable silhouette;
+- useful separation of stone, wood, iron, roots/moss and accumulated age;
+- enough authored detail to support iterative revision;
+- no catastrophic composition/text artifacts.
 
-If Runner56 passes technically and its source quality is useful:
+Known weaknesses in this particular candidate:
 
-1. retain the installed isolated runtime;
-2. change the registry status only after recorded review;
-3. add one generic Klein adapter supporting `text_to_image`;
-4. immediately test `single_reference_edit` and `multi_reference_edit` using semantic reference roles;
-5. then expose the adapter to Character Lab, Prop/Equipment and Environment workflows;
-6. keep Base 4B/fine-tuning as a later controlled specialization branch rather than downloading it now.
+- too symmetrical overall;
+- crack/damage distribution remains somewhat decorative;
+- door and ironwork are cleaner/more orderly than the intended world language;
+- the result can still read partly as polished generic fantasy/asset-store art rather than a unique Roguelite asset.
+
+These weaknesses do **not** fail Runner56. They make this image a useful source for Runner57 because the next gate must prove that requested structural/material changes can be introduced by reference editing **without wholesale replacement of the approved identity**.
+
+This image is not an approved shipping asset and does not prove the final pixel-art rendering language.
+
+## Router promotion after Runner56
+
+The machine-readable registry now marks `flux2_klein_4b_distilled` as:
+
+`active_static_t2i_proven_edit_pending`
+
+Active/routable capabilities:
+
+- `text_to_image`;
+- `interactive_concept`.
+
+Planned but deliberately **not yet routable** until Runner57 passes:
+
+- `single_reference_edit`;
+- `multi_reference_edit`;
+- `interactive_variant`.
+
+This distinction prevents the router from claiming capabilities that have only been demonstrated by upstream documentation rather than the actual local runtime.
+
+## Generic adapter implementation after PASS
+
+The Runner56 proof has been promoted into UI-independent Studio code:
+
+- `tools/roguelite-asset-studio/adapter_protocol.py`
+- `tools/roguelite-asset-studio/flux2_klein_adapter.py`
+
+The generic request contract carries asset type, output contract, prompt, dimensions/settings and ordered semantic references. The adapter translates that request into native ComfyUI model semantics. The future Studio UI therefore does not need to know about FLUX.2 graph nodes.
+
+## Next gate — Runner57 reference editing
+
+Runner:
+
+`tools/structured-2d-character-pipeline/57_run_flux2_klein_reference_edit_gate.ps1`
+
+Executor:
+
+`tools/roguelite-asset-studio/flux2_klein_edit_gate.py`
+
+Runner57 downloads **no new checkpoints**. It reuses the proven Runner56 runtime and runs two jobs:
+
+1. **single-reference edit**
+   - source role: `previous_approved_state`;
+   - same gate identity/camera/construction must remain recognizable;
+   - requested asymmetrical damage, harsher decay, corrosion and broken-door/material changes must appear.
+2. **ordered two-reference edit**
+   - Image 1 role: `structure` — authority for identity, silhouette, camera and construction;
+   - Image 2 role: `material` — authority for harsher damage/material aging;
+   - one coherent gate must result; no duplicated object and no incoherent averaging.
+
+Both jobs retain the controlled `768×768`, 4-step, CFG 1.0, Euler, seed 0 test settings so only the reference-edit contract changes.
+
+Runner57 technical PASS does not automatically activate editing in the router. Human visual review must also pass.
