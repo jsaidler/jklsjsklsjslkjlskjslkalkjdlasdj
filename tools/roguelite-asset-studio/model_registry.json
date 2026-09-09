@@ -1,0 +1,90 @@
+{
+  "registry_version": 1,
+  "hardware_profile": {
+    "os": "Windows 11",
+    "gpu": "RTX 3060 12GB",
+    "system_ram_gb": 48
+  },
+  "models": [
+    {
+      "adapter_id": "minimax_h3_ref2va_base50",
+      "family": "MiniMax H3 Base Ref2VA",
+      "status": "active_proven",
+      "license": "MiniMax H3 Community License",
+      "workspace": "Z:/AI/MiniMaxH3",
+      "capabilities": ["animated_action", "reference_video_motion", "multimodal_reference", "character_motion", "creature_motion_candidate"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss"],
+      "quality_tier": "motion_master",
+      "notes": "Current Exilada Base50 motion-quality baseline. Not a universal still generator."
+    },
+    {
+      "adapter_id": "minimax_h3_fl2va",
+      "family": "MiniMax H3 Base FL2VA",
+      "status": "available_unvalidated_for_studio",
+      "license": "MiniMax H3 Community License",
+      "workspace": "Z:/AI/MiniMaxH3",
+      "capabilities": ["text_to_video", "image_to_video", "first_last_frame", "animated_loop_candidate", "vfx_candidate", "environment_motion_candidate"],
+      "asset_types": ["vfx", "environment_setpiece", "vegetation", "prop", "enemy_creature", "boss"],
+      "quality_tier": "temporal_candidate",
+      "notes": "Validate per task before production use."
+    },
+    {
+      "adapter_id": "flux1_kontext_fp8",
+      "family": "FLUX.1 Kontext [dev] FP8 scaled",
+      "status": "active_rnd",
+      "license": "FLUX dev Non-Commercial License",
+      "workspace": "Z:/AI/FluxKontext",
+      "capabilities": ["image_edit", "reference_edit", "pixelart_reconstruction_rnd"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "prop", "architecture_module", "environment_setpiece"],
+      "quality_tier": "rnd_only",
+      "notes": "Existing technical test path. Do not make it the shipping production dependency without appropriate licensing."
+    },
+    {
+      "adapter_id": "flux2_klein_4b_distilled",
+      "family": "FLUX.2 Klein 4B",
+      "status": "priority_candidate_not_installed",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/Flux2Klein",
+      "capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "interactive_concept", "interactive_variant"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
+      "quality_tier": "priority_static_interactive_candidate",
+      "vram_note": "Official FLUX.2 documentation states Klein 4B fits in about 8GB VRAM on consumer GPUs.",
+      "notes": "Run a controlled local feasibility spike before installation is accepted."
+    },
+    {
+      "adapter_id": "flux2_klein_4b_base",
+      "family": "FLUX.2 Klein 4B Base",
+      "status": "priority_training_candidate_not_installed",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/Flux2Klein",
+      "capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "lora_training_base", "project_style_specialization"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
+      "quality_tier": "project_specialization_candidate",
+      "notes": "Strategic candidate for future Roguelite-specific LoRAs after approved training data exists."
+    },
+    {
+      "adapter_id": "qwen_image_edit_2509_fp8",
+      "family": "Qwen-Image-Edit-2509",
+      "status": "quality_control_candidate_not_installed",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/QwenImageEdit",
+      "capabilities": ["semantic_edit", "appearance_edit", "multi_reference_edit", "keypoint_control", "sketch_control", "structural_edit"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "ui_art"],
+      "quality_tier": "heavy_quality_candidate",
+      "vram_note": "Official/community ComfyUI workflows are materially heavier than 12GB; a dedicated FP8/low-VRAM feasibility spike is required.",
+      "notes": "Potential high-control branch, not the default interactive model on current hardware."
+    },
+    {
+      "adapter_id": "step1x_edit",
+      "family": "Step1X-Edit",
+      "status": "deferred_hardware_mismatch",
+      "license": "Apache-2.0",
+      "workspace": null,
+      "capabilities": ["image_edit"],
+      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "prop", "architecture_module", "environment_setpiece"],
+      "quality_tier": "deferred",
+      "vram_note": "Published FP8+offload figures remain around 18GB peak GPU memory, above the current 12GB baseline.",
+      "notes": "Do not prioritize unless a lower-memory implementation is independently proven."
+    }
+  ]
+}
