@@ -2,11 +2,13 @@
 
 Status date: **2026-09-08**
 
-Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / RUNNER53 STYLE-ADAPTER GATE / 1980s SWORD-AND-SORCERY LOCKED**
+Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / 128PX BASELINE RETIRED / RUNNER53 STYLE-ADAPTER GATE / 1980s SWORD-AND-SORCERY LOCKED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Local workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
+
+Scale correction: `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`.
 
 Runner52 result: `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`.
 
@@ -70,7 +72,7 @@ Current H0 `dance_or_gesture` proof:
 
 - 12 frames;
 - final `12×1` row;
-- `192×192` cells locally.
+- Runner52 used `192×192` diagnostic cells only.
 
 A later combined character sheet may stack different actions vertically.
 
@@ -115,15 +117,33 @@ Her captivity/deprivation state may include:
 
 Exact tear geometry/exposure remains subject to visual approval.
 
-## Character scale variation — LOCKED DIRECTION
+## Character scale variation — LOCKED DIRECTION / GAMEPLAY HEIGHT OPEN
 
-`relative_scale=1.0` = adult-human/Exilada baseline, about `128px` visible height in canonical gameplay composition.
+`relative_scale=1.0` means adult-human/Exilada **world scale**, not a pixel count.
 
-Relative scale is world/render metadata, not arbitrary stretching. Larger monsters may require larger visible runtime height, cells/atlases and source-resolution policy.
+The previous `128px` visible-height baseline is retired. It came from a narrow internal `112/128/144px` comparison and was promoted without sufficient genre benchmarking.
+
+External sanity checking shows Final Fight arcade uses example playable sprites around `93px` high on a `224px`-high screen, about `41.5%` viewport occupancy; equivalent occupancy on a `360px`-high viewport is roughly `149px`. This does not set the Roguelite target, but it confirms that `128px` was already a small low-end assumption for the intended visual direction.
+
+First explicit gameplay comparison at native `640×360` will test approximately `160/180/200px` visible Exilada heights. These are candidates only, not locks.
+
+Relative scale remains world/render metadata. Larger monsters may require larger visible runtime height, cells/atlases and source-resolution policy.
+
+## Master-resolution separation — HARD LOCK
+
+Authoring/render master resolution is separate from gameplay apparent size.
+
+Do not shrink the renderer output to the eventual viewport size before pixel-art quality is solved.
+
+Until a gameplay baseline is chosen:
+
+- preserve roughly `256–320px` visible subject height in renderer/master review where practical;
+- use `384×384` or larger cells when the action envelope requires it;
+- derive gameplay-scale comparisons from the larger master rather than forcing the master itself to a tiny target.
 
 ## Gameplay-scale principles
 
-At baseline protagonist scale:
+At whichever baseline passes viewport benchmarking:
 
 - hair mass, body proportions, clothing asymmetry and equipment shapes remain readable;
 - facial microdetail cannot be the only identity carrier;
@@ -138,11 +158,11 @@ Visible runtime characters are complete precomposed frames. There is no visible 
 
 Routine manual rigging, keyframing, mask repair, per-frame repainting/retouching and hand compositing remain disallowed.
 
-## Gameplay projection — LOCKED BASELINE
+## Gameplay projection — LOCKED EXCEPT CHARACTER HEIGHT
 
 - native raster `640×360`;
 - camera pitch `26°`;
-- Exilada baseline about `128px` tall at `relative_scale=1.0`;
+- Exilada gameplay apparent height **OPEN pending comparative viewport test**;
 - first locomotion family screen-left, mostly lateral/slight 3/4;
 - current facing baseline `72°`;
 - combat readability over geometric purity.
@@ -171,11 +191,13 @@ Runner52 materially fixed structure/layout:
 
 But final art is **not yet high-level pixel art**. It still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail rather than confident authored pixel clusters and controlled palette/material grouping.
 
-Therefore do not build the final UI around Runner52 as though renderer quality were solved.
+Its `192×192` diagnostic packaging is no longer treated as production-scale evidence.
+
+Therefore do not build the final UI around Runner52 as though renderer quality or gameplay scale were solved.
 
 ## Current visual gate — Runner53
 
-Runner53 keeps all Runner52 structure-preserving settings and changes only the style signal:
+Runner53 keeps all Runner52 structure-preserving inference settings and changes only the style signal:
 
 - source frames `46,57,68,79`;
 - Kontext FP8;
@@ -187,6 +209,12 @@ Runner53 keeps all Runner52 structure-preserving settings and changes only the s
 - denoise0.45;
 - canonical Exilada reference;
 - add `ume_modern_pixelart.safetensors` strength1.0.
+
+Packaging correction:
+
+- review/master cells = `384×384`;
+- gameplay apparent height remains unlocked;
+- this larger packing preserves substantially more of the model output and does not alter inference conditioning.
 
 Runner:
 
@@ -208,9 +236,15 @@ If the adapter fails, reject that adapter specifically before increasing denoise
 
 **LOCKED:** approved adult body/age/proportions may not be infantilized or redesigned.
 
+**RETIRED:** `128px` as hard Exilada gameplay-height baseline.
+
+**OPEN:** final gameplay apparent height, pending `160/180/200px` comparative viewport testing.
+
+**LOCKED:** renderer/master output remains materially larger than eventual gameplay display while art quality is being solved.
+
 **ACTIVE RENDERER FAMILY:** FLUX.1 Kontext [dev], structure-preserving path proven enough to continue; style quality still under validation.
 
-**CURRENT STYLE GATE:** Runner53 Modern Pixel Art LoRA probe.
+**CURRENT STYLE GATE:** Runner53 Modern Pixel Art LoRA probe at larger master packing scale.
 
 **LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell remain active.
 
