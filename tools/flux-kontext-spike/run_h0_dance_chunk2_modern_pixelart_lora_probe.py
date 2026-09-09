@@ -21,7 +21,7 @@ LORA_NAME = "ume_modern_pixelart.safetensors"
 LORA_SHA256 = "ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4"
 LORA_STRENGTH = 1.0
 TARGET_CHUNK_INDEX = 1  # zero-based: Runner52 chunk2 / final action frames 5-8
-RUNTIME_CELL = 192
+MASTER_CELL = 384
 
 STYLE_SUFFIX = """
 
@@ -70,7 +70,9 @@ def finalize_probe(full_output, chunk_spec, workspace, durations_ms):
             (col + 1) * legacy.SQUARE_CELL,
             (row + 1) * legacy.SQUARE_CELL,
         ))
-        cell = cell.resize((RUNTIME_CELL, RUNTIME_CELL), Image.Resampling.NEAREST)
+        # Preserve substantially more of the renderer output for art review/master use.
+        # MASTER_CELL is intentionally decoupled from eventual gameplay apparent height.
+        cell = cell.resize((MASTER_CELL, MASTER_CELL), Image.Resampling.NEAREST)
         rgba, bg = legacy.alpha_from_neutral(cell)
         action_index = global_start + local_index
         frame_path = os.path.join(frames_dir, f"frame_{action_index:02d}.png")
@@ -83,16 +85,17 @@ def finalize_probe(full_output, chunk_spec, workspace, durations_ms):
             "duration_ms": durations_ms[action_index],
             "file": frame_path,
             "alpha_background_sample": bg,
+            "master_cell_size": [MASTER_CELL, MASTER_CELL],
         })
 
-    opaque = Image.new("RGB", (4 * RUNTIME_CELL, RUNTIME_CELL), (96, 96, 96))
-    rgba = Image.new("RGBA", (4 * RUNTIME_CELL, RUNTIME_CELL), (0, 0, 0, 0))
+    opaque = Image.new("RGB", (4 * MASTER_CELL, MASTER_CELL), (96, 96, 96))
+    rgba = Image.new("RGBA", (4 * MASTER_CELL, MASTER_CELL), (0, 0, 0, 0))
     gif_frames = []
     gif_durations = []
     for i, (oc, rc) in enumerate(zip(opaque_cells, rgba_cells)):
-        opaque.paste(oc, (i * RUNTIME_CELL, 0))
-        rgba.alpha_composite(rc, (i * RUNTIME_CELL, 0))
-        preview = Image.new("RGBA", (RUNTIME_CELL, RUNTIME_CELL), (48, 48, 48, 255))
+        opaque.paste(oc, (i * MASTER_CELL, 0))
+        rgba.alpha_composite(rc, (i * MASTER_CELL, 0))
+        preview = Image.new("RGBA", (MASTER_CELL, MASTER_CELL), (48, 48, 48, 255))
         preview.alpha_composite(rc)
         gif_frames.append(preview.convert("P", palette=Image.Palette.ADAPTIVE))
         gif_durations.append(records[i]["duration_ms"])
@@ -154,7 +157,7 @@ def main():
 
     chunk_input_path = os.path.join(workspace, "h0_dance12_chunk02_lora_input_2x2.png")
     chunk_input_manifest = legacy.make_row_square(frames, chunk_spec, chunk_input_path)
-    chunk_input_manifest["semantic_role"] = "Runner53 style-adapter probe only; final action layout remains 12x1"
+    chunk_input_manifest["semantic_role"] = "Runner53 style-adapter probe only; final action layout remains 12x1; master review scale is independent from gameplay apparent height"
     with open(os.path.join(workspace, "h0_dance12_chunk02_lora_input_manifest.json"), "w", encoding="utf-8") as fh:
         json.dump(chunk_input_manifest, fh, ensure_ascii=False, indent=2)
 
@@ -175,7 +178,7 @@ def main():
 
     print(
         f"KONTEXT-H0-LORA-PROBE: source_frames={chunk_spec['selected_one_based']} denoise={r52.DENOISE} "
-        f"lora={LORA_NAME} strength={LORA_STRENGTH}; only one representative chunk will run.",
+        f"lora={LORA_NAME} strength={LORA_STRENGTH} master_cell={MASTER_CELL}; only one representative chunk will run.",
         flush=True,
     )
     prompt_id, elapsed, generated, history_status = legacy.run_prompt(
@@ -190,7 +193,7 @@ def main():
         "gate": "FLUX_KONTEXT_H0_DANCE_CHUNK2_MODERN_PIXELART_LORA_PROBE",
         "status": "INFERENCE_COMPLETE",
         "created_utc": datetime.now(timezone.utc).isoformat(),
-        "purpose": "Test whether a dedicated FLUX pixel-art style LoRA can strengthen authored pixel-art construction while keeping Runner52 denoise0.45 structure preservation.",
+        "purpose": "Test whether a dedicated FLUX pixel-art style LoRA can strengthen authored pixel-art construction while keeping Runner52 denoise0.45 structure preservation. Preserve a larger 384px-cell review/master output; do not treat it as gameplay apparent height.",
         "source_action": r52.ACTION,
         "selected_source_frames_one_based": chunk_spec["selected_one_based"],
         "baseline_runner52_chunk2": baseline_chunk if os.path.isfile(baseline_chunk) else None,
@@ -207,6 +210,8 @@ def main():
         "sampler": r52.SAMPLER,
         "scheduler": r52.SCHEDULER,
         "seed": r52.SEED,
+        "master_cell_size": [MASTER_CELL, MASTER_CELL],
+        "gameplay_apparent_height": "UNLOCKED_PENDING_VIEWPORT_BENCHMARK",
         "prompt_id": prompt_id,
         "elapsed_seconds": elapsed,
         "prompt_file": prompt_path,
@@ -226,8 +231,8 @@ def main():
 
     print("KONTEXT-H0-LORA-PROBE: PASS - one-chunk inference complete / visual verdict pending.", flush=True)
     print(f"KONTEXT-H0-LORA-PROBE: full output {full_output}", flush=True)
-    print(f"KONTEXT-H0-LORA-PROBE: opaque strip {opaque_path}", flush=True)
-    print(f"KONTEXT-H0-LORA-PROBE: RGBA strip {rgba_path}", flush=True)
+    print(f"KONTEXT-H0-LORA-PROBE: opaque master strip {opaque_path}", flush=True)
+    print(f"KONTEXT-H0-LORA-PROBE: RGBA master strip {rgba_path}", flush=True)
     print(f"KONTEXT-H0-LORA-PROBE: preview {gif_path}", flush=True)
     print(f"KONTEXT-H0-LORA-PROBE: manifest {manifest_path}", flush=True)
 
