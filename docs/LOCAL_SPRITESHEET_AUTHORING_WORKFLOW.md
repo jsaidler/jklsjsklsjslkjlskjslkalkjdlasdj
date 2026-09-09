@@ -2,11 +2,13 @@
 
 Status date: **2026-09-08**
 
-Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 LOCKED / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / RUNNER53 STYLE-ADAPTER GATE / UI AFTER RENDERER PASS**
+Status: **CANONICAL TARGET WORKFLOW / ALL-LOCAL AUTHORING / H3 BASE50 LOCKED / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / 128PX BASELINE RETIRED / RUNNER53 STYLE-ADAPTER GATE / UI AFTER RENDERER PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 Renderer spike: `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`.
+
+Scale correction: `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`.
 
 Runner52 result: `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`.
 
@@ -41,7 +43,7 @@ Current local stages:
 
 ## Canonical pipeline
 
-`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> pixel-art reconstruction -> one horizontal spritesheet row for that action + frames/preview/JSON/manifest`
+`character source -> approved complete reference -> real action video + action metadata -> MiniMax H3 Base50 motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> pixel-art reconstruction at master scale -> one horizontal spritesheet row for that action + frames/preview/JSON/manifest -> gameplay-scale derivation/QA -> runtime`
 
 The H3 video is an **intermediate motion master**, not final runtime art.
 
@@ -67,13 +69,29 @@ The generated reference must be approved before H3 action generation.
 
 The UI must expose a numeric **relative scale** independent of image resolution.
 
-Baseline:
+Current contract:
 
-- `1.0` = adult-human/Exilada baseline;
-- approximately `128px` visible height in canonical gameplay composition;
+- `1.0` = adult-human/Exilada **world scale**;
+- no fixed gameplay pixel height is implied;
 - larger/smaller creatures change intended world/render scale rather than being stretched arbitrarily.
 
-Scale influences target sprite height, cell/atlas size, source resolution and metadata.
+The former `128px` Exilada gameplay baseline is retired.
+
+First explicit gameplay benchmark at native `640×360` will compare approximately `160/180/200px` visible Exilada heights. These are test candidates only.
+
+Scale influences target occupancy, cell/atlas size, source resolution and metadata.
+
+## Stage B2 — Master scale vs gameplay apparent scale — HARD DISTINCTION
+
+The authoring/render master must not be prematurely reduced to the eventual gameplay apparent size.
+
+Until gameplay composition is locked:
+
+- preserve roughly `256–320px` visible subject height in renderer/master review where practical;
+- use `384×384` or larger cells when required by the action envelope;
+- create gameplay-scale QA derivatives afterward.
+
+The final gameplay baseline is selected from actual viewport composition with multiple enemies, depth-lane motion, attack envelopes, HUD-safe area and larger creature/boss cases.
 
 ## Stage C — Action input
 
@@ -155,9 +173,9 @@ Frames inside the row read left-to-right in time.
 For the current H0 `dance_or_gesture` proof:
 
 - 12 selected frames;
-- final layout = `12 columns × 1 row`;
-- cell size = `192×192`;
-- local final review sheet = `2304×192`.
+- final semantic layout = `12 columns × 1 row`.
+
+Runner52 used `192×192` local diagnostic cells; this is historical packaging evidence only and is not a production-scale lock.
 
 A later multi-action sheet may stack distinct actions vertically.
 
@@ -209,7 +227,7 @@ Evidence:
 - Euler/simple;
 - seed0;
 - denoise0.45;
-- final `12×1` action row.
+- final semantic `12×1` action row.
 
 Passes/candidates:
 
@@ -222,7 +240,8 @@ Passes/candidates:
 Remaining failure:
 
 - final art still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail;
-- deliberate authored pixel-cluster quality is **NOT YET PASS**.
+- deliberate authored pixel-cluster quality is **NOT YET PASS**;
+- the premature `192×192` diagnostic packing may contribute to this reading and is no longer used as a production assumption.
 
 Do not call the downstream renderer solved yet.
 
@@ -264,18 +283,25 @@ Executor:
 
 Purpose: determine whether a dedicated pixel-art style adapter can improve rendering language while preserving the Runner52 structure gains.
 
-Controlled test:
+Controlled inference test:
 
 - only Runner52 chunk2, source frames `46,57,68,79`;
 - same canonical Exilada reference;
 - same Kontext FP8;
 - same 20 steps / guidance2.5 / CFG1 / Euler-simple / seed0 / denoise0.45;
-- only new variable: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`;
+- only model/style variable: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`;
 - file `ume_modern_pixelart.safetensors`;
 - strength `1.0`;
 - SHA256 `ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4`;
 - ~344MB;
 - LoRA license MIT; Kontext base license caveat remains.
+
+Packaging/master correction:
+
+- final probe cells = `384×384` review/master cells;
+- four-frame strip = `1536×384`;
+- gameplay apparent character height remains explicitly unlocked;
+- the larger master packing changes no model conditioning or denoise setting.
 
 Why only one chunk: ordinary FLUX.1-dev LoRA compatibility with Kontext is not assumed as guaranteed, and there is no reason to spend another full three-chunk pass before seeing evidence.
 
@@ -287,7 +313,7 @@ Runner53 PASS requires:
 - no cute/chibi/juvenile drift;
 - locked 1980s sword-and-sorcery charge remains visible.
 
-If it passes, apply the adapter to the full 12-frame action. If it fails, reject the adapter specifically before changing denoise, precision or renderer family.
+If it passes, apply the adapter to the full 12-frame action at master scale. If it fails, reject the adapter specifically before changing denoise, precision or renderer family.
 
 ### License caveat
 
@@ -299,8 +325,9 @@ Every completed action job should return at minimum:
 
 - `<character>_<action>_motion_master.mp4`
 - `<character>_<action>_frames/`
-- `<character>_<action>_pixelart_row.png`
+- `<character>_<action>_pixelart_master_row.png`
 - `<character>_<action>_preview.gif`
+- gameplay-scale QA derivatives;
 - optional atlas PNG;
 - JSON with rectangles, pivots, runtime durations/events;
 - provenance manifest with source hashes/model/settings/relative scale/action preset.
@@ -336,7 +363,8 @@ Default H3 controls stay hidden/locked to Base50. Advanced controls may expose c
 - job progress/stage status;
 - motion-master preview;
 - selected source-action strip preview;
-- final one-row pixel-art action preview;
+- final one-row pixel-art **master** preview;
+- gameplay-scale comparison preview;
 - direct frames/sheet/JSON/manifest access.
 
 ## UI implementation
@@ -345,9 +373,10 @@ Default H3 controls stay hidden/locked to Base50. Advanced controls may expose c
 
 ## Immediate implementation order
 
-1. run Runner53 only;
-2. compare its four-frame output to Runner52 chunk2;
-3. if style improves without structure loss, run a full 12-frame LoRA pass;
-4. then solve action-specific frame distillation/runtime timing;
-5. then build the Gradio orchestration UI;
-6. only after that expand to new actions and creature-scale cases.
+1. run the scale-corrected Runner53 only;
+2. compare its four-frame master output to Runner52 chunk2;
+3. if style improves without structure loss, run a full 12-frame LoRA pass at master scale;
+4. benchmark gameplay apparent height at `160/180/200px` in real `640×360` viewport compositions;
+5. solve action-specific frame distillation/runtime timing;
+6. build the Gradio orchestration UI;
+7. only after that expand to new actions and creature-scale cases.
