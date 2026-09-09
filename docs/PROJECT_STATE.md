@@ -8,22 +8,19 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/VISUAL_DIRECTION.md`
-4. `docs/CHARACTERS.md`
-5. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-6. `docs/EXILADA_MASTER_REVISION_LOCAL_EDITOR_2026-09-08.md`
-7. `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`
-8. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-9. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
-10. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
-11. `docs/ANIMATION_PIPELINE.md`
-12. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
+3. `docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
+4. `docs/VISUAL_DIRECTION.md`
+5. `docs/CHARACTERS.md`
+6. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+7. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+8. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
+9. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
 
 Historical preflight/model-screening documents remain evidence but do not override the current gate.
 
 ## Living-document invariant — LOCKED
 
-Every state-changing action updates the relevant thematic docs and this file before completion is reported. Changed decisions replace stale locks rather than coexisting ambiguously.
+Every state-changing action updates the relevant thematic docs/registry and this file before completion is reported. Changed decisions replace stale locks rather than coexisting ambiguously.
 
 ## Local paths — LOCKED
 
@@ -31,320 +28,253 @@ Every state-changing action updates the relevant thematic docs and this file bef
 - AI root: `Z:\AI`
 - planned umbrella Studio root: `Z:\AI\RogueliteAssetStudio`
 - active H3 workspace: `Z:\AI\MiniMaxH3`
-- active Kontext workspace: `Z:\AI\FluxKontext`
+- active Kontext R&D workspace: `Z:\AI\FluxKontext`
+- Runner56 isolated Klein workspace: `Z:\AI\Flux2Klein`
 - paused Wan workspace: `Z:\AI\WanAnimate2`
 - SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
 - `D:\AI` is stale/historical and must not be used.
 
-## CURRENT UMBRELLA DIRECTION — ROGUELITE ASSET STUDIO
+## UMBRELLA DIRECTION — ROGUELITE ASSET STUDIO / HARD LOCK
 
-The local production tool is **not an Exilada editor** and is not a wrapper around one model.
+The local production tool is not an Exilada editor and is not a wrapper around one model.
 
-The project is building a local generative game-asset production system covering the complete visual asset base:
-
-- playable characters;
-- NPCs;
-- enemies;
-- creatures;
-- bosses;
-- equipment/weapons/armor;
-- props/interactables;
-- architecture;
-- terrain/vegetation;
-- environment/map modules and set pieces;
-- tileable materials where useful;
-- VFX/environment animation;
-- UI art where needed.
+It must cover the complete visual asset base: playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, environment modules/set pieces, materials, VFX/environment animation and UI art where needed.
 
 Canonical architecture:
 
 `Studio UI -> asset spec/state -> model router -> specialized model adapter -> local model runtime -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
 
-The Exilada is the first difficult **Character Lab validation project**, not the scope-defining application.
+The Exilada is the first high-difficulty Character Lab case, not the scope-defining application.
 
-Canonical specification:
+Canonical architecture document:
 
 `docs/ROGUELITE_ASSET_STUDIO.md`
 
-Initial generic implementation files:
+Generic implementation foundation:
 
 - `tools/roguelite-asset-studio/asset_schema.json`
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
 
-The core router is deliberately UI-independent.
+The core router is UI-independent and model adapters are replaceable.
 
-## Local-first production — HARD LOCK
+## Runner55 — FOUNDATION VALIDATION PASS
 
-Routine asset production must be possible locally after model installation.
+Runner55 passed on the actual local repository state.
 
-Hosted services may later be optional accelerators/quality branches, but may not be mandatory for ordinary production.
+Validated cases:
 
-This is important for cost, reproducibility, batch generation, large reference sets, long animation jobs, project-specific fine-tuning and mature/adult fictional character states that may not be workable through hosted authoring surfaces.
+### Referenced playable character
 
-Current hardware baseline:
+- spec valid;
+- requires `single_reference_edit + multi_reference_edit`;
+- no currently installed generic static route;
+- planning routes: FLUX.2 Klein 4B distilled, Klein Base and Qwen-Image-Edit.
 
-- Windows 11;
-- RTX 3060 12 GB VRAM;
-- 48 GB system RAM.
+### Reference-free architecture module
 
-Model routing must account for this machine explicitly.
+- spec valid with `references: []`;
+- requires `text_to_image`;
+- no currently installed generic static route;
+- planning routes: FLUX.2 Klein 4B distilled and Klein Base.
 
-## Game/runtime presentation — LOCKED EXCEPT FINAL APPARENT CHARACTER SCALE
+Schema regression rule:
 
-- elevated 2D arcade beat'em-up / belt-scroller / false 3D;
-- fixed orthographic-like gameplay camera;
-- native raster `640×360`;
-- pitch `26°`;
-- `relative_scale=1.0` means baseline adult-human/Exilada world scale, not a sprite pixel height;
-- first locomotion family screen-left / mostly lateral-three-quarter;
-- facing baseline `72°`;
-- runtime consumes complete precomposed character sprites only;
-- no visible runtime body/hair/clothing/equipment layer assembly.
+- `references` must exist as a field;
+- an empty list is valid for reference-free generation;
+- `SPEC_ERROR` code 2 is fatal;
+- route-not-found code 3 is the only expected no-installed-model result.
 
-## Resolution contract — HARD LOCK
+Runner55 conclusion: **generic schema/router foundation PASS**.
 
-The former `128px` Exilada asset baseline is retired.
+## CURRENT IMPLEMENTATION GATE — Runner56 / FLUX.2 Klein 4B distilled
 
-There is no mandatory `160/180/200px`, `192px` or `384px` production sprite resolution. Those values are historical diagnostics or optional composition comparisons only.
+Runner56 is now the active gate.
 
-Production assets preserve the useful resolution of the approved generation/render chain. Gameplay apparent size is controlled separately by runtime/world/camera scaling.
+Runner:
 
-The same principle applies outside characters: the Studio does not impose one universal texture/cell size on all asset classes.
+`tools/structured-2d-character-pipeline/56_bootstrap_and_run_flux2_klein_4b_spike.ps1`
 
-## Final visible-art target — LOCKED
+Executor:
 
-Runtime character graphics remain deliberate high-quality pixel art, but asset design must be correct before final rendering-language reconstruction is optimized.
+`tools/roguelite-asset-studio/flux2_klein_t2i_probe.py`
 
-For characters/creatures, H3 painterly/raster video is an intermediate **motion master**, not final runtime art.
+Record:
 
-Canonical character temporal chain after master approval:
+`docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
 
-`approved static master -> motion reference/context -> temporal motion master -> action-frame distillation -> rendering-language reconstruction at useful source resolution -> alpha/pivot/events -> one action row/sequence -> runtime`
+### Purpose
 
-Environment/VFX temporal assets may use a different temporal adapter but follow the same candidate/approval/provenance rules.
+Prove the first real generic static-generation backend on the target machine before building the Studio UI around it.
 
-## Environment/map production principle — LOCKED DIRECTION
+The first generated asset is deliberately an `architecture_module`, not the Exilada.
 
-The living belt-scroller world should not default to one flattened AI-painted gameplay map.
+### Runtime isolation
 
-Prefer modular assets where simulation/gameplay needs independent pieces:
+Runner56 creates/uses:
 
-- terrain strips/patches;
-- walls/cliffs;
-- architecture modules/facades;
-- doors/gates;
-- vegetation groups;
-- rocks/debris;
-- furniture/props;
-- foreground/background set pieces;
-- environmental loops;
-- decals and damage-state variants.
+`Z:\AI\Flux2Klein\ComfyUI_windows_portable`
 
-The engine/level system composes these modules. Large background plates remain valid only where they do not destroy gameplay modularity.
+It copies the already-proven embedded Python as a starting runtime but does not modify the source Kontext installation. ComfyUI code is separately cloned and pinned to:
 
-## Spritesheet layout contract — HARD LOCK
+`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
 
-For animated character/creature actions:
+Port default: `8192`.
 
-**One action = one spritesheet row.**
+### Exact model payload
 
-- frames read left-to-right in time;
-- action frame count is variable;
-- internal renderer tiles/chunks never become semantic final rows;
-- durations/events live in metadata;
-- complete character remains visible per exported frame;
-- final asset resolution follows the approved production chain rather than legacy cell sizes.
+Runner56 downloads only:
 
-## Exilada core identity — LOCKED
+1. `flux-2-klein-4b-fp8.safetensors`
+   - 4,070,624,520 bytes
+   - SHA256 `97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6`
+2. `qwen_3_4b.safetensors`
+   - 8,044,982,048 bytes
+   - SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
+3. `flux2-vae.safetensors`
+   - 336,211,292 bytes
+   - SHA256 `868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`
 
-The protagonist is an unambiguously adult woman, approximately 162 cm tall, from the Ilhas do Sul.
+Total model payload: `12,451,817,860` bytes (~12.45 GB decimal / ~11.60 GiB).
 
-Identity anchors:
+The full Qwen3-4B encoder is intentional for the first quality-controlled spike. The smaller FP4 encoder is not used yet. Base 4B is not downloaded.
 
-- mature severe adult face/presence;
-- lean, functional, resilient natural adult feminine anatomy;
-- olive-to-brown skin;
-- very long, heavy, voluminous, messy black hair as a primary silhouette anchor;
-- alert, contained violence and survival rather than clean heroic presentation;
-- weapon is not part of permanent identity.
+### Controlled first inference
 
-The approved nude anatomy source remains legitimate offline authoring evidence. Adult partial or complete nudity is a normal supported character/world state.
+- output contract: `static_master`;
+- asset type: `architecture_module`;
+- reference-free T2I;
+- 768×768;
+- 4 distilled steps;
+- CFG 1.0;
+- Euler;
+- seed 0.
 
-## Exilada initial-state design — REOPENED / CHARACTER LAB FIRST CASE
+This does not set production resolution. It is a hardware/integration feasibility probe.
 
-The existing `assets/source/characters/exilada/reference/exilada_master.png` remains useful identity/anatomy evidence but is **not final visual-design authority**.
+### PASS contract
 
-Problems still to solve:
+Technical PASS requires:
 
-- clothing reads too intact/generic;
-- approved severe tearing/greater exposure are not visually resolved;
-- sword-and-sorcery lineage is insufficiently visible;
-- master needs stronger material, danger, grime, sensuality and pulp physicality.
+- isolated pinned ComfyUI starts;
+- all three exact hashes pass;
+- native FLUX.2 nodes exist;
+- no OOM/crash;
+- one valid 768×768 image is produced;
+- prompt/manifest/log provenance is written.
 
-The initial state may explore:
+Visual review then decides whether quality is sufficient to proceed to single/multi-reference editing.
 
-- severely torn asymmetrical cloth;
-- irregular holes, missing edges, displaced remnants and incomplete coverage;
-- substantially more torso exposure;
-- partial breast exposure where caused by torn-cloth logic;
-- near-nudity or full nudity where deliberately appropriate;
-- equally degraded hip cloth;
-- dirt, sweat, abrasions, scars/wounds and captivity evidence;
-- no mandatory censor garment;
-- no neat fantasy bikini/bandeau/corset/MMO costume logic.
-
-Exact tear geometry/exposure remains open until explicit visual approval.
-
-## 1980s sword-and-sorcery direction — HARD LOCK
-
-Active inspiration lineage:
-
-- Heavy Metal;
-- Conan;
-- Red Sonja;
-- Frank Frazetta;
-- Julie Bell.
-
-The revised Exilada and the broader game's visual system must visibly carry adult physical weight, danger, grime, sensuality where appropriate, tactile materials and pulp-fantasy excess. Merely naming references in prompts is not sufficient.
+Do not promote Klein to `installed` in the registry merely because Runner56 is prepared or because files were downloaded. Promotion requires actual local inference plus review.
 
 ## Model router — CURRENT REGISTRY
 
-Machine-readable registry:
+Machine-readable authority:
 
 `tools/roguelite-asset-studio/model_registry.json`
 
 ### MiniMax H3 Base Ref2VA — ACTIVE / PROVEN MOTION SPECIALIST
 
-Current proven Exilada quality baseline:
+Current proven character-motion baseline:
 
 - `448×800`;
 - `124 frames @24fps`;
 - `ref_image_size=match`;
 - `50 steps`;
 - `res_multistep/beta`;
-- seed `0`;
-- no Turbo LoRA;
-- no FL2VA for this proven job.
+- seed 0;
+- no Turbo/FL2VA/style embedding.
 
 Evidence:
 
 `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 
-H3 remains the active motion-master specialist for character work. It is not the universal still-asset generator.
+H3 remains a motion specialist, not the universal still generator.
 
 ### MiniMax H3 FL2VA — TEMPORAL CANDIDATE
 
-Potential future use for first/last-frame animation, environmental loops, VFX and temporal assets without an authoritative real-video motion driver. Validate per asset class before production.
+Potential future route for first/last-frame animation, environmental loops, VFX and temporal assets without authoritative real-video motion. Validate per asset class.
 
 ### FLUX.1 Kontext [dev] FP8 — ACTIVE R&D ONLY
 
-Workspace: `Z:\AI\FluxKontext`
+Existing `Z:\AI\FluxKontext` runtime remains useful for editing/reconstruction research. Its dev license prevents silently making it the commercial-production default without appropriate licensing.
 
-Installed/proven set:
+### FLUX.2 Klein 4B distilled — Runner56 current candidate
 
-- ComfyUI v0.34.0;
-- `flux1-dev-kontext_fp8_scaled.safetensors`;
-- `clip_l.safetensors`;
-- `t5xxl_fp16.safetensors`;
-- `ae.safetensors`.
+Apache-2.0 4B model, planned capabilities: text-to-image, single-reference edit and multi-reference edit. Current registry status remains `priority_candidate_not_installed` until Runner56 and subsequent editing validation pass.
 
-Useful for R&D editing/reconstruction, but FLUX dev model licensing prevents it from becoming the default commercial-production dependency without appropriate licensing.
+### FLUX.2 Klein 4B Base — TRAINING/SPECIALIZATION CANDIDATE
 
-### FLUX.2 Klein 4B — PRIORITY GENERIC STATIC/EDIT CANDIDATE / NOT YET INSTALLED
+Do not download in Runner56. Retain as strategic candidate for future Roguelite-specific LoRAs/fine-tuning after enough approved, licensable project data exists.
 
-Priority because the official 4B family supports text-to-image, single-reference editing and multi-reference editing on consumer GPUs, and the 4B variants are Apache-2.0.
+### Qwen-Image-Edit / 2509 — HEAVY QUALITY/CONTROL CANDIDATE
 
-The distilled 4B is the leading interactive-generation/edit candidate.
-
-The 4B Base is strategically interesting for future project-specific LoRA/fine-tuning.
-
-**Do not download/install silently. Run a controlled feasibility/install spike first.**
-
-### Qwen-Image-Edit / 2509 — QUALITY/STRUCTURAL-CONTROL CANDIDATE / NOT YET INSTALLED
-
-Apache-2.0 and attractive for semantic/appearance editing plus structural controls. It is materially heavier than the 12 GB baseline, therefore needs a dedicated FP8/low-VRAM feasibility spike before acceptance.
+Apache-2.0 but materially heavier; requires a dedicated low-VRAM spike before use on RTX 3060 12GB.
 
 ### Step1X-Edit — DEFERRED
 
-Apache-2.0 but published memory use remains above the current GPU even with FP8/offload. Do not prioritize it ahead of candidates that fit the workstation better.
+Current published memory needs do not fit the workstation well enough to prioritize it.
 
-## Project-specific specialization — LOCKED DIRECTION
+## Local-first production — HARD LOCK
 
-The long-term Studio should not depend forever on generic public style LoRAs.
+Routine asset production must work locally after installation. Hosted services may be optional accelerators but cannot be mandatory for normal production.
 
-After enough approved project art exists, train/evaluate Roguelite-specific adapters using only training material whose provenance/license permits it.
+Hardware baseline:
 
-Candidate specialization targets:
+- Windows 11;
+- RTX 3060 12 GB VRAM;
+- 48 GB RAM.
 
-- final rendering-language/pixel-art adapter;
-- character-family consistency;
-- environment/material language;
-- creature families;
-- controlled variants/damage states.
+This local requirement also permits project authoring of mature/adult fictional states without relying on hosted authoring surfaces.
 
-FLUX.2 Klein 4B Base is a priority technical candidate for this because the 4B family supports customization under Apache-2.0.
+## Resolution contract — HARD LOCK
 
-## Character Lab prototype history
+The former 128px Exilada asset baseline is retired. There is no universal 160/180/200/192/384px production sprite size.
 
-Runner54 / `exilada_master_editor.py` remains useful prototype evidence for:
+Preserve useful generation/render resolution. Runtime apparent scale is separate. The same rule applies to non-character assets: no universal cell/texture size is imposed by the Studio.
 
-- semantic reference roles;
-- iterative candidate editing;
-- native useful resolution;
-- versioning;
-- explicit approval.
+## Runtime visual contracts — LOCKED
 
-It must **not** be expanded as the umbrella application. Those concepts are to be refactored behind the generic Asset Studio contracts.
+For animated character/creature actions:
 
-Runner53 remains paused while the Exilada master is visually reopened.
+- one action = one horizontal spritesheet row;
+- frames read left-to-right;
+- frame count is variable;
+- complete character is precomposed in every runtime frame;
+- no visible runtime body/hair/clothing/equipment layer assembly;
+- timing/events/pivots live in metadata.
 
-## Runtime character representation — LOCKED
+For environment/map production, prefer modular independently useful pieces over a single flattened AI-painted gameplay map.
 
-The game does not visibly assemble body/hair/clothing/equipment layers at runtime.
+## Exilada design state — REOPENED / FIRST CHARACTER LAB CASE
 
-`complete authored character state -> complete animation frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
+`exilada_master.png` remains identity/anatomy evidence but is not final visual-design authority.
 
-Variation is solved offline.
+Required revision direction includes stronger Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell charge, severe asymmetrical cloth degradation, materially caused greater torso exposure/partial breast exposure where appropriate, near/full adult nudity as legitimate states, dirt/wear/captivity evidence, and rejection of clean generic fantasy-bikini/MMO logic.
 
-## CURRENT IMPLEMENTATION GATE — ASSET STUDIO FOUNDATION
+Runner53 remains paused until the approved character master is revised through the generic Studio path.
 
-Do not spend the next development cycle polishing the Exilada-only Gradio editor.
+## Immediate implementation order
 
-Runner55 foundation validation now has explicit regression semantics:
+1. run Runner56 on the target workstation;
+2. inspect technical logs/manifest and the generated ruined-gate source candidate;
+3. if T2I fails, classify the exact runtime/hardware integration failure before changing variables;
+4. if T2I passes technically and source quality is useful, retain the isolated runtime;
+5. implement the Klein generic adapter contract;
+6. test `single_reference_edit` and `multi_reference_edit` with semantic reference roles;
+7. only then promote Klein to installed/accepted generic static backend;
+8. expose Character Lab, Prop/Equipment and Environment workflows through the same adapter;
+9. revise/approve the Exilada master there;
+10. route animated character/creature actions through H3 Ref2VA and other temporal classes through validated temporal adapters;
+11. add generic candidate browser/comparison/approval/export;
+12. resume final rendering-language/pixel-art specialization with approved masters.
 
-- schema v2 separates **field presence** from **field non-emptiness**;
-- `references` is required as a field but `references: []` is valid for reference-free/text-to-image asset creation;
-- `SPEC_ERROR` exit code `2` is fatal;
-- only route-not-found exit code `3` may be treated as an expected "no installed model yet" result;
-- the validation pair intentionally covers a referenced playable-character spec and a reference-free architecture-module spec.
+## Cleanup rule
 
-Immediate order:
+Do not accumulate candidate checkpoints speculatively.
 
-1. pull the current repository state;
-2. run corrected Runner55 and require both specs to validate;
-3. refactor model execution into adapter interfaces independent of the UI;
-4. wrap the already-proven H3 Ref2VA and Kontext runtimes as first adapters;
-5. enumerate the exact FLUX.2 Klein 4B local spike payload, disk use and pass/fail criteria before downloading it;
-6. run the Klein 4B feasibility spike on RTX 3060 12GB / 48GB RAM;
-7. if it passes, make it the first generic static generation/edit adapter;
-8. expose Character Lab through the generic Studio and revise the Exilada there;
-9. add static `prop/environment` workflows so the architecture is proven outside characters;
-10. route animated actions/loops through H3 adapters;
-11. add generic browser/comparison/approval/export;
-12. resume final pixel-art reconstruction validation with the approved project-specific masters rather than a stale Exilada-only path.
-
-## License caveats
-
-- FLUX.1/FLUX.2 dev-family licenses must not silently become commercial-production dependencies.
-- The model registry records licenses per adapter.
-- Commercial/release decisions must be checked against the exact model/adapters used for approved assets.
-
-## Cleanup
-
-- keep Base H3 Ref2VA minimal proven set;
-- keep current Kontext model set while R&D remains active;
-- keep the Modern Pixel Art LoRA only while its downstream hypothesis remains open;
-- do not download FLUX.2/Qwen/other candidate checkpoints until their controlled spike is specified;
-- Wan large checkpoints may remain removed/paused while evidence is retained;
-- SSD comparison evidence remains until explicit abandonment/final verdict.
+- keep the proven H3 Base50 set;
+- keep current Kontext R&D set while still needed;
+- Runner56 downloads only the Klein distilled FP8 + full Qwen3-4B + VAE set;
+- do not download Klein Base, Qwen-Image-Edit or Step1X until their hypothesis becomes active;
+- remove rejected model payloads after evidence/manifests are preserved and the model family is explicitly abandoned.
