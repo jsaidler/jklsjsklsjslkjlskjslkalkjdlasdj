@@ -1,8 +1,8 @@
 # Characters — Living Document
 
-Status date: **2026-09-07**
+Status date: **2026-09-08**
 
-Status: **Exilada core identity and initial condition locked; canonical complete initial-state master retained; runtime complete-character spritesheet architecture locked; W1 painterly/1980s visual direction approved for continued validation; exact initial cloth-tear/exposure pattern still open.**
+Status: **Exilada core identity locked / existing master reopened for visual revision / adult nudity and severe captivity-cloth damage reaffirmed / local master editor is current gate.**
 
 This document stores canonical character decisions and distinguishes fixed identity, narrative state, gameplay-variable appearance, reference material and temporary generation artifacts.
 
@@ -12,9 +12,9 @@ All material character decisions and changes must be recorded here as they occur
 
 ## Exilada — protagonist
 
-### Canonical core
+### Canonical core — LOCKED
 
-The protagonist is an **adult woman**, currently designated **Exilada**.
+The protagonist is an **unambiguously adult woman**, currently designated **Exilada**.
 
 Locked traits:
 
@@ -30,52 +30,39 @@ Locked traits:
 - posture communicates alertness, contained violence and survival;
 - identity must remain recognizable without relying on a particular weapon or complete outfit.
 
-The body should look materially lived-in: fatigue, dirt, wounds and scars may be visible when causally justified.
+The body should look materially lived-in: fatigue, dirt, sweat, wounds, abrasions and scars may be visible when causally justified.
 
-### Narrative initial condition
+## Narrative initial condition — LOCKED
 
 The Exilada was **enslaved and abandoned to die**.
 
-Her initial state therefore represents deprivation rather than a designed warrior costume.
+Her initial state represents deprivation rather than a designed warrior costume.
 
 This supports:
 
 - almost no possessions;
-- minimal clothing;
+- minimal or absent clothing;
 - severely torn and degraded cloth;
 - improvised bindings;
 - visible evidence of captivity;
-- partial or complete nudity when appropriate to material/narrative state;
+- partial or complete adult nudity when appropriate to material/narrative state;
 - vulnerability, danger, sensuality and physical presence coexisting;
 - an exposed, precarious body that remains dangerous.
 
-## 1980s / inspiration lineage — LOCKED 2026-09-07
-
-The Exilada must continue to be read through the project's principal visual lineage:
-
-- **Heavy Metal**;
-- **Conan**;
-- **Red Sonja**;
-- **Frank Frazetta**;
-- **Julie Bell**.
-
-The user explicitly wants an **1980s sword-and-sorcery charge**, consistent with the golden period of these inspirations.
-
-For the Exilada this means adult sensuality, danger, grime, heroic physical presence, damaged materials and erotic charge may coexist without turning her into a clean decorative fantasy costume.
-
-The 1980s influence is tonal and pictorial, not a requirement for VHS/CRT gimmicks.
-
-## Erotic charge — LOCKED
+## Adult nudity / erotic charge — HARD LOCK
 
 The Exilada does **not** need to be visually desexualized in order to be treated seriously.
 
-- erotic charge is allowed and may be intentional;
-- adult nudity or minimal clothing may read as sensual, erotic, heroic, vulnerable, brutal or matter-of-fact depending on state/scene;
+- adult nudity is a normal supported character/world state;
+- complete nudity is valid when appropriate to state/scene;
+- partial nudity is valid and may result naturally from damaged clothing;
+- erotic/sensual charge is allowed and may be intentional;
 - physical attractiveness and sexual presence do not invalidate severity, danger, agency or suffering;
-- the body may remain aesthetically charged when dirty, wounded, exhausted or deprived;
+- a dirty, wounded, exhausted or deprived body may remain aesthetically and erotically charged;
+- there is no mandatory censor garment;
 - framing should be intentional rather than automatically sanitized or automatically sexualized.
 
-Captivity may be depicted directly, but the body/character's erotic charge should not be confused with making coercion itself the only erotic subject unless explicitly chosen for a scene.
+Captivity may be depicted directly. The character's erotic charge is not the same thing as making coercion itself the sole erotic subject.
 
 ## Body / nudity source rule — LOCKED
 
@@ -84,31 +71,59 @@ Offline authoring owns a **complete adult body source independent of hair, cloth
 Consequences:
 
 - the same body identity exists under every garment/binding/cuff;
-- nudity is a normal supported gameplay/world state;
-- chest and pelvic anatomy must remain coherent;
-- there is no mandatory censor garment;
+- chest and pelvic anatomy must remain coherent when clothing is damaged or absent;
+- nudity does not require a substitute garment;
 - scars/body marks belong to body/state authoring, not a garment;
 - wounds/blood/wetness/dirt remain attached to correct body regions.
 
-This is an offline authoring/state rule only. Runtime frames are complete/precomposed.
+This is an offline authoring/state rule only. Runtime frames remain complete/precomposed.
 
-## Initial clothing — UPDATED 2026-09-07
+## Initial clothing / exposure direction — REOPENED FOR VISUAL APPROVAL
 
-The current approved direction uses:
+The existing master does **not** yet push the initial-state clothing damage far enough and currently reads too much like a designed fantasy costume.
 
-- minimal asymmetrical cloth coverage;
-- dirty, ragged and **more severely torn** chest cloth rather than a neat intact bandeau;
-- irregular tears/holes/edge loss that may expose substantially more torso skin;
-- **partial breast exposure is allowed and desirable as a candidate initial-state treatment** when it follows the torn-cloth logic;
-- torn asymmetrical hip cloth/loincloth with similarly degraded edges;
-- occasional worn cloth bindings on arm or leg;
+Current required exploration space:
+
+- minimal, asymmetrical coverage;
+- chest cloth that is severely torn/degraded rather than a neat intact bandeau;
+- irregular tears, holes, missing edges and displaced remnants;
+- substantially more exposed torso skin than the current master;
+- **partial breast exposure is explicitly allowed and desirable as a candidate** when caused by the torn-cloth geometry;
+- near-nudity is valid as a candidate;
+- complete nudity is valid when deliberately chosen for the state rather than appearing as an accidental generation artifact;
+- torn asymmetrical hip cloth/loincloth with similarly damaged and precarious coverage;
+- occasional worn cloth bindings on arm/leg only when materially justified;
 - bare feet;
 - dirty, frayed, materially exhausted fabric;
-- no clean decorative fantasy-costume logic.
+- no clean decorative fantasy-costume logic;
+- no automatic addition of extra cloth merely to censor adult anatomy.
 
-Exact tear geometry and exact amount of breast exposure are **not yet canonized** by a temporary prompt. They will be visually approved in a controlled appearance test after the current framing gate.
+Exact tear geometry and exact amount of breast/pelvic exposure are **not canonized yet**. They are now part of the active local master-revision gate.
 
-When exported to the game, all visible clothing is already baked into complete-character animation frames.
+## 1980s / inspiration lineage — HARD LOCK / MUST BE VISIBLE
+
+The Exilada must read through the project's principal visual lineage:
+
+- **Heavy Metal**;
+- **Conan**;
+- **Red Sonja**;
+- **Frank Frazetta**;
+- **Julie Bell**.
+
+This means more than prompt keywords. The approved master must visibly carry:
+
+- adult sensuality and physical weight;
+- danger and severity;
+- grime/deprivation;
+- strong heroic-but-natural adult anatomy;
+- tactile damaged materials;
+- pulp-fantasy excess;
+- a strong late-1970s/1980s sword-and-sorcery charge;
+- a long heavy hair mass that feels physical rather than decorative.
+
+Reject a result that still reads primarily as generic contemporary dark-fantasy concept art, clean MMO character design, cosplay polish, cute/chibi fantasy or sanitized fantasy-heroine key art.
+
+The goal is a lineage/charge, not copying a specific existing composition or character design.
 
 ## Captivity markers
 
@@ -117,11 +132,10 @@ The **history of captivity is canonical**.
 - cuffs/shackles and broken chain segments may exist as separate offline state sources;
 - restraint state may later be removed/damaged/detached/replaced through offline variant production;
 - wrist/ankle attachment relationships must remain coherent across motion;
-- exact anatomical side ownership of every visible initial broken segment is not canonized by temporary proxy scripts;
-- the approved visual master remains the initial-state reference until a semantic equipment/state definition locks details;
+- exact side ownership of every visible initial broken segment is not canonized by temporary proxy scripts;
 - exported sprites bake visible restraints/chains into the complete frame.
 
-## Weapon rule
+## Weapon rule — LOCKED
 
 **No weapon is part of the Exilada's permanent identity.** Weapons are gameplay-variable equipment.
 
@@ -150,28 +164,31 @@ Expected variable systems include weapons, armor, added clothing, restraint/chai
 
 Variation is solved **offline**; exported runtime animation remains complete/precomposed.
 
-## Canonical initial-state reference asset
+## Current Exilada master — PROVISIONAL / REOPENED
 
-Canonical file:
+Current file:
 
 `assets/source/characters/exilada/reference/exilada_master.png`
 
-For current animation work this remains the approved **complete initial-state appearance reference**. It establishes:
+It remains useful evidence for:
 
 - adult lean anatomy/proportions;
 - severe mature face;
 - olive/brown skin;
-- long black hair mass;
-- minimal degraded clothing;
-- captivity evidence;
-- bare feet;
-- weaponless initial identity.
+- long black hair identity;
+- weaponless identity;
+- broad captivity-state concept.
 
-The new 2026-09-07 art-direction decision allows the eventual final state to push the clothing damage/exposure further than the present master, but that change must be explicitly approved rather than inferred silently.
+It is **no longer final visual-design authority** because:
 
-## Supporting high-resolution nude anatomy reference
+- the cloth damage/exposure is not severe enough;
+- the design still reads too generically relative to the locked inspiration lineage.
 
-Canonical expected local path:
+Do not build new production animation/style validation around it as though the visual design were closed.
+
+## Supporting high-resolution nude anatomy reference — CANONICAL EVIDENCE
+
+Expected local path:
 
 `assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg`
 
@@ -186,78 +203,73 @@ Recorded source identity:
 - full pelvic anatomy visible;
 - no occluding garment.
 
-This remains anatomy/proportion reference only.
+This remains anatomy/proportion reference. It can be used by the local master editor to reconstruct anatomy hidden under damaged/removed clothing, but must not force a turnaround layout into the master.
 
-## Historical pixel-art body reference / production body source
+## Local master-revision workflow — CURRENT CHARACTER GATE
 
-Historical structured-2D work remains useful evidence/reference but no longer forces the final visible language to be pixel art.
+Launcher:
 
-Recorded artifacts include:
+`tools/structured-2d-character-pipeline/54_run_exilada_master_editor.ps1`
 
-- `tools/structured-2d-character-pipeline/g3s_b3b_locked_visual_reference.json`;
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.png`;
-- `assets/source/characters/exilada/body/exilada_body_base_b3b_v4.json`.
+Application:
 
-The production body source recorded `37×128` RGBA and visible standing height `128 px`. It remains valid offline anatomy/scale research, not the final visible-art mandate.
+`tools/flux-kontext-spike/exilada_master_editor.py`
 
-## W1 visual result — APPROVED DIRECTIONAL EVIDENCE 2026-09-07
+Detailed record:
 
-Wan-Animate-2 W1 generated the Exilada from the master plus the official raw driving video.
+`docs/EXILADA_MASTER_REVISION_LOCAL_EDITOR_2026-09-08.md`
 
-The user explicitly approved the resulting **painterly illustrated 2D look** as highly desirable for the whole game.
+The editor exists so the user can work on adult character visual details locally, including clothing damage/nudity, without depending on the chat image-generation surface.
 
-Directional conclusions:
+It provides:
 
-- smooth/painterly rendering is no longer a defect by itself;
-- localized, restrained motion blur is acceptable and may improve temporal vitality;
-- long black hair moving as a heavy non-rigid mass is strongly desirable;
-- the game may look like high-quality animated dark-fantasy illustration rather than deliberate pixel art;
-- exact identity, restraints/accessories and framing still require technical improvement.
+- current master input;
+- optional nude anatomy reference;
+- two optional visual-direction reference uploads;
+- editable clothing/tear/exposure brief;
+- editable body/identity brief;
+- editable material/captivity brief;
+- editable pictorial-direction brief;
+- iteration-specific instructions;
+- seed/steps/guidance/denoise controls;
+- candidate versioning and provenance;
+- iterative candidate-as-input workflow;
+- explicit approval/version backup before replacing the canonical master.
 
-W1A increased `reference_image_strength` from 1.0 to 1.5. It did not provide a meaningful identity/accessory gain and introduced more blur/ghosting in several phases. Current preferred Wan conditioning balance therefore remains **reference strength 1.0** pending contrary evidence.
+No inference automatically replaces `exilada_master.png`.
 
-## Gameplay-scale identity anchors
+## Historical structured-2D/body evidence
 
-These anchors must survive:
+Earlier structured-2D assets remain useful research evidence, but old `37×128` / `128px` production-body assumptions are retired as final asset-resolution mandates.
 
-1. large dark hair mass;
-2. adult natural feminine body proportions;
-3. asymmetry/minimality of initial clothing;
-4. severe posture;
-5. readable body/limb separation;
-6. captivity evidence in the initial state;
-7. strong grouping between skin, hair and cloth.
-
-Facial microdetail is secondary at gameplay scale, but gross facial/anatomical errors are unacceptable.
-
-## Current production architecture
-
-`complete-state appearance reference + raw driving video + automatic preprocessing -> complete visible animation frames -> automatic spritesheet/atlas + metadata -> runtime playback`
-
-Automatic preprocessing/postprocessing is allowed. Routine manual rigging, keyframing, simulation repair, mask repair, repainting and hand compositing are not.
+The visible production sprite should preserve the useful resolution of the approved video/frame/render chain. Runtime apparent size is independent.
 
 ## Character-design rules
 
 ### Do
 
-- preserve strong silhouettes and mature anatomy;
-- remember the 1980s / Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell lineage;
-- allow deliberate erotic/sensual body language;
-- allow torn cloth to expose more body when materially/narratively coherent;
+- preserve mature adult anatomy and identity;
+- strengthen the Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell charge until it is visibly present;
+- allow deliberate erotic/sensual presence;
+- allow severe torn cloth to expose substantially more body when materially/narratively coherent;
+- allow adult partial/complete nudity as normal states;
 - let history/simulation affect visual state;
-- test production art at gameplay scale and in motion;
-- keep restraints and attachments temporally coherent.
+- keep long black hair as a major physical silhouette element;
+- keep restraints and attachments temporally coherent;
+- evaluate the master before spending more animation/render validation time.
 
 ### Do not
 
-- shorten/flatten the body for convenience;
+- shorten/flatten/juvenilize the body for convenience;
 - make a weapon permanent by default;
-- reconstruct hidden anatomy by subtracting clothes/hair from a composite;
+- reconstruct hidden anatomy merely by subtracting clothes/hair from a composite when the approved nude anatomy source exists;
 - turn deprivation clothing into a clean generic fantasy-warrior costume;
 - sanitize adult nudity merely because it is erotic;
+- add censor cloth automatically;
 - accept gross facial/anatomical artifacts;
-- treat temporary generated details as canon without approval;
-- reintroduce runtime visible-character layer assembly.
+- treat temporary generated details as canon without explicit approval;
+- reintroduce runtime visible-character layer assembly;
+- call the old `exilada_master.png` visually final while the current revision gate remains open.
 
 ## Open character decisions
 
