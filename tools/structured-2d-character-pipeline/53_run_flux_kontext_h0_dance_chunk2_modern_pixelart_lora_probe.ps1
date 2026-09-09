@@ -92,7 +92,8 @@ Write-Host ''
 Write-Host 'Roguelite Runner 53 - Kontext + Modern Pixel Art LoRA / one representative chunk only' -ForegroundColor Cyan
 Write-Host '[WHY] Runner52 fixed layout/anatomy but final art still lacks deliberate high-level pixel construction.' -ForegroundColor Yellow
 Write-Host '[CONTROL] Keep Kontext FP8, 20 steps, guidance2.5, CFG1, Euler/simple, seed0, denoise0.45.' -ForegroundColor Green
-Write-Host '[ONLY CHANGE] Add Ume Modern Pixel Art LoRA strength1.0 and run source frames 46,57,68,79 only.' -ForegroundColor Green
+Write-Host '[ONLY MODEL CHANGE] Add Ume Modern Pixel Art LoRA strength1.0 and run source frames 46,57,68,79 only.' -ForegroundColor Green
+Write-Host '[MASTER SCALE] Preserve 384x384 review/master cells. Gameplay apparent character height is deliberately UNLOCKED.' -ForegroundColor Green
 Write-Host '[TIME] One Kontext inference instead of three; expected order of magnitude ~5 minutes after startup on the proven machine.' -ForegroundColor Green
 Write-Host ''
 
@@ -164,8 +165,8 @@ Stop-Managed $PidFile
 Write-Host ''
 Write-Host 'RUNNER53-KONTEXT-PIXELART-LORA: PASS - ONE-CHUNK INFERENCE COMPLETE / VISUAL VERDICT PENDING' -ForegroundColor Green
 Write-Host "Full output: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_full.png')" -ForegroundColor Cyan
-Write-Host "Opaque strip: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_strip_opaque.png')" -ForegroundColor Cyan
-Write-Host "RGBA strip: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_strip_rgba.png')" -ForegroundColor Cyan
+Write-Host "Opaque master strip: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_strip_opaque.png')" -ForegroundColor Cyan
+Write-Host "RGBA master strip: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_strip_rgba.png')" -ForegroundColor Cyan
 Write-Host "Preview GIF: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_preview.gif')" -ForegroundColor Cyan
 Write-Host "Manifest: $(Join-Path $Workspace 'h0_dance12_chunk02_pixelart_lora_manifest.json')" -ForegroundColor Cyan
 Write-Host "Executor log: $ExecutorLog" -ForegroundColor Cyan
