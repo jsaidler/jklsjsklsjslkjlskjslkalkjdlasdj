@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "asset_types": [
+    "character_playable",
+    "character_npc",
+    "enemy_humanoid",
+    "enemy_creature",
+    "boss",
+    "weapon",
+    "armor_equipment",
+    "prop",
+    "architecture_module",
+    "terrain_module",
+    "vegetation",
+    "environment_setpiece",
+    "tileable_material",
+    "vfx",
+    "ui_art"
+  ],
+  "output_contracts": [
+    "static_master",
+    "static_rgba",
+    "variant_set",
+    "turnaround_reference",
+    "animated_action",
+    "animated_loop",
+    "sprite_row",
+    "sprite_atlas",
+    "layered_environment_module",
+    "tileable_texture",
+    "sequence_rgba"
+  ],
+  "reference_roles": [
+    "identity",
+    "anatomy",
+    "style",
+    "material",
+    "palette",
+    "structure",
+    "composition",
+    "pose",
+    "motion",
+    "camera",
+    "environment",
+    "previous_approved_state"
+  ],
+  "required_fields": [
+    "asset_id",
+    "display_name",
+    "asset_type",
+    "output_contract",
+    "art_profile",
+    "brief",
+    "references"
+  ],
+  "example": {
+    "asset_id": "character_exilada",
+    "display_name": "Exilada",
+    "asset_type": "character_playable",
+    "output_contract": "static_master",
+    "art_profile": "roguelite_1980s_sword_sorcery_pixelart",
+    "brief": "Approved character master before motion production.",
+    "world_scale": 1.0,
+    "references": [
+      {"role": "identity", "path": "assets/source/characters/exilada/reference/exilada_master.png"},
+      {"role": "anatomy", "path": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg"}
+    ],
+    "constraints": {},
+    "approved_candidate_id": null
+  }
+}
