@@ -1,5 +1,5 @@
 {
-  "registry_version": 3,
+  "registry_version": 4,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -42,32 +42,55 @@
     {
       "adapter_id": "flux2_klein_4b_distilled",
       "family": "FLUX.2 Klein 4B",
-      "status": "active_static_t2i_proven_edit_pending",
+      "status": "active_static_t2i_proven_edit_technical_pass_calibration_pending",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/Flux2Klein",
       "capabilities": ["text_to_image", "interactive_concept"],
       "planned_capabilities": ["single_reference_edit", "multi_reference_edit", "interactive_variant"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
-      "quality_tier": "static_interactive_proven",
-      "vram_note": "Runner56 completed on RTX 3060 12GB with no OOM at 768x768 / 4 distilled steps.",
+      "quality_tier": "static_interactive_proven_edit_calibration_pending",
+      "vram_note": "Runner56 and Runner57 completed on RTX 3060 12GB with no OOM at 768x768. Reference editing is technically proven but not yet production-routable because Runner57 edits were visually too weak.",
       "tested_settings": {
-        "width": 768,
-        "height": 768,
-        "steps": 4,
-        "cfg": 1.0,
-        "sampler": "euler",
-        "seed": 0,
-        "elapsed_seconds": 12.054
+        "t2i": {
+          "width": 768,
+          "height": 768,
+          "steps": 4,
+          "cfg": 1.0,
+          "sampler": "euler",
+          "seed": 0,
+          "elapsed_seconds": 12.054
+        },
+        "runner57_single_reference": {
+          "width": 768,
+          "height": 768,
+          "steps": 4,
+          "cfg": 1.0,
+          "sampler": "euler",
+          "seed": 0,
+          "elapsed_seconds": 14.063,
+          "output_sha256": "9545ea3dd06f3aaa5872fe7e433896f915e4eb4b45c249ce5c08fee0ed45c6b4"
+        },
+        "runner57_multi_reference": {
+          "width": 768,
+          "height": 768,
+          "steps": 4,
+          "cfg": 1.0,
+          "sampler": "euler",
+          "seed": 0,
+          "elapsed_seconds": 16.025,
+          "output_sha256": "437bdc4aebc290c8e688e6e93e5dfe0462aa70321b6cc0984313dc9033147962"
+        }
       },
       "spike": {
-        "status": "t2i_technical_and_visual_continuation_pass",
-        "runner": "tools/structured-2d-character-pipeline/56_bootstrap_and_run_flux2_klein_4b_spike.ps1",
+        "status": "t2i_pass_reference_edit_technical_pass_visual_strength_partial",
+        "runner56": "tools/structured-2d-character-pipeline/56_bootstrap_and_run_flux2_klein_4b_spike.ps1",
+        "runner57": "tools/structured-2d-character-pipeline/57_run_flux2_klein_reference_edit_gate.ps1",
+        "runner58": "tools/structured-2d-character-pipeline/58_run_flux2_klein_edit_strength_calibration.ps1",
         "record": "docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md",
         "comfy_commit": "672ba9e5e388bd6bfac5ceef61f89ffdd9467200",
-        "first_contract": "text_to_image",
-        "first_asset_type": "architecture_module",
         "model_payload_bytes": 12451817860,
-        "output_sha256": "8ce5b54cf4f7ccabf3aee3583de9c76c8942115aed8592a9430b8ede68730a16",
+        "t2i_output_sha256": "8ce5b54cf4f7ccabf3aee3583de9c76c8942115aed8592a9430b8ede68730a16",
+        "runner57_comparison_sha256": "c65d43700cdc13feec4c96a5abbd738ffa25a291a61883ad557ea218f94e8ba8",
         "model_files": [
           {
             "name": "flux-2-klein-4b-fp8.safetensors",
@@ -83,7 +106,7 @@
           }
         ]
       },
-      "notes": "Text-to-image is installed and proven. Do not route single/multi-reference edit jobs until Runner57 passes; those capabilities remain planned rather than active."
+      "notes": "Text-to-image is active/proven. Runner57 proved single/multi-reference execution technically, but visual edits remained too close to the original. Keep edit capabilities planned/non-routable until Runner58 calibrates explicit edit strength and material-reference influence."
     },
     {
       "adapter_id": "flux2_klein_4b_base",
@@ -94,7 +117,7 @@
       "capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "lora_training_base", "project_style_specialization"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
       "quality_tier": "project_specialization_candidate",
-      "notes": "Strategic candidate for future Roguelite-specific LoRAs after approved training data exists. Do not download during Runner57."
+      "notes": "Strategic candidate for future Roguelite-specific LoRAs after approved training data exists. Do not download during Runner58."
     },
     {
       "adapter_id": "qwen_image_edit_2509_fp8",
