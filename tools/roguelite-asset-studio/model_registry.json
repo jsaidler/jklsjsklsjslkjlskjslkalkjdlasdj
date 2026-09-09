@@ -1,5 +1,5 @@
 {
-  "registry_version": 1,
+  "registry_version": 2,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -48,8 +48,31 @@
       "capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "interactive_concept", "interactive_variant"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
       "quality_tier": "priority_static_interactive_candidate",
-      "vram_note": "Official FLUX.2 documentation states Klein 4B fits in about 8GB VRAM on consumer GPUs.",
-      "notes": "Run a controlled local feasibility spike before installation is accepted."
+      "vram_note": "Official ComfyUI Klein documentation reports about 8.4GB VRAM for the distilled 4B path on its benchmark system; actual RTX 3060 12GB behavior is gated by Runner56.",
+      "spike": {
+        "status": "prepared_pending_local_execution",
+        "runner": "tools/structured-2d-character-pipeline/56_bootstrap_and_run_flux2_klein_4b_spike.ps1",
+        "record": "docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md",
+        "comfy_commit": "672ba9e5e388bd6bfac5ceef61f89ffdd9467200",
+        "first_contract": "text_to_image",
+        "first_asset_type": "architecture_module",
+        "model_payload_bytes": 12451817860,
+        "model_files": [
+          {
+            "name": "flux-2-klein-4b-fp8.safetensors",
+            "sha256": "97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6"
+          },
+          {
+            "name": "qwen_3_4b.safetensors",
+            "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a"
+          },
+          {
+            "name": "flux2-vae.safetensors",
+            "sha256": "868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3"
+          }
+        ]
+      },
+      "notes": "Runner56 is the current controlled feasibility/install gate. Do not mark this adapter installed until its actual local inference and visual continuation review pass."
     },
     {
       "adapter_id": "flux2_klein_4b_base",
@@ -60,7 +83,7 @@
       "capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "lora_training_base", "project_style_specialization"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
       "quality_tier": "project_specialization_candidate",
-      "notes": "Strategic candidate for future Roguelite-specific LoRAs after approved training data exists."
+      "notes": "Strategic candidate for future Roguelite-specific LoRAs after approved training data exists. Do not download during Runner56."
     },
     {
       "adapter_id": "qwen_image_edit_2509_fp8",
