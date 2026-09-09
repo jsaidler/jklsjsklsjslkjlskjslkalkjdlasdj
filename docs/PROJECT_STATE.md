@@ -7,81 +7,116 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-3. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
-4. `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`
-5. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
-6. `docs/RUNNER50_KONTEXT_VISUAL_FAIL_2026-09-08.md`
-7. `docs/RUNNER51_LAYOUT_CONCEPT_REJECT_2026-09-08.md`
-8. `docs/VISUAL_DIRECTION.md`
-9. `docs/ANIMATION_PIPELINE.md`
-10. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
-11. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-12. `docs/H3_H0T_TURBO4_QUALITY_REJECT_2026-09-08.md`
-13. `docs/G3S_COMPLETE_CHARACTER_MODEL_SCREENING_2026-09-07.md`
-14. `docs/CHARACTERS.md`
-15. `docs/NEXT_CHAT_HANDOFF_G3S_B3_2026-09-05.md`
+2. `docs/EXILADA_MASTER_REVISION_LOCAL_EDITOR_2026-09-08.md`
+3. `docs/CHARACTERS.md`
+4. `docs/VISUAL_DIRECTION.md`
+5. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+6. `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`
+7. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+8. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
+9. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
+10. `docs/ANIMATION_PIPELINE.md`
+11. `docs/CHARACTER_PRODUCTION_PIPELINE.md`
 
-Historical preflight incidents remain documented separately.
+Historical preflight/model-screening documents remain evidence but do not override the current gate.
 
 ## Living-document invariant — LOCKED
 
-Every state-changing action updates the thematic docs, this file and the active handoff before completion is reported.
+Every state-changing action updates the thematic docs and this file before completion is reported. Changed decisions replace stale locks rather than coexisting ambiguously.
 
 ## Local paths — LOCKED
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - AI root: `Z:\AI`
 - active H3 workspace: `Z:\AI\MiniMaxH3`
-- active Kontext renderer workspace: `Z:\AI\FluxKontext`
+- active Kontext workspace: `Z:\AI\FluxKontext`
 - paused Wan workspace: `Z:\AI\WanAnimate2`
 - SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
-- `D:\AI` stale/historical and must not be used.
+- `D:\AI` is stale/historical and must not be used.
 
-## Game/runtime presentation — LOCKED
+## Game/runtime presentation — LOCKED EXCEPT FINAL APPARENT CHARACTER SCALE
 
 - elevated 2D arcade beat'em-up / belt-scroller / false 3D;
 - fixed orthographic-like gameplay camera;
 - native raster `640×360`;
 - pitch `26°`;
-- `relative_scale=1.0` means baseline adult-human/Exilada world scale, **not** a fixed pixel height;
-- protagonist gameplay visible height is **OPEN pending comparative viewport benchmarking**;
+- `relative_scale=1.0` means baseline adult-human/Exilada world scale, not a sprite pixel height;
 - first locomotion family screen-left / mostly lateral-three-quarter;
 - facing baseline `72°`;
 - runtime consumes complete precomposed character sprites only;
 - no visible runtime body/hair/clothing/equipment layer assembly.
 
-The former `128px` Exilada hard baseline is retired. See `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`.
+## Sprite-resolution correction — HARD LOCK
+
+The former `128px` Exilada asset baseline is retired.
+
+There is no new mandatory `160/180/200px`, `192px` or `384px` production sprite resolution. Those values are historical diagnostics or optional viewport-composition comparisons only.
+
+Production assets must preserve the useful resolution of the approved video/frame/render chain. Gameplay apparent size is controlled separately by runtime/world/camera scaling. Do not destructively shrink source/master sprites merely to match a viewport occupancy target.
 
 ## Final visible-art target — LOCKED
 
-Runtime character graphics are deliberate high-quality pixel art.
+Runtime character graphics remain deliberate high-quality pixel art, but the character design itself must be correct before pixel-art reconstruction is optimized.
 
-H3/Wan painterly/raster video is an intermediate **motion master**, not final runtime art.
+H3 painterly/raster video is an intermediate **motion master**, not final runtime art.
 
-Canonical production chain:
+Canonical production chain after character approval:
 
-`character reference -> real action driver -> H3 Base50 complete-character motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> high-quality pixel-art reconstruction -> one horizontal row for that action + frames/metadata -> runtime`
+`approved character master -> real action driver -> H3 complete-character motion master -> automatic action-frame distillation -> automatic alpha/pivot/alignment -> high-quality pixel-art reconstruction at useful source resolution -> one horizontal row for that action + frames/metadata -> runtime scaling/playback`
 
-Simple downscale/nearest-neighbor/palette reduction is not accepted as the final renderer.
+Simple nearest-neighbor reduction or arbitrary small-cell packaging is not the final-art solution.
 
 ## Spritesheet layout contract — HARD LOCK
 
 **One action = one spritesheet row.**
 
-For every action asset:
-
 - frames read left-to-right in time;
-- one action may contain a variable number of frames/columns;
-- internal renderer tiles/chunks never become final semantic rows;
-- per-frame durations/events live in JSON metadata;
-- complete character remains visible in every cell.
+- an action may contain a variable number of frames;
+- internal renderer tiles/chunks never become semantic final rows;
+- per-frame durations/events live in metadata;
+- complete character remains visible in each frame;
+- final asset resolution follows the approved production chain rather than a fixed legacy cell size.
 
-Current H0 `dance_or_gesture` proof uses 12 frames. Runner52 used `192×192` diagnostic cells; that size is historical test packaging, **not** a production-scale recommendation.
+## Exilada core identity — LOCKED
 
-A later combined character sheet may stack distinct actions vertically.
+The protagonist is an unambiguously adult woman, approximately 162 cm tall, from the Ilhas do Sul.
 
-## 1980s sword-and-sorcery direction — HARD LOCK
+Identity anchors:
+
+- mature severe adult face and presence;
+- lean, functional, resilient natural adult feminine anatomy;
+- olive-to-brown skin;
+- very long, heavy, voluminous, messy black hair as a primary silhouette anchor;
+- alert, contained violence and survival rather than clean heroic presentation;
+- weapon is not part of permanent identity.
+
+The approved nude anatomy source remains legitimate offline authoring evidence. Adult partial or complete nudity is a normal supported character/world state.
+
+## Exilada initial-state design — REOPENED FOR MASTER REVISION
+
+The existing `assets/source/characters/exilada/reference/exilada_master.png` remains useful identity/anatomy evidence, but it is **no longer accepted as final visual-design authority**.
+
+Reason:
+
+- current clothing still reads too intact/generic;
+- previously approved severe tearing and greater exposure are not yet visually resolved;
+- the character still reads too generically relative to the locked sword-and-sorcery lineage.
+
+The initial captivity state must be allowed to explore:
+
+- severely torn asymmetrical cloth;
+- irregular holes, edge loss, displaced remnants and incomplete coverage;
+- substantially more torso exposure;
+- partial breast exposure where materially caused by torn cloth;
+- near-nudity or full nudity where deliberately appropriate to the state;
+- equally degraded hip cloth;
+- dirt, sweat, abrasions, scars/wounds and captivity evidence as causal material state;
+- no mandatory censor garment;
+- no neat fantasy bikini/bandeau/corset/MMO costume logic.
+
+Exact tear geometry/exposure is open until visual approval.
+
+## 1980s sword-and-sorcery direction — HARD LOCK / MASTER MUST NOW PROVE IT
 
 Active inspiration lineage:
 
@@ -91,84 +126,64 @@ Active inspiration lineage:
 - Frank Frazetta;
 - Julie Bell.
 
-Final art must preserve mature adult anatomy, danger, grime, sensuality, tactile materials and pulp-fantasy physicality. Approved adult characters may not be sanitized or infantilized.
+The revised master must visibly carry adult physical weight, danger, grime, sensuality/erotic charge, tactile skin/hair/cloth/metal and pulp-fantasy excess. Merely mentioning these references in a prompt is insufficient.
 
-## Adult body/identity preservation — HARD LOCK
+Reject generic modern fantasy heroine, cosplay-clean/MMO polish, cute/chibi drift and sanitized adult anatomy.
 
-Renderer changes rendering language, not physical identity.
+## CURRENT GATE — Runner54 local Exilada master editor
 
-For approved adult characters including the Exilada:
+**Runner53 is paused. Do not continue downstream pixel-art style validation against the stale master.**
 
-- preserve mature adult age and head-to-body ratio;
-- preserve torso/limb length and major proportions;
-- preserve adult bust/hips/pelvis/legs relationship;
-- no enlarged head, shortened/thickened juvenile body, rounded childlike face, cute/chibi/adolescent drift.
+Current launcher:
 
-## All-local authoring target — LOCKED
+`tools/structured-2d-character-pipeline/54_run_exilada_master_editor.ps1`
 
-One local interface must eventually support:
+Application:
 
-1. existing character reference image **or** local text-to-reference generation;
-2. relative world scale for humans/creatures/monsters/bosses;
-3. real action driver video;
-4. action preset such as idle/walk/run/jump/punch/kick/weapon attack/defense/hit/death/taunt/dance/custom;
-5. local H3 motion generation;
-6. local action-frame extraction;
-7. local pixel-art reconstruction;
-8. local action-row/preview/atlas/JSON/manifest output.
+`tools/flux-kontext-spike/exilada_master_editor.py`
 
-Gradio remains the V1 UI choice **after renderer behavior passes**.
+Detailed record:
 
-## Relative scale — CURRENT CONTRACT
+`docs/EXILADA_MASTER_REVISION_LOCAL_EDITOR_2026-09-08.md`
 
-`relative_scale=1.0` = baseline adult-human/Exilada **world scale only**.
+Purpose:
 
-It does not imply a fixed visible pixel height.
+- work on character visual details locally rather than through the chat image-generation surface;
+- edit clothing damage/exposure, body/identity locks, material state and pictorial direction interactively;
+- optionally use the approved nude anatomy turnaround and two arbitrary visual-direction references;
+- preserve native useful Kontext output with no forced 128/192/384px reduction;
+- version every candidate with prompt/settings/hashes;
+- never overwrite `exilada_master.png` automatically;
+- only explicit local **APPROVE** promotes a candidate and backs up the previous master.
 
-First gameplay-composition benchmark at native `640×360` will compare approximately:
+The master-revision gate passes only on explicit user approval of a candidate.
 
-- `160px` visible standing height (~44% of viewport height);
-- `180px` (~50%);
-- `200px` (~56%).
+## Motion model — MiniMax H3 Ref2VA ACTIVE / BASE50 QUALITY BASELINE
 
-These are comparison candidates, not locks. Final scale must be chosen in a real gameplay composition with multiple enemies, depth movement, attack envelopes, HUD-safe area, hair/cloth/chain extents and at least one larger creature/boss case.
+Current proven motion-master configuration:
 
-Authoring/render masters remain materially larger than eventual gameplay display; current target is roughly `256–320px` visible subject height where practical, with `384×384` or larger cells when required by the action envelope.
-
-## Motion model — MiniMax H3 Ref2VA ACTIVE / BASE50 LOCKED
-
-Canonical H0 quality baseline:
-
-- Base Ref2VA;
-- Picture1 = canonical Exilada master;
-- Video1 = raw comparison driver, timestamp-resampled only;
-- `448×800`;
-- `124f@24fps`;
+- MiniMax H3 Base Ref2VA;
+- `448×800` video generation;
+- `124 frames @24fps`;
 - `ref_image_size=match`;
 - `50 steps`;
 - `res_multistep/beta`;
-- seed0;
-- no Turbo/FL2VA/style embedding;
-- schema-required audio VAE wired, no audio reference/decode for current job.
+- seed `0`;
+- no Turbo LoRA;
+- no FL2VA;
+- no style embedding.
 
-Evidence:
+Current H0 evidence:
 
-- prompt id `e5cf1c97-3ca6-4d5d-9411-641bc58cd464`;
-- elapsed `4504.8s`;
-- output `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`;
-- SHA256 `ccdd4df03674ee325b6302f18e24b210ee3666ff2eb5f19dfa0877d647f93dd3`.
+`Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 
-Visual verdict: **PASS_CANDIDATE / preferred motion-master quality baseline**.
+H0 is dance/gesture-like and remains valid motion/model evidence, but a materially revised Exilada master may require H3 revalidation before production animation proceeds.
 
-Turbo4 was visually rejected. Base50 remains the production default.
-
-The current H0 is a **dance/gesture-like action**, not a walk. Do not generate a new walk merely to debug downstream rendering.
-
-## FLUX.1 Kontext local renderer — ACTIVE FAMILY
+## FLUX.1 Kontext local tooling — ACTIVE
 
 Workspace: `Z:\AI\FluxKontext`
 
-Installed/proven runtime:
+Installed/proven set:
 
 - ComfyUI v0.34.0 on port `8191`;
 - `flux1-dev-kontext_fp8_scaled.safetensors`;
@@ -176,119 +191,48 @@ Installed/proven runtime:
 - `t5xxl_fp16.safetensors`;
 - `ae.safetensors`.
 
-Reuse this installation; do not redownload it for each renderer test.
+Reuse this installation. Do not redownload it for each test.
 
-## Renderer history
+### Renderer history
 
-### Runner50 — MODEL/TASK FAIL
+- Runner50: inference worked but task/denoise caused body drift and wrong formulation — rejected.
+- Runner51: rejected pre-inference because a 4×3 layout incorrectly split one action into semantic rows.
+- Runner52: one-action/one-row structure and adult-body preservation passed provisionally; high-level pixel-art construction did not yet pass.
+- Runner53: dedicated Modern Pixel Art LoRA probe prepared but now **PAUSED** until the Exilada master is revised and approved.
 
-Technical inference worked, but denoise1.0 caused adult body drift/infantilization and the task/layout formulation was wrong. Pixel-art language was only partial.
+Runner52's `192×192` packaging and Runner53's planned `384×384` review cells are not production sprite-resolution mandates.
 
-### Runner51 — REJECTED PRE-INFERENCE
+## Runtime character representation — LOCKED
 
-Its `4×3` final layout incorrectly split one action into three rows. Classification: **CONFIGURATION / TASK-FORMULATION FAIL — PRE-INFERENCE**. No model-quality evidence.
+The game does not assemble body/hair/clothing/equipment layers visibly at runtime.
 
-### Runner52 — COMPLETED / PARTIAL PASS
+Runtime representation:
 
-Runner:
+`complete authored character state -> complete animation frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
 
-`tools/structured-2d-character-pipeline/52_run_flux_kontext_h0_dance12_single_action_row.ps1`
+Every exported frame already contains any body/jiggle, hair, cloth, bindings, chains/accessories and final occlusion for that state.
 
-Evidence from submitted manifest/log:
+Variation is solved offline.
 
-- selected source frames one-based: `1,12,23,35,46,57,68,79,90,102,113,124`;
-- three internal four-frame `2×2` Kontext chunks;
-- prompt ids:
-  - `0cb61aec-f6f9-4073-9941-970186ff7d15`;
-  - `10bff98b-7453-4064-9e30-95b76dfd38b5`;
-  - `65b26095-ccf5-4874-80d0-ca624b9cdb4b`;
-- elapsed: `288.49s + 280.52s + 280.34s = 849.35s` (~14m09s);
-- 20 steps, guidance2.5, CFG1, Euler/simple, seed0, denoise0.45;
-- final local layout `12×1`, `192×192` diagnostic cells.
+## Current immediate implementation order
 
-Verdict:
-
-- final one-action layout: **PASS**;
-- adult body/identity preservation: **PASS_CANDIDATE**;
-- pose fidelity: **PASS_CANDIDATE**;
-- cross-chunk consistency: **PASS_CANDIDATE**;
-- automatic alpha: **PASS_CANDIDATE**;
-- final high-level deliberate pixel art: **NOT YET PASS**.
-
-The result still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail rather than authored pixel clusters. The premature small review scale may contribute to that reading and is no longer treated as a production assumption.
-
-Record:
-
-`docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
-
-Runner52 also does **not** prove final runtime action timing/cycle distillation; its `250–479ms` durations preserve broad source coverage only.
-
-## CURRENT GATE — Runner53 / dedicated pixel-art LoRA probe at larger master scale
-
-Do not raise denoise yet: `0.45` is the current structure-preserving value.
-
-Runner53 tests whether a dedicated style adapter can strengthen pixel-art construction without sacrificing the Runner52 body/pose gains.
-
-Runner:
-
-`tools/structured-2d-character-pipeline/53_run_flux_kontext_h0_dance_chunk2_modern_pixelart_lora_probe.ps1`
-
-Executor:
-
-`tools/flux-kontext-spike/run_h0_dance_chunk2_modern_pixelart_lora_probe.py`
-
-Controlled model test:
-
-- only Runner52 chunk2 / source frames `46,57,68,79`;
-- same Kontext FP8;
-- same canonical Exilada reference;
-- same 20 steps / guidance2.5 / CFG1 / Euler-simple / seed0 / denoise0.45;
-- only model/style change: `UmeAiRT/FLUX.1-dev-LoRA-Modern_Pixel_art`, `ume_modern_pixelart.safetensors`, strength1.0;
-- LoRA SHA256 `ed226c149dca6286ae345b6900d807f791a52b1746ed8f524af41efdfda6f0a4`;
-- ~344MB, MIT license for the adapter itself;
-- underlying Kontext non-commercial license caveat remains.
-
-Packaging/master correction after scale review:
-
-- Runner53 no longer downpacks to `192×192` cells;
-- output review/master cells are `384×384`;
-- gameplay apparent height remains explicitly `UNLOCKED_PENDING_VIEWPORT_BENCHMARK`;
-- this packaging change does not alter Kontext inference conditioning/settings.
-
-This is deliberately one chunk (~one Kontext inference) before spending another full 12-frame pass.
-
-Runner53 PASS requires materially stronger intentional pixel-art construction while preserving mature adult anatomy, exact poses and the locked sword-and-sorcery charge.
-
-## Character-reference generation from text — OPEN MODEL CHOICE
-
-The final interface must support local text-to-reference generation, but the exact model remains open. SDXL-class and FLUX T2I families remain candidates.
-
-## Model-screening order
-
-1. MiniMax H3 Ref2VA — ACTIVE / Base50 locked for motion masters.
-2. FLUX.1 Kontext [dev] — ACTIVE renderer family / Runner53 current gate.
-3. Wan-Animate-2 — paused, not exhausted.
-4. SCAIL-2 — later only if H3 fails a future motion-production contract.
+1. pull the current repository state;
+2. run Runner54;
+3. revise the Exilada locally, including the already-approved severe tear/exposure direction and stronger sword-and-sorcery pictorial charge;
+4. iterate candidates without promoting them automatically;
+5. explicitly approve one new canonical master only when identity, anatomy, exposure/material logic and art direction pass;
+6. if the visual revision is material, revalidate/regenerate H3 motion using the new master;
+7. resume downstream pixel-art reconstruction/style-adapter validation only after that;
+8. derive sprites at the useful production resolution of the approved video/frame chain and leave gameplay apparent scale to runtime.
 
 ## License caveat
 
-FLUX.1 Kontext [dev] open weights are non-commercial. Technical validation is acceptable; commercial shipping requires appropriate BFL licensing or another renderer with compatible terms.
-
-## Immediate implementation order
-
-1. run Runner53 only after pulling the scale-corrected runner;
-2. compare its four frames against Runner52 chunk2 at master/review scale;
-3. judge pixel-cluster quality separately from anatomy/pose fidelity;
-4. if the style adapter passes, apply it to the full 12-frame action at master scale;
-5. if it fails, reject the adapter specifically before changing denoise/precision/model family;
-6. once pixel-art renderer quality passes, run comparative `160/180/200px` viewport composition tests rather than assuming a fixed gameplay height;
-7. then implement action-specific distillation/timing and build the Gradio authoring UI.
+FLUX.1 Kontext [dev] open weights are non-commercial. Current use is technical/art-direction R&D. Commercial shipping requires appropriate BFL commercial licensing or a renderer with compatible terms.
 
 ## Cleanup
 
 - keep Base H3 Ref2VA minimal set;
-- Turbo4 LoRA may be removed after evidence preservation;
 - keep current Kontext model set;
-- keep the Modern Pixel Art LoRA only while its hypothesis is active;
-- Wan large checkpoints may be removed while W1H/W1L evidence remains;
+- keep the Modern Pixel Art LoRA while the downstream style hypothesis remains open;
+- Wan large checkpoints may remain removed/paused while evidence is retained;
 - SSD comparison evidence remains until explicit abandonment/final verdict.
