@@ -1,5 +1,5 @@
 {
-  "registry_version": 5,
+  "registry_version": 6,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -78,27 +78,40 @@
     {
       "adapter_id": "flux2_klein_4b_base",
       "family": "FLUX.2 Klein 4B Base",
-      "status": "runner59_prepared_pending_install_and_validation",
+      "status": "installed_runner59_technical_pass_recipe_parity_invalid_runner60_pending",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/Flux2Klein",
       "capabilities": [],
       "planned_capabilities": ["text_to_image", "single_reference_edit", "multi_reference_edit", "lora_training_base", "project_style_specialization"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
-      "quality_tier": "strong_edit_and_project_specialization_candidate",
-      "vram_note": "Official ComfyUI material reports ~9.2GB VRAM on its benchmark system for 4B Base. Actual RTX 3060 12GB behavior is gated by Runner59.",
+      "quality_tier": "installed_base_official_parity_pending",
+      "vram_note": "Runner59 completed 20/50-step single and multi jobs on RTX 3060 12GB with no OOM. Its cyan/posterized outputs are not a valid model-quality verdict because the custom CFG-5 conditioning graph diverged from the current official ComfyUI Base recipe.",
       "runner59": {
+        "classification": "technical_pass_recipe_parity_invalid_for_model_verdict",
         "runner": "tools/structured-2d-character-pipeline/59_bootstrap_and_run_flux2_klein_base_edit_gate.ps1",
         "executor": "tools/roguelite-asset-studio/flux2_klein_base_edit_gate.py",
-        "adapter": "tools/roguelite-asset-studio/flux2_klein_base_adapter.py",
+        "record": "docs/RUNNER59_FLUX2_KLEIN_BASE_EDIT_GATE_2026-09-09.md",
         "comfy_commit": "672ba9e5e388bd6bfac5ceef61f89ffdd9467200",
         "settings": {"width": 768, "height": 768, "steps": [20, 50], "cfg": 5.0, "sampler": "euler", "seed": 0},
-        "additional_payload_bytes": 4339017580,
+        "elapsed_total_seconds": 695.251,
+        "contact_sheet_sha256": "214c4633983f4eac8b1e2c5e7816b8b68df0ca4b44f179ee95fdb82a2f6e25fc",
+        "observed_issue": "All four outputs had severe cyan/blue posterization and edge emphasis. Post-run comparison found the adapter used ConditioningZeroOut(positive) instead of the official separate empty negative CLIPTextEncode at CFG 5, plus fixed 768 geometry instead of the official 1-MP reference geometry path.",
         "files": [
           {"name": "flux-2-klein-base-4b-fp8.safetensors", "bytes": 4089498488, "sha256": "44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840"},
           {"name": "full_encoder_small_decoder.safetensors", "bytes": 249519092, "sha256": "ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62"}
         ]
       },
-      "notes": "Runner59 is the active gate. Reuses the existing full Qwen3-4B encoder, original gate and Runner58 material reference. If Base also fails the edit obedience gate, move editing to a stronger specialized model branch rather than increasing steps blindly."
+      "runner60": {
+        "status": "current_gate_no_download",
+        "runner": "tools/structured-2d-character-pipeline/60_run_flux2_klein_base_official_parity_gate.ps1",
+        "executor": "tools/roguelite-asset-studio/flux2_klein_base_official_parity_gate.py",
+        "adapter": "tools/roguelite-asset-studio/flux2_klein_base_adapter.py",
+        "record": "docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md",
+        "sampling": {"steps": 20, "cfg": 5.0, "sampler": "euler"},
+        "diagnostics": ["base_small_decoder_roundtrip", "full_flux2_vae_roundtrip_control", "base_t2i", "base_single_reference", "base_multi_reference"],
+        "parity": "Separate empty negative CLIPTextEncode; ReferenceLatent on both branches; nearest-exact 1-MP reference scaling; edit geometry derived from first scaled reference."
+      },
+      "notes": "Do not reject Base or route it for production until Runner60 provides a parity-valid visual result. Qwen-Image-Edit remains deferred until this same-family hypothesis is genuinely exhausted."
     },
     {
       "adapter_id": "qwen_image_edit_2509_fp8",
@@ -110,7 +123,7 @@
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "ui_art"],
       "quality_tier": "heavy_quality_candidate",
       "vram_note": "Heavier than the 12GB baseline; requires a dedicated FP8/low-VRAM feasibility spike before use.",
-      "notes": "Potential next specialized editing branch only if Klein Base does not satisfy the production edit gate."
+      "notes": "Potential next specialized editing branch only after Runner60 yields a valid Base verdict."
     },
     {
       "adapter_id": "step1x_edit",
