@@ -20,12 +20,20 @@ DEFAULT_REGISTRY = HERE / "model_registry.json"
 
 ROUTABLE_STATUSES = {
     "active_proven": 0,
+    "active_static_t2i_proven_edit_pending": 5,
     "active_rnd": 20,
     "available_unvalidated_for_studio": 40,
     "priority_candidate_not_installed": 60,
     "priority_training_candidate_not_installed": 70,
     "quality_control_candidate_not_installed": 80,
     "deferred_hardware_mismatch": 100,
+}
+
+INSTALLED_STATUSES = {
+    "active_proven",
+    "active_static_t2i_proven_edit_pending",
+    "active_rnd",
+    "available_unvalidated_for_studio",
 }
 
 
@@ -164,10 +172,13 @@ def route_models(
         if asset_type not in set(model.get("asset_types", [])):
             continue
         status = str(model.get("status", "unknown"))
-        installed = status in {"active_proven", "active_rnd", "available_unvalidated_for_studio"}
+        installed = status in INSTALLED_STATUSES
         if not include_uninstalled and not installed:
             continue
 
+        # Only proven/accepted capabilities route production jobs. Planned or
+        # candidate capabilities are deliberately kept out of this set until a
+        # dedicated gate passes.
         model_caps = set(model.get("capabilities", []))
         matches, missing_count = _capability_match(model_caps, set(required))
         if not matches:
@@ -175,7 +186,7 @@ def route_models(
 
         score = ROUTABLE_STATUSES.get(status, 90)
         score += missing_count * 100
-        if model.get("quality_tier") in {"motion_master", "priority_static_interactive_candidate"}:
+        if model.get("quality_tier") in {"motion_master", "priority_static_interactive_candidate", "static_interactive_proven"}:
             score -= 5
         routes.append(
             ModelRoute(
