@@ -137,7 +137,7 @@ if (-not (Test-Verified $VaePath $VaeSha256)) { $missingBytes += $VaeBytes }
 $runtimeReserve = if (Test-Path $Python -PathType Leaf) { [int64](2GB) } else { [int64](7GB) }
 $requiredFree = $missingBytes + $runtimeReserve + [int64](2GB)
 $driveRoot = [System.IO.Path]::GetPathRoot($Workspace)
-$driveInfo = New-Object System.IO.DriveInfo($driveRoot)
+$driveInfo = [System.IO.DriveInfo]::new($driveRoot)
 $freeBytes = [int64]$driveInfo.AvailableFreeSpace
 $requiredGiB = [math]::Round($requiredFree / 1GB, 2)
 $freeGiB = [math]::Round($freeBytes / 1GB, 2)
@@ -160,11 +160,11 @@ if (-not (Test-Path $Python -PathType Leaf)) { Fail "isolated python executable 
 if (-not (Test-Path (Join-Path $ComfyRoot '.git') -PathType Container)) {
     if (Test-Path $ComfyRoot) { Remove-Item -LiteralPath $ComfyRoot -Recurse -Force }
     Write-Host 'Cloning isolated ComfyUI codebase...' -ForegroundColor Cyan
-    Invoke-Git @('clone','--filter=blob:none','--no-checkout',$ComfyRepo,$ComfyRoot) 'ComfyUI clone failed'
+    Invoke-Git -GitArgs @('clone','--filter=blob:none','--no-checkout',$ComfyRepo,$ComfyRoot) -FailureMessage 'ComfyUI clone failed'
 }
 Write-Host "Pinning ComfyUI to $ComfyCommit" -ForegroundColor Cyan
-Invoke-Git @('-C',$ComfyRoot,'fetch','--depth','1','origin',$ComfyCommit) 'ComfyUI pinned commit fetch failed'
-Invoke-Git @('-C',$ComfyRoot,'checkout','--detach','--force',$ComfyCommit) 'ComfyUI pinned checkout failed'
+Invoke-Git -GitArgs @('-C',$ComfyRoot,'fetch','--depth','1','origin',$ComfyCommit) -FailureMessage 'ComfyUI pinned commit fetch failed'
+Invoke-Git -GitArgs @('-C',$ComfyRoot,'checkout','--detach','--force',$ComfyCommit) -FailureMessage 'ComfyUI pinned checkout failed'
 $currentCommit = (& git.exe -C $ComfyRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $currentCommit -ne $ComfyCommit) {
     Fail "ComfyUI checkout mismatch. Expected $ComfyCommit, got $currentCommit"
@@ -227,6 +227,7 @@ if (-not $ready) {
 }
 
 if (Test-Path $ExecutorLog) { Remove-Item -LiteralPath $ExecutorLog -Force }
+$executorExit = 999
 try {
     & $Python -s $Executor `
         --comfy-root $ComfyRoot `
