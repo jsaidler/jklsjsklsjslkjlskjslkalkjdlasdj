@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -72,6 +74,7 @@ def main() -> int:
     parser.add_argument("--comfy-commit", required=True)
     args = parser.parse_args()
 
+    print("RUNNER57-PYTHON: imports OK; arguments parsed", flush=True)
     workspace = args.workspace.resolve()
     gate_dir = workspace / "edit_gate"
     gate_dir.mkdir(parents=True, exist_ok=True)
@@ -80,12 +83,14 @@ def main() -> int:
         raise FileNotFoundError(
             f"Runner56 source output is required before Runner57: {original}"
         )
+    print(f"RUNNER57-PYTHON: Runner56 source verified: {original}", flush=True)
 
     adapter = Flux2KleinAdapter(
         args.comfy_root,
         f"http://127.0.0.1:{args.port}",
         timeout_minutes=args.timeout_minutes,
     )
+    print("RUNNER57-PYTHON: adapter constructed", flush=True)
 
     single_destination = gate_dir / "flux2_klein_single_reference_edit.png"
     single_request = StaticGenerationRequest(
@@ -166,4 +171,18 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except BaseException as exc:
+        # Runner57 is invoked from Windows PowerShell 5.x, where native stderr can
+        # be promoted to NativeCommandError when ErrorActionPreference=Stop. Emit
+        # the entire diagnostic to stdout so the runner can always preserve it.
+        print(
+            f"RUNNER57-PYTHON-FAIL: {type(exc).__name__}: {exc}",
+            file=sys.stdout,
+            flush=True,
+        )
+        traceback.print_exc(file=sys.stdout)
+        raise SystemExit(1)
