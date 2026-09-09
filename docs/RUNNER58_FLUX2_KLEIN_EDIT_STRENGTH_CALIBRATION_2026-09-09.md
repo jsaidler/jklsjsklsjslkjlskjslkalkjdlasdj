@@ -2,190 +2,135 @@
 
 Status date: **2026-09-09**
 
-Status: **PREPARED / CURRENT GATE / NO NEW MODEL DOWNLOAD**
+Status: **COMPLETE / TECHNICAL PASS / PRODUCTION EDIT VISUAL FAIL**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner58 exists
+## Purpose
 
-Runner57 proved that the installed FLUX.2 Klein 4B distilled runtime can execute both single-reference and ordered two-reference editing on the RTX 3060 12 GB workstation.
+Runner58 exhausted the most plausible simple calibration of the already-installed **FLUX.2 Klein 4B distilled FP8** before changing branches.
 
-Actual Runner57 technical results:
+Runner57 had already proven that single- and multi-reference editing execute technically. Runner58 asked whether stronger prompts plus 4/8/12-step calibration could make those edits useful for actual art direction.
 
-- single-reference edit: 768×768, 4 steps, CFG 1.0, Euler, seed 0, **14.063 s**;
-- multi-reference edit: 768×768, 4 steps, CFG 1.0, Euler, seed 0, **16.025 s**;
-- no OOM, graph failure or runtime crash;
-- both outputs preserved the source gate very strongly.
+No new checkpoint was introduced.
 
-Visual review did **not** accept the edit recipe for production routing because the requested structural/material changes were too weak. The single and multi outputs remained too close to the original gate.
+## Runtime
 
-Therefore Runner57 is classified as:
+- workspace: `Z:\AI\Flux2Klein`
+- ComfyUI commit: `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
+- diffusion: `flux-2-klein-4b-fp8.safetensors`
+- text encoder: `qwen_3_4b.safetensors`
+- VAE: `flux2-vae.safetensors`
+- output: 768×768
+- CFG: 1.0
+- sampler: Euler
+- seed: 0 for edits
 
-**technical PASS / visual-strength PARTIAL-FAIL**.
+## Test design
 
-This does not reject the Klein family and does not activate edit capabilities in the Studio router.
+### Single-reference matrix
 
-## Runner58 purpose
+Original ruined gate as `previous_approved_state`, at 4 / 8 / 12 steps.
 
-Determine whether the already-installed **FLUX.2 Klein 4B distilled FP8** can produce strong, explicit and useful reference edits through recipe calibration before any model switch is considered.
+Requested binary facts:
 
-No new checkpoint is downloaded. No new model family is introduced.
+1. remove one entire vertical plank from the left door leaf;
+2. remove one large top-left capstone/lintel block;
+3. snap/partially remove the lower iron strap on the right door leaf;
+4. strongly corrode surviving iron;
+5. visibly warp/split/water-damage timber.
 
-## Runtime — unchanged
+### Material authority
 
-Workspace:
+A separate reference board was generated containing severe rust, grime, damaged timber, fractured masonry, dirt, moss and roots.
 
-`Z:\AI\Flux2Klein`
+### Multi-reference matrix
 
-ComfyUI commit:
+- Image 1 = `structure`: original gate;
+- Image 2 = `material`: severe-decay material board;
+- 4 / 8 / 12 steps.
 
-`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
+The same structural edits were requested so that material transfer and edit obedience could be judged separately.
 
-Weights remain exactly:
+## Actual technical result — PASS
 
-- `flux-2-klein-4b-fp8.safetensors`
-- `qwen_3_4b.safetensors`
-- `flux2-vae.safetensors`
+All seven jobs completed without OOM, graph failure or runtime crash.
 
-All existing SHA256 checks remain mandatory.
+Elapsed times:
 
-## Calibration design
+- single 4: **16.130 s**
+- single 8: **16.054 s**
+- single 12: **24.036 s**
+- material reference: **6.014 s**
+- multi 4: **16.030 s**
+- multi 8: **26.093 s**
+- multi 12: **38.168 s**
+- total matrix: **156.620 s**
 
-Runner58 executes seven controlled jobs.
+Contact sheet SHA256:
 
-### A. Single-reference binary edit matrix
+`6025b4265918ffea7ea97369cd122384a4bc822e7c53d1965f9caa80e8a62aae`
 
-Source: Runner56 ruined gate.
-
-Role: `previous_approved_state`.
-
-Three jobs use identical prompt, seed, CFG and sampler while varying only steps:
-
-- 4 steps;
-- 8 steps;
-- 12 steps.
-
-The prompt intentionally requests binary, visually verifiable edits instead of vague additional weathering:
-
-1. remove one entire vertical plank from the **left door leaf**, leaving a full-height gap;
-2. break away one large **top-left capstone/lintel block**, clearly altering the top silhouette;
-3. snap and partially remove the **lower iron strap on the right door leaf**;
-4. add strong orange-brown corrosion and dark grime;
-5. make surviving timber visibly warped, split and water-damaged.
-
-Identity/camera/overall construction remain authoritative from the source image.
-
-### B. Automatically generated material authority
-
-One independent T2I job creates a severe-decay material reference board containing:
-
-- flaking orange-brown wrought-iron corrosion;
-- black grime;
-- warped split wet timber;
-- fractured gray masonry;
-- dirt, moss and opportunistic roots.
-
-The material reference is explicitly **not** a gate or scene. This gives the subsequent multi-reference test a genuinely distinct visual authority instead of recycling a weak first edit.
-
-### C. Ordered multi-reference matrix
-
-References:
-
-- Image 1 role `structure`: original gate — authority for identity, camera, silhouette, masonry footprint and doorway proportions;
-- Image 2 role `material`: generated material board — authority only for decay/material severity.
-
-Again three jobs vary only steps:
-
-- 4;
-- 8;
-- 12.
-
-The multi prompt also requests the same large missing plank/block/strap edits so semantic influence is easy to judge.
-
-## Fixed settings
-
-Except for the step matrix:
-
-- output: 768×768;
-- CFG: 1.0;
-- sampler: Euler;
-- seed: 0 for edit variants;
-- material-board seed: 5801.
-
-The 768×768 resolution is a calibration setting, not a production-resolution lock.
-
-## Automatic measurements
-
-For each edit output, Runner58 records simple image-difference metrics against the original:
-
-- mean absolute RGB difference;
-- mean absolute luma difference;
-- ratio of pixels with luma delta >12;
-- ratio of pixels with luma delta >24.
-
-These metrics do **not** decide quality. They only reveal whether a recipe is producing materially different pixels. Human visual review remains authoritative for identity preservation, requested-edit compliance and useful art quality.
-
-## Outputs
-
-Under:
-
-`Z:\AI\Flux2Klein\edit_strength_calibration`
-
-Expected files:
-
-- `single_binary_steps04.png`
-- `single_binary_steps08.png`
-- `single_binary_steps12.png`
-- `material_decay_reference.png`
-- `multi_structure_material_steps04.png`
-- `multi_structure_material_steps08.png`
-- `multi_structure_material_steps12.png`
-- `runner58_contact_sheet.png`
-- `runner58_manifest.json`
-- `runner58_executor.log`
-- Python stdout/stderr logs;
-- ComfyUI stdout/stderr logs.
-
-## Technical PASS
-
-All seven jobs must complete through the same generic Klein adapter with no OOM, graph failure or runtime crash, and all comparison/manifest outputs must be written.
-
-Expected terminal line:
-
-`RUNNER58-FLUX2-KLEIN-EDIT-CALIBRATION: PASS - TECHNICAL MATRIX COMPLETE / VISUAL VERDICT PENDING`
-
-## Visual PASS
+## Difference metrics
 
 ### Single-reference
 
-At least one of 4/8/12 steps must:
+| steps | mean abs luma | changed >12 | changed >24 |
+|---:|---:|---:|---:|
+| 4 | 23.8699 | 0.857127 | 0.386804 |
+| 8 | 27.6526 | 0.881953 | 0.794367 |
+| 12 | 29.2693 | 0.887327 | 0.808146 |
 
-- remain recognizably the same gate;
-- preserve the camera and main construction;
-- clearly remove a full door plank;
-- clearly remove a large top-left block;
-- clearly break/remove the specified iron strap;
-- visibly intensify corrosion/timber damage.
+Increasing steps clearly increases broad pixel drift/re-rendering.
 
 ### Multi-reference
 
-At least one of 4/8/12 steps must:
+| steps | mean abs luma | changed >12 | changed >24 |
+|---:|---:|---:|---:|
+| 4 | 12.0681 | 0.281148 | 0.042324 |
+| 8 | 14.3251 | 0.351788 | 0.161229 |
+| 12 | 15.3945 | 0.375287 | 0.203785 |
 
-- retain Image 1 identity/camera/construction;
-- visibly import severe material qualities from Image 2;
-- avoid duplicated gates or material-board-as-scenery contamination;
-- execute the requested binary structural edits strongly enough for interactive art direction.
+The second reference changes the result, but its practical influence remains weak relative to the source structure.
 
-## Decision after review
+## Visual verdict — FAIL for production reference editing
 
-If a useful single and multi recipe pass visually:
+### Single-reference
 
-- activate `single_reference_edit`, `multi_reference_edit` and `interactive_variant` for Klein in the model registry;
-- expose the adapter through the first generic Asset Studio UI/state layer;
-- proceed to the Exilada as the first high-difficulty Character Lab validation.
+The 8/12-step outputs are visibly more re-rendered and show stronger rust/material change, but they still fail the important test: the requested binary structural facts are not reliably executed.
 
-If all calibrated recipes remain visually too weak:
+In particular, the outputs do not clearly and consistently deliver all of:
 
-- keep Klein distilled active for `text_to_image` only;
-- record the editing limitation explicitly;
-- only then evaluate the next stronger editing branch instead of changing models prematurely.
+- a full-height missing door plank;
+- a clearly missing large top-left capstone mass;
+- the requested broken lower-right iron strap.
+
+Therefore the high pixel-difference values do **not** constitute stronger semantic obedience.
+
+### Multi-reference
+
+The original identity/camera are preserved strongly, but the severe material board has too little authority. The outputs remain much closer to the original gate than to the requested material severity and again fail the explicit structural changes.
+
+This is useful evidence: preservation is strong, but controllable transformation is insufficient for the Studio's production editor contract.
+
+## Canonical conclusion
+
+**FLUX.2 Klein 4B distilled remains accepted as the fast local T2I / concept-generation backend.**
+
+Its single- and multi-reference paths are technically proven but **must not be routed as production editing capabilities** for the Roguelite Asset Studio.
+
+Do not continue increasing distilled steps blindly. Runner58 shows that more steps create more image drift without solving the required edit-obedience problem.
+
+## Next gate
+
+Stay inside the same Apache-2.0 4B family before changing model families:
+
+**Runner59 — FLUX.2 Klein 4B Base strong reference-edit gate.**
+
+Rationale:
+
+- Base is the non-distilled, higher-flexibility branch;
+- official ComfyUI Base editing uses a materially different recipe (CFG 5 / full-step sampling / small-decoder VAE);
+- it reuses the existing Qwen3-4B encoder;
+- it adds only the Base diffusion checkpoint and `full_encoder_small_decoder.safetensors`;
+- if Base also fails, the project has sufficient evidence to move editing to a stronger specialized editor rather than continuing to tune Klein distilled.
