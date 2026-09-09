@@ -2,81 +2,78 @@
 
 Status date: **2026-09-08**
 
-Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 BASE50 = MOTION MASTER / KONTEXT STRUCTURE PASS / PIXEL-ART QUALITY STILL OPEN / 128PX BASELINE RETIRED / RUNNER53 STYLE-ADAPTER GATE / 1980s SWORD-AND-SORCERY LOCKED**
+Status: **FINAL RUNTIME ART = HIGH-QUALITY PIXEL ART / H3 = MOTION MASTER / EXILADA MASTER REOPENED / RUNNER54 LOCAL CHARACTER-DESIGN GATE / 128PX ASSET BASELINE RETIRED / 1980s SWORD-AND-SORCERY LOCKED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
+Active character-design gate: `docs/EXILADA_MASTER_REVISION_LOCAL_EDITOR_2026-09-08.md`.
+
 Local workflow: `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`.
-
-Scale correction: `docs/GAMEPLAY_CHARACTER_SCALE_RECALIBRATION_2026-09-08.md`.
-
-Runner52 result: `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`.
 
 ## Core production constraint
 
-The project must remain producible end-to-end through local tooling without routine bespoke manual art/animation work from the user or a hired art team.
+The project must remain producible end-to-end through local tooling without routine bespoke manual art/animation labor from the user or a hired art team.
 
 A visual direction is invalid if it can make one attractive frame but cannot be animated, varied, maintained and expanded through the same automatic production system.
 
 ## Final runtime visible-art language — LOCKED
 
-Runtime character art is deliberate high-quality pixel art:
+Runtime character art remains deliberate high-quality pixel art:
 
 - coherent intentional pixel clusters rather than blurred miniature illustration;
 - exact pixel-grid rendering;
 - strong silhouette and readable large masses;
 - controlled palette/material separation;
 - enough detail to feel contemporary at gameplay scale;
-- final art should exceed the current canonical Exilada reference in pixel construction and consistency.
+- final art should exceed the current Exilada reference in pixel construction and consistency.
 
-Simple nearest-neighbor reduction, palette quantization or the old tiny H0 proxy is not the final-art solution.
+The pixel-art renderer is a downstream stage. It must not be optimized around a character design that is still visually unresolved.
+
+## Exilada visual master — REOPENED
+
+Current file:
+
+`assets/source/characters/exilada/reference/exilada_master.png`
+
+It remains useful for identity/anatomy continuity but is no longer final visual-design authority.
+
+Two failures must be corrected before more animation/style work:
+
+1. initial captivity cloth is still too intact/generic relative to the approved severe-damage/exposure direction;
+2. the image still reads too much like generic contemporary dark fantasy rather than unmistakably carrying the locked sword-and-sorcery lineage.
+
+The master-revision gate passes only when the user explicitly approves a local candidate.
 
 ## Adult identity/body preservation — HARD LOCK
 
-Renderer may change **rendering language**, not approved physical design.
+Renderer/editor may change rendering language, clothing damage and intentionally open design details, but must not accidentally redesign approved physical identity.
 
 For the Exilada and equivalent adults:
 
 - mature adult age remains unambiguous;
 - adult head-to-body ratio remains materially consistent;
-- torso/limb length, shoulder/hip relationship, bust, pelvis, legs and adult sexual dimorphism are preserved;
+- torso/limb length, shoulder/hip relationship, bust, pelvis, legs and adult sexual dimorphism are preserved unless a deliberate character-design change is explicitly chosen;
 - no shortened/thickened juvenile reinterpretation;
 - no enlarged head, rounded childlike face, cute/chibi/adolescent drift.
 
-Runner50 violated this. Runner52 materially corrected it at denoise0.45.
+## Nudity / exposure direction — HARD PERMISSION, EXACT DESIGN OPEN
 
-## H3 painterly/raster output — INTERMEDIATE MOTION MASTER
+The Exilada does not need to be visually desexualized to be treated seriously.
 
-MiniMax H3 Base50 remains the motion-master quality baseline.
+Her initial captivity/deprivation state may include:
 
-Its useful qualities should survive downstream conversion:
+- severely torn cloth;
+- irregular holes and missing edges;
+- displaced remnants rather than neat coverage;
+- substantially more exposed skin than the current master;
+- partial breast exposure when physically consistent with damage;
+- near-nudity or full adult nudity when deliberately appropriate to state;
+- asymmetrical hip coverage;
+- simultaneous vulnerability, danger, sensuality and physical presence.
 
-- physical body mass;
-- coherent anatomy through motion;
-- rich hair volume/inertia;
-- cloth/material response;
-- mature dark-fantasy severity;
-- complete-character continuity.
+No censor garment is mandatory. Exact tear geometry/exposure remains subject to visual approval.
 
-Canonical chain:
-
-`character reference + real action video -> H3 Base50 motion master -> automatic action-frame distillation -> high-quality pixel-art reconstruction -> one horizontal action row + transparent frames/metadata -> runtime`
-
-## Spritesheet organization — HARD LOCK
-
-**One action = one spritesheet row.**
-
-Frames read left-to-right in time. Internal high-resolution renderer tiles/chunks never define final semantic rows.
-
-Current H0 `dance_or_gesture` proof:
-
-- 12 frames;
-- final `12×1` row;
-- Runner52 used `192×192` diagnostic cells only.
-
-A later combined character sheet may stack different actions vertically.
-
-## 1980s sword-and-sorcery charge — HARD LOCK
+## 1980s sword-and-sorcery charge — HARD LOCK / MUST BE VISIBLE
 
 Canonical inspiration lineage:
 
@@ -88,86 +85,41 @@ Canonical inspiration lineage:
 
 Interpretation:
 
-- adult sensuality, heroic anatomy, danger, grime, erotic charge and pulp-fantasy excess may coexist;
+- adult sensuality, heroic/natural anatomy, danger, grime, erotic charge and pulp-fantasy excess may coexist;
 - mature body language must not be sanitized or infantilized;
 - materials should feel tactile, physical and illustrated even after pixel-art reconstruction;
-- the 1980s influence is tonal/art-directional, not VHS/CRT gimmicks.
+- long hair should feel like heavy physical mass, not decorative strands;
+- the influence is tonal/pictorial, not VHS/CRT gimmicks;
+- merely naming references in a prompt is not enough.
 
-A technically clean sprite that loses this charge is not a visual PASS.
+Reject generic modern fantasy heroine, glossy MMO/cosplay polish, clean leather-bikini logic, cute/chibi drift and sanitized adult anatomy.
 
-## Exilada appearance reference
+## Runner54 — CURRENT VISUAL GATE
 
-Canonical identity/state reference:
+Launcher:
 
-`assets/source/characters/exilada/reference/exilada_master.png`
+`tools/structured-2d-character-pipeline/54_run_exilada_master_editor.ps1`
 
-It remains the initial-state authority. The current reference is usable pixel art, but it is not the final ceiling of runtime-art quality.
+Application:
 
-## Exilada body/clothing direction — LOCKED IN PRINCIPLE
+`tools/flux-kontext-spike/exilada_master_editor.py`
 
-The Exilada does not need to be visually desexualized to be treated seriously.
+Purpose:
 
-Her captivity/deprivation state may include:
+- revise the Exilada master locally;
+- work directly on torn cloth/exposure, anatomy, material state, hair/face severity and pictorial charge;
+- use the approved nude anatomy turnaround and optional user-supplied visual references;
+- preserve candidate provenance and full useful output resolution;
+- iterate without automatically overwriting the canonical master;
+- promote a result only through explicit local approval.
 
-- more severely torn cloth;
-- irregular holes/edge loss;
-- more exposed skin and possible partial breast exposure where consistent with damage;
-- asymmetrical coverage rather than a neat fantasy costume;
-- simultaneous vulnerability, danger, sensuality and physical presence.
+Runner53 is paused until this gate passes.
 
-Exact tear geometry/exposure remains subject to visual approval.
+## H3 painterly/raster output — INTERMEDIATE MOTION MASTER
 
-## Character scale variation — LOCKED DIRECTION / GAMEPLAY HEIGHT OPEN
+MiniMax H3 Base50 remains the motion-master quality baseline.
 
-`relative_scale=1.0` means adult-human/Exilada **world scale**, not a pixel count.
-
-The previous `128px` visible-height baseline is retired. It came from a narrow internal `112/128/144px` comparison and was promoted without sufficient genre benchmarking.
-
-External sanity checking shows Final Fight arcade uses example playable sprites around `93px` high on a `224px`-high screen, about `41.5%` viewport occupancy; equivalent occupancy on a `360px`-high viewport is roughly `149px`. This does not set the Roguelite target, but it confirms that `128px` was already a small low-end assumption for the intended visual direction.
-
-First explicit gameplay comparison at native `640×360` will test approximately `160/180/200px` visible Exilada heights. These are candidates only, not locks.
-
-Relative scale remains world/render metadata. Larger monsters may require larger visible runtime height, cells/atlases and source-resolution policy.
-
-## Master-resolution separation — HARD LOCK
-
-Authoring/render master resolution is separate from gameplay apparent size.
-
-Do not shrink the renderer output to the eventual viewport size before pixel-art quality is solved.
-
-Until a gameplay baseline is chosen:
-
-- preserve roughly `256–320px` visible subject height in renderer/master review where practical;
-- use `384×384` or larger cells when the action envelope requires it;
-- derive gameplay-scale comparisons from the larger master rather than forcing the master itself to a tiny target.
-
-## Gameplay-scale principles
-
-At whichever baseline passes viewport benchmarking:
-
-- hair mass, body proportions, clothing asymmetry and equipment shapes remain readable;
-- facial microdetail cannot be the only identity carrier;
-- anatomy remains adult and materially grounded;
-- exposed skin, partial nudity and full adult nudity are valid states;
-- final pixel clusters remain deliberate and stable across animation frames;
-- motion-local impression may exist, destructive blur/ghosting may not.
-
-## Runtime / production architecture
-
-Visible runtime characters are complete precomposed frames. There is no visible runtime body/hair/clothing/equipment layer assembly.
-
-Routine manual rigging, keyframing, mask repair, per-frame repainting/retouching and hand compositing remain disallowed.
-
-## Gameplay projection — LOCKED EXCEPT CHARACTER HEIGHT
-
-- native raster `640×360`;
-- camera pitch `26°`;
-- Exilada gameplay apparent height **OPEN pending comparative viewport test**;
-- first locomotion family screen-left, mostly lateral/slight 3/4;
-- current facing baseline `72°`;
-- combat readability over geometric purity.
-
-## H3 quality configuration — LOCKED
+Canonical proven configuration:
 
 - `448×800`;
 - `124f@24fps`;
@@ -177,52 +129,57 @@ Routine manual rigging, keyframing, mask repair, per-frame repainting/retouching
 - `ref_image_size=match`;
 - no Turbo LoRA.
 
-Do not trade this quality away for speed until a faster path is proven visually equivalent.
+Its useful qualities should survive downstream conversion:
 
-## Runner52 visual result — PARTIAL PASS
+- physical body mass;
+- coherent anatomy through motion;
+- rich hair volume/inertia;
+- cloth/material response;
+- mature dark-fantasy severity;
+- complete-character continuity.
 
-Runner52 materially fixed structure/layout:
+A materially revised Exilada master may require a new H3 validation before production animation resumes.
 
-- one action correctly packs into one horizontal row;
-- adult Exilada proportions materially survive;
-- source poses remain recognizable;
-- three independently rendered chunks remain acceptably compatible;
-- automatic alpha is usable enough to continue.
+## Spritesheet organization — HARD LOCK
 
-But final art is **not yet high-level pixel art**. It still reads too much like reduced/filtered raster with residual painterly microtexture/noisy miniature detail rather than confident authored pixel clusters and controlled palette/material grouping.
+**One action = one spritesheet row.**
 
-Its `192×192` diagnostic packaging is no longer treated as production-scale evidence.
+Frames read left-to-right in time. Internal high-resolution renderer tiles/chunks never define final semantic rows.
 
-Therefore do not build the final UI around Runner52 as though renderer quality or gameplay scale were solved.
+A later combined character sheet may stack different actions vertically.
 
-## Current visual gate — Runner53
+## Resolution architecture — HARD LOCK
 
-Runner53 keeps all Runner52 structure-preserving inference settings and changes only the style signal:
+`128px` is retired as an Exilada production-asset baseline.
 
-- source frames `46,57,68,79`;
-- Kontext FP8;
-- 20 steps;
-- guidance2.5;
-- CFG1;
-- Euler/simple;
-- seed0;
-- denoise0.45;
-- canonical Exilada reference;
-- add `ume_modern_pixelart.safetensors` strength1.0.
+Likewise, historical `192×192` Runner52 cells and `384×384` Runner53 review cells are not final production-resolution mandates.
 
-Packaging correction:
+The sprite/frame asset should preserve the useful resolution of the approved video/frame/render chain. Gameplay apparent size is controlled separately by runtime/world/camera scaling.
 
-- review/master cells = `384×384`;
-- gameplay apparent height remains unlocked;
-- this larger packing preserves substantially more of the model output and does not alter inference conditioning.
+Do not destructively reduce the production master merely because a viewport composition test may display the character at a smaller apparent height.
 
-Runner:
+## Gameplay projection — LOCKED EXCEPT FINAL APPARENT CHARACTER SIZE
 
-`tools/structured-2d-character-pipeline/53_run_flux_kontext_h0_dance_chunk2_modern_pixelart_lora_probe.ps1`
+- native raster `640×360`;
+- camera pitch `26°`;
+- `relative_scale=1.0` = adult-human/Exilada world scale, not pixel height;
+- first locomotion family screen-left, mostly lateral/slight 3/4;
+- current facing baseline `72°`;
+- combat readability over geometric purity.
 
-PASS requires a visible increase in authored pixel-cluster quality **without** losing adult anatomy, exact source pose, severe identity or sword-and-sorcery charge.
+Viewport comparisons may still test different apparent heights, but these do not redefine asset resolution.
 
-If the adapter fails, reject that adapter specifically before increasing denoise, switching precision or changing renderer family.
+## Runtime / production architecture
+
+Visible runtime characters are complete precomposed frames. There is no visible runtime body/hair/clothing/equipment layer assembly.
+
+Routine manual rigging, keyframing, mask repair, per-frame repainting/retouching and hand compositing remain disallowed.
+
+## Renderer history
+
+Runner52 materially fixed structure/layout and adult-body preservation but did not prove final high-level pixel art.
+
+Runner53 remains a useful downstream style-adapter experiment, but it is **PAUSED** because the source character master must be corrected first.
 
 ## Current decisions
 
@@ -232,22 +189,18 @@ If the adapter fails, reject that adapter specifically before increasing denoise
 
 **LOCKED:** one action = one horizontal spritesheet row.
 
-**LOCKED:** internal renderer chunks never define semantic action rows.
+**LOCKED:** approved adult body/age/proportions may not be accidentally infantilized or redesigned.
 
-**LOCKED:** approved adult body/age/proportions may not be infantilized or redesigned.
+**LOCKED:** adult partial/complete nudity is legitimate and no censor garment is mandatory.
 
-**RETIRED:** `128px` as hard Exilada gameplay-height baseline.
+**REOPENED:** exact Exilada initial clothing damage/exposure and final master pictorial treatment.
 
-**OPEN:** final gameplay apparent height, pending `160/180/200px` comparative viewport testing.
+**CURRENT GATE:** Runner54 local Exilada master editor.
 
-**LOCKED:** renderer/master output remains materially larger than eventual gameplay display while art quality is being solved.
+**PAUSED:** Runner53 Modern Pixel Art LoRA probe until the new master is approved.
 
-**ACTIVE RENDERER FAMILY:** FLUX.1 Kontext [dev], structure-preserving path proven enough to continue; style quality still under validation.
+**RETIRED:** `128px`, `192px` or `384px` as mandatory Exilada production sprite-size assumptions.
 
-**CURRENT STYLE GATE:** Runner53 Modern Pixel Art LoRA probe at larger master packing scale.
-
-**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell remain active.
-
-**LOCKED:** mature erotic charge, nudity and partial nudity remain legitimate.
+**LOCKED:** Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell remain active and must be visibly expressed rather than merely named.
 
 **LOCKED:** runtime remains complete-character 2D sprite playback and production must scale without routine manual art labor.
