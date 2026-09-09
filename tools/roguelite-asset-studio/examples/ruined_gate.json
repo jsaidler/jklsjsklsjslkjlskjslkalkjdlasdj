@@ -1,0 +1,17 @@
+{
+  "asset_id": "environment_ruined_gate_01",
+  "display_name": "Ruined Gate 01",
+  "asset_type": "architecture_module",
+  "output_contract": "static_rgba",
+  "art_profile": "roguelite_1980s_sword_sorcery_pixelart",
+  "brief": "Modular ruined stone gate for belt-scroller world composition; readable front/three-quarter silhouette, no baked gameplay characters.",
+  "world_scale": 4.5,
+  "references": [],
+  "constraints": {
+    "modular": true,
+    "transparent_background": true,
+    "damage_state_ready": true,
+    "flattened_full_map": false
+  },
+  "approved_candidate_id": null
+}
