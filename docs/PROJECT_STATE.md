@@ -185,7 +185,7 @@ Planned but **not routable** until Runner57 passes:
 - `multi_reference_edit`
 - `interactive_variant`
 
-The core router now distinguishes active capabilities from planned ones so upstream documentation cannot accidentally promote an untested local capability.
+The core router distinguishes active capabilities from planned ones so documentation cannot accidentally promote an untested local capability.
 
 ## Generic static adapter — IMPLEMENTED
 
@@ -218,15 +218,46 @@ Executor:
 
 Runner57 downloads **no new checkpoints**. It reuses the Runner56 isolated runtime and exact verified model hashes.
 
+### Runner57 harness failure observed 2026-09-09 — CLASSIFIED / FIXED IN MAIN
+
+The first diagnostically complete Runner57 attempt did **not reach FLUX.2 reference-edit inference**.
+
+Observed sequence:
+
+- all three model hashes passed;
+- pinned ComfyUI commit passed;
+- ComfyUI started normally on port 8192;
+- Python executor failed before adapter construction with:
+  `ModuleNotFoundError: No module named 'adapter_protocol'`;
+- Windows PowerShell then raised a secondary null error by calling `.Trim()` on an empty stderr capture.
+
+Classification:
+
+**Runner57 harness/import-path failure, not a Klein model/edit failure.**
+
+Root cause:
+
+The copied ComfyUI embedded Python uses a constrained module-path configuration and does not reliably add the executed Asset Studio script directory to `sys.path`.
+
+Fix now committed:
+
+- `flux2_klein_edit_gate.py` explicitly prepends its own directory to `sys.path` before importing sibling Asset Studio modules;
+- Runner57 uses a null-safe `Read-TextFileOrEmpty` helper for stdout/stderr;
+- stderr presence is tested with `[string]::IsNullOrWhiteSpace()` rather than `.Trim()` on a possibly null value;
+- process stdout/stderr remain captured to deterministic files.
+
+Consequence:
+
+- no edit capability is promoted by this failed attempt;
+- no model payload is changed or redownloaded;
+- rerun the same Runner57 after `git pull --ff-only origin main`;
+- the next failure, if any, will be the first one capable of classifying the actual reference-edit graph/runtime rather than the harness import path.
+
 ### Test A — single reference
 
-Source:
+Source: Runner56 ruined gate.
 
-Runner56 ruined gate.
-
-Semantic role:
-
-`previous_approved_state`
+Semantic role: `previous_approved_state`.
 
 Requested change:
 
@@ -269,6 +300,8 @@ Under:
 - `flux2_klein_edit_gate_comparison_original_single_multi.png`
 - `flux2_klein_edit_gate_manifest.json`
 - `flux2_klein_edit_gate_executor.log`
+- `flux2_klein_edit_gate_python_stdout.log`
+- `flux2_klein_edit_gate_python_stderr.log`
 - isolated Comfy stdout/stderr logs.
 
 Expected technical completion line:
