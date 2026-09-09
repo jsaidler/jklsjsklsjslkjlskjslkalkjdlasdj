@@ -60,9 +60,16 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def validate_spec(spec: dict[str, Any], schema: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+
+    # Presence and non-emptiness are separate concepts. Some required container
+    # fields, especially references, are valid when present as an empty list.
     for field in schema.get("required_fields", []):
-        if field not in spec or spec[field] in (None, "", []):
+        if field not in spec:
             errors.append(f"missing required field: {field}")
+
+    for field in schema.get("non_empty_fields", []):
+        if field not in spec or spec[field] in (None, "", []):
+            errors.append(f"required field must not be empty: {field}")
 
     asset_type = spec.get("asset_type")
     if asset_type and asset_type not in schema.get("asset_types", []):
