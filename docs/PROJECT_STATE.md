@@ -311,10 +311,18 @@ Variation is solved offline.
 
 Do not spend the next development cycle polishing the Exilada-only Gradio editor.
 
+Runner55 foundation validation now has explicit regression semantics:
+
+- schema v2 separates **field presence** from **field non-emptiness**;
+- `references` is required as a field but `references: []` is valid for reference-free/text-to-image asset creation;
+- `SPEC_ERROR` exit code `2` is fatal;
+- only route-not-found exit code `3` may be treated as an expected "no installed model yet" result;
+- the validation pair intentionally covers a referenced playable-character spec and a reference-free architecture-module spec.
+
 Immediate order:
 
 1. pull the current repository state;
-2. validate the generic asset schema/model registry/router;
+2. run corrected Runner55 and require both specs to validate;
 3. refactor model execution into adapter interfaces independent of the UI;
 4. wrap the already-proven H3 Ref2VA and Kontext runtimes as first adapters;
 5. enumerate the exact FLUX.2 Klein 4B local spike payload, disk use and pass/fail criteria before downloading it;
