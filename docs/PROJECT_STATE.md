@@ -8,13 +8,13 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
-4. `docs/VISUAL_DIRECTION.md`
-5. `docs/CHARACTERS.md`
-6. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-7. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
-8. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
-9. `docs/FLUX_KONTEXT_PIXELART_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
+4. `docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
+5. `docs/VISUAL_DIRECTION.md`
+6. `docs/CHARACTERS.md`
+7. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+8. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+9. `docs/RUNNER52_KONTEXT_STRUCTURE_PASS_PIXELART_QUALITY_PARTIAL_2026-09-08.md`
 
 Historical preflight/model-screening documents remain evidence but do not override the current gate.
 
@@ -56,35 +56,20 @@ Generic foundation:
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
 - `tools/roguelite-asset-studio/adapter_protocol.py`
+- `tools/roguelite-asset-studio/flux2_klein_adapter.py`
 
 The router and adapter boundary are UI-independent.
 
 ## Runner55 — FOUNDATION VALIDATION PASS
 
-Runner55 passed on the actual local repository state.
+Runner55 proved the generic schema/router against both a referenced playable character and a reference-free architecture module.
 
-Validated cases:
+Locked schema behavior:
 
-### Referenced playable character
-
-- spec valid;
-- requires `single_reference_edit + multi_reference_edit`;
-- planning routes correctly identified Klein distilled/Base and Qwen editing candidates.
-
-### Reference-free architecture module
-
-- spec valid with `references: []`;
-- requires `text_to_image`;
-- planning routes correctly identified Klein distilled/Base.
-
-Schema regression contract:
-
-- `references` must exist as a field;
-- `references: []` is valid;
+- `references` must exist;
+- `references: []` is valid for reference-free generation;
 - `SPEC_ERROR` exit code 2 is fatal;
-- route-not-found exit code 3 is the only expected no-route condition.
-
-Runner55 conclusion: **generic schema/router foundation PASS**.
+- route-not-found exit code 3 is the expected no-compatible-installed-route result.
 
 ## Runner56 — FLUX.2 KLEIN 4B DISTILLED T2I PASS
 
@@ -96,22 +81,15 @@ Executor:
 
 `tools/roguelite-asset-studio/flux2_klein_t2i_probe.py`
 
-Detailed record:
-
-`docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
-
-### Actual local result
-
-Runner56 completed successfully on the target RTX 3060 12 GB / 48 GB RAM workstation.
-
-Exact runtime:
+Runtime:
 
 - isolated workspace `Z:\AI\Flux2Klein`;
-- isolated ComfyUI commit `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`;
-- default port `8192`;
-- existing H3/Kontext runtimes were not modified.
+- ComfyUI commit `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`;
+- port default `8192`;
+- RTX 3060 12 GB / 48 GB RAM;
+- no H3/Kontext mutation.
 
-Exact model payload verified:
+Verified weights:
 
 1. `flux-2-klein-4b-fp8.safetensors`
    - SHA256 `97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6`
@@ -122,91 +100,21 @@ Exact model payload verified:
 
 Total weights: `12,451,817,860` bytes (~12.45 GB decimal / ~11.60 GiB).
 
-Controlled T2I inference:
+Controlled T2I result:
 
-- asset type `architecture_module`;
-- output `static_master`;
-- no references;
+- `architecture_module` / `static_master`;
 - 768×768;
-- 4 distilled steps;
+- 4 steps;
 - CFG 1.0;
 - Euler;
-- seed 0.
-
-Actual result:
-
-- **no OOM**;
-- **no runtime/CUDA crash**;
-- valid `768×768 RGB` output;
-- inference elapsed **12.054 s**;
-- prompt id `e65a7d0c-f8a5-479b-9995-78cf8978d79f`;
+- seed 0;
+- elapsed **12.054 s**;
+- no OOM/runtime crash;
 - output SHA256 `8ce5b54cf4f7ccabf3aee3583de9c76c8942115aed8592a9430b8ede68730a16`.
 
-Output:
+Visual continuation verdict: **PASS** as a useful static authoring master, not as final game art.
 
-`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_probe.png`
-
-Manifest:
-
-`Z:\AI\Flux2Klein\spike\flux2_klein_4b_t2i_manifest.json`
-
-### Runner56 visual continuation verdict — PASS
-
-The generated ruined gate is coherent enough to establish Klein as a useful static-authoring backend:
-
-- strong readable silhouette;
-- plausible load-bearing construction;
-- useful stone/wood/iron/root material separation;
-- complete neutral-background authoring composition;
-- enough specificity/detail for iterative revision.
-
-The specific image is **not an approved game asset**. Remaining weaknesses include excess symmetry, decorative crack distribution and a door/iron treatment still somewhat clean/polished/generic-fantasy. Those weaknesses are deliberately useful for the reference-edit gate because the next test asks the model to alter them without replacing the gate identity wholesale.
-
-Runner56 conclusion: **technical PASS + visual continuation PASS**.
-
-## FLUX.2 Klein router status after Runner56
-
-Machine-readable authority:
-
-`tools/roguelite-asset-studio/model_registry.json`
-
-Current status:
-
-`active_static_t2i_proven_edit_pending`
-
-Active/routable capabilities:
-
-- `text_to_image`
-- `interactive_concept`
-
-Planned but **not routable** until Runner57 passes:
-
-- `single_reference_edit`
-- `multi_reference_edit`
-- `interactive_variant`
-
-The core router distinguishes active capabilities from planned ones so documentation cannot accidentally promote an untested local capability.
-
-## Generic static adapter — IMPLEMENTED
-
-Files:
-
-- `tools/roguelite-asset-studio/adapter_protocol.py`
-- `tools/roguelite-asset-studio/flux2_klein_adapter.py`
-
-The Studio request contract supplies asset type, output contract, prompt, dimensions/settings and ordered semantic references. The Klein adapter owns the ComfyUI translation.
-
-For reference editing, the adapter follows the current native FLUX.2 distilled semantics:
-
-- CLIP text conditioning;
-- zeroed negative conditioning for reference edit;
-- each reference is encoded through FLUX.2 VAE;
-- ordered reference latents are appended to both positive and zeroed-negative conditioning through `ReferenceLatent`;
-- UI/orchestrator remains unaware of graph-node details.
-
-References are conditioning copies only. Original authored files are never destructively resized or overwritten.
-
-## CURRENT IMPLEMENTATION GATE — Runner57 / GENERIC SINGLE + MULTI REFERENCE EDIT
+## Runner57 — REFERENCE EDIT TECHNICAL PASS / VISUAL-STRENGTH PARTIAL-FAIL
 
 Runner:
 
@@ -216,117 +124,140 @@ Executor:
 
 `tools/roguelite-asset-studio/flux2_klein_edit_gate.py`
 
-Runner57 downloads **no new checkpoints**. It reuses the Runner56 isolated runtime and exact verified model hashes.
+Final successful Runner57 result after harness/import-path fixes:
 
-### Runner57 harness failure observed 2026-09-09 — CLASSIFIED / FIXED IN MAIN
+### Single-reference
 
-The first diagnostically complete Runner57 attempt did **not reach FLUX.2 reference-edit inference**.
-
-Observed sequence:
-
-- all three model hashes passed;
-- pinned ComfyUI commit passed;
-- ComfyUI started normally on port 8192;
-- Python executor failed before adapter construction with:
-  `ModuleNotFoundError: No module named 'adapter_protocol'`;
-- Windows PowerShell then raised a secondary null error by calling `.Trim()` on an empty stderr capture.
-
-Classification:
-
-**Runner57 harness/import-path failure, not a Klein model/edit failure.**
-
-Root cause:
-
-The copied ComfyUI embedded Python uses a constrained module-path configuration and does not reliably add the executed Asset Studio script directory to `sys.path`.
-
-Fix now committed:
-
-- `flux2_klein_edit_gate.py` explicitly prepends its own directory to `sys.path` before importing sibling Asset Studio modules;
-- Runner57 uses a null-safe `Read-TextFileOrEmpty` helper for stdout/stderr;
-- stderr presence is tested with `[string]::IsNullOrWhiteSpace()` rather than `.Trim()` on a possibly null value;
-- process stdout/stderr remain captured to deterministic files.
-
-Consequence:
-
-- no edit capability is promoted by this failed attempt;
-- no model payload is changed or redownloaded;
-- rerun the same Runner57 after `git pull --ff-only origin main`;
-- the next failure, if any, will be the first one capable of classifying the actual reference-edit graph/runtime rather than the harness import path.
-
-### Test A — single reference
-
-Source: Runner56 ruined gate.
-
-Semantic role: `previous_approved_state`.
-
-Requested change:
-
-- preserve the same recognizable gate;
-- preserve camera/framing and underlying construction;
-- make broken lintel/damage less symmetric and more causal;
-- make doors/planks/iron straps more broken/warped;
-- deepen corrosion, dirt and physical aging;
-- remove some polished generic fantasy/asset-store neatness.
-
-PASS requires meaningful requested edits **without wholesale replacement of the asset identity**.
-
-### Test B — ordered two references
-
-- Image 1 role: `structure` — original Runner56 gate; authority for identity, silhouette, camera and construction.
-- Image 2 role: `material` — Test A result; authority only for harsher damage/material aging.
-
-PASS requires one coherent recognizable gate preserving Image 1 structure while carrying useful damage/material information from Image 2. Duplicated gates, incoherent averaging or camera identity loss fail.
-
-### Controlled settings
-
-Both jobs:
-
+- role `previous_approved_state`;
 - 768×768;
 - 4 steps;
 - CFG 1.0;
 - Euler;
-- seed 0.
+- seed 0;
+- elapsed **14.063 s**;
+- output SHA256 `9545ea3dd06f3aaa5872fe7e433896f915e4eb4b45c249ce5c08fee0ed45c6b4`.
 
-Only the reference-edit contract changes relative to the proven T2I path.
+### Ordered multi-reference
 
-### Expected outputs
+- Image 1 `structure` = original Runner56 gate;
+- Image 2 `material` = Runner57 single result;
+- 768×768;
+- 4 steps;
+- CFG 1.0;
+- Euler;
+- seed 0;
+- elapsed **16.025 s**;
+- output SHA256 `437bdc4aebc290c8e688e6e93e5dfe0462aa70321b6cc0984313dc9033147962`.
 
-Under:
+Comparison SHA256:
 
-`Z:\AI\Flux2Klein\edit_gate`
+`c65d43700cdc13feec4c96a5abbd738ffa25a291a61883ad557ea218f94e8ba8`
 
-- `flux2_klein_single_reference_edit.png`
-- `flux2_klein_multi_reference_edit.png`
-- `flux2_klein_edit_gate_comparison_original_single_multi.png`
-- `flux2_klein_edit_gate_manifest.json`
-- `flux2_klein_edit_gate_executor.log`
-- `flux2_klein_edit_gate_python_stdout.log`
-- `flux2_klein_edit_gate_python_stderr.log`
-- isolated Comfy stdout/stderr logs.
+### Runner57 interpretation
 
-Expected technical completion line:
+Technical result: **PASS**.
 
-`RUNNER57-FLUX2-KLEIN-EDIT: PASS - TECHNICAL SINGLE+MULTI REFERENCE COMPLETE / VISUAL VERDICT PENDING`
+The adapter/runtime proves that Klein distilled can execute both single- and multi-reference graphs without OOM, duplication, graph failure or catastrophic structure loss.
 
-Technical PASS alone does not activate edit capabilities. Human visual review is mandatory.
+Visual production result: **not yet PASS**.
 
-## Next gate after Runner57 PASS
+The generated edits preserved the gate strongly but remained too close to the original. Requested damage/material changes were not forceful enough for interactive art direction. Therefore the problem is currently edit strength/obedience, not runtime feasibility.
 
-Only if both edit tests pass visually:
+Do **not** activate production edit routing yet.
 
-1. move `single_reference_edit`, `multi_reference_edit` and `interactive_variant` from planned to active Klein capabilities;
-2. make the generic Studio router select Klein for referenced static assets;
-3. expose the adapter through the first generic Studio UI/state layer;
-4. use the reopened Exilada as the first high-difficulty Character Lab validation with semantic identity/anatomy/style references;
-5. validate a second non-character asset class such as prop/equipment;
-6. add candidate browser/comparison/history/approval/export;
-7. wrap H3 Ref2VA behind the same orchestration boundary for animated character/creature actions.
+## FLUX.2 Klein router status — CURRENT
+
+Machine-readable authority:
+
+`tools/roguelite-asset-studio/model_registry.json`
+
+Status:
+
+`active_static_t2i_proven_edit_technical_pass_calibration_pending`
+
+Active/routable now:
+
+- `text_to_image`
+- `interactive_concept`
+
+Technically proven but still planned/non-routable until visual calibration passes:
+
+- `single_reference_edit`
+- `multi_reference_edit`
+- `interactive_variant`
+
+## CURRENT IMPLEMENTATION GATE — Runner58 / EDIT-STRENGTH + MULTI-REFERENCE OBEDIENCE CALIBRATION
+
+Canonical record:
+
+`docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/58_run_flux2_klein_edit_strength_calibration.ps1`
+
+Executor:
+
+`tools/roguelite-asset-studio/flux2_klein_edit_strength_calibration.py`
+
+Runner58 downloads **no new model** and reuses the exact Runner56/57 isolated runtime.
+
+### Single-reference matrix
+
+Same original gate, same seed/CFG/sampler, with deliberately binary edits, at:
+
+- 4 steps;
+- 8 steps;
+- 12 steps.
+
+Required visible changes include:
+
+- remove one complete vertical plank from the left door leaf;
+- remove one large top-left capstone/lintel block;
+- break/partially remove the lower strap on the right door leaf;
+- strong corrosion/grime;
+- visibly warped/split timber.
+
+### Separate material authority
+
+Runner58 automatically generates a severe-decay material board through the already-proven Klein T2I route. It is deliberately not a gate/scene.
+
+### Multi-reference matrix
+
+- Image 1 `structure` = original gate;
+- Image 2 `material` = generated severe-decay material board;
+- 4/8/12-step variants.
+
+This directly tests whether a distinct secondary reference exerts useful material influence while Image 1 retains structure/camera authority.
+
+### Metrics
+
+Manifest records image-difference magnitude against the original, including mean absolute luma/RGB delta and changed-pixel ratios. Metrics are diagnostic only; human visual review remains authoritative.
+
+### Runner58 visual PASS
+
+At least one single and one multi variant must make the requested large edits visibly while preserving recognizable gate identity/camera/construction.
+
+If Runner58 passes visually:
+
+1. activate Klein `single_reference_edit`, `multi_reference_edit`, `interactive_variant`;
+2. expose the adapter through the first generic Asset Studio UI/state layer;
+3. proceed to the reopened Exilada as the first high-difficulty Character Lab case;
+4. validate another non-character class such as prop/equipment;
+5. add candidate browser/history/approval/export;
+6. wrap H3 behind the same orchestration boundary for temporal assets.
+
+If Runner58 remains visually weak:
+
+- keep Klein distilled active for T2I only;
+- record the limitation;
+- only then evaluate the next stronger editing branch rather than changing models prematurely.
 
 ## Model router — other families
 
 ### MiniMax H3 Base Ref2VA — ACTIVE / PROVEN MOTION SPECIALIST
 
-Current proven character-motion baseline:
+Current proven Exilada motion baseline:
 
 - 448×800;
 - 124 frames @24fps;
@@ -352,7 +283,7 @@ Useful for editing/reconstruction R&D. Its dev license prevents silently making 
 
 ### FLUX.2 Klein 4B Base — TRAINING/SPECIALIZATION CANDIDATE
 
-Do not download now. Retain for future Roguelite-specific LoRA/fine-tuning evaluation after enough approved licensable project data exists.
+Do not download during Runner58. Retain for future Roguelite-specific LoRA/fine-tuning evaluation after enough approved licensable project data exists.
 
 ### Qwen-Image-Edit / 2509 — HEAVY QUALITY/CONTROL CANDIDATE
 
@@ -360,13 +291,13 @@ Apache-2.0 but heavier than the 12 GB baseline. Requires a dedicated low-VRAM sp
 
 ### Step1X-Edit — DEFERRED
 
-Published memory use remains a poor fit for the current workstation.
+Published memory use remains a poor fit for the workstation.
 
 ## Local-first production — HARD LOCK
 
 Routine asset production must work locally after installation. Hosted services may be optional accelerators but cannot be mandatory.
 
-This also keeps mature/adult fictional state authoring independent from hosted-surface restrictions.
+This keeps mature/adult fictional-state authoring independent from hosted-surface restrictions.
 
 ## Game/runtime presentation — LOCKED EXCEPT FINAL APPARENT CHARACTER SCALE
 
@@ -394,7 +325,7 @@ For animated character/creature actions:
 
 **one action = one horizontal spritesheet row**;
 
-frames read left-to-right, frame count is variable, and timing/events/pivots live in metadata.
+frames read left-to-right, frame count is variable, timing/events/pivots live in metadata.
 
 ## Environment/map production principle — LOCKED
 
@@ -419,7 +350,7 @@ The engine/level system composes these modules.
 
 Required revision direction includes:
 
-- stronger Heavy Metal / Conan / Red Sonja / Frazetta / Julie Bell charge;
+- stronger Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell charge;
 - severe asymmetrical cloth degradation;
 - materially caused greater torso exposure/partial breast exposure where appropriate;
 - near/full adult nudity as legitimate states;
@@ -433,9 +364,9 @@ Runner53 remains paused until the static master is revised through the generic S
 
 Do not accumulate candidate checkpoints speculatively.
 
-- keep the proven H3 Base50 set;
+- keep proven H3 Base50 set;
 - keep current Kontext R&D set while still needed;
-- keep the now-proven Klein distilled FP8 + full Qwen3-4B + VAE runtime;
-- Runner57 downloads no model;
+- keep proven Klein distilled FP8 + full Qwen3-4B + VAE runtime;
+- Runner58 downloads no model;
 - do not download Klein Base, Qwen-Image-Edit or Step1X until their own hypothesis becomes active;
 - remove rejected model payloads after evidence/manifests are preserved and the family is explicitly abandoned.
