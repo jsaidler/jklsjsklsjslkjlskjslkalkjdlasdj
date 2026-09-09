@@ -1,0 +1,25 @@
+{
+  "asset_id": "character_exilada",
+  "display_name": "Exilada",
+  "asset_type": "character_playable",
+  "output_contract": "static_master",
+  "art_profile": "roguelite_1980s_sword_sorcery_pixelart",
+  "brief": "Revise and approve the adult playable-character master before temporal production.",
+  "world_scale": 1.0,
+  "references": [
+    {
+      "role": "identity",
+      "path": "assets/source/characters/exilada/reference/exilada_master.png"
+    },
+    {
+      "role": "anatomy",
+      "path": "assets/source/characters/exilada/reference/exilada_body_turnaround_nude_approved.jpg"
+    }
+  ],
+  "constraints": {
+    "mature_adult_identity": true,
+    "weaponless_master": true,
+    "visual_design_status": "reopened"
+  },
+  "approved_candidate_id": null
+}
