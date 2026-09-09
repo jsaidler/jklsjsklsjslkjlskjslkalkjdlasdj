@@ -61,6 +61,13 @@ function Print-TextFile([string]$Path, [string]$Header, [int]$Tail = 0) {
     }
 }
 
+function Quote-ProcessArg([string]$Value) {
+    if ($Value -match '[\s"]') {
+        return '"' + ($Value -replace '"','\"') + '"'
+    }
+    return $Value
+}
+
 $PortableRoot = Join-Path $Workspace 'ComfyUI_windows_portable'
 $Python = Join-Path $PortableRoot 'python_embeded\python.exe'
 $ComfyRoot = Join-Path $PortableRoot 'ComfyUI'
@@ -147,9 +154,9 @@ foreach ($old in @($ExecutorLog,$ExecutorStdout,$ExecutorStderr)) {
 
 $pythonArgs = @(
     '-s',
-    $Executor,
-    '--comfy-root', $ComfyRoot,
-    '--workspace', $Workspace,
+    (Quote-ProcessArg $Executor),
+    '--comfy-root', (Quote-ProcessArg $ComfyRoot),
+    '--workspace', (Quote-ProcessArg $Workspace),
     '--port', "$Port",
     '--timeout-minutes', "$TimeoutMinutes",
     '--comfy-commit', $ComfyCommit
