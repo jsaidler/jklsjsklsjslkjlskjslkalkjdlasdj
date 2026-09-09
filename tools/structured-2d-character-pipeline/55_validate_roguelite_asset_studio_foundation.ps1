@@ -11,6 +11,39 @@ function Fail([string]$Message) {
     exit 1
 }
 
+function Run-InstalledRouteCheck([string]$Label, [string]$Core, [string]$Spec, [string]$Python) {
+    Write-Host "--- $Label / INSTALLED ROUTES ---" -ForegroundColor Cyan
+    & $Python -s $Core $Spec
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -eq 0) {
+        return
+    }
+    if ($exitCode -eq 3) {
+        Write-Host "$Label has no compatible installed route yet. This is an expected routing result, not a spec error." -ForegroundColor Yellow
+        return
+    }
+    if ($exitCode -eq 2) {
+        Fail "$Label spec/schema validation failed. SPEC_ERROR must never be treated as a missing-model condition."
+    }
+    Fail "$Label installed-route query failed with unexpected exit code $exitCode"
+}
+
+function Run-PlanningRouteCheck([string]$Label, [string]$Core, [string]$Spec, [string]$Python) {
+    Write-Host "--- $Label / PLANNING ROUTES INCLUDING UNINSTALLED CANDIDATES ---" -ForegroundColor Cyan
+    & $Python -s $Core $Spec --include-uninstalled
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -eq 0) {
+        return
+    }
+    if ($exitCode -eq 2) {
+        Fail "$Label planning spec/schema validation failed"
+    }
+    if ($exitCode -eq 3) {
+        Fail "$Label has no compatible planning route; registry/capability coverage is incomplete"
+    }
+    Fail "$Label planning-route query failed with unexpected exit code $exitCode"
+}
+
 $Core = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\asset_studio_core.py'
 $CharacterSpec = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\examples\exilada_master.json'
 $EnvironmentSpec = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\examples\ruined_gate.json'
@@ -24,34 +57,18 @@ foreach ($f in @($Python,$Core,$CharacterSpec,$EnvironmentSpec,$Registry,$Schema
 Write-Host ''
 Write-Host 'Roguelite Runner 55 - ASSET STUDIO FOUNDATION VALIDATION' -ForegroundColor Cyan
 Write-Host '[SCOPE] Generic schema + model router. No image generation and no model download.' -ForegroundColor Green
-Write-Host '[PROOF] Validate one playable-character spec and one architecture-module spec.' -ForegroundColor Green
+Write-Host '[PROOF] Validate one playable-character spec with references and one reference-free architecture-module spec.' -ForegroundColor Green
+Write-Host '[REGRESSION] Empty references[] is valid; SPEC_ERROR exit code 2 is fatal and can no longer be masked as a missing model.' -ForegroundColor Green
 Write-Host ''
 
-Write-Host '--- CHARACTER / INSTALLED ROUTES ---' -ForegroundColor Cyan
-& $Python -s $Core $CharacterSpec
-$characterInstalledExit = $LASTEXITCODE
-if ($characterInstalledExit -ne 0) {
-    Write-Host "Character installed-route query returned code $characterInstalledExit. This may be expected when no installed static model satisfies the generic contract." -ForegroundColor Yellow
-}
+Run-InstalledRouteCheck 'CHARACTER' $Core $CharacterSpec $Python
+Write-Host ''
+Run-PlanningRouteCheck 'CHARACTER' $Core $CharacterSpec $Python
+Write-Host ''
+Run-InstalledRouteCheck 'ENVIRONMENT' $Core $EnvironmentSpec $Python
+Write-Host ''
+Run-PlanningRouteCheck 'ENVIRONMENT' $Core $EnvironmentSpec $Python
 
 Write-Host ''
-Write-Host '--- CHARACTER / PLANNING ROUTES INCLUDING UNINSTALLED CANDIDATES ---' -ForegroundColor Cyan
-& $Python -s $Core $CharacterSpec --include-uninstalled
-if ($LASTEXITCODE -ne 0) { Fail 'character planning-route validation failed' }
-
-Write-Host ''
-Write-Host '--- ENVIRONMENT / INSTALLED ROUTES ---' -ForegroundColor Cyan
-& $Python -s $Core $EnvironmentSpec
-$environmentInstalledExit = $LASTEXITCODE
-if ($environmentInstalledExit -ne 0) {
-    Write-Host "Environment installed-route query returned code $environmentInstalledExit. This is expected until a generic static generator is installed/accepted." -ForegroundColor Yellow
-}
-
-Write-Host ''
-Write-Host '--- ENVIRONMENT / PLANNING ROUTES INCLUDING UNINSTALLED CANDIDATES ---' -ForegroundColor Cyan
-& $Python -s $Core $EnvironmentSpec --include-uninstalled
-if ($LASTEXITCODE -ne 0) { Fail 'environment planning-route validation failed' }
-
-Write-Host ''
-Write-Host 'RUNNER55-ASSET-STUDIO-FOUNDATION: PASS - generic schema/router validated for character and environment specs.' -ForegroundColor Green
+Write-Host 'RUNNER55-ASSET-STUDIO-FOUNDATION: PASS - generic schema/router validated for referenced character and reference-free environment specs.' -ForegroundColor Green
 Write-Host 'No models were downloaded or executed.' -ForegroundColor Green
