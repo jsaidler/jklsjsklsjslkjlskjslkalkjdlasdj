@@ -8,15 +8,15 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER59_FLUX2_KLEIN_BASE_EDIT_GATE_2026-09-09.md`
-4. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
-5. `docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
+3. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
+4. `docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
+5. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
 6. `docs/VISUAL_DIRECTION.md`
 7. `docs/CHARACTERS.md`
 8. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 9. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-Historical preflight/model-screening documents remain evidence but do not override the current gate.
+Historical screening/spike docs remain evidence but do not override the current gate.
 
 ## Living-document invariant — LOCKED
 
@@ -55,199 +55,186 @@ Generic foundation:
 - `tools/roguelite-asset-studio/flux2_klein_adapter.py`
 - `tools/roguelite-asset-studio/flux2_klein_base_adapter.py`
 
-The router and adapter boundary are UI-independent.
+The router/adapter boundary is UI-independent.
 
-## Runner55 — FOUNDATION PASS
+## Proven static baseline — FLUX.2 Klein 4B distilled
 
-Runner55 proved the generic schema/router against both a referenced playable character and a reference-free architecture module.
+Runner56 proved fast local T2I on the RTX 3060 12 GB workstation:
 
-Locked schema behavior:
-
-- `references` must exist;
-- `references: []` is valid;
-- `SPEC_ERROR` exit code 2 is fatal;
-- route-not-found exit code 3 is the expected no-compatible-installed-route result.
-
-## Runner56 — FLUX.2 Klein 4B distilled T2I PASS
-
-Runtime:
-
-- isolated `Z:\AI\Flux2Klein`;
-- ComfyUI commit `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`;
-- RTX 3060 12 GB / 48 GB RAM;
-- no H3/Kontext mutation.
-
-Verified payload:
-
-- `flux-2-klein-4b-fp8.safetensors` — SHA256 `97ed34fe0567e436200f2faee3939b88f2b5d99f8af2a4dc16532c4245c0ccb6`
-- `qwen_3_4b.safetensors` — SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
-- `flux2-vae.safetensors` — SHA256 `868fe7b343cc8f3a19dbcfcafbc3d5f888802be3f89bd81b65b3621a066ce8f3`
-
-T2I result:
-
-- `architecture_module` / `static_master`;
 - 768×768;
-- 4 steps, CFG 1.0, Euler, seed 0;
-- elapsed **12.054 s**;
-- no OOM/runtime crash;
-- output SHA256 `8ce5b54cf4f7ccabf3aee3583de9c76c8942115aed8592a9430b8ede68730a16`.
+- 4 steps;
+- CFG 1.0;
+- Euler;
+- seed 0;
+- elapsed 12.054 s;
+- coherent architecture-module authoring master;
+- no OOM/runtime failure.
 
-Visual continuation verdict: **PASS** as useful static authoring master, not final game art.
+Runners57/58 proved that distilled single/multi-reference graphs execute technically, but **failed the production edit-strength/obedience gate**. More steps increased broad re-rendering/material drift without reliably executing explicit structural facts. Secondary material-reference authority remained weak.
 
-## Runner57 — reference-edit technical PASS / visual-strength partial fail
+Therefore distilled 4B remains:
 
-Distilled 4B successfully executed:
-
-- single reference: 768×768, 4 steps, CFG 1.0, Euler, seed 0, **14.063 s**;
-- ordered two-reference: same settings, **16.025 s**;
-- no OOM, graph failure, duplicated gate or catastrophic identity loss.
-
-However edits remained too close to the source. Therefore single/multi editing was technically proven but not production-routable.
-
-## Runner58 — distilled edit-strength calibration COMPLETE / VISUAL FAIL
-
-Canonical record:
-
-`docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
-
-Runner58 tested the same original gate with explicit binary edits at 4/8/12 steps and separately generated a severe-decay material board for the multi-reference test.
-
-All seven jobs passed technically. Total elapsed: **156.620 s**.
-
-Key single-reference metrics:
-
-- 4 steps: mean abs luma 23.8699 / changed >24 = 0.386804
-- 8 steps: 27.6526 / 0.794367
-- 12 steps: 29.2693 / 0.808146
-
-Key multi-reference metrics:
-
-- 4 steps: mean abs luma 12.0681 / changed >24 = 0.042324
-- 8 steps: 14.3251 / 0.161229
-- 12 steps: 15.3945 / 0.203785
-
-Visual conclusion:
-
-- more distilled steps create much more broad re-rendering/material drift;
-- they do **not** reliably execute the requested structural facts (full missing plank, large missing top-left block, broken requested strap);
-- multi-reference preserves source structure strongly but imports the separate material authority too weakly.
-
-Therefore:
-
-**FLUX.2 Klein 4B distilled remains accepted for fast local T2I/concept generation, but its reference-edit paths are rejected for production routing in the current project.**
+- **ACTIVE** for `text_to_image` / `interactive_concept`;
+- **NOT ROUTABLE** for production structural/reference editing.
 
 Do not keep increasing distilled steps without a new technical hypothesis.
 
-## MODEL ROUTER STATUS — CURRENT
+## FLUX.2 Klein 4B Base — current same-family edit branch
 
-Machine authority:
+Installed files:
 
-`tools/roguelite-asset-studio/model_registry.json`
+- `flux-2-klein-base-4b-fp8.safetensors`
+  - SHA256 `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
+- `qwen_3_4b.safetensors`
+  - SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
+- `full_encoder_small_decoder.safetensors`
+  - SHA256 `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
 
-### FLUX.2 Klein 4B distilled
+Runtime remains the isolated ComfyUI at commit:
 
-Status:
+`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
 
-`active_static_t2i_proven_edit_visual_fail`
+### Runner59 — hardware PASS / visual verdict INVALID
 
-Routable:
+Runner59 proved that Base runs at 20/50 steps on the 3060 12 GB without OOM, but all outputs showed severe cyan/posterized drift.
 
-- `text_to_image`
-- `interactive_concept`
+Post-run comparison with the current official Base graph found recipe mismatches:
 
-Technical-only / non-routable:
+- Runner59 reused `ConditioningZeroOut(positive)` instead of a separate empty negative `CLIPTextEncode` at CFG 5;
+- Runner59 fixed edit geometry at 768×768 instead of deriving geometry from the first reference scaled to 1 MP.
 
-- `single_reference_edit`
-- `multi_reference_edit`
+Therefore Runner59 is retained as hardware evidence only and is **not** a model-quality verdict.
 
-### FLUX.2 Klein 4B Base
-
-Status:
-
-`runner59_prepared_pending_install_and_validation`
-
-This is now the active stronger-edit hypothesis before changing model families.
-
-## CURRENT IMPLEMENTATION GATE — Runner59 / FLUX.2 Klein 4B Base strong edit
+### Runner60 — official-parity diagnostic PASS / visual PARTIAL
 
 Canonical record:
 
-`docs/RUNNER59_FLUX2_KLEIN_BASE_EDIT_GATE_2026-09-09.md`
+`docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
+
+Runner60 corrected the Base graph to match the official semantics:
+
+- positive `CLIPTextEncode(prompt)`;
+- separate negative `CLIPTextEncode("")`;
+- references scaled with `ImageScaleToTotalPixels`, `nearest-exact`, 1 MP;
+- same reference latent appended to positive and negative branches;
+- scheduler/latent geometry derived from first scaled reference;
+- Euler;
+- CFG 5;
+- 20 steps.
+
+Actual Runner60 results:
+
+#### VAE diagnostics
+
+Base small-decoder round-trip:
+
+- 1024×1024;
+- elapsed 2.150 s;
+- mean absolute luma difference vs original: **2.3844**;
+- changed ratio >24: **0.005635**.
+
+Full FLUX.2 VAE control:
+
+- 1024×1024;
+- elapsed 2.028 s;
+- mean absolute luma difference: **2.6061**;
+- changed ratio >24: **0.005726**.
+
+Conclusion: **the Base VAE path is sane**. Runner59 cyan was not a VAE incompatibility.
+
+#### Base T2I control
+
+- 1024×1024;
+- 20 steps / CFG 5 / Euler;
+- elapsed 70.162 s;
+- natural gray/brown/green color balance;
+- coherent isolated gate.
+
+Conclusion: **Base model/sampling integration is sane**.
+
+#### Base single-reference edit
+
+- elapsed 148.360 s;
+- natural color restored;
+- recognizable gate/camera preserved;
+- substantial upper-masonry/material revision occurred;
+- compound request was only partially obeyed: missing-plank + missing-capstone + broken-strap facts were not all unambiguous.
+
+#### Base multi-reference edit
+
+- elapsed 248.745 s;
+- source identity/camera preserved strongly;
+- some separate material language imported;
+- explicit structural facts remained too conservative/incomplete.
+
+Runner60 contact-sheet SHA256:
+
+`5daa35952c6d8c5564c042174426a1679d4cf1ffb51836ffe159927bb421a404`
+
+### Runner60 conclusion
+
+The cyan/posterization hypothesis is closed: it was a recipe mismatch.
+
+The Base model is **not rejected**. It demonstrates materially stronger edit behavior than distilled but does not yet pass the compound structural-edit contract.
+
+The remaining same-family hypothesis is **instruction decomposition / iterative atomic editing**.
+
+## CURRENT IMPLEMENTATION GATE — Runner61 / Base atomic + sequential edit
+
+Canonical record:
+
+`docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/59_bootstrap_and_run_flux2_klein_base_edit_gate.ps1`
+`tools/structured-2d-character-pipeline/61_run_flux2_klein_base_atomic_sequence_gate.ps1`
 
 Executor:
 
-`tools/roguelite-asset-studio/flux2_klein_base_edit_gate.py`
+`tools/roguelite-asset-studio/flux2_klein_base_atomic_sequence_gate.py`
 
-Adapter:
+Runner61 downloads **nothing** and reuses the exact Runner60 parity-valid adapter/runtime.
 
-`tools/roguelite-asset-studio/flux2_klein_base_adapter.py`
+### Independent atomic tests
 
-### Why Base now
+Each starts from the original gate and requests only one structural fact:
 
-The project is **not jumping model families yet**. Base is the non-distilled Apache-2.0 4B sibling and is the official higher-flexibility/full-step branch.
+1. remove one entire full-height plank from the left door leaf;
+2. remove one large top-left capstone/lintel mass;
+3. break and partially remove the lower iron strap on the right door leaf.
 
-Current official ComfyUI Base edit recipe basis:
+This isolates command obedience from multi-instruction prompt competition.
 
-- Euler;
-- CFG 5;
-- 20 steps;
-- Qwen3-4B;
-- `full_encoder_small_decoder.safetensors`.
+### Sequential chain
 
-Runner59 also tests 50 steps because Base is the full-step/flexibility branch.
+- Stage 1: original -> missing plank;
+- Stage 2: preserve missing plank -> remove top-left capstone;
+- Stage 3: preserve both -> break lower-right strap;
+- Stage 4: preserve all accumulated geometry + import severe material language from the Runner58 decay board.
 
-### Additional payload
+### Runner61 decision
 
-Only two new files:
+If independent atomic edits work and the sequential chain preserves earlier edits, Base can be exposed as an **iterative structural editor** even if one-shot compound edits remain unsupported.
 
-1. `flux-2-klein-base-4b-fp8.safetensors`
-   - 4,089,498,488 bytes
-   - SHA256 `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
-2. `full_encoder_small_decoder.safetensors`
-   - 249,519,092 bytes
-   - SHA256 `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
+If atomic edits themselves remain unreliable, the Base strong structural-edit hypothesis is considered exhausted. Then:
 
-Total additional payload: `4,339,017,580` bytes (~4.34 GB decimal).
+- distilled remains the fast T2I/concept backend;
+- Base remains useful for future LoRA/project specialization research;
+- strong structural/reference editing moves to the next specialized editor candidate, currently Qwen-Image-Edit-2509 under a controlled low-VRAM feasibility spike.
 
-Existing `qwen_3_4b.safetensors` is reused.
+## Model router authority
 
-### Runner59 matrix
+Machine-readable authority:
 
-Same gate and same Runner58 material board:
+`tools/roguelite-asset-studio/model_registry.json`
 
-- Base single-reference: 20 steps / 50 steps;
-- Base multi-reference: 20 steps / 50 steps;
-- 768×768;
-- CFG 5;
-- Euler;
-- seed 0.
+Current Base status:
 
-Visual PASS requires at least one single and one multi output to execute the explicit structural facts strongly while retaining gate identity/camera, with multi also importing the separate material authority visibly.
+`installed_runner60_parity_valid_atomic_gate_pending`
 
-If Base passes:
+Qwen-Image-Edit is **not yet downloaded**. Do not move to it before Runner61 yields a visual verdict.
 
-1. activate Base single/multi edit routing;
-2. build the first generic Studio UI/state layer;
-3. use the reopened Exilada as the first high-difficulty Character Lab case;
-4. validate a non-character prop/equipment case;
-5. add candidate/history/approval/export;
-6. wrap H3 behind the same orchestration boundary for temporal assets.
-
-If Base fails:
-
-- keep Klein distilled as T2I/concept backend;
-- retain Base as a possible future training/specialization base;
-- move strong reference editing to the next specialized editor branch;
-- current next candidate is Qwen-Image-Edit-2509 under a controlled FP8/low-VRAM spike;
-- do not continue increasing Klein steps blindly.
-
-## OTHER MODEL FAMILIES
-
-### MiniMax H3 Base Ref2VA — ACTIVE / PROVEN MOTION SPECIALIST
+## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
 
 Current Exilada motion baseline:
 
@@ -265,29 +252,19 @@ Evidence:
 
 H3 remains a motion specialist, not the universal still generator.
 
-### MiniMax H3 FL2VA — TEMPORAL CANDIDATE
+MiniMax H3 FL2VA remains a future temporal candidate for environmental loops/VFX/first-last-frame tasks and must be validated per asset class.
 
-Potential future route for environmental loops, VFX and first/last-frame tasks. Validate per asset class.
+## FLUX.1 Kontext [dev] — R&D ONLY
 
-### FLUX.1 Kontext [dev] — ACTIVE R&D ONLY
+Existing Kontext remains useful for reconstruction/edit R&D. Its dev license prevents silently making it the commercial-production default without appropriate licensing.
 
-Useful for editing/reconstruction research; non-commercial dev license means it cannot silently become the shipping default.
-
-### Qwen-Image-Edit-2509 — NEXT STRONG EDIT CANDIDATE IF NEEDED
-
-Apache-2.0, but heavier than the 12 GB baseline. Requires a dedicated low-VRAM feasibility spike before use.
-
-### Step1X-Edit — DEFERRED
-
-Current published memory use remains a poor fit for the workstation.
-
-## LOCAL-FIRST PRODUCTION — HARD LOCK
+## Local-first production — HARD LOCK
 
 Routine asset production must work locally after installation. Hosted services may be optional accelerators but cannot be mandatory.
 
 This keeps mature/adult fictional-state authoring independent from hosted-surface restrictions.
 
-## GAME/RUNTIME PRESENTATION — LOCKED
+## Game/runtime presentation — LOCKED
 
 - elevated 2D arcade beat'em-up / belt-scroller / false 3D;
 - native raster 640×360;
@@ -297,13 +274,15 @@ This keeps mature/adult fictional-state authoring independent from hosted-surfac
 - `relative_scale=1.0` means baseline adult-human world scale, not sprite pixel height;
 - runtime consumes complete precomposed character sprites.
 
-## RESOLUTION CONTRACT — HARD LOCK
+## Resolution contract — HARD LOCK
 
 The old 128px Exilada baseline is retired. There is no universal 160/180/200/192/384px production sprite resolution.
 
-Preserve useful native source resolution. Runtime apparent/world scale is separate.
+Preserve useful native/final generation resolution. Apparent runtime/world scale is separate and must not create a second destructively reduced gameplay raster asset.
 
-## RUNTIME CHARACTER REPRESENTATION — HARD LOCK
+The same principle applies to non-character assets.
+
+## Runtime character representation — HARD LOCK
 
 `complete authored character state -> complete animation frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
 
@@ -311,11 +290,11 @@ No visible runtime body/hair/clothing/equipment assembly.
 
 One animated action = one horizontal spritesheet row; frames read left-to-right; timing/events/pivots live in metadata.
 
-## ENVIRONMENT/MAP PRODUCTION — LOCKED
+## Environment/map production — LOCKED
 
 Prefer modular independently useful pieces over one flattened AI-painted gameplay map: terrain patches, walls/cliffs, architecture modules, doors/gates, vegetation, rocks/debris, props, foreground/background set pieces, loops and damage-state variants.
 
-## EXILADA DESIGN STATE — REOPENED / FIRST CHARACTER LAB CASE
+## Exilada design state — REOPENED / FIRST CHARACTER LAB CASE
 
 `assets/source/characters/exilada/reference/exilada_master.png` remains identity/anatomy evidence but is not final visual-design authority.
 
@@ -331,13 +310,13 @@ Required revision direction includes:
 
 Runner53 remains paused until the static master is revised through the generic Studio path.
 
-## CLEANUP RULE
+## Cleanup rule
 
 Do not accumulate candidate checkpoints speculatively.
 
 - keep proven H3 Base50 set;
 - keep current Kontext R&D set while still needed;
 - keep proven Klein distilled runtime;
-- Runner59 adds only Base FP8 + small-decoder VAE;
-- do not download Qwen-Image-Edit or Step1X until their hypothesis becomes active;
-- remove rejected payloads after evidence/manifests are preserved and a branch is explicitly abandoned.
+- keep installed Klein Base FP8 + small-decoder VAE while Runner61 is active;
+- do **not** download Qwen-Image-Edit or Step1X before the Base atomic hypothesis is resolved;
+- remove rejected payloads only after evidence/manifests are preserved and a branch is explicitly abandoned.
