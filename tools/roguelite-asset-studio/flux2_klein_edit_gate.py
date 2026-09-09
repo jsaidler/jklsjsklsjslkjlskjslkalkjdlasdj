@@ -18,9 +18,6 @@ from pathlib import Path
 
 from PIL import Image
 
-from adapter_protocol import ReferenceInput, StaticGenerationRequest
-from flux2_klein_adapter import Flux2KleinAdapter, sha256_file
-
 WIDTH = 768
 HEIGHT = 768
 
@@ -66,6 +63,13 @@ def make_comparison(paths: list[Path], destination: Path) -> None:
 
 
 def main() -> int:
+    # Import project adapter modules inside main so import-time failures are caught by
+    # the top-level diagnostic handler instead of disappearing into PowerShell stderr.
+    from adapter_protocol import ReferenceInput, StaticGenerationRequest
+    from flux2_klein_adapter import Flux2KleinAdapter, sha256_file
+
+    print("RUNNER57-PYTHON: project adapter imports OK", flush=True)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--comfy-root", required=True, type=Path)
     parser.add_argument("--workspace", required=True, type=Path)
@@ -74,7 +78,7 @@ def main() -> int:
     parser.add_argument("--comfy-commit", required=True)
     args = parser.parse_args()
 
-    print("RUNNER57-PYTHON: imports OK; arguments parsed", flush=True)
+    print("RUNNER57-PYTHON: arguments parsed", flush=True)
     workspace = args.workspace.resolve()
     gate_dir = workspace / "edit_gate"
     gate_dir.mkdir(parents=True, exist_ok=True)
@@ -176,9 +180,9 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except BaseException as exc:
-        # Runner57 is invoked from Windows PowerShell 5.x, where native stderr can
-        # be promoted to NativeCommandError when ErrorActionPreference=Stop. Emit
-        # the entire diagnostic to stdout so the runner can always preserve it.
+        # Windows PowerShell 5.x can promote native stderr to NativeCommandError
+        # when ErrorActionPreference=Stop. Emit every diagnostic to stdout so the
+        # runner can preserve the full traceback deterministically.
         print(
             f"RUNNER57-PYTHON-FAIL: {type(exc).__name__}: {exc}",
             file=sys.stdout,
