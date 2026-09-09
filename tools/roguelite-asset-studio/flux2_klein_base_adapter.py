@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
 """FLUX.2 Klein 4B Base static-generation/edit adapter.
 
-This is a sibling of the already-proven distilled adapter. It deliberately inherits
-reference preparation, HTTP execution, output handling and provenance behavior while
-keeping the Base checkpoint/VAE graph explicit and isolated.
+This is a sibling of the proven distilled adapter. It inherits the generic Asset Studio
+HTTP/provenance boundary but keeps the Base checkpoint/VAE graph explicit.
+
+Important: Base edit conditioning follows the current official ComfyUI Klein 4B Base
+workflow rather than reusing the distilled harness shortcut. In particular:
+
+- positive text is encoded normally;
+- negative text is encoded separately (empty by default), not made by zeroing the
+  positive conditioning;
+- every reference is scaled to 1 MP with ImageScaleToTotalPixels/nearest-exact;
+- the same encoded reference latent is appended to positive and negative conditioning;
+- for reference edits, scheduler/empty-latent dimensions are derived from the first
+  scaled reference, matching the official workflow's geometry contract.
+
+This distinction matters for Base because its official recipe uses CFG 5. At CFG 1 the
+negative branch is effectively inert, which is why the earlier distilled tests did not
+expose the same failure mode.
 """
 
 from __future__ import annotations
@@ -21,6 +35,11 @@ BASE_MODEL = "flux-2-klein-base-4b-fp8.safetensors"
 BASE_MODEL_SHA256 = "44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840"
 BASE_VAE = "full_encoder_small_decoder.safetensors"
 BASE_VAE_SHA256 = "ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62"
+
+BASE_EXTRA_NODES = (
+    "ImageScaleToTotalPixels",
+    "GetImageSize",
+)
 
 
 class Flux2KleinBaseAdapter(Flux2KleinAdapter):
@@ -45,7 +64,7 @@ class Flux2KleinBaseAdapter(Flux2KleinAdapter):
             BASE_VAE_SHA256,
             BASE_VAE,
         )
-        for node_name in REQUIRED_NODES:
+        for node_name in (*REQUIRED_NODES, *BASE_EXTRA_NODES):
             info = self._request_json(self.base_url + f"/object_info/{node_name}", timeout=30)
             if node_name not in info:
                 raise RuntimeError(f"required native ComfyUI node unavailable: {node_name}")
@@ -72,42 +91,47 @@ class Flux2KleinBaseAdapter(Flux2KleinAdapter):
         }
         vae_id = self._next_id(counter)
         graph[vae_id] = {"inputs": {"vae_name": BASE_VAE}, "class_type": "VAELoader"}
+
         positive_id = self._next_id(counter)
         graph[positive_id] = {
             "inputs": {"text": request.prompt, "clip": [clip_id, 0]},
             "class_type": "CLIPTextEncode",
         }
+        negative_id = self._next_id(counter)
+        graph[negative_id] = {
+            "inputs": {"text": request.negative or "", "clip": [clip_id, 0]},
+            "class_type": "CLIPTextEncode",
+        }
 
-        if reference_names:
-            negative_id = self._next_id(counter)
-            graph[negative_id] = {
-                "inputs": {"conditioning": [positive_id, 0]},
-                "class_type": "ConditioningZeroOut",
-            }
-            positive_ref: list[Any] = [positive_id, 0]
-            negative_ref: list[Any] = [negative_id, 0]
-        else:
-            if request.negative.strip():
-                negative_id = self._next_id(counter)
-                graph[negative_id] = {
-                    "inputs": {"text": request.negative, "clip": [clip_id, 0]},
-                    "class_type": "CLIPTextEncode",
-                }
-            else:
-                negative_id = self._next_id(counter)
-                graph[negative_id] = {
-                    "inputs": {"conditioning": [positive_id, 0]},
-                    "class_type": "ConditioningZeroOut",
-                }
-            positive_ref = [positive_id, 0]
-            negative_ref = [negative_id, 0]
+        positive_ref: list[Any] = [positive_id, 0]
+        negative_ref: list[Any] = [negative_id, 0]
+        first_size_id: str | None = None
 
         for reference_name in reference_names:
             load_id = self._next_id(counter)
-            graph[load_id] = {"inputs": {"image": reference_name}, "class_type": "LoadImage"}
+            graph[load_id] = {
+                "inputs": {"image": reference_name},
+                "class_type": "LoadImage",
+            }
+            scale_id = self._next_id(counter)
+            graph[scale_id] = {
+                "inputs": {
+                    "image": [load_id, 0],
+                    "upscale_method": "nearest-exact",
+                    "megapixels": 1.0,
+                    "resolution_steps": 1,
+                },
+                "class_type": "ImageScaleToTotalPixels",
+            }
+            if first_size_id is None:
+                first_size_id = self._next_id(counter)
+                graph[first_size_id] = {
+                    "inputs": {"image": [scale_id, 0]},
+                    "class_type": "GetImageSize",
+                }
             encode_id = self._next_id(counter)
             graph[encode_id] = {
-                "inputs": {"pixels": [load_id, 0], "vae": [vae_id, 0]},
+                "inputs": {"pixels": [scale_id, 0], "vae": [vae_id, 0]},
                 "class_type": "VAEEncode",
             }
             positive_ref_id = self._next_id(counter)
@@ -143,20 +167,28 @@ class Flux2KleinBaseAdapter(Flux2KleinAdapter):
             "inputs": {"sampler_name": request.sampler},
             "class_type": "KSamplerSelect",
         }
+
+        if first_size_id is not None:
+            width_input: Any = [first_size_id, 0]
+            height_input: Any = [first_size_id, 1]
+        else:
+            width_input = int(request.width)
+            height_input = int(request.height)
+
         scheduler_id = self._next_id(counter)
         graph[scheduler_id] = {
             "inputs": {
                 "steps": int(request.steps),
-                "width": int(request.width),
-                "height": int(request.height),
+                "width": width_input,
+                "height": height_input,
             },
             "class_type": "Flux2Scheduler",
         }
         latent_id = self._next_id(counter)
         graph[latent_id] = {
             "inputs": {
-                "width": int(request.width),
-                "height": int(request.height),
+                "width": width_input,
+                "height": height_input,
                 "batch_size": 1,
             },
             "class_type": "EmptyFlux2LatentImage",
