@@ -69,6 +69,7 @@ Write-Host '[ADAPTER] Execution goes through the generic Asset Studio adapter co
 Write-Host '[SINGLE] Original gate = previous_approved_state; revise damage/material without replacing identity.' -ForegroundColor Green
 Write-Host '[MULTI] Image 1 = structure authority; Image 2 = material/damage authority.' -ForegroundColor Green
 Write-Host '[SETTINGS] 768x768, 4 distilled steps, CFG 1.0, Euler, seed 0.' -ForegroundColor Green
+Write-Host '[DIAGNOSTICS] Python exceptions are captured completely; stderr cannot abort traceback capture.' -ForegroundColor Green
 Write-Host ''
 
 Require-Hash (Join-Path $ComfyRoot "models\diffusion_models\$ModelName") $ModelSha256 'FLUX.2 Klein 4B distilled FP8'
@@ -127,7 +128,13 @@ if (-not $ready) {
 
 if (Test-Path $ExecutorLog) { Remove-Item -LiteralPath $ExecutorLog -Force }
 $executorExit = 1
+$previousErrorActionPreference = $ErrorActionPreference
 try {
+    # Windows PowerShell 5.x promotes native stderr into ErrorRecord objects. During
+    # the native process only, keep them non-terminating so a Python traceback is not
+    # truncated at its first line. The executor itself also emits caught failures to
+    # stdout, giving us deterministic diagnostics on both PowerShell 5.x and 7.x.
+    $ErrorActionPreference = 'Continue'
     & $Python -s $Executor `
         --comfy-root $ComfyRoot `
         --workspace $Workspace `
@@ -136,12 +143,16 @@ try {
         --comfy-commit $ComfyCommit 2>&1 | Tee-Object -FilePath $ExecutorLog | ForEach-Object { Write-Host $_ }
     $executorExit = $LASTEXITCODE
 } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
     Stop-Managed $PidFile
 }
 
 if ($executorExit -ne 0) {
-    if (Test-Path $ExecutorLog) { Get-Content -LiteralPath $ExecutorLog -Tail 280 }
-    if (Test-Path $StderrLog) { Get-Content -LiteralPath $StderrLog -Tail 280 }
+    Write-Host ''
+    Write-Host '--- RUNNER57 EXECUTOR DIAGNOSTIC TAIL ---' -ForegroundColor Yellow
+    if (Test-Path $ExecutorLog) { Get-Content -LiteralPath $ExecutorLog -Tail 320 }
+    Write-Host '--- COMFYUI STDERR TAIL ---' -ForegroundColor Yellow
+    if (Test-Path $StderrLog) { Get-Content -LiteralPath $StderrLog -Tail 320 }
     Fail "reference-edit gate executor exited with code $executorExit"
 }
 
