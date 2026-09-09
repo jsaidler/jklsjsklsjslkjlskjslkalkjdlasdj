@@ -8,13 +8,14 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-4. `docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
-5. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
-6. `docs/VISUAL_DIRECTION.md`
-7. `docs/CHARACTERS.md`
-8. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-9. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
+4. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
+5. `docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
+6. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
+7. `docs/VISUAL_DIRECTION.md`
+8. `docs/CHARACTERS.md`
+9. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+10. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
 Historical screening/spike docs remain evidence but do not override the current gate.
 
@@ -29,7 +30,8 @@ Every state-changing action updates the relevant thematic docs/registry and this
 - umbrella Studio root: `Z:\AI\RogueliteAssetStudio`
 - active H3 workspace: `Z:\AI\MiniMaxH3`
 - active Kontext R&D workspace: `Z:\AI\FluxKontext`
-- active Klein workspace: `Z:\AI\Flux2Klein`
+- Klein workspace: `Z:\AI\Flux2Klein`
+- active Qwen edit workspace: `Z:\AI\QwenImageEdit`
 - paused Wan workspace: `Z:\AI\WanAnimate2`
 - SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
 - `D:\AI` is stale/historical and must not be used.
@@ -52,14 +54,12 @@ Generic foundation:
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
 - `tools/roguelite-asset-studio/adapter_protocol.py`
-- `tools/roguelite-asset-studio/flux2_klein_adapter.py`
-- `tools/roguelite-asset-studio/flux2_klein_base_adapter.py`
 
 The router/adapter boundary is UI-independent.
 
-## Proven static baseline — FLUX.2 Klein 4B distilled
+## Static-generation baseline — FLUX.2 Klein 4B distilled / ACTIVE
 
-Runner56 proved fast local T2I on the RTX 3060 12 GB workstation:
+Runner56 proved fast local T2I on RTX 3060 12 GB:
 
 - 768×768;
 - 4 steps;
@@ -70,18 +70,16 @@ Runner56 proved fast local T2I on the RTX 3060 12 GB workstation:
 - coherent architecture-module authoring master;
 - no OOM/runtime failure.
 
-Runners57/58 proved that distilled single/multi-reference graphs execute technically, but **failed the production edit-strength/obedience gate**. More steps increased broad re-rendering/material drift without reliably executing explicit structural facts. Secondary material-reference authority remained weak.
+Runners57/58 proved distilled reference editing technically but failed production edit-strength/obedience.
 
-Therefore distilled 4B remains:
+Current role:
 
-- **ACTIVE** for `text_to_image` / `interactive_concept`;
-- **NOT ROUTABLE** for production structural/reference editing.
+- **ROUTABLE**: `text_to_image`, `interactive_concept`;
+- **NOT ROUTABLE**: production structural/reference editing.
 
-Do not keep increasing distilled steps without a new technical hypothesis.
+## FLUX.2 Klein 4B Base — PARITY VALID / STRUCTURAL PRECISION FAIL
 
-## FLUX.2 Klein 4B Base — current same-family edit branch
-
-Installed files:
+Installed:
 
 - `flux-2-klein-base-4b-fp8.safetensors`
   - SHA256 `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
@@ -90,137 +88,151 @@ Installed files:
 - `full_encoder_small_decoder.safetensors`
   - SHA256 `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
 
-Runtime remains the isolated ComfyUI at commit:
+### Runner59
 
-`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
+Hardware PASS, visual verdict invalid because the custom graph did not match the official CFG-5 conditioning recipe and produced cyan/posterized output.
 
-### Runner59 — hardware PASS / visual verdict INVALID
+### Runner60 — official parity
 
-Runner59 proved that Base runs at 20/50 steps on the 3060 12 GB without OOM, but all outputs showed severe cyan/posterized drift.
+Corrected graph:
 
-Post-run comparison with the current official Base graph found recipe mismatches:
+- separate positive prompt encoding;
+- separate empty negative encoding;
+- ~1 MP reference scaling;
+- geometry derived from first reference;
+- Euler / CFG 5 / 20 steps.
 
-- Runner59 reused `ConditioningZeroOut(positive)` instead of a separate empty negative `CLIPTextEncode` at CFG 5;
-- Runner59 fixed edit geometry at 768×768 instead of deriving geometry from the first reference scaled to 1 MP.
+Result:
 
-Therefore Runner59 is retained as hardware evidence only and is **not** a model-quality verdict.
+- Base small-decoder VAE round-trip sane;
+- full-VAE control sane;
+- Base T2I sane/naturally colored;
+- single edit meaningful but compound structural request incomplete;
+- multi edit preserved identity but remained conservative.
 
-### Runner60 — official-parity diagnostic PASS / visual PARTIAL
+Conclusion: Runner59 cyan was a recipe error, not a model defect.
 
-Canonical record:
-
-`docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
-
-Runner60 corrected the Base graph to match the official semantics:
-
-- positive `CLIPTextEncode(prompt)`;
-- separate negative `CLIPTextEncode("")`;
-- references scaled with `ImageScaleToTotalPixels`, `nearest-exact`, 1 MP;
-- same reference latent appended to positive and negative branches;
-- scheduler/latent geometry derived from first scaled reference;
-- Euler;
-- CFG 5;
-- 20 steps.
-
-Actual Runner60 results:
-
-#### VAE diagnostics
-
-Base small-decoder round-trip:
-
-- 1024×1024;
-- elapsed 2.150 s;
-- mean absolute luma difference vs original: **2.3844**;
-- changed ratio >24: **0.005635**.
-
-Full FLUX.2 VAE control:
-
-- 1024×1024;
-- elapsed 2.028 s;
-- mean absolute luma difference: **2.6061**;
-- changed ratio >24: **0.005726**.
-
-Conclusion: **the Base VAE path is sane**. Runner59 cyan was not a VAE incompatibility.
-
-#### Base T2I control
-
-- 1024×1024;
-- 20 steps / CFG 5 / Euler;
-- elapsed 70.162 s;
-- natural gray/brown/green color balance;
-- coherent isolated gate.
-
-Conclusion: **Base model/sampling integration is sane**.
-
-#### Base single-reference edit
-
-- elapsed 148.360 s;
-- natural color restored;
-- recognizable gate/camera preserved;
-- substantial upper-masonry/material revision occurred;
-- compound request was only partially obeyed: missing-plank + missing-capstone + broken-strap facts were not all unambiguous.
-
-#### Base multi-reference edit
-
-- elapsed 248.745 s;
-- source identity/camera preserved strongly;
-- some separate material language imported;
-- explicit structural facts remained too conservative/incomplete.
-
-Runner60 contact-sheet SHA256:
-
-`5daa35952c6d8c5564c042174426a1679d4cf1ffb51836ffe159927bb421a404`
-
-### Runner60 conclusion
-
-The cyan/posterization hypothesis is closed: it was a recipe mismatch.
-
-The Base model is **not rejected**. It demonstrates materially stronger edit behavior than distilled but does not yet pass the compound structural-edit contract.
-
-The remaining same-family hypothesis is **instruction decomposition / iterative atomic editing**.
-
-## CURRENT IMPLEMENTATION GATE — Runner61 / Base atomic + sequential edit
+### Runner61 — atomic + sequential structural gate / FINAL KLEIN EDIT VERDICT
 
 Canonical record:
 
 `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
 
+Independent atomic outputs showed:
+
+- **plank request**: model removed/reconstructed almost the entire left door leaf/opening instead of exactly one plank-width;
+- **capstone request**: removed meaningful upper masonry but over-edited a broader top region than the named block;
+- **strap request**: broadly reinterpreted door hardware rather than isolating only the requested lower-right strap.
+
+Sequential chain:
+
+- broad earlier states generally survived later stages;
+- final material pass imported stronger rust/material language;
+- but chaining coarse states did not solve localization precision.
+
+### Klein Base conclusion
+
+**TECHNICAL PASS / COARSE SEMANTIC EDITING USEFUL / PRECISION STRUCTURAL EDIT FAIL.**
+
+Do not keep tuning Klein steps/prompts without a new technical mechanism.
+
+Retain Klein Base for:
+
+- Base/T2I research;
+- future Roguelite-specific LoRA/fine-tuning;
+- coarse concept-revision R&D if useful.
+
+Do not route precision structural edits through it.
+
+## CURRENT IMPLEMENTATION GATE — Runner62 / Qwen-Image-Edit-2509 native FP8
+
+Canonical record:
+
+`docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/61_run_flux2_klein_base_atomic_sequence_gate.ps1`
+`tools/structured-2d-character-pipeline/62_bootstrap_and_run_qwen_image_edit_2509_feasibility.ps1`
 
 Executor:
 
-`tools/roguelite-asset-studio/flux2_klein_base_atomic_sequence_gate.py`
+`tools/roguelite-asset-studio/qwen_image_edit_2509_feasibility_gate.py`
 
-Runner61 downloads **nothing** and reuses the exact Runner60 parity-valid adapter/runtime.
+Adapter:
 
-### Independent atomic tests
+`tools/roguelite-asset-studio/qwen_image_edit_2509_adapter.py`
 
-Each starts from the original gate and requests only one structural fact:
+### Why Qwen now
 
-1. remove one entire full-height plank from the left door leaf;
-2. remove one large top-left capstone/lintel mass;
-3. break and partially remove the lower iron strap on the right door leaf.
+The Klein family has been genuinely exhausted for precision structural edits on the current validated recipes.
 
-This isolates command obedience from multi-instruction prompt competition.
+Qwen-Image-Edit-2509 is tested as a **specialized semantic/structural editor**, not as a replacement for every asset-generation model.
 
-### Sequential chain
+Native support already exists in the same pinned ComfyUI commit:
 
-- Stage 1: original -> missing plank;
-- Stage 2: preserve missing plank -> remove top-left capstone;
-- Stage 3: preserve both -> break lower-right strap;
-- Stage 4: preserve all accumulated geometry + import severe material language from the Runner58 decay board.
+`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
 
-### Runner61 decision
+Native graph semantics:
 
-If independent atomic edits work and the sequential chain preserves earlier edits, Base can be exposed as an **iterative structural editor** even if one-shot compound edits remain unsupported.
+- `TextEncodeQwenImageEditPlus`;
+- up to three image references;
+- Qwen2.5-VL visual/text conditioning;
+- Qwen image VAE;
+- `FluxKontextImageScale` for the primary edit image;
+- primary source VAE latent as KSampler latent;
+- `ModelSamplingAuraFlow` shift 3;
+- `CFGNorm` strength 1;
+- Euler / simple / denoise 1;
+- 20 steps;
+- CFG 4;
+- no Lightning LoRA for the first verdict.
 
-If atomic edits themselves remain unreliable, the Base strong structural-edit hypothesis is considered exhausted. Then:
+### Runner62 payload
 
-- distilled remains the fast T2I/concept backend;
-- Base remains useful for future LoRA/project specialization research;
-- strong structural/reference editing moves to the next specialized editor candidate, currently Qwen-Image-Edit-2509 under a controlled low-VRAM feasibility spike.
+Isolated workspace:
+
+`Z:\AI\QwenImageEdit`
+
+Files:
+
+1. `qwen_image_edit_2509_fp8_e4m3fn.safetensors`
+   - 20,430,698,424 bytes
+   - SHA256 `318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4`
+2. `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+   - 9,384,670,680 bytes
+   - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
+3. `qwen_image_vae.safetensors`
+   - 253,806,246 bytes
+   - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+
+Total weights: `30,069,175,350` bytes (~30.07 GB decimal / ~28.00 GiB).
+
+### 12 GB strategy
+
+Target remains RTX 3060 12 GB / 48 GB RAM.
+
+Runner62:
+
+- launches ComfyUI with `--lowvram`;
+- reserves 1 GB VRAM;
+- uses expandable CUDA allocation segments;
+- explicitly loads the 9.38 GB Qwen2.5-VL encoder on CPU;
+- uses the full native FP8 diffusion model, not Nunchaku/int4 or Lightning.
+
+### Precision comparison
+
+Runner62 runs two atomic edits from the same original gate and builds a direct comparison against Runner61 Klein outputs:
+
+1. remove **one plank-width only** from the left leaf;
+2. break **only** the lower-right horizontal strap.
+
+Visual PASS requires materially better localization than Klein without losing gate identity/camera/unrelated geometry.
+
+### Runner62 decision
+
+- **technical + visual PASS** -> advance Qwen to multi-reference role separation and Exilada Character Lab validation;
+- **OOM/runtime fail** -> preserve evidence and evaluate a lower-memory Qwen implementation such as Nunchaku/int4 before rejecting model capability;
+- **technical PASS / precision FAIL** -> do not blindly increase steps; reconsider editor/control architecture.
 
 ## Model router authority
 
@@ -228,11 +240,9 @@ Machine-readable authority:
 
 `tools/roguelite-asset-studio/model_registry.json`
 
-Current Base status:
+Current Qwen status:
 
-`installed_runner60_parity_valid_atomic_gate_pending`
-
-Qwen-Image-Edit is **not yet downloaded**. Do not move to it before Runner61 yields a visual verdict.
+`runner62_active_pending_install_and_validation`
 
 ## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
 
@@ -251,12 +261,6 @@ Evidence:
 `Z:\AI\MiniMaxH3\h0_exilada_ref2va_448x800_124f_base50.mp4`
 
 H3 remains a motion specialist, not the universal still generator.
-
-MiniMax H3 FL2VA remains a future temporal candidate for environmental loops/VFX/first-last-frame tasks and must be validated per asset class.
-
-## FLUX.1 Kontext [dev] — R&D ONLY
-
-Existing Kontext remains useful for reconstruction/edit R&D. Its dev license prevents silently making it the commercial-production default without appropriate licensing.
 
 ## Local-first production — HARD LOCK
 
@@ -290,10 +294,6 @@ No visible runtime body/hair/clothing/equipment assembly.
 
 One animated action = one horizontal spritesheet row; frames read left-to-right; timing/events/pivots live in metadata.
 
-## Environment/map production — LOCKED
-
-Prefer modular independently useful pieces over one flattened AI-painted gameplay map: terrain patches, walls/cliffs, architecture modules, doors/gates, vegetation, rocks/debris, props, foreground/background set pieces, loops and damage-state variants.
-
 ## Exilada design state — REOPENED / FIRST CHARACTER LAB CASE
 
 `assets/source/characters/exilada/reference/exilada_master.png` remains identity/anatomy evidence but is not final visual-design authority.
@@ -316,7 +316,8 @@ Do not accumulate candidate checkpoints speculatively.
 
 - keep proven H3 Base50 set;
 - keep current Kontext R&D set while still needed;
-- keep proven Klein distilled runtime;
-- keep installed Klein Base FP8 + small-decoder VAE while Runner61 is active;
-- do **not** download Qwen-Image-Edit or Step1X before the Base atomic hypothesis is resolved;
-- remove rejected payloads only after evidence/manifests are preserved and a branch is explicitly abandoned.
+- keep Klein distilled runtime as fast T2I;
+- keep Klein Base while it remains a training/specialization candidate;
+- Runner62 is the active new-model payload;
+- do not download Step1X;
+- do not delete rejected/retired payloads until evidence/manifests are preserved and cleanup is explicitly safe.
