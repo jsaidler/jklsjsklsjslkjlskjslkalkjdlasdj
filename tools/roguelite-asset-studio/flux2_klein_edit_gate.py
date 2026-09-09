@@ -18,6 +18,13 @@ from pathlib import Path
 
 from PIL import Image
 
+# The ComfyUI portable embedded Python uses a constrained path configuration and does
+# not reliably add the executed script directory to sys.path. Make the Asset Studio
+# module root explicit so sibling adapter modules resolve regardless of working dir.
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
 WIDTH = 768
 HEIGHT = 768
 
@@ -68,6 +75,7 @@ def main() -> int:
     from adapter_protocol import ReferenceInput, StaticGenerationRequest
     from flux2_klein_adapter import Flux2KleinAdapter, sha256_file
 
+    print(f"RUNNER57-PYTHON: Asset Studio module root={SCRIPT_DIR}", flush=True)
     print("RUNNER57-PYTHON: project adapter imports OK", flush=True)
 
     parser = argparse.ArgumentParser()
@@ -180,9 +188,6 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except BaseException as exc:
-        # Windows PowerShell 5.x can promote native stderr to NativeCommandError
-        # when ErrorActionPreference=Stop. Emit every diagnostic to stdout so the
-        # runner can preserve the full traceback deterministically.
         print(
             f"RUNNER57-PYTHON-FAIL: {type(exc).__name__}: {exc}",
             file=sys.stdout,
