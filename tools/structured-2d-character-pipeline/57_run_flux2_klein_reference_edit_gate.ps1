@@ -48,6 +48,19 @@ function Stop-Managed([string]$PidFile) {
     Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
 }
 
+function Print-TextFile([string]$Path, [string]$Header, [int]$Tail = 0) {
+    Write-Host $Header -ForegroundColor Yellow
+    if (-not (Test-Path $Path -PathType Leaf)) {
+        Write-Host "  <missing: $Path>" -ForegroundColor DarkYellow
+        return
+    }
+    if ($Tail -gt 0) {
+        Get-Content -LiteralPath $Path -Tail $Tail
+    } else {
+        Get-Content -LiteralPath $Path
+    }
+}
+
 $PortableRoot = Join-Path $Workspace 'ComfyUI_windows_portable'
 $Python = Join-Path $PortableRoot 'python_embeded\python.exe'
 $ComfyRoot = Join-Path $PortableRoot 'ComfyUI'
@@ -69,7 +82,7 @@ Write-Host '[ADAPTER] Execution goes through the generic Asset Studio adapter co
 Write-Host '[SINGLE] Original gate = previous_approved_state; revise damage/material without replacing identity.' -ForegroundColor Green
 Write-Host '[MULTI] Image 1 = structure authority; Image 2 = material/damage authority.' -ForegroundColor Green
 Write-Host '[SETTINGS] 768x768, 4 distilled steps, CFG 1.0, Euler, seed 0.' -ForegroundColor Green
-Write-Host '[DIAGNOSTICS] Python exceptions are captured completely; stderr cannot abort traceback capture.' -ForegroundColor Green
+Write-Host '[DIAGNOSTICS] Python stdout/stderr are captured as files by Start-Process; PowerShell cannot truncate the traceback.' -ForegroundColor Green
 Write-Host ''
 
 Require-Hash (Join-Path $ComfyRoot "models\diffusion_models\$ModelName") $ModelSha256 'FLUX.2 Klein 4B distilled FP8'
@@ -90,6 +103,8 @@ $PidFile = Join-Path $Workspace '.flux2_klein_edit.pid'
 $StdoutLog = Join-Path $GateDir "comfyui_flux2_klein_edit_${Port}_stdout.log"
 $StderrLog = Join-Path $GateDir "comfyui_flux2_klein_edit_${Port}_stderr.log"
 $ExecutorLog = Join-Path $GateDir 'flux2_klein_edit_gate_executor.log'
+$ExecutorStdout = Join-Path $GateDir 'flux2_klein_edit_gate_python_stdout.log'
+$ExecutorStderr = Join-Path $GateDir 'flux2_klein_edit_gate_python_stderr.log'
 
 Stop-Managed $PidFile
 $portBusy = $false
@@ -126,33 +141,49 @@ if (-not $ready) {
     Fail "isolated ComfyUI did not become ready at $Base"
 }
 
-if (Test-Path $ExecutorLog) { Remove-Item -LiteralPath $ExecutorLog -Force }
+foreach ($old in @($ExecutorLog,$ExecutorStdout,$ExecutorStderr)) {
+    if (Test-Path $old) { Remove-Item -LiteralPath $old -Force }
+}
+
+$pythonArgs = @(
+    '-s',
+    $Executor,
+    '--comfy-root', $ComfyRoot,
+    '--workspace', $Workspace,
+    '--port', "$Port",
+    '--timeout-minutes', "$TimeoutMinutes",
+    '--comfy-commit', $ComfyCommit
+)
+
 $executorExit = 1
-$previousErrorActionPreference = $ErrorActionPreference
 try {
-    # Windows PowerShell 5.x promotes native stderr into ErrorRecord objects. During
-    # the native process only, keep them non-terminating so a Python traceback is not
-    # truncated at its first line. The executor itself also emits caught failures to
-    # stdout, giving us deterministic diagnostics on both PowerShell 5.x and 7.x.
-    $ErrorActionPreference = 'Continue'
-    & $Python -s $Executor `
-        --comfy-root $ComfyRoot `
-        --workspace $Workspace `
-        --port $Port `
-        --timeout-minutes $TimeoutMinutes `
-        --comfy-commit $ComfyCommit 2>&1 | Tee-Object -FilePath $ExecutorLog | ForEach-Object { Write-Host $_ }
-    $executorExit = $LASTEXITCODE
+    Write-Host 'RUNNER57: launching Python executor with deterministic file capture...' -ForegroundColor Cyan
+    $executorProcess = Start-Process -FilePath $Python -ArgumentList $pythonArgs -WorkingDirectory $ProjectRepoRoot `
+        -RedirectStandardOutput $ExecutorStdout -RedirectStandardError $ExecutorStderr -WindowStyle Hidden -PassThru -Wait
+    $executorExit = $executorProcess.ExitCode
 } finally {
-    $ErrorActionPreference = $previousErrorActionPreference
     Stop-Managed $PidFile
+}
+
+$stdoutText = if (Test-Path $ExecutorStdout) { Get-Content -LiteralPath $ExecutorStdout -Raw } else { '' }
+$stderrText = if (Test-Path $ExecutorStderr) { Get-Content -LiteralPath $ExecutorStderr -Raw } else { '' }
+$combined = @()
+$combined += '=== PYTHON STDOUT ==='
+$combined += $stdoutText
+$combined += '=== PYTHON STDERR ==='
+$combined += $stderrText
+Set-Content -LiteralPath $ExecutorLog -Value ($combined -join [Environment]::NewLine) -Encoding UTF8
+
+Print-TextFile $ExecutorStdout '--- RUNNER57 PYTHON STDOUT ---'
+if ($stderrText.Trim().Length -gt 0) {
+    Print-TextFile $ExecutorStderr '--- RUNNER57 PYTHON STDERR ---'
 }
 
 if ($executorExit -ne 0) {
     Write-Host ''
-    Write-Host '--- RUNNER57 EXECUTOR DIAGNOSTIC TAIL ---' -ForegroundColor Yellow
-    if (Test-Path $ExecutorLog) { Get-Content -LiteralPath $ExecutorLog -Tail 320 }
-    Write-Host '--- COMFYUI STDERR TAIL ---' -ForegroundColor Yellow
-    if (Test-Path $StderrLog) { Get-Content -LiteralPath $StderrLog -Tail 320 }
+    Write-Host "RUNNER57-PYTHON-EXIT: $executorExit" -ForegroundColor Red
+    Print-TextFile $StderrLog '--- COMFYUI STDERR TAIL ---' 320
+    Write-Host "Full combined executor log: $ExecutorLog" -ForegroundColor Yellow
     Fail "reference-edit gate executor exited with code $executorExit"
 }
 
