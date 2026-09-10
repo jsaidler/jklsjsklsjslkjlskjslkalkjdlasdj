@@ -2,7 +2,7 @@
 
 Status date: **2026-09-10**
 
-Status: **PREPARED / CURRENT GATE**
+Status: **PREPARED / CURRENT GATE / FIRST BOOTSTRAP ATTEMPT FAILED IN HARNESS BEFORE MODEL DOWNLOAD; FIXED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -44,6 +44,25 @@ New diffusion checkpoint only:
 Runner63 first verifies that Runner62 manifest + outputs exist. It then removes the rejected 2509 diffusion checkpoint if its SHA256 is exactly the known Runner62 hash. This preserves evidence while avoiding model accumulation.
 
 Net diffusion payload change is only about +103 MB because the old ~20.43 GB checkpoint is retired before the new ~20.53 GB checkpoint is installed.
+
+## First bootstrap attempt — HARNESS FAIL / MODEL NOT TESTED
+
+The first 2026-09-10 attempt completed prerequisite verification and safely removed the rejected 2509 diffusion checkpoint after confirming Runner62 evidence. It then failed before downloading Qwen2511 or launching inference while pinning the newer ComfyUI commit.
+
+Root cause was a PowerShell harness bug:
+
+- the helper declared `function Invoke-Git([string[]]$Args, ...)`;
+- PowerShell variable names are case-insensitive and `$args` is an automatic variable;
+- the collision caused the helper to invoke `git.exe` without the intended argument vector, so Git printed its generic usage text and returned exit code 1.
+
+This is **not** Qwen2511 model evidence and does not change the visual/model hypothesis.
+
+Fix committed in the Runner63 launcher:
+
+- helper parameter renamed to `$GitArgs`;
+- `git fetch` and `git checkout` calls changed to explicit named parameters `-GitArgs ... -Failure ...`.
+
+The 2509 diffusion checkpoint does **not** need to be restored. Runner62 manifest and generated outputs remain preserved; the shared Qwen2.5-VL encoder and Qwen image VAE remain installed. Rerunning Runner63 continues directly from the corrected bootstrap and downloads only Qwen2511.
 
 ## ComfyUI parity
 
