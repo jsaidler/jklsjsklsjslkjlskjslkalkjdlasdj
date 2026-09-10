@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-09**
+Status date: **2026-09-10**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
@@ -8,245 +8,245 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
-4. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-5. `docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
-6. `docs/RUNNER58_FLUX2_KLEIN_EDIT_STRENGTH_CALIBRATION_2026-09-09.md`
+3. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+4. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
+5. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
+6. `docs/RUNNER60_FLUX2_KLEIN_BASE_OFFICIAL_PARITY_2026-09-09.md`
 7. `docs/VISUAL_DIRECTION.md`
 8. `docs/CHARACTERS.md`
 9. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
 10. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-Historical screening/spike docs remain evidence but do not override the current gate.
+Historical screening/spike documents remain evidence but do not override the current gate.
 
 ## Living-document invariant — LOCKED
 
-Every state-changing action updates the relevant thematic docs/registry and this file before completion is reported. Changed decisions replace stale locks rather than coexisting ambiguously.
+Every state-changing action updates the relevant thematic docs/registry and this file. Changed decisions replace stale locks rather than coexisting ambiguously.
 
 ## Local paths — LOCKED
 
 - repo: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - AI root: `Z:\AI`
 - umbrella Studio root: `Z:\AI\RogueliteAssetStudio`
-- active H3 workspace: `Z:\AI\MiniMaxH3`
-- active Kontext R&D workspace: `Z:\AI\FluxKontext`
+- H3 workspace: `Z:\AI\MiniMaxH3`
+- Kontext R&D: `Z:\AI\FluxKontext`
 - Klein workspace: `Z:\AI\Flux2Klein`
-- active Qwen edit workspace: `Z:\AI\QwenImageEdit`
-- paused Wan workspace: `Z:\AI\WanAnimate2`
-- SSD comparison retained: `Z:\AI\SpriteSheetDiffusionSpike`
+- Qwen edit workspace: `Z:\AI\QwenImageEdit`
+- Wan paused: `Z:\AI\WanAnimate2`
+- SSD evidence retained: `Z:\AI\SpriteSheetDiffusionSpike`
 - `D:\AI` is stale/historical and must not be used.
 
 ## UMBRELLA DIRECTION — ROGUELITE ASSET STUDIO / HARD LOCK
 
-The local production tool is **not an Exilada editor** and is not a wrapper around one model.
-
-It must cover the complete visual asset base: playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, environment modules/set pieces, materials, VFX/environment animation and UI art where needed.
+The local production tool is for the **entire visual asset base**, not only Exilada and not one universal model.
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> model router -> specialized model adapter -> local model runtime -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> model router -> specialized adapter -> local runtime -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
 
-The Exilada is the first difficult Character Lab validation project, not the scope-defining application.
+It must cover playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, set pieces, materials, VFX/environment animation and UI art.
 
-Generic foundation:
+Semantic reference roles remain a hard contract: `identity`, `anatomy`, `style`, `material`, `palette`, `structure`, `composition`, `pose`, `motion`, `camera`, `environment`, `previous_approved_state`.
+
+Generic authority:
 
 - `tools/roguelite-asset-studio/asset_schema.json`
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
 - `tools/roguelite-asset-studio/adapter_protocol.py`
 
-The router/adapter boundary is UI-independent.
-
-## Static-generation baseline — FLUX.2 Klein 4B distilled / ACTIVE
+## STATIC GENERATION — FLUX.2 KLEIN 4B DISTILLED / ACTIVE
 
 Runner56 proved fast local T2I on RTX 3060 12 GB:
 
 - 768×768;
-- 4 steps;
-- CFG 1.0;
-- Euler;
-- seed 0;
-- elapsed 12.054 s;
-- coherent architecture-module authoring master;
+- 4 steps / CFG 1 / Euler;
+- 12.054 s;
+- coherent architecture authoring master;
 - no OOM/runtime failure.
 
-Runners57/58 proved distilled reference editing technically but failed production edit-strength/obedience.
+Runners57/58 proved distilled reference editing technically but failed production structural obedience.
 
-Current role:
+Routable:
 
-- **ROUTABLE**: `text_to_image`, `interactive_concept`;
-- **NOT ROUTABLE**: production structural/reference editing.
+- `text_to_image`
+- `interactive_concept`
 
-## FLUX.2 Klein 4B Base — PARITY VALID / STRUCTURAL PRECISION FAIL
+Not routable:
 
-Installed:
+- production precision/reference editing.
 
-- `flux-2-klein-base-4b-fp8.safetensors`
-  - SHA256 `44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840`
-- `qwen_3_4b.safetensors`
-  - SHA256 `6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a`
-- `full_encoder_small_decoder.safetensors`
-  - SHA256 `ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62`
+## FLUX.2 KLEIN 4B BASE — STRUCTURAL PRECISION HYPOTHESIS EXHAUSTED
 
-### Runner59
+Runner59 visual result was invalid because the first Base graph diverged from official conditioning semantics.
 
-Hardware PASS, visual verdict invalid because the custom graph did not match the official CFG-5 conditioning recipe and produced cyan/posterized output.
+Runner60 corrected the graph and proved sane VAE round-trip, T2I and naturally colored editing at 1024×1024 / 20 steps / CFG 5.
 
-### Runner60 — official parity
+Runner61 then tested one-fact atomic edits and sequential composition.
 
-Corrected graph:
+Final verdict:
 
-- separate positive prompt encoding;
-- separate empty negative encoding;
-- ~1 MP reference scaling;
-- geometry derived from first reference;
-- Euler / CFG 5 / 20 steps.
+**TECHNICAL PASS / COARSE SEMANTIC EDIT USEFUL / EXACT STRUCTURAL PRECISION FAIL.**
 
-Result:
+Observed:
 
-- Base small-decoder VAE round-trip sane;
-- full-VAE control sane;
-- Base T2I sane/naturally colored;
-- single edit meaningful but compound structural request incomplete;
-- multi edit preserved identity but remained conservative.
+- one-plank request removed/reconstructed almost the entire left leaf/opening;
+- one-capstone request altered a broader upper region than the named block;
+- one-strap request reinterpreted a broad hardware configuration;
+- sequential edits preserve coarse state but cannot repair inaccurate localization;
+- final material pass can import stronger rust/material language.
 
-Conclusion: Runner59 cyan was a recipe error, not a model defect.
+Retain Base for valid Base/T2I research and future Roguelite-specific LoRA/fine-tuning. Do not route production precision structural edits through it.
 
-### Runner61 — atomic + sequential structural gate / FINAL KLEIN EDIT VERDICT
-
-Canonical record:
-
-`docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-
-Independent atomic outputs showed:
-
-- **plank request**: model removed/reconstructed almost the entire left door leaf/opening instead of exactly one plank-width;
-- **capstone request**: removed meaningful upper masonry but over-edited a broader top region than the named block;
-- **strap request**: broadly reinterpreted door hardware rather than isolating only the requested lower-right strap.
-
-Sequential chain:
-
-- broad earlier states generally survived later stages;
-- final material pass imported stronger rust/material language;
-- but chaining coarse states did not solve localization precision.
-
-### Klein Base conclusion
-
-**TECHNICAL PASS / COARSE SEMANTIC EDITING USEFUL / PRECISION STRUCTURAL EDIT FAIL.**
-
-Do not keep tuning Klein steps/prompts without a new technical mechanism.
-
-Retain Klein Base for:
-
-- Base/T2I research;
-- future Roguelite-specific LoRA/fine-tuning;
-- coarse concept-revision R&D if useful.
-
-Do not route precision structural edits through it.
-
-## CURRENT IMPLEMENTATION GATE — Runner62 / Qwen-Image-Edit-2509 native FP8
+## RUNNER62 — QWEN-IMAGE-EDIT-2509 / TECHNICAL PASS / PRECISION FAIL
 
 Canonical record:
 
 `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
 
+Runtime:
+
+- isolated `Z:\AI\QwenImageEdit`;
+- ComfyUI commit `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`;
+- RTX 3060 12 GB / 48 GB RAM;
+- ComfyUI `--lowvram`, 1 GB VRAM reserve;
+- Qwen2.5-VL 7B FP8 encoder explicitly on CPU;
+- no Lightning LoRA.
+
+Payload used:
+
+- `qwen_image_edit_2509_fp8_e4m3fn.safetensors`
+  - 20,430,698,424 bytes
+  - SHA256 `318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4`
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+  - 9,384,670,680 bytes
+  - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
+- `qwen_image_vae.safetensors`
+  - 253,806,246 bytes
+  - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+
+Recipe:
+
+- 1024×1024;
+- 20 steps;
+- CFG 4;
+- Euler/simple;
+- denoise 1;
+- AuraFlow shift 3;
+- CFGNorm 1.
+
+Actual results:
+
+### Plank
+
+- elapsed **498.011 s**;
+- mean abs luma 5.8785;
+- changed ratio >24 = 0.054299.
+
+Visual: extremely good source preservation compared with Klein, but the requested narrow full-height one-plank opening is not unambiguously executed.
+
+### Strap
+
+- elapsed **455.408 s**;
+- mean abs luma 6.3035;
+- changed ratio >24 = 0.057031.
+
+Visual: more localized than Klein, but the lower hardware/door-bottom region is reinterpreted instead of simply breaking only the named strap with a missing middle section.
+
+Runner62 classification:
+
+**TECHNICAL PASS / LOCALIZATION-PRESERVATION IMPROVED / EXACT STRUCTURAL FACT FAIL.**
+
+Do not route 2509 as production precision editor and do not blindly add steps.
+
+Generated evidence/manifests are preserved. Its diffusion checkpoint is eligible for cleanup when Runner63 activates 2511. Shared Qwen2.5-VL + VAE must be retained.
+
+## CURRENT IMPLEMENTATION GATE — RUNNER63 / QWEN-IMAGE-EDIT-2511
+
+Canonical record:
+
+`docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/62_bootstrap_and_run_qwen_image_edit_2509_feasibility.ps1`
+`tools/structured-2d-character-pipeline/63_bootstrap_and_run_qwen_image_edit_2511_precision.ps1`
 
 Executor:
 
-`tools/roguelite-asset-studio/qwen_image_edit_2509_feasibility_gate.py`
+`tools/roguelite-asset-studio/qwen_image_edit_2511_precision_gate.py`
 
 Adapter:
 
-`tools/roguelite-asset-studio/qwen_image_edit_2509_adapter.py`
+`tools/roguelite-asset-studio/qwen_image_edit_2511_adapter.py`
 
-### Why Qwen now
+### Why 2511
 
-The Klein family has been genuinely exhausted for precision structural edits on the current validated recipes.
+Qwen-Image-Edit-2511 is the immediate same-family successor because the official revision targets lower image drift, better consistency and stronger geometric reasoning — exactly the unresolved Runner62 problem.
 
-Qwen-Image-Edit-2509 is tested as a **specialized semantic/structural editor**, not as a replacement for every asset-generation model.
+Shared Runner62 encoder/VAE are reused. New model only:
 
-Native support already exists in the same pinned ComfyUI commit:
+`qwen_image_edit_2511_fp8mixed.safetensors`
 
-`672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
+- bytes `20,533,762,817`;
+- SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`.
 
-Native graph semantics:
+Runner63 first verifies preserved Runner62 evidence, then removes the rejected 2509 diffusion checkpoint if and only if its hash matches. This prevents model accumulation while retaining provenance.
+
+### Updated native ComfyUI parity
+
+Runner63 pins:
+
+`6eba895f7d3615284da81e95bf49eaed4a5f7309`
+
+2511 adapter uses:
 
 - `TextEncodeQwenImageEditPlus`;
-- up to three image references;
-- Qwen2.5-VL visual/text conditioning;
-- Qwen image VAE;
-- `FluxKontextImageScale` for the primary edit image;
-- primary source VAE latent as KSampler latent;
-- `ModelSamplingAuraFlow` shift 3;
+- `FluxKontextImageScale`;
+- `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)` on positive and negative;
+- `ModelSamplingAuraFlow` shift 3.1;
 - `CFGNorm` strength 1;
-- Euler / simple / denoise 1;
-- 20 steps;
+- Euler/simple/denoise 1;
 - CFG 4;
-- no Lightning LoRA for the first verdict.
+- no Lightning.
 
-### Runner62 payload
+### Runner63 matrix
 
-Isolated workspace:
+Same two atomic tasks:
 
-`Z:\AI\QwenImageEdit`
+- exact one-plank-width full-height removal;
+- exact lower-right strap break.
 
-Files:
+Each runs at:
 
-1. `qwen_image_edit_2509_fp8_e4m3fn.safetensors`
-   - 20,430,698,424 bytes
-   - SHA256 `318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4`
-2. `qwen_2.5_vl_7b_fp8_scaled.safetensors`
-   - 9,384,670,680 bytes
-   - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
-3. `qwen_image_vae.safetensors`
-   - 253,806,246 bytes
-   - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+- 20 steps;
+- 40 steps.
 
-Total weights: `30,069,175,350` bytes (~30.07 GB decimal / ~28.00 GiB).
+Comparison sheet:
 
-### 12 GB strategy
+`original -> Klein Runner61 -> Qwen2509 Runner62 -> Qwen2511/20 -> Qwen2511/40`.
 
-Target remains RTX 3060 12 GB / 48 GB RAM.
+Visual PASS requires exact structural-fact improvement, not just low pixel drift.
 
-Runner62:
+If 2511 passes, proceed to multi-reference semantic role separation, then Exilada Character Lab and another non-character class before generic UI promotion.
 
-- launches ComfyUI with `--lowvram`;
-- reserves 1 GB VRAM;
-- uses expandable CUDA allocation segments;
-- explicitly loads the 9.38 GB Qwen2.5-VL encoder on CPU;
-- uses the full native FP8 diffusion model, not Nunchaku/int4 or Lightning.
+If 2511 fails both 20/40 precision tests, stop blind step tuning and move to **automatic localization/region-control architecture or another editor family**. Routine manual masks remain outside the production contract.
 
-### Precision comparison
-
-Runner62 runs two atomic edits from the same original gate and builds a direct comparison against Runner61 Klein outputs:
-
-1. remove **one plank-width only** from the left leaf;
-2. break **only** the lower-right horizontal strap.
-
-Visual PASS requires materially better localization than Klein without losing gate identity/camera/unrelated geometry.
-
-### Runner62 decision
-
-- **technical + visual PASS** -> advance Qwen to multi-reference role separation and Exilada Character Lab validation;
-- **OOM/runtime fail** -> preserve evidence and evaluate a lower-memory Qwen implementation such as Nunchaku/int4 before rejecting model capability;
-- **technical PASS / precision FAIL** -> do not blindly increase steps; reconsider editor/control architecture.
-
-## Model router authority
-
-Machine-readable authority:
+## MODEL ROUTER AUTHORITY
 
 `tools/roguelite-asset-studio/model_registry.json`
 
-Current Qwen status:
+Current statuses:
 
-`runner62_active_pending_install_and_validation`
+- H3 Ref2VA: active motion specialist;
+- Klein distilled: active fast T2I/concept;
+- Klein Base: training/T2I candidate, precision edit rejected;
+- Qwen 2509: technical evidence retained, precision route rejected;
+- Qwen 2511: **current precision editor gate**;
+- Step1X: deferred hardware mismatch.
 
-## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
+## MOTION BRANCH — MINIMAX H3 BASE REF2VA / ACTIVE PROVEN
 
-Current Exilada motion baseline:
+Exilada motion baseline:
 
 - 448×800;
 - 124 frames @24fps;
@@ -262,13 +262,11 @@ Evidence:
 
 H3 remains a motion specialist, not the universal still generator.
 
-## Local-first production — HARD LOCK
+## LOCAL-FIRST PRODUCTION — HARD LOCK
 
-Routine asset production must work locally after installation. Hosted services may be optional accelerators but cannot be mandatory.
+Routine production must work locally after installation. Hosted services can be optional accelerators, never mandatory normal-production dependencies. This includes mature/adult fictional character states.
 
-This keeps mature/adult fictional-state authoring independent from hosted-surface restrictions.
-
-## Game/runtime presentation — LOCKED
+## GAME/RUNTIME PRESENTATION — LOCKED
 
 - elevated 2D arcade beat'em-up / belt-scroller / false 3D;
 - native raster 640×360;
@@ -278,46 +276,45 @@ This keeps mature/adult fictional-state authoring independent from hosted-surfac
 - `relative_scale=1.0` means baseline adult-human world scale, not sprite pixel height;
 - runtime consumes complete precomposed character sprites.
 
-## Resolution contract — HARD LOCK
+## RESOLUTION CONTRACT — HARD LOCK
 
 The old 128px Exilada baseline is retired. There is no universal 160/180/200/192/384px production sprite resolution.
 
-Preserve useful native/final generation resolution. Apparent runtime/world scale is separate and must not create a second destructively reduced gameplay raster asset.
+Preserve useful native/final generation resolution. Apparent runtime/world scale is separate and must not create a second destructively reduced gameplay raster asset. Same rule applies to non-character assets.
 
-The same principle applies to non-character assets.
-
-## Runtime character representation — HARD LOCK
+## RUNTIME CHARACTER REPRESENTATION — HARD LOCK
 
 `complete authored character state -> complete animation frames -> complete-character spritesheet/atlas + metadata -> ordinary sprite playback`
 
 No visible runtime body/hair/clothing/equipment assembly.
 
-One animated action = one horizontal spritesheet row; frames read left-to-right; timing/events/pivots live in metadata.
+One animated action = one horizontal spritesheet row; frames left-to-right; timing/events/pivots in metadata.
 
-## Exilada design state — REOPENED / FIRST CHARACTER LAB CASE
+## EXILADA DESIGN STATE — REOPENED / FIRST CHARACTER LAB CASE
 
 `assets/source/characters/exilada/reference/exilada_master.png` remains identity/anatomy evidence but is not final visual-design authority.
 
-Required revision direction includes:
+Required revision direction:
 
 - stronger Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell charge;
-- severe asymmetrical cloth degradation;
+- severe asymmetric cloth degradation;
 - materially caused greater torso exposure/partial breast exposure where appropriate;
 - near/full adult nudity as legitimate states;
 - dirt/wear/captivity evidence;
-- rejection of clean generic fantasy-bikini/MMO logic;
-- preservation of mature adult anatomy and identity.
+- reject clean generic fantasy-bikini/MMO logic;
+- preserve mature adult anatomy and identity.
 
 Runner53 remains paused until the static master is revised through the generic Studio path.
 
-## Cleanup rule
+## CLEANUP RULE
 
-Do not accumulate candidate checkpoints speculatively.
+Do not accumulate checkpoints speculatively.
 
-- keep proven H3 Base50 set;
-- keep current Kontext R&D set while still needed;
-- keep Klein distilled runtime as fast T2I;
+- keep proven H3 Base50;
+- keep Kontext R&D while still needed;
+- keep Klein distilled as fast T2I;
 - keep Klein Base while it remains a training/specialization candidate;
-- Runner62 is the active new-model payload;
-- do not download Step1X;
-- do not delete rejected/retired payloads until evidence/manifests are preserved and cleanup is explicitly safe.
+- preserve Runner62 generated evidence;
+- Runner63 may remove the rejected Qwen2509 diffusion checkpoint after exact-hash/evidence verification;
+- retain shared Qwen2.5-VL encoder + Qwen VAE for 2511;
+- do not download Step1X while Runner63 is active.
