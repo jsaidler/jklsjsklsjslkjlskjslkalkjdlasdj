@@ -85,8 +85,8 @@ function Print-TextFile([string]$Path,[string]$Header,[int]$Tail=0) {
     if (-not (Test-Path $Path -PathType Leaf)) { Write-Host "  <missing: $Path>"; return }
     if ($Tail -gt 0) { Get-Content -LiteralPath $Path -Tail $Tail } else { Get-Content -LiteralPath $Path }
 }
-function Invoke-Git([string[]]$Args,[string]$Failure) {
-    & git.exe @Args
+function Invoke-Git([string[]]$GitArgs,[string]$Failure) {
+    & git.exe @GitArgs
     if ($LASTEXITCODE -ne 0) { Fail "$Failure (git exit $LASTEXITCODE)" }
 }
 
@@ -150,8 +150,8 @@ if ($freeBytes -lt $requiredFree) { Fail 'insufficient free space for Qwen2511 c
 
 if (-not (Test-Path (Join-Path $ComfyRoot '.git') -PathType Container)) { Fail "existing isolated Qwen ComfyUI checkout missing: $ComfyRoot" }
 Write-Host "Pinning Qwen2511 ComfyUI to $ComfyCommit" -ForegroundColor Cyan
-Invoke-Git @('-C',$ComfyRoot,'fetch','--depth','1','origin',$ComfyCommit) 'ComfyUI fetch failed'
-Invoke-Git @('-C',$ComfyRoot,'checkout','--detach','--force',$ComfyCommit) 'ComfyUI checkout failed'
+Invoke-Git -GitArgs @('-C',$ComfyRoot,'fetch','--depth','1','origin',$ComfyCommit) -Failure 'ComfyUI fetch failed'
+Invoke-Git -GitArgs @('-C',$ComfyRoot,'checkout','--detach','--force',$ComfyCommit) -Failure 'ComfyUI checkout failed'
 $currentCommit = (& git.exe -C $ComfyRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $currentCommit -ne $ComfyCommit) { Fail "ComfyUI commit mismatch. Expected $ComfyCommit got $currentCommit" }
 
