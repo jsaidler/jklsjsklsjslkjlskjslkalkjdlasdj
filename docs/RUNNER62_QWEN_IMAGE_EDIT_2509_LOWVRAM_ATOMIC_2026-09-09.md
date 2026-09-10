@@ -1,233 +1,132 @@
 # Runner62 — Qwen-Image-Edit-2509 FP8 low-VRAM + atomic precision gate
 
-Status date: **2026-09-09**
+Status date: **2026-09-10**
 
-Status: **PREPARED / CURRENT GATE**
+Status: **COMPLETE / TECHNICAL PASS / VISUAL PRECISION FAIL**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner62 exists
+## Purpose
 
-Runner61 exhausted the parity-valid FLUX.2 Klein 4B Base hypothesis for **precise structural editing**.
+Runner62 tested Qwen-Image-Edit-2509 as the first specialized semantic/structural editor after FLUX.2 Klein Base exhausted its precise structural-edit hypothesis.
 
-Klein Base did demonstrate useful coarse semantic editing:
+The gate was deliberately narrow: reproduce two atomic edits that Klein handled too coarsely, without masks or manual localization.
 
-- it recognized a request to remove door material;
-- it recognized a request to remove upper masonry;
-- it recognized a request to alter hardware;
-- sequential candidates generally preserved the overall gate identity/camera;
-- the final material pass could import stronger rust/material language.
+## Runtime
 
-However, the atomic precision contract failed:
+Workspace:
 
-- `remove one plank` removed almost the entire left door leaf/opening rather than one plank-width;
-- `remove one capstone` modified a much larger upper-masonry region than the requested single mass;
-- `break one lower-right strap` broadly reinterpreted the door hardware instead of isolating the named strap.
+`Z:\AI\QwenImageEdit`
 
-The sequential chain therefore composes **coarse edits**, not the precise edits needed for routine Asset Studio art direction without masks/manual repainting.
-
-Klein Base remains useful as:
-
-- a valid Base/T2I branch;
-- a future LoRA/project-specialization training base;
-- possible coarse concept revision research.
-
-It is not approved as the production structural editor.
-
-## Next specialized editor
-
-Qwen-Image-Edit-2509 is now the active structural/semantic editing hypothesis.
-
-Reasons:
-
-- Apache-2.0 model family;
-- native ComfyUI support in the pinned runtime;
-- `TextEncodeQwenImageEditPlus` supports up to three images;
-- the text/vision encoder semantically reads the reference image(s), while VAE/reference conditioning also carries appearance;
-- intended for explicit semantic image editing rather than only style-preserving regeneration.
-
-## Native ComfyUI parity
-
-The project pins the same ComfyUI commit already used for the Klein branch:
+ComfyUI commit:
 
 `672ba9e5e388bd6bfac5ceef61f89ffdd9467200`
 
-At that exact commit, native Qwen support includes:
+Payload:
 
+- `qwen_image_edit_2509_fp8_e4m3fn.safetensors`
+  - bytes `20,430,698,424`
+  - SHA256 `318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4`
+- `qwen_2.5_vl_7b_fp8_scaled.safetensors`
+  - bytes `9,384,670,680`
+  - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
+- `qwen_image_vae.safetensors`
+  - bytes `253,806,246`
+  - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+
+Low-VRAM recipe:
+
+- diffusion FP8;
+- Qwen2.5-VL encoder on CPU;
+- ComfyUI `--lowvram`;
+- `--reserve-vram 1.0`;
+- expandable CUDA segments;
 - `TextEncodeQwenImageEditPlus`;
-- `FluxKontextImageScale`;
-- `ModelSamplingAuraFlow`;
-- `CFGNorm`;
-- native Qwen image CLIP/VAE handling.
-
-The adapter follows the pinned `Image Edit (Qwen 2509)` blueprint rather than inventing an equivalent graph.
-
-Native non-Lightning recipe used by Runner62:
-
-- diffusion: `qwen_image_edit_2509_fp8_e4m3fn.safetensors`;
-- text/vision encoder: `qwen_2.5_vl_7b_fp8_scaled.safetensors`;
-- VAE: `qwen_image_vae.safetensors`;
-- Qwen encoder device: **CPU** to reduce 12 GB VRAM pressure;
-- primary image -> `FluxKontextImageScale` -> VAE latent;
-- positive/negative -> `TextEncodeQwenImageEditPlus` with the same image references;
-- `ModelSamplingAuraFlow` shift 3;
-- `CFGNorm` strength 1;
-- Euler;
-- simple scheduler;
-- denoise 1;
+- `ModelSamplingAuraFlow`, shift 3;
+- `CFGNorm`, strength 1;
+- Euler / simple / denoise 1;
 - 20 steps;
 - CFG 4;
 - no Lightning LoRA.
 
-## Payload
+## Actual technical result
 
-Runner62 creates an isolated workspace:
+**PASS.**
 
-`Z:\AI\QwenImageEdit`
+Both 1024×1024 jobs completed on RTX 3060 12 GB without OOM or graph/runtime failure.
 
-Required model files:
+### Atomic one-plank request
 
-### Diffusion
+Elapsed: **498.011 s**.
 
-`qwen_image_edit_2509_fp8_e4m3fn.safetensors`
+Output SHA256:
 
-- bytes: `20,430,698,424`
-- SHA256: `318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4`
+`19f6ff99f31b34db73fa357e17587f4ca10498f62b442ccdbd403fd41e8f7e97`
 
-### Text/vision encoder
+Difference from original:
 
-`qwen_2.5_vl_7b_fp8_scaled.safetensors`
+- mean abs luma: `5.8785`;
+- changed ratio >12: `0.112901`;
+- changed ratio >24: `0.054299`.
 
-- bytes: `9,384,670,680`
-- SHA256: `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
+### Atomic lower-right-strap request
 
-### VAE
+Elapsed: **455.408 s**.
 
-`qwen_image_vae.safetensors`
+Output SHA256:
 
-- bytes: `253,806,246`
-- SHA256: `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
+`f7351216b9d40d8cc6580122901e950a90c596b2b581deb43fed1d52cf3665d8`
 
-Total model payload:
+Difference from original:
 
-`30,069,175,350` bytes (~30.07 GB decimal / ~28.00 GiB).
+- mean abs luma: `6.3035`;
+- changed ratio >12: `0.117374`;
+- changed ratio >24: `0.057031`.
 
-Downloads are resumable and SHA256-verified.
+Total gate elapsed:
 
-The existing Klein/H3/Kontext workspaces are not modified.
+**1026.346 s**.
 
-## Low-VRAM strategy
+Contact-sheet SHA256:
 
-Target workstation:
+`34da1a8a1e56992b902c736c41988d063b4b90348c0a5b328ef73b5e041f3db1`
 
-- Windows 11;
-- RTX 3060 12 GB;
-- 48 GB system RAM.
+## Visual verdict
 
-Runner62 launches ComfyUI with:
+**PRECISION FAIL**, despite materially better source preservation/localization than Klein Base.
 
-- `--lowvram`;
-- `--reserve-vram 1.0`;
-- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`.
+### One-plank request
 
-The 9.38 GB Qwen2.5-VL encoder is loaded explicitly on CPU.
+Qwen 2509 preserved gate identity, camera, masonry and most door geometry extremely strongly. This is a real improvement over Klein's broad deletion of most of the left leaf.
 
-This first gate uses the full native FP8 editor rather than Nunchaku/int4 or Lightning so the project can separate **model capability** from later acceleration/quantization choices.
+However, it did **not** produce the required unambiguous narrow, full-height opening of approximately one existing plank-width. The requested structural fact is not reliably present.
 
-## Precision tests
+Therefore source preservation alone is not enough for PASS.
 
-Runner62 compares Qwen directly against Runner61 Klein outputs.
+### Lower-right strap request
 
-### Atomic plank
+Qwen 2509 localized more tightly than Klein but did not simply break the named strap while leaving the remainder untouched. It reinterpreted the lower hardware/door-bottom region and produced a different broad bar/wood-damage configuration rather than the required missing middle segment with snapped surviving ends.
 
-Request:
+Again, localization improved, exact structural compliance did not.
 
-- remove exactly **one plank-width** from the left door leaf;
-- leave one narrow full-height gap;
-- preserve every neighboring plank;
-- preserve right leaf, masonry and straps.
+## Final Runner62 classification
 
-Klein Runner61 failure reference:
+**TECHNICAL PASS / LOCALIZATION-PRESERVATION IMPROVED / EXACT STRUCTURAL FACT FAIL.**
 
-`Z:\AI\Flux2Klein\base_atomic_sequence\atomic_plank.png`
+Qwen 2509 is not promoted to the production structural-edit route.
 
-### Atomic strap
+Do not blindly increase 2509 steps. The next same-family hypothesis is Qwen-Image-Edit-2511, whose official revision specifically targets lower drift, better consistency and stronger geometric reasoning.
 
-Request:
+## Cleanup decision
 
-- break only the **lower horizontal strap on the right door leaf**;
-- remove a substantial middle section of that strap;
-- leave snapped/deformed surviving metal;
-- preserve every plank, other hardware and upper masonry.
+Runner62 generated evidence and manifest are sufficient to preserve this result.
 
-Klein Runner61 failure reference:
+When Runner63 activates Qwen 2511, the rejected 2509 diffusion checkpoint may be removed after its hash and preserved evidence are verified. Retain the shared Qwen2.5-VL encoder and Qwen image VAE because Qwen 2511 reuses them.
 
-`Z:\AI\Flux2Klein\base_atomic_sequence\atomic_strap.png`
+## Successor
 
-## Outputs
+`docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
 
-Directory:
+Runner:
 
-`Z:\AI\QwenImageEdit\feasibility_gate`
-
-Expected:
-
-- `qwen2509_atomic_plank.png`
-- `qwen2509_atomic_strap.png`
-- `runner62_qwen2509_vs_klein_contact_sheet.png`
-- `runner62_qwen2509_manifest.json`
-- `runner62_executor.log`
-- Python stdout/stderr logs
-- ComfyUI stdout/stderr logs
-
-## PASS criteria
-
-### Technical
-
-- isolated runtime starts on RTX 3060 12 GB;
-- no OOM/runtime crash;
-- both native 20-step edits complete;
-- valid images/manifests are written.
-
-### Visual
-
-Qwen must materially improve precision over Runner61:
-
-- one-plank request removes approximately one plank-width rather than an entire leaf/opening;
-- one-strap request isolates the intended lower-right strap instead of redesigning the hardware set;
-- gate identity/camera/unrelated geometry remain substantially intact.
-
-## Decision after Runner62
-
-### Technical + visual PASS
-
-Promote Qwen 2509 to the next Asset Studio validation stage:
-
-1. multi-reference semantic-role test;
-2. high-difficulty Character Lab test with Exilada identity/anatomy/style references;
-3. second non-character class;
-4. generic Studio UI exposure/candidate history/approval.
-
-### OOM/runtime failure
-
-Do not reject the model semantically. Investigate a lower-memory implementation such as Nunchaku/int4 while preserving this native FP8 evidence.
-
-### Technical PASS / visual precision FAIL
-
-Do not blindly increase steps. Reconsider the specialized editor branch/control strategy before integrating it into the Studio.
-
-## Runner
-
-`tools/structured-2d-character-pipeline/62_bootstrap_and_run_qwen_image_edit_2509_feasibility.ps1`
-
-Executor:
-
-`tools/roguelite-asset-studio/qwen_image_edit_2509_feasibility_gate.py`
-
-Adapter:
-
-`tools/roguelite-asset-studio/qwen_image_edit_2509_adapter.py`
-
-Expected technical completion:
-
-`RUNNER62-QWEN2509: PASS - TECHNICAL ATOMIC MATRIX COMPLETE / VISUAL VERDICT PENDING`
+`tools/structured-2d-character-pipeline/63_bootstrap_and_run_qwen_image_edit_2511_precision.ps1`
