@@ -1,5 +1,5 @@
 {
-  "registry_version": 9,
+  "registry_version": 10,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -25,8 +25,7 @@
       "workspace": "Z:/AI/MiniMaxH3",
       "capabilities": ["text_to_video", "image_to_video", "first_last_frame", "animated_loop_candidate", "vfx_candidate", "environment_motion_candidate"],
       "asset_types": ["vfx", "environment_setpiece", "vegetation", "prop", "enemy_creature", "boss"],
-      "quality_tier": "temporal_candidate",
-      "notes": "Validate per task before production use."
+      "quality_tier": "temporal_candidate"
     },
     {
       "adapter_id": "flux1_kontext_fp8",
@@ -36,8 +35,7 @@
       "workspace": "Z:/AI/FluxKontext",
       "capabilities": ["image_edit", "reference_edit", "pixelart_reconstruction_rnd"],
       "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "prop", "architecture_module", "environment_setpiece"],
-      "quality_tier": "rnd_only",
-      "notes": "Existing technical R&D path; not a shipping default under the dev license."
+      "quality_tier": "rnd_only"
     },
     {
       "adapter_id": "flux2_klein_4b_distilled",
@@ -53,8 +51,7 @@
         "runner56_t2i_elapsed_seconds": 12.054,
         "runner58_contact_sheet_sha256": "6025b4265918ffea7ea97369cd122384a4bc822e7c53d1965f9caa80e8a62aae",
         "edit_verdict": "technical_pass_visual_obedience_fail"
-      },
-      "notes": "Keep as fast T2I/concept backend. Do not route production structural/reference edits through distilled 4B."
+      }
     },
     {
       "adapter_id": "flux2_klein_4b_base",
@@ -65,84 +62,97 @@
       "capabilities": ["text_to_image"],
       "rnd_only_capabilities": ["coarse_semantic_edit", "coarse_material_transfer", "sequential_coarse_edit"],
       "planned_capabilities": ["lora_training_base", "project_style_specialization"],
-      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "tileable_material", "vfx", "ui_art"],
       "quality_tier": "base_training_candidate_not_precision_editor",
-      "vram_note": "Runner59-61 execute on RTX 3060 12GB. Runner60 fixed the recipe/cyan issue and proved sane 1024x1024 Base behavior; Runner61 failed atomic localization precision.",
-      "files": [
-        {"name": "flux-2-klein-base-4b-fp8.safetensors", "bytes": 4089498488, "sha256": "44bab3a86fe98b85d21dd2a4729ebdc3ae51fb8a39f76e457e18c724219e6840"},
-        {"name": "qwen_3_4b.safetensors", "sha256": "6c671498573ac2f7a5501502ccce8d2b08ea6ca2f661c458e708f36b36edfc5a"},
-        {"name": "full_encoder_small_decoder.safetensors", "bytes": 249519092, "sha256": "ea4273f02d1fafbf8e1d1c2cf6018ed8748652eb0bf34f2dd91171f16f15ab62"}
-      ],
-      "runner60": {
-        "classification": "official_parity_diagnostic_pass_visual_partial",
-        "contact_sheet_sha256": "5daa35952c6d8c5564c042174426a1679d4cf1ffb51836ffe159927bb421a404"
-      },
-      "runner61": {
-        "classification": "technical_pass_visual_precision_fail",
-        "runner": "tools/structured-2d-character-pipeline/61_run_flux2_klein_base_atomic_sequence_gate.ps1",
-        "record": "docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md",
-        "verdict": "atomic edits follow coarse semantic intent but over-edit named components; sequential chain preserves coarse states but does not solve localization"
-      },
-      "notes": "Klein Base strong structural-edit hypothesis is exhausted. Retain for T2I/training/specialization research, not precision structural routing."
+      "runner61_verdict": "atomic edits follow coarse semantic intent but over-edit named components; sequential chaining does not solve localization"
     },
     {
       "adapter_id": "qwen_image_edit_2509_fp8",
       "family": "Qwen-Image-Edit-2509",
-      "status": "technical_pass_localization_improved_precision_fail_rejected",
+      "status": "technical_pass_localization_improved_precision_fail_retired",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/QwenImageEdit",
       "capabilities": [],
       "technical_only_capabilities": ["single_reference_edit", "semantic_edit"],
-      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "ui_art"],
       "quality_tier": "retired_specialized_editor_evidence",
-      "vram_note": "Native FP8 executed successfully on RTX 3060 12GB using --lowvram, 1GB VRAM reserve and CPU Qwen2.5-VL placement.",
       "runner62": {
-        "classification": "technical_pass_localization_preservation_improved_exact_structural_fact_fail",
-        "runner": "tools/structured-2d-character-pipeline/62_bootstrap_and_run_qwen_image_edit_2509_feasibility.ps1",
-        "record": "docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md",
-        "sampling": {"steps": 20, "cfg": 4.0, "sampler": "euler", "scheduler": "simple", "denoise": 1.0, "auraflow_shift": 3.0, "cfg_norm": 1.0},
         "plank_elapsed_seconds": 498.011,
         "strap_elapsed_seconds": 455.408,
         "plank_changed_ratio_gt_24": 0.054299,
         "strap_changed_ratio_gt_24": 0.057031,
-        "contact_sheet_sha256": "34da1a8a1e56992b902c736c41988d063b4b90348c0a5b328ef73b5e041f3db1",
-        "verdict": "substantially more conservative/localized than Klein, but one-plank opening was not actually achieved and lower-right strap request still reinterpreted the local hardware/door-bottom region"
+        "verdict": "better preservation/localization than Klein but exact one-plank and one-strap facts failed"
       },
-      "files": [
-        {"name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors", "bytes": 20430698424, "sha256": "318568f61951ab9da21100c7b896e3c1da67f0d2efad6421545e022cfaa2b2b4", "cleanup": "Runner63 may remove after preserved Runner62 evidence verification"},
-        {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "bytes": 9384670680, "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4", "shared_with": "qwen_image_edit_2511_fp8mixed"},
-        {"name": "qwen_image_vae.safetensors", "bytes": 253806246, "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f", "shared_with": "qwen_image_edit_2511_fp8mixed"}
-      ],
-      "notes": "Do not route production structural edits through 2509. Preserve generated evidence; retire the diffusion payload when Runner63 activates 2511."
+      "cleanup": "diffusion checkpoint removed before Runner63; generated evidence retained; shared encoder/VAE retained"
     },
     {
       "adapter_id": "qwen_image_edit_2511_fp8mixed",
       "family": "Qwen-Image-Edit-2511",
-      "status": "runner63_active_pending_install_and_validation",
+      "status": "installed_semantic_editor_global_precision_partial_region_control_gate_active",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/QwenImageEdit",
-      "capabilities": [],
-      "planned_capabilities": ["semantic_edit", "appearance_edit", "single_reference_edit", "multi_reference_edit", "structural_edit", "character_master_revision"],
-      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "weapon", "armor_equipment", "prop", "architecture_module", "terrain_module", "vegetation", "environment_setpiece", "ui_art"],
-      "quality_tier": "current_specialized_precision_editor_candidate",
-      "vram_note": "Runner63 reuses the Runner62 low-VRAM strategy and shared CPU Qwen2.5-VL encoder. Only the 20.53GB FP8mixed diffusion checkpoint is new.",
+      "capabilities": ["semantic_edit_candidate", "appearance_edit_candidate", "single_reference_edit_technical", "multi_reference_edit_technical"],
+      "not_routable_capabilities": ["unrestricted_global_precision_structural_edit"],
+      "planned_capabilities": ["automatic_region_edit", "character_master_revision", "semantic_multi_reference_roles"],
+      "quality_tier": "strong_semantic_editor_requires_region_control_for_precision",
       "files": [
         {"name": "qwen_image_edit_2511_fp8mixed.safetensors", "bytes": 20533762817, "sha256": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e"},
-        {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "bytes": 9384670680, "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4", "shared": true},
-        {"name": "qwen_image_vae.safetensors", "bytes": 253806246, "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f", "shared": true}
+        {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"},
+        {"name": "qwen_image_vae.safetensors", "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f"}
       ],
       "runner63": {
-        "status": "current_gate",
-        "runner": "tools/structured-2d-character-pipeline/63_bootstrap_and_run_qwen_image_edit_2511_precision.ps1",
-        "executor": "tools/roguelite-asset-studio/qwen_image_edit_2511_precision_gate.py",
-        "adapter": "tools/roguelite-asset-studio/qwen_image_edit_2511_adapter.py",
-        "record": "docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md",
-        "comfy_commit": "6eba895f7d3615284da81e95bf49eaed4a5f7309",
-        "sampling": {"steps": [20, 40], "cfg": 4.0, "sampler": "euler", "scheduler": "simple", "denoise": 1.0, "auraflow_shift": 3.1, "cfg_norm": 1.0, "reference_latents_method": "index_timestep_zero"},
-        "tests": ["atomic_one_plank_removal", "atomic_lower_right_strap_break"],
-        "comparison": "Original vs Klein Runner61 vs Qwen2509 Runner62 vs Qwen2511 20/40"
-      },
-      "notes": "Current precision-edit hypothesis. Do not promote to multi-reference/Character Lab until one-plank and one-strap structural facts pass visually."
+        "classification": "technical_pass_plank_improved_strap_precision_fail_global_prompt_precision_closed",
+        "contact_sheet_sha256": "9d6910161591540d77a3e8b7629c7e431c04957ac04f664ee28b0a0176e85eec",
+        "plank_20": {"elapsed_seconds": 401.095, "changed_ratio_gt_24": 0.018129, "verdict": "partial_pass_candidate"},
+        "plank_40": {"elapsed_seconds": 691.408, "changed_ratio_gt_24": 0.018307, "verdict": "no_material_gain_over_20"},
+        "strap_20": {"elapsed_seconds": 375.293, "changed_ratio_gt_24": 0.014082, "verdict": "fail_large_replacement_bar"},
+        "strap_40": {"elapsed_seconds": 777.197, "changed_ratio_gt_24": 0.01306, "verdict": "fail_large_replacement_bar_no_step_gain"}
+      }
+    },
+    {
+      "adapter_id": "grounding_dino_tiny_localizer",
+      "family": "Grounding DINO Tiny",
+      "status": "runner64_active_pending_local_validation",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/RogueliteAssetStudio/localization",
+      "capabilities": ["open_vocabulary_detection", "text_grounded_box_candidate"],
+      "quality_tier": "automatic_perception_candidate",
+      "repo": "IDEA-Research/grounding-dino-tiny",
+      "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
+      "weight_sha256": "1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3"
+    },
+    {
+      "adapter_id": "sam2_1_hiera_small_segmenter",
+      "family": "SAM2.1 Hiera Small",
+      "status": "runner64_active_pending_local_validation",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/RogueliteAssetStudio/localization",
+      "capabilities": ["box_prompt_segmentation", "automatic_component_mask"],
+      "quality_tier": "automatic_perception_candidate",
+      "repo": "facebook/sam2.1-hiera-small",
+      "revision": "e07df6aa19f5c6545121551bf89957b7663ee715",
+      "weight_sha256": "0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60"
+    },
+    {
+      "adapter_id": "automatic_region_control_v1",
+      "family": "Asset Studio automatic localization + region control",
+      "status": "runner64_current_gate",
+      "license": "Pipeline code project-owned; component model licenses listed separately",
+      "workspace": "Z:/AI/RogueliteAssetStudio/localization + Z:/AI/QwenImageEdit",
+      "capabilities": [],
+      "planned_capabilities": ["automatic_region_edit", "automatic_component_localization", "maskless_user_workflow"],
+      "quality_tier": "current_precision_control_architecture",
+      "runner": "tools/structured-2d-character-pipeline/64_bootstrap_and_run_automatic_region_control.ps1",
+      "record": "docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md",
+      "notes": "No user-drawn mask or box. GroundingDINO proposes targets, SAM2.1 segments, Qwen2511 edits a context crop, deterministic composite constrains final changes to the automatic region."
+    },
+    {
+      "adapter_id": "sam3_1_future_localizer",
+      "family": "SAM 3.1",
+      "status": "deferred_optional_upgrade",
+      "license": "SAM License",
+      "workspace": null,
+      "capabilities": ["text_prompt_segmentation", "exemplar_prompt_segmentation", "visual_prompt_segmentation", "video_tracking"],
+      "quality_tier": "future_perception_upgrade_candidate",
+      "notes": "Official ~3.5GB checkpoint is gated. Do not make it a mandatory dependency before Runner64 proves the control architecture with public Apache-2.0 perception models."
     },
     {
       "adapter_id": "step1x_edit",
@@ -151,10 +161,7 @@
       "license": "Apache-2.0",
       "workspace": null,
       "capabilities": ["image_edit"],
-      "asset_types": ["character_playable", "character_npc", "enemy_humanoid", "enemy_creature", "boss", "prop", "architecture_module", "environment_setpiece"],
-      "quality_tier": "deferred",
-      "vram_note": "Published memory use remains a poor fit for the workstation.",
-      "notes": "Do not prioritize unless a lower-memory implementation is independently proven."
+      "quality_tier": "deferred"
     }
   ]
 }
