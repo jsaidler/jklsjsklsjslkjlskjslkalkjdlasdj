@@ -89,6 +89,27 @@ function Invoke-Git([string[]]$GitArgs,[string]$Failure) {
     & git.exe @GitArgs
     if ($LASTEXITCODE -ne 0) { Fail "$Failure (git exit $LASTEXITCODE)" }
 }
+function Install-ComfyDependencies([string]$PythonExe,[string]$RequirementsPath,[string]$MarkerPath,[string]$Commit) {
+    $maxAttempts = 5
+    $env:PIP_DISABLE_PIP_VERSION_CHECK = '1'
+    $env:PIP_DEFAULT_TIMEOUT = '120'
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        Write-Host "Installing pinned ComfyUI dependencies (attempt $attempt/$maxAttempts)..." -ForegroundColor Cyan
+        & $PythonExe -s -m pip install --disable-pip-version-check --retries 12 --timeout 120 --prefer-binary -r $RequirementsPath
+        $pipExit = $LASTEXITCODE
+        if ($pipExit -eq 0) {
+            Set-Content -LiteralPath $MarkerPath -Value $Commit -Encoding ASCII
+            Write-Host '  ComfyUI dependencies installed and marker written.' -ForegroundColor Green
+            return
+        }
+        if ($attempt -lt $maxAttempts) {
+            $delay = 10 * $attempt
+            Write-Host "  pip failed with exit code $pipExit. Retrying in $delay seconds; installed packages/cache are retained." -ForegroundColor Yellow
+            Start-Sleep -Seconds $delay
+        }
+    }
+    Fail "ComfyUI dependency installation failed after $maxAttempts attempts. No dependency marker was written; rerunning Runner63 will resume from the existing environment/cache."
+}
 
 $PortableRoot = Join-Path $Workspace 'ComfyUI_windows_portable'
 $Python = Join-Path $PortableRoot 'python_embeded\python.exe'
@@ -156,10 +177,7 @@ $currentCommit = (& git.exe -C $ComfyRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $currentCommit -ne $ComfyCommit) { Fail "ComfyUI commit mismatch. Expected $ComfyCommit got $currentCommit" }
 
 if (-not (Test-Path $DepsMarker -PathType Leaf)) {
-    Write-Host 'Installing dependencies required by the pinned Qwen2511 ComfyUI commit...' -ForegroundColor Cyan
-    & $Python -s -m pip install --disable-pip-version-check -r (Join-Path $ComfyRoot 'requirements.txt')
-    if ($LASTEXITCODE -ne 0) { Fail 'ComfyUI dependency installation failed' }
-    Set-Content -LiteralPath $DepsMarker -Value $ComfyCommit -Encoding ASCII
+    Install-ComfyDependencies -PythonExe $Python -RequirementsPath (Join-Path $ComfyRoot 'requirements.txt') -MarkerPath $DepsMarker -Commit $ComfyCommit
 } else {
     Write-Host '  Dependency marker already present.' -ForegroundColor Green
 }
