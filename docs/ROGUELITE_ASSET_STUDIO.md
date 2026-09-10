@@ -2,7 +2,7 @@
 
 Status date: **2026-09-10**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / PRECISION EDITOR GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC REGION-CONTROL GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -22,9 +22,9 @@ The Asset Studio is a **model router + asset-state system**, not a wrapper aroun
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> model router -> specialized model adapter -> local model runtime -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> model router -> specialized model/perception adapters -> local runtimes -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
 
-The tool owns asset specification, semantic reference-role assignment, model routing, execution, deterministic preprocessing/postprocessing, candidate comparison, provenance/history, explicit approval and export.
+The tool owns asset specification, semantic reference-role assignment, model routing, automatic localization when required, generation/edit execution, deterministic preprocessing/postprocessing, candidate comparison, provenance/history, explicit approval and export.
 
 Models are replaceable. Approved asset state and provenance are not.
 
@@ -90,13 +90,15 @@ Runner55 proved referenced-character and reference-free-environment routing. `re
 1. brief/specification;
 2. concept/static master;
 3. controlled variants/states;
-4. temporal generation where required;
-5. reconstruction into the approved game rendering language when needed;
-6. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
-7. explicit candidate review/approval;
-8. runtime export.
+4. automatic component localization/segmentation when an edit needs subcomponent precision;
+5. local or global semantic editing as appropriate;
+6. temporal generation where required;
+7. reconstruction into the approved game rendering language when needed;
+8. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
+9. explicit candidate review/approval;
+10. runtime export.
 
-Routine manual per-frame repainting, hand compositing and manual masks are not a production dependency.
+Routine manual per-frame repainting, hand compositing and user-drawn production masks are not dependencies.
 
 ## Current model routing
 
@@ -125,88 +127,120 @@ Routable:
 
 Not routable:
 
-- production structural/reference editing.
+- production precision/reference editing.
 
 ### FLUX.2 Klein 4B Base — valid Base/training branch, not precision editor
 
-Runner60 fixed the Runner59 graph error and proved sane VAE/T2I/edit color behavior. Runner61 then tested atomic and sequential editing.
+Runner60 fixed the Runner59 graph error and proved sane VAE/T2I/edit behavior. Runner61 then tested atomic and sequential editing.
 
 Final edit verdict:
 
 **coarse semantic edit useful / exact structural localization FAIL.**
 
-It can remove/reinterpret broad semantic regions and preserve coarse sequential states, but cannot reliably isolate one named plank/strap/block without over-editing. Retain for T2I/training/project-specialization research, not precision structural routing.
+Retain for T2I/training/project-specialization research, not precision structural routing.
 
-### Qwen-Image-Edit-2509 — technical PASS / precision FAIL / retired editor evidence
+### Qwen-Image-Edit-2509 — retired precision candidate
 
-Runner62 proved native FP8 feasibility on RTX 3060 12 GB with:
+Runner62 proved native FP8 feasibility on RTX 3060 12 GB with low-VRAM execution and Qwen2.5-VL on CPU. It preserved/localized edits better than Klein but still failed exact one-plank and one-strap structural facts.
 
-- diffusion FP8;
-- Qwen2.5-VL 7B FP8 encoder on CPU;
-- Qwen image VAE;
-- ComfyUI low-VRAM/offload;
-- 1024×1024;
-- 20 steps / CFG 4 / Euler/simple;
-- no OOM.
+The 2509 diffusion checkpoint has been removed after preserving generated evidence. Shared Qwen2.5-VL + Qwen image VAE remain installed for 2511.
 
-It preserved/localized edits substantially better than Klein, but still failed exact structural facts:
+### Qwen-Image-Edit-2511 — strongest installed semantic editor / GLOBAL PRECISION PARTIAL
 
-- one-plank request did not create an unambiguous one-plank full-height opening;
-- one-strap request reinterpreted local hardware/door-bottom geometry instead of simply breaking the named strap.
-
-Therefore 2509 is not production-routable. Its generated evidence is preserved; its diffusion checkpoint may be removed when 2511 activates. Shared Qwen2.5-VL + VAE remain useful.
-
-### Qwen-Image-Edit-2511 — CURRENT precision-editor gate
-
-Canonical record:
+Canonical evidence:
 
 `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
 
-Why it is the current hypothesis:
-
-- same Apache-2.0 Qwen edit family;
-- official revision targets lower image drift, better consistency and stronger geometric reasoning;
-- reuses already-installed Qwen2.5-VL encoder and Qwen image VAE;
-- only the new 2511 diffusion payload is required.
-
-Runner63 checkpoint:
+Installed checkpoint:
 
 `qwen_image_edit_2511_fp8mixed.safetensors`
 
 - bytes `20,533,762,817`;
 - SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`.
 
-Runner63 uses current native ComfyUI 2511 semantics at commit:
+Runtime uses ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`, Qwen2.5-VL on CPU, `--lowvram`, `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`, AuraFlow shift 3.1, CFGNorm 1, Euler/simple and CFG 4.
 
-`6eba895f7d3615284da81e95bf49eaed4a5f7309`
+Runner63 final result:
 
-including:
+- one-plank / 20 and 40 steps: meaningful improvement over 2509/Klein; narrow opening created with strong source preservation;
+- one-strap / 20 and 40 steps: FAIL; both produce a large replacement/transverse bar rather than breaking only the named lower-right strap;
+- 40 steps roughly doubles cost without solving the hard failure.
 
-- `TextEncodeQwenImageEditPlus`;
-- `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`;
-- `ModelSamplingAuraFlow` shift 3.1;
-- `CFGNorm` 1;
-- Euler/simple/denoise 1;
-- CFG 4;
-- 20 and 40 step precision tests.
+Final classification:
 
-The gate compares, for both one-plank and one-strap tasks:
+**TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT-ONLY PRECISION HYPOTHESIS CLOSED.**
 
-`original -> Klein Runner61 -> Qwen2509 Runner62 -> Qwen2511/20 -> Qwen2511/40`.
+Qwen2511 remains installed as the strongest semantic editor, but unrestricted global prompts are not routable as `precision_structural_edit`.
 
-2511 only passes if it executes the named structural fact more precisely, not merely if it changes fewer pixels.
+## CURRENT PRECISION ARCHITECTURE — RUNNER64 / automatic localization + region control
+
+Canonical record:
+
+`docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+
+Architecture:
+
+`semantic target -> Grounding DINO Tiny -> deterministic instance selector -> SAM2.1 Hiera Small -> contextual Qwen2511 crop edit -> deterministic automatic regional composite`
+
+This is a control-architecture change, not another prompt-tuning pass.
+
+### Grounding DINO Tiny
+
+Role: public Apache-2.0 open-vocabulary text-grounded detection.
+
+Pinned model:
+
+- repo `IDEA-Research/grounding-dino-tiny`;
+- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
+- safetensors SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`;
+- ~689 MB.
+
+### SAM2.1 Hiera Small
+
+Role: convert the selected text-grounded box into an automatic component mask.
+
+Pinned model:
+
+- repo `facebook/sam2.1-hiera-small`;
+- revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
+- 184,305,280-byte safetensors;
+- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
+- Apache-2.0.
+
+Perception runs and exits before the Qwen runtime starts so the models do not compete for VRAM.
+
+### No-manual-mask rule — HARD LOCK
+
+The user does **not** draw masks or boxes. Detection, instance choice, segmentation, crop construction and final regional composite are pipeline responsibilities.
+
+Runner64 persists candidate boxes, scores, masks, overlays, crops and provenance so perception errors can be distinguished from editor errors.
+
+### Regional Qwen edit
+
+Qwen2511 receives:
+
+1. Image 1 = contextual crop from the source;
+2. Image 2 = the same crop with an automatically generated target overlay.
+
+The final crop result is composited into the original using an automatically dilated/feathered SAM2 mask. Pixels outside the generated allowed neighborhood remain sourced from the original image by construction.
+
+Runner64 tests the same one-plank and lower-right-strap tasks that exposed the global-edit limitation.
+
+### Future perception upgrade — SAM3.1
+
+SAM3.1 is a stronger future concept-segmentation candidate with text/exemplar/visual prompting, but its official checkpoint is gated and materially larger. Do not make it a mandatory dependency until Runner64 proves whether the control architecture itself is useful with the public compact stack.
 
 ### Step1X-Edit — deferred
 
-Current memory profile remains poorly matched to the workstation. Do not prioritize while stronger same-family/local control hypotheses remain.
+Current memory profile remains poorly matched to the workstation. Do not prioritize while the automatic region-control architecture is untested.
 
 ## Character Lab
 
 The older Exilada-specific editor is prototype evidence only. Its useful concepts—identity/anatomy/style roles, iterative candidates, native resolution, history and explicit approval—belong behind the generic Studio contracts.
 
-The reopened Exilada master becomes the first high-difficulty Character Lab validation **after a precision editor passes its non-character structural gate**.
+The reopened Exilada master becomes the first high-difficulty Character Lab validation after the generic control architecture proves it can make precise non-character edits without manual masks.
 
-Character Lab must support identity, anatomy, style/material, approved-state and later motion references without requiring routine manual masking or repainting.
+Character Lab must support identity, anatomy, style/material, approved-state and later motion references without routine manual masking or repainting.
 
 ## Environment/map production principle
 
@@ -240,16 +274,16 @@ Once enough approved, licensable project art exists, train/evaluate Roguelite-sp
 
 ## Immediate implementation order
 
-1. run Runner63 and issue the Qwen-Image-Edit-2511 exact-precision verdict;
-2. if precision PASS, validate multi-reference semantic role separation;
-3. then validate the reopened Exilada as the first difficult Character Lab case;
-4. validate another non-character class;
-5. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
-6. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
-7. resume final rendering-language/pixel-art specialization from approved masters.
-
-If Qwen 2511 fails exact precision at both 20 and 40 steps, do not continue blind step tuning. Move to automatic localization/region-control architecture or another editor family while keeping routine manual masking outside the production contract.
+1. run Runner64 and validate automatic GroundingDINO + SAM2.1 localization and regional Qwen2511 control;
+2. if perception is wrong, improve/replace only the perception layer rather than blaming the editor;
+3. if perception is correct but the local semantic edit fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
+4. after regional precision passes, validate semantic multi-reference role separation;
+5. validate the reopened Exilada as the first difficult Character Lab case;
+6. validate another non-character class;
+7. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
+8. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
+9. resume final rendering-language/pixel-art specialization from approved masters.
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized generation, editing, perception and motion models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
