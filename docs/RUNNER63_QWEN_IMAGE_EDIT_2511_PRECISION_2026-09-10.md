@@ -2,235 +2,130 @@
 
 Status date: **2026-09-10**
 
-Status: **PREPARED / CURRENT GATE / BOOTSTRAP HARNESS FIXED AND DEPENDENCY INSTALL RETRY-HARDENED**
+Status: **TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT PRECISION HYPOTHESIS CLOSED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner63 exists
+## Purpose
 
-Runner62 proved that native Qwen-Image-Edit-2509 FP8 is technically feasible on the target RTX 3060 12 GB / 48 GB RAM workstation using low-VRAM execution and CPU placement for the Qwen2.5-VL encoder.
+Runner63 tested Qwen-Image-Edit-2511 as the final global natural-language precision-edit hypothesis after:
 
-It also materially improved preservation/localization compared with FLUX.2 Klein Base, but failed the exact structural-fact contract:
+- Klein Base proved coarse semantic editing but failed component localization;
+- Qwen-Image-Edit-2509 improved source preservation/localization but still failed exact one-plank and one-strap facts.
 
-- the one-plank edit did not create the required narrow full-height one-plank opening;
-- the one-strap edit reinterpreted the lower hardware/door-bottom area rather than isolating and breaking only the named strap.
+The 2511 revision was selected because its official release targets better consistency and stronger geometric reasoning.
 
-Therefore 2509 is not the production structural editor.
+## Runtime
 
-Qwen-Image-Edit-2511 is the next same-family hypothesis because the official revision specifically targets lower image drift, better consistency and stronger geometric reasoning.
-
-## Runtime strategy
-
-Workspace remains:
+Workspace:
 
 `Z:\AI\QwenImageEdit`
 
-Shared files from Runner62 are reused:
+ComfyUI commit:
 
+`6eba895f7d3615284da81e95bf49eaed4a5f7309`
+
+Models:
+
+- `qwen_image_edit_2511_fp8mixed.safetensors`
+  - bytes `20,533,762,817`
+  - SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`
 - `qwen_2.5_vl_7b_fp8_scaled.safetensors`
   - SHA256 `cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4`
 - `qwen_image_vae.safetensors`
   - SHA256 `a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f`
 
-New diffusion checkpoint only:
+Low-VRAM execution:
 
-`qwen_image_edit_2511_fp8mixed.safetensors`
+- RTX 3060 12 GB;
+- 48 GB RAM;
+- `--lowvram`;
+- 1 GB VRAM reserve;
+- Qwen2.5-VL encoder on CPU.
 
-- bytes: `20,533,762,817`
-- SHA256: `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`
-- source: Comfy-Org Qwen-Image-Edit_ComfyUI
-- license family: Apache-2.0
-
-Runner63 first verifies that Runner62 manifest + outputs exist. It then removes the rejected 2509 diffusion checkpoint if its SHA256 is exactly the known Runner62 hash. This preserves evidence while avoiding model accumulation.
-
-Net diffusion payload change is only about +103 MB because the old ~20.43 GB checkpoint is retired before the new ~20.53 GB checkpoint is installed.
-
-## First bootstrap attempt — HARNESS FAIL / MODEL NOT TESTED
-
-The first 2026-09-10 attempt completed prerequisite verification and safely removed the rejected 2509 diffusion checkpoint after confirming Runner62 evidence. It then failed before downloading Qwen2511 or launching inference while pinning the newer ComfyUI commit.
-
-Root cause was a PowerShell harness bug:
-
-- the helper declared `function Invoke-Git([string[]]$Args, ...)`;
-- PowerShell variable names are case-insensitive and `$args` is an automatic variable;
-- the collision caused the helper to invoke `git.exe` without the intended argument vector, so Git printed its generic usage text and returned exit code 1.
-
-This is **not** Qwen2511 model evidence and does not change the visual/model hypothesis.
-
-Fix committed in the Runner63 launcher:
-
-- helper parameter renamed to `$GitArgs`;
-- `git fetch` and `git checkout` calls changed to explicit named parameters `-GitArgs ... -Failure ...`.
-
-The 2509 diffusion checkpoint does **not** need to be restored. Runner62 manifest and generated outputs remain preserved; the shared Qwen2.5-VL encoder and Qwen image VAE remain installed.
-
-## Second bootstrap attempt — TRANSIENT PYPI NETWORK RESET / MODEL NOT TESTED
-
-The next attempt successfully reached the newer ComfyUI checkout and began dependency synchronization, then `pip` lost the connection to `files.pythonhosted.org` while fetching `comfyui_workflow_templates-0.11.57` metadata. Windows reported `ConnectionResetError(10054)`.
-
-This is a transport failure, not a ComfyUI dependency conflict and not Qwen2511 model evidence. The 2511 diffusion checkpoint had not yet started downloading because dependency synchronization happens first.
-
-Runner63 is now hardened as follows:
-
-- dependency installation is retried up to **5 outer attempts**;
-- each pip invocation uses `--retries 12` and `--timeout 120`;
-- `--prefer-binary` is used;
-- already installed packages and the normal pip cache are retained between attempts;
-- backoff is 10/20/30/40 seconds between outer attempts;
-- `.deps_<commit>.ok` is written **only after a complete successful `pip install -r requirements.txt`**;
-- if all attempts still fail, rerunning Runner63 resumes from the existing environment/cache rather than rebuilding it.
-
-No model checkpoint needs to be restored or removed because of this network event.
-
-## ComfyUI parity
-
-Runner63 advances the isolated Qwen ComfyUI checkout to:
-
-`6eba895f7d3615284da81e95bf49eaed4a5f7309`
-
-This commit contains the current native Qwen 2511 graph support used by the adapter, including:
+Graph parity:
 
 - `TextEncodeQwenImageEditPlus`;
 - `FluxKontextImageScale`;
-- `FluxKontextMultiReferenceLatentMethod`;
-- `ModelSamplingAuraFlow`;
-- `CFGNorm`;
-- `KSampler`.
+- `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`;
+- AuraFlow shift `3.1`;
+- CFGNorm `1.0`;
+- Euler/simple;
+- CFG `4`;
+- no Lightning.
 
-Current official 2511 semantics reproduced by the adapter:
+## Bootstrap incidents
 
-- Qwen2.5-VL encoder type `qwen_image`, device CPU;
-- first edit image scaled through `FluxKontextImageScale`;
-- first scaled image VAE-encoded as the edit latent;
-- positive and negative both use `TextEncodeQwenImageEditPlus`;
-- both conditioning branches use `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`;
-- `ModelSamplingAuraFlow` shift `3.1`;
-- `CFGNorm` strength `1.0`;
-- Euler;
-- simple scheduler;
-- denoise `1.0`;
-- CFG `4.0`;
-- no Lightning LoRA.
+Two bootstrap failures occurred before model testing and are not model evidence:
 
-The official workflow notes 20 steps as the faster Comfy default and 40 steps as the higher-quality Qwen reference setting. Runner63 tests both so the 2511 precision hypothesis is not rejected from only one step regime.
+1. PowerShell `$Args` helper collision caused `git.exe` to receive no fetch arguments; fixed by renaming to `$GitArgs` and using named parameters.
+2. a transient `files.pythonhosted.org` connection reset interrupted dependency synchronization; Runner63 was hardened with outer retries, pip retries/timeouts and resumable environment reuse.
 
-## Low-VRAM execution
+The final run completed successfully.
 
-ComfyUI launch remains:
+## Actual matrix
 
-- `--lowvram`;
-- `--reserve-vram 1.0`;
-- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`;
-- Qwen2.5-VL encoder explicitly on CPU.
+Source: Runner56 ruined gate, 1024×1024 outputs, seed 0.
 
-The intent is to test model capability on the actual workstation before considering a more aggressively quantized/Nunchaku path.
+### Plank / 20 steps
 
-## Controlled precision matrix
+- elapsed: **401.095 s**;
+- mean abs luma: **4.8265**;
+- changed ratio >24: **0.018129**.
 
-The same original Runner56 ruined gate is used for all jobs.
+Visual: meaningful improvement over Qwen2509 and Klein. A narrow vertical opening is created in the left leaf and overall source preservation is strong. It is close to the requested one-plank fact, though nearby left-leaf topology/hardware still shifts enough that this is not treated as a universal precision proof by itself.
 
-### One-plank task
+### Plank / 40 steps
 
-Two Qwen 2511 jobs:
+- elapsed: **691.408 s**;
+- mean abs luma: **4.9914**;
+- changed ratio >24: **0.018307**.
 
-- 20 steps;
-- 40 steps.
+Visual: essentially the same behavior class as 20 steps. The extra sampling cost does not produce a decisive precision gain.
 
-Instruction:
+### Strap / 20 steps
 
-- remove exactly one existing plank-width from the left door leaf;
-- leave a narrow full-height dark opening;
-- retain every neighboring plank;
-- retain all hardware, masonry and right leaf.
+- elapsed: **375.293 s**;
+- mean abs luma: **3.5249**;
+- changed ratio >24: **0.014082**.
 
-### One-strap task
+Visual: **FAIL**. Instead of breaking only the lower horizontal strap on the right leaf, the model creates a large replacement/transverse bar across the lower doorway region.
 
-Two Qwen 2511 jobs:
+### Strap / 40 steps
 
-- 20 steps;
-- 40 steps.
+- elapsed: **777.197 s**;
+- mean abs luma: **3.7888**;
+- changed ratio >24: **0.013060**.
 
-Instruction:
+Visual: **FAIL** again. More steps do not fix target interpretation/localization and retain the large-bar failure mode.
 
-- break only the lower horizontal strap on the right door leaf;
-- remove a substantial middle segment;
-- leave snapped/bent surviving ends;
-- do not replace it with a larger bar;
-- do not damage door planks or other hardware.
+Total Runner63 matrix elapsed: **2270.227 s**.
 
-## Comparison sheet
+Contact sheet SHA256:
 
-For each task Runner63 displays:
+`9d6910161591540d77a3e8b7629c7e431c04957ac04f664ee28b0a0176e85eec`
 
-`ORIGINAL -> KLEIN RUNNER61 -> QWEN2509 RUNNER62 -> QWEN2511 20 -> QWEN2511 40`
+## Final verdict
 
-This makes the expected gain explicit: not merely more source preservation, but more exact compliance with the named structural fact.
+**Qwen-Image-Edit-2511 is technically viable and substantially better at source preservation than Klein, and it materially improves the one-plank task, but global natural-language prompting alone does not satisfy production subcomponent precision.**
 
-## Outputs
+The visual contract required both one-plank and one-strap tasks to pass. The strap task fails decisively at both 20 and 40 steps.
 
-Directory:
+Therefore:
 
-`Z:\AI\QwenImageEdit\qwen2511_precision_gate`
+- do **not** route unrestricted global Qwen2511 edits as `precision_structural_edit`;
+- do **not** continue blind step/prompt tuning;
+- retain Qwen2511 as the strongest semantic editor currently installed;
+- move precision control to a perception/localization architecture.
 
-Expected files:
+## Next gate
 
-- `qwen2511_atomic_plank_steps20.png`
-- `qwen2511_atomic_plank_steps40.png`
-- `qwen2511_atomic_strap_steps20.png`
-- `qwen2511_atomic_strap_steps40.png`
-- `runner63_qwen2511_precision_contact_sheet.png`
-- `runner63_qwen2511_precision_manifest.json`
-- `runner63_executor.log`
-- Python stdout/stderr logs
-- ComfyUI stdout/stderr logs
+Runner64:
 
-## Technical PASS
+`docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
 
-All four jobs complete on the RTX 3060 12 GB with no OOM/runtime failure and write valid images/manifests.
+Architecture:
 
-Expected terminal line:
+`semantic target -> Grounding DINO -> SAM2.1 -> contextual Qwen2511 crop edit -> deterministic automatic regional composite`
 
-`RUNNER63-QWEN2511: PASS - TECHNICAL PRECISION MATRIX COMPLETE / VISUAL VERDICT PENDING`
-
-## Visual PASS
-
-At least one 20/40-step result for each task must satisfy the exact structural fact while preserving unrelated geometry.
-
-### Plank
-
-A single narrow full-height plank-width gap must be unmistakably present. The model must not leave the door effectively unchanged and must not remove/reconstruct most of the leaf.
-
-### Strap
-
-Only the named lower-right strap should be broken with a missing middle section and surviving snapped/bent ends. Other hardware and wooden geometry should remain substantially unchanged.
-
-## Decision after Runner63
-
-### Technical + visual PASS
-
-Promote Qwen 2511 to the next Asset Studio validation stage:
-
-1. multi-reference semantic-role separation;
-2. Exilada Character Lab revision using identity/anatomy/style roles;
-3. another non-character class;
-4. generic Studio UI candidate/history/approval integration.
-
-### Technical PASS / visual precision FAIL at both 20 and 40
-
-Do not add more blind step tests. Move to a control architecture with automatic localization/region conditioning or another editing family. Routine manual masks remain outside the production contract.
-
-### OOM/runtime failure
-
-Do not interpret this as a semantic model failure. Evaluate a lower-memory 2511 implementation while preserving the current evidence.
-
-## Runner
-
-`tools/structured-2d-character-pipeline/63_bootstrap_and_run_qwen_image_edit_2511_precision.ps1`
-
-Executor:
-
-`tools/roguelite-asset-studio/qwen_image_edit_2511_precision_gate.py`
-
-Adapter:
-
-`tools/roguelite-asset-studio/qwen_image_edit_2511_adapter.py`
+The user does not draw masks or boxes. Perception and region-control are part of the Studio pipeline.
