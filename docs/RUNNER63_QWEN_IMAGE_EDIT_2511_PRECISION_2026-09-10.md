@@ -2,7 +2,7 @@
 
 Status date: **2026-09-10**
 
-Status: **PREPARED / CURRENT GATE / FIRST BOOTSTRAP ATTEMPT FAILED IN HARNESS BEFORE MODEL DOWNLOAD; FIXED**
+Status: **PREPARED / CURRENT GATE / BOOTSTRAP HARNESS FIXED AND DEPENDENCY INSTALL RETRY-HARDENED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -62,7 +62,25 @@ Fix committed in the Runner63 launcher:
 - helper parameter renamed to `$GitArgs`;
 - `git fetch` and `git checkout` calls changed to explicit named parameters `-GitArgs ... -Failure ...`.
 
-The 2509 diffusion checkpoint does **not** need to be restored. Runner62 manifest and generated outputs remain preserved; the shared Qwen2.5-VL encoder and Qwen image VAE remain installed. Rerunning Runner63 continues directly from the corrected bootstrap and downloads only Qwen2511.
+The 2509 diffusion checkpoint does **not** need to be restored. Runner62 manifest and generated outputs remain preserved; the shared Qwen2.5-VL encoder and Qwen image VAE remain installed.
+
+## Second bootstrap attempt — TRANSIENT PYPI NETWORK RESET / MODEL NOT TESTED
+
+The next attempt successfully reached the newer ComfyUI checkout and began dependency synchronization, then `pip` lost the connection to `files.pythonhosted.org` while fetching `comfyui_workflow_templates-0.11.57` metadata. Windows reported `ConnectionResetError(10054)`.
+
+This is a transport failure, not a ComfyUI dependency conflict and not Qwen2511 model evidence. The 2511 diffusion checkpoint had not yet started downloading because dependency synchronization happens first.
+
+Runner63 is now hardened as follows:
+
+- dependency installation is retried up to **5 outer attempts**;
+- each pip invocation uses `--retries 12` and `--timeout 120`;
+- `--prefer-binary` is used;
+- already installed packages and the normal pip cache are retained between attempts;
+- backoff is 10/20/30/40 seconds between outer attempts;
+- `.deps_<commit>.ok` is written **only after a complete successful `pip install -r requirements.txt`**;
+- if all attempts still fail, rerunning Runner63 resumes from the existing environment/cache rather than rebuilding it.
+
+No model checkpoint needs to be restored or removed because of this network event.
 
 ## ComfyUI parity
 
