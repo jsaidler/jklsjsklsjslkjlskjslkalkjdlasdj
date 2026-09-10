@@ -1,8 +1,8 @@
 # Roguelite Asset Studio — Local Generative Asset Production System
 
-Status date: **2026-09-09**
+Status date: **2026-09-10**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / FIRST GENERIC STATIC BACKEND T2I PROVEN / REFERENCE EDIT GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / PRECISION EDITOR GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -10,22 +10,11 @@ Canonical project state: `docs/PROJECT_STATE.md`.
 
 The project requires a production tool for the **entire game's visual asset base**, not an Exilada-specific editor and not a single-model prompt UI.
 
-The Roguelite Asset Studio is the local authoring/control plane used to create, revise, animate, approve, version and export game assets with specialized generative models and deterministic post-processing.
+The Roguelite Asset Studio is the local authoring/control plane used to create, revise, animate, approve, version and export game assets with specialized generative models and deterministic processing.
 
-The tool must cover at minimum:
+It must cover playable characters, NPCs, humanoid/non-humanoid enemies, bosses, weapons, armor/equipment, props/interactables, architecture, terrain, vegetation, environment set pieces, materials/textures, VFX/environment animation and UI art where needed.
 
-- playable characters and NPCs;
-- humanoid/non-humanoid enemies and bosses;
-- weapons, armor and equipment;
-- props and interactables;
-- architecture modules;
-- terrain, ground, cliffs and vegetation modules;
-- environment/map set pieces;
-- tileable materials/textures where useful;
-- environmental/combat/VFX animation;
-- portraits/icons/UI art where needed.
-
-The Exilada is the first high-difficulty Character Lab case because she stresses identity preservation, mature anatomy, hair, cloth, restraints, adult nudity/state variation and animation. **No Exilada-specific assumption may define the generic tool contract.**
+The Exilada is the first high-difficulty Character Lab case. **No Exilada-specific assumption defines the generic tool contract.**
 
 ## Core production rule — HARD LOCK
 
@@ -35,81 +24,40 @@ Canonical architecture:
 
 `Studio UI -> asset spec/state -> model router -> specialized model adapter -> local model runtime -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
 
-The tool owns:
-
-1. asset specification;
-2. semantic reference-role assignment;
-3. model/pipeline routing;
-4. generation/edit execution;
-5. deterministic preprocessing/postprocessing;
-6. candidate comparison;
-7. provenance/version history;
-8. explicit approval;
-9. runtime export.
+The tool owns asset specification, semantic reference-role assignment, model routing, execution, deterministic preprocessing/postprocessing, candidate comparison, provenance/history, explicit approval and export.
 
 Models are replaceable. Approved asset state and provenance are not.
 
 ## Local-first requirement — HARD LOCK
 
-Routine production must work locally after model installation because of:
+Routine production must work locally after installation because of repeatability, cost control, batch generation, arbitrary reference sets, mature/adult fictional states, long animation jobs, exact version preservation and future project-specific training.
 
-- repeatability and cost control;
-- large batch generation;
-- arbitrary project reference sets;
-- mature/adult fictional character states that may be unsuitable for hosted authoring surfaces;
-- long-running animation jobs;
-- preservation of exact model/workflow versions;
-- future project-specific LoRA/fine-tuning.
+Hosted APIs may be optional accelerators/quality branches, never a mandatory normal-production dependency.
 
-Hosted APIs may later be optional accelerators/quality branches, never a mandatory normal-production dependency.
-
-Current hardware baseline:
+Hardware baseline:
 
 - Windows 11;
 - RTX 3060 12 GB VRAM;
-- 48 GB system RAM;
-- AI/model root `Z:\AI`;
-- project repo `D:\GOOGLE DRIVE\DEV\Roguelite`.
+- 48 GB RAM;
+- AI root `Z:\AI`;
+- repo `D:\GOOGLE DRIVE\DEV\Roguelite`.
 
 ## Asset taxonomy
 
-Canonical initial asset types:
+Initial types:
 
-- `character_playable`
-- `character_npc`
-- `enemy_humanoid`
-- `enemy_creature`
-- `boss`
-- `weapon`
-- `armor_equipment`
-- `prop`
-- `architecture_module`
-- `terrain_module`
-- `vegetation`
-- `environment_setpiece`
-- `tileable_material`
-- `vfx`
-- `ui_art`
+- `character_playable`, `character_npc`, `enemy_humanoid`, `enemy_creature`, `boss`;
+- `weapon`, `armor_equipment`, `prop`;
+- `architecture_module`, `terrain_module`, `vegetation`, `environment_setpiece`, `tileable_material`;
+- `vfx`, `ui_art`.
 
-Canonical initial output contracts:
-
-- `static_master`
-- `static_rgba`
-- `variant_set`
-- `turnaround_reference`
-- `animated_action`
-- `animated_loop`
-- `sprite_row`
-- `sprite_atlas`
-- `layered_environment_module`
-- `tileable_texture`
-- `sequence_rgba`
+Initial output contracts include `static_master`, `static_rgba`, `variant_set`, `turnaround_reference`, `animated_action`, `animated_loop`, `sprite_row`, `sprite_atlas`, `layered_environment_module`, `tileable_texture`, `sequence_rgba`.
 
 Asset type never implies one fixed model.
 
 ## Reference roles — HARD CONTRACT
 
-References are semantically typed rather than passed as an undifferentiated image list:
+References are semantically typed:
 
 - `identity`
 - `anatomy`
@@ -124,206 +72,145 @@ References are semantically typed rather than passed as an undifferentiated imag
 - `environment`
 - `previous_approved_state`
 
-Examples:
+Adapters translate ordered semantic roles into model-specific conditioning. The UI/state layer must not hard-code ComfyUI graph semantics.
 
-- character image -> `identity`;
-- nude turnaround -> `anatomy`;
-- visual-art references -> `style` / `material`;
-- real action video -> `motion`;
-- existing master -> `previous_approved_state`;
-- existing architectural module -> `structure`.
-
-The adapter translates ordered semantic references into model-specific conditioning. UI and asset-state logic must never hard-code ComfyUI graph semantics.
-
-## Generic schema/router foundation — PASS
+## Generic foundation — PASS
 
 Machine-readable foundation:
 
 - `tools/roguelite-asset-studio/asset_schema.json`
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
-
-Runner55 proved the router with two distinct cases:
-
-- referenced playable character requiring edit capabilities;
-- reference-free architecture module requiring T2I.
-
-Schema rule: `references` is structurally required, but `references: []` is valid for reference-free generation.
-
-## Generic adapter boundary — ACTIVE
-
-The first UI-independent adapter contract now exists:
-
 - `tools/roguelite-asset-studio/adapter_protocol.py`
-- `tools/roguelite-asset-studio/flux2_klein_adapter.py`
 
-`StaticGenerationRequest` carries:
-
-- job id;
-- asset type;
-- output contract;
-- prompt/negative instruction;
-- ordered semantic references;
-- width/height;
-- steps/CFG/sampler/seed.
-
-`GenerationResult` records:
-
-- adapter id;
-- backend prompt id;
-- output path;
-- elapsed time;
-- reference hashes;
-- output hash;
-- original request.
-
-This boundary is intentional: a future dedicated Studio UI may replace Gradio without rewriting model graphs.
+Runner55 proved referenced-character and reference-free-environment routing. `references` must exist structurally, while `references: []` is valid for reference-free generation.
 
 ## Canonical production stages
 
-### 1. Brief / specification
+1. brief/specification;
+2. concept/static master;
+3. controlled variants/states;
+4. temporal generation where required;
+5. reconstruction into the approved game rendering language when needed;
+6. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
+7. explicit candidate review/approval;
+8. runtime export.
 
-Create an asset project with identity, gameplay/narrative role, world scale, art profile, output contract, constraints and semantic references.
+Routine manual per-frame repainting, hand compositing and manual masks are not a production dependency.
 
-### 2. Concept / static master
+## Current model routing
 
-Generate or edit a source design master. No animation begins from an unapproved design.
+### MiniMax H3 Base Ref2VA — ACTIVE / motion specialist
 
-### 3. Variant/state generation
+Current proven character-motion baseline. Uses target appearance reference + real motion video and produces complete temporal character masters including body/hair/cloth behavior. It is not the universal still generator.
 
-Create controlled states such as clothing/armor, damage/wear, restraint, enemy rank, material/color, open/closed/broken, seasonal/environmental variants while preserving approved identity/design where required.
+### MiniMax H3 FL2VA — temporal candidate
 
-### 4. Motion/temporal generation
+Future candidate for environmental loops, VFX and first/last-frame tasks. Validate per asset class.
 
-Route animated assets to the appropriate temporal specialist. Character/creature actions may use real-video motion reference; environment/VFX may use first/last-frame or image-to-video paths.
+### FLUX.1 Kontext [dev] — R&D only
 
-### 5. Rendering-language reconstruction
+Useful for editing/reconstruction research. Dev licensing prevents silently making it the commercial-production default.
 
-If the motion/static master is not already in final runtime visual language, reconstruct it into the approved project rendering language. Current character direction remains deliberate modern pixel art.
+### FLUX.2 Klein 4B distilled — ACTIVE fast T2I/concept
 
-### 6. Deterministic extraction/cleanup
+Runner56 proved fast local T2I on RTX 3060 12 GB at 768×768 / 4 steps / CFG 1 / Euler in **12.054 s**.
 
-Where applicable: alpha extraction, frame distillation, alignment, pivots, loop optimization, tile/seam checks, palette/material checks, edge cleanup, collision/anchor metadata. Routine per-frame repainting remains disallowed.
+Runners57/58 proved reference editing technically but rejected it visually for production: more steps produced broad rerender/material drift without reliable structural-fact obedience.
 
-### 7. Review/approval
-
-Every generation is a candidate. Approval is explicit and must never be implied by successful generation.
-
-### 8. Runtime export
-
-Export only approved state: images/sequences/sheets/atlases + JSON metadata, pivots/events/rectangles, hashes and provenance.
-
-## Current model families
-
-### MiniMax H3 Base Ref2VA — ACTIVE proven motion specialist
-
-Current use: character identity + real action video -> complete motion master including body/hair/cloth behavior. Existing Exilada Base50 remains the motion-quality baseline. H3 is not the universal still generator.
-
-### MiniMax H3 FL2VA — TEMPORAL candidate
-
-Potential path for first/last-frame animation, environmental loops, VFX and set-piece motion without authoritative performer video. Validate by asset class before production use.
-
-### FLUX.1 Kontext [dev] FP8 — ACTIVE R&D only
-
-Useful for editing/reconstruction R&D. Its dev license means it must not silently become the commercial-production default without appropriate licensing.
-
-### FLUX.2 Klein 4B distilled — ACTIVE static T2I / EDIT VALIDATION IN PROGRESS
-
-Workspace:
-
-`Z:\AI\Flux2Klein`
-
-License: Apache-2.0.
-
-Runner56 actual local proof on RTX 3060 12 GB:
-
-- 768×768;
-- 4 distilled steps;
-- CFG 1.0;
-- Euler;
-- seed 0;
-- **12.054 s** inference;
-- no OOM/crash;
-- coherent useful architecture master generated.
-
-Registry status:
-
-`active_static_t2i_proven_edit_pending`
-
-Currently active/routable capabilities:
+Routable:
 
 - `text_to_image`
 - `interactive_concept`
 
-Planned but **not routable** until Runner57 passes:
+Not routable:
 
-- `single_reference_edit`
-- `multi_reference_edit`
-- `interactive_variant`
+- production structural/reference editing.
 
-The Runner56 gate image is useful but not approved game art: it still has excess symmetry and some polished/generic fantasy asset language. This makes it a deliberate edit-control source.
+### FLUX.2 Klein 4B Base — valid Base/training branch, not precision editor
 
-Detailed evidence:
+Runner60 fixed the Runner59 graph error and proved sane VAE/T2I/edit color behavior. Runner61 then tested atomic and sequential editing.
 
-`docs/FLUX2_KLEIN_4B_ASSET_STUDIO_SPIKE_2026-09-08.md`
+Final edit verdict:
 
-### FLUX.2 Klein 4B Base — TRAINING/SPECIALIZATION candidate
+**coarse semantic edit useful / exact structural localization FAIL.**
 
-Do not download yet. It remains strategically important for future Roguelite-specific fine-tuning/LoRAs once enough approved, licensable training data exists.
+It can remove/reinterpret broad semantic regions and preserve coarse sequential states, but cannot reliably isolate one named plank/strap/block without over-editing. Retain for T2I/training/project-specialization research, not precision structural routing.
 
-### Qwen-Image-Edit / 2509 — HEAVY quality/control candidate
+### Qwen-Image-Edit-2509 — technical PASS / precision FAIL / retired editor evidence
 
-Apache-2.0 and promising for stronger structural controls, but materially heavier. Requires a dedicated 12-GB/low-VRAM feasibility spike before normal use.
+Runner62 proved native FP8 feasibility on RTX 3060 12 GB with:
 
-### Step1X-Edit — DEFERRED
+- diffusion FP8;
+- Qwen2.5-VL 7B FP8 encoder on CPU;
+- Qwen image VAE;
+- ComfyUI low-VRAM/offload;
+- 1024×1024;
+- 20 steps / CFG 4 / Euler/simple;
+- no OOM.
 
-Published memory requirements remain poorly matched to the workstation; do not prioritize ahead of proven candidates.
+It preserved/localized edits substantially better than Klein, but still failed exact structural facts:
 
-## Runner57 — ACTIVE reference-edit gate
+- one-plank request did not create an unambiguous one-plank full-height opening;
+- one-strap request reinterpreted local hardware/door-bottom geometry instead of simply breaking the named strap.
 
-Runner:
+Therefore 2509 is not production-routable. Its generated evidence is preserved; its diffusion checkpoint may be removed when 2511 activates. Shared Qwen2.5-VL + VAE remain useful.
 
-`tools/structured-2d-character-pipeline/57_run_flux2_klein_reference_edit_gate.ps1`
+### Qwen-Image-Edit-2511 — CURRENT precision-editor gate
 
-Executor:
+Canonical record:
 
-`tools/roguelite-asset-studio/flux2_klein_edit_gate.py`
+`docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
 
-Runner57 downloads **no new model** and reuses the proven isolated Runner56 stack.
+Why it is the current hypothesis:
 
-It validates the same generic adapter with two jobs:
+- same Apache-2.0 Qwen edit family;
+- official revision targets lower image drift, better consistency and stronger geometric reasoning;
+- reuses already-installed Qwen2.5-VL encoder and Qwen image VAE;
+- only the new 2511 diffusion payload is required.
 
-1. single-reference editing — original gate as `previous_approved_state`; preserve identity/camera/construction while making requested damage/material changes;
-2. ordered multi-reference editing — original gate as `structure`, single-edit result as `material`; preserve Image 1 identity/structure while carrying useful damage/material information from Image 2.
+Runner63 checkpoint:
 
-Both remain 768×768, 4 steps, CFG 1.0, Euler, seed 0 so only the reference-conditioning contract changes.
+`qwen_image_edit_2511_fp8mixed.safetensors`
 
-Pass requires both technical execution and human review. Only after visual PASS may edit capabilities move from `planned_capabilities` to active `capabilities` in the registry.
+- bytes `20,533,762,817`;
+- SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`.
+
+Runner63 uses current native ComfyUI 2511 semantics at commit:
+
+`6eba895f7d3615284da81e95bf49eaed4a5f7309`
+
+including:
+
+- `TextEncodeQwenImageEditPlus`;
+- `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`;
+- `ModelSamplingAuraFlow` shift 3.1;
+- `CFGNorm` 1;
+- Euler/simple/denoise 1;
+- CFG 4;
+- 20 and 40 step precision tests.
+
+The gate compares, for both one-plank and one-strap tasks:
+
+`original -> Klein Runner61 -> Qwen2509 Runner62 -> Qwen2511/20 -> Qwen2511/40`.
+
+2511 only passes if it executes the named structural fact more precisely, not merely if it changes fewer pixels.
+
+### Step1X-Edit — deferred
+
+Current memory profile remains poorly matched to the workstation. Do not prioritize while stronger same-family/local control hypotheses remain.
 
 ## Character Lab
 
-The older Exilada-specific editor is prototype evidence only. Its useful concepts—identity/anatomy/style roles, iterative candidates, useful native resolution, history and explicit approval—are being refactored behind the generic Studio adapter/state contracts.
+The older Exilada-specific editor is prototype evidence only. Its useful concepts—identity/anatomy/style roles, iterative candidates, native resolution, history and explicit approval—belong behind the generic Studio contracts.
 
-After Runner57 passes, the next high-difficulty static test should use the generic adapter on Exilada with identity/anatomy/art-direction references rather than expanding Exilada-only code.
+The reopened Exilada master becomes the first high-difficulty Character Lab validation **after a precision editor passes its non-character structural gate**.
 
-## Environment / map production principle
+Character Lab must support identity, anatomy, style/material, approved-state and later motion references without requiring routine manual masking or repainting.
 
-The living belt-scroller world should not default to one flattened AI-painted gameplay map.
+## Environment/map production principle
 
-Prefer reusable independently simulated/composed modules:
-
-- terrain patches/strips;
-- cliffs/walls;
-- façades/modules;
-- doors/gates;
-- vegetation groups;
-- rocks/debris;
-- furniture/props;
-- foreground/background set pieces;
-- environmental loops;
-- decals/damage states.
-
-The game/level system composes them. Large background plates are allowed where they do not destroy gameplay modularity.
+The living belt-scroller world should not default to one flattened AI-painted gameplay map. Prefer reusable independently composed terrain patches, cliffs/walls, architecture modules, doors/gates, vegetation, rocks/debris, props, foreground/background pieces, loops and damage-state variants.
 
 ## Animated-asset contract
 
@@ -335,60 +222,34 @@ Environment/VFX:
 
 `approved static state + temporal instruction/reference -> temporal master -> loop/sequence extraction -> rendering-language reconstruction if needed -> alpha/seam/timing metadata -> runtime`
 
-The temporal adapter may differ by asset class.
-
 ## Resolution contract — HARD LOCK
 
-The Studio imposes **no universal 128/192/384 px or other sprite cell size**.
+The Studio imposes no universal 128/192/384 px sprite-cell size. Preserve useful source/final generation resolution. Runtime apparent/world scale is separate and must not create a second destructively reduced gameplay raster asset.
 
-Useful source resolution is preserved. Runtime display/world scale is separate. Resolution depends on model quality, asset class, action envelope and later atlas/runtime constraints rather than a destructive one-size-fits-all downscale.
+## Filesystem/provenance contract
 
-## Filesystem contract
-
-Large model/generated data remains outside Git.
-
-Umbrella local root:
+Large model/generated data remains outside Git. Long-term umbrella state:
 
 `Z:\AI\RogueliteAssetStudio\`
 
-Long-term project-state layout:
-
-- `projects/<asset_id>/spec.json`
-- `projects/<asset_id>/references/`
-- `projects/<asset_id>/candidates/<candidate_id>/`
-- `projects/<asset_id>/approved/`
-- `jobs/`
-- `cache/`
-- `exports/`
-
-Existing isolated model workspaces may remain outside this root and be referenced by adapters.
+with project specs, references, candidate histories, approved state, jobs/cache and exports. Existing specialist workspaces may remain outside this root and be referenced by adapters.
 
 ## Project-specific specialization strategy
 
-The long-term goal is not permanent dependence on generic public style LoRAs. Once enough approved project art exists, train/evaluate Roguelite-specific adapters only from material whose provenance/license permits training.
-
-Likely targets:
-
-- final rendering-language / pixel-art adapter;
-- character-family consistency;
-- environment/material language;
-- creature/anatomy families;
-- damage/state variants.
+Once enough approved, licensable project art exists, train/evaluate Roguelite-specific adapters for rendering language/pixel art, character-family consistency, environment/material language, creature/anatomy families and damage/state variants.
 
 ## Immediate implementation order
 
-1. run Runner57 and validate single + multi-reference editing;
-2. if visual PASS, activate Klein edit capabilities in the registry;
-3. expose the adapter through a generic Studio UI/state layer;
-4. validate Character Lab on the reopened Exilada master using semantic identity/anatomy/style references;
-5. validate another non-character class such as prop/equipment;
-6. add generic candidate comparison/history/approval/export;
-7. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
-8. add environmental/VFX temporal routes only after their own task-specific gates;
-9. resume final pixel-art/rendering-language specialization from approved masters.
+1. run Runner63 and issue the Qwen-Image-Edit-2511 exact-precision verdict;
+2. if precision PASS, validate multi-reference semantic role separation;
+3. then validate the reopened Exilada as the first difficult Character Lab case;
+4. validate another non-character class;
+5. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
+6. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
+7. resume final rendering-language/pixel-art specialization from approved masters.
+
+If Qwen 2511 fails exact precision at both 20 and 40 steps, do not continue blind step tuning. Move to automatic localization/region-control architecture or another editor family while keeping routine manual masking outside the production contract.
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**, not a character-specific image editor.
-
-Specialized models must remain interchangeable; approved asset identity/state and provenance must remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
