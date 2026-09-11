@@ -2,7 +2,7 @@
 
 Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC LATENT-MASK PRECISION GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC MASK STACK PROVEN / DEDICATED INPAINT EDITOR GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -22,7 +22,7 @@ The Asset Studio is a **model router + asset-state system**, not a wrapper aroun
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> router -> specialized generation/edit/perception/motion adapters -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> router -> specialized generation/edit/inpaint/perception/motion adapters -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
 
 The tool owns:
 
@@ -30,7 +30,7 @@ The tool owns:
 - semantic reference roles;
 - model routing;
 - automatic localization/segmentation/decomposition when needed;
-- generation/edit execution;
+- generation/edit/inpainting execution;
 - deterministic preprocessing/postprocessing;
 - candidate comparison/provenance/history;
 - explicit approval;
@@ -82,7 +82,7 @@ References are typed as:
 - `environment`
 - `previous_approved_state`
 
-Adapters translate ordered semantic roles into model-specific conditioning. Pipeline-control masks are not semantic references and must not be exposed as user-authored production inputs.
+Pipeline-control masks are not semantic references and must not be exposed as user-authored production inputs.
 
 ## Generic foundation — PASS
 
@@ -102,13 +102,14 @@ Runner55 proved referenced-character and reference-free-environment routing. `re
 3. controlled variants/states;
 4. automatic parent/component localization when precision is required;
 5. automatic segmentation and repeated-member decomposition when required;
-6. operation-aware region control;
-7. local/global semantic editing as appropriate;
-8. temporal generation where required;
-9. rendering-language reconstruction when needed;
-10. deterministic alpha/alignment/pivots/timing/seams/metadata;
-11. explicit candidate review/approval;
-12. runtime export.
+6. operation-aware automatic mask generation;
+7. route either to semantic editor or dedicated inpainting backend depending on operation;
+8. deterministic regional/full-resolution composition;
+9. temporal generation where required;
+10. rendering-language reconstruction when needed;
+11. deterministic alpha/alignment/pivots/timing/seams/metadata;
+12. explicit candidate review/approval;
+13. runtime export.
 
 Routine manual per-frame repainting, hand compositing and user-drawn production masks are not dependencies.
 
@@ -147,7 +148,7 @@ Retain for T2I/training/project-specialization research, not exact component rou
 
 Runner62 proved feasibility/preservation improvement but exact plank/strap facts still failed. Diffusion checkpoint deleted after evidence preservation; shared encoder/VAE retained.
 
-### Qwen-Image-Edit-2511 — strongest installed semantic editor
+### Qwen-Image-Edit-2511 — ACTIVE higher-level semantic editor
 
 Installed:
 
@@ -162,28 +163,32 @@ Installed:
 - CFGNorm 1;
 - Euler/simple / CFG 4.
 
-Runner63 closed unrestricted global precision prompting: plank improved but strap produced a large replacement bar, and 40 steps did not solve the hard case.
+Runner63 closed unrestricted global precision prompting. Runner67 closed colored-locator reference control. Runner68 proved native latent masking technically but also proved Qwen too conservative for exact masked removal/fill operations.
 
-Qwen2511 remains the current semantic editor, but precision must come from external automatic control.
+Runner68 metrics:
 
-## Precision-control architecture
+- plank inside-allowed changed ratio >Δ12 `0.059154`, outside `0.0`;
+- strap inside-allowed changed ratio >Δ12 `0.052066`, outside `0.0`;
+- visual: plank remains; strap remains continuous.
+
+Final routing implication:
+
+- keep Qwen2511 for semantic/appearance/reference-driven revision;
+- do **not** route exact component removal/fill/inpainting to Qwen2511.
+
+## Precision-control architecture — MASK STACK ACCEPTED
 
 Canonical precision architecture:
 
-`semantic request -> parent/component perception -> automatic segmentation/decomposition -> operation-specific mask -> semantic editor -> deterministic full-resolution composite`
+`semantic request -> parent/component perception -> automatic segmentation/decomposition -> operation-specific mask -> specialized regional editor -> deterministic full-resolution composite`
 
 The no-manual-mask rule is hard.
 
 ### Runner64 — flat localization / COMPLETE
 
-Flat Grounding DINO search selected side stone blocks instead of the requested plank/strap.
+Flat Grounding DINO search selected side stone blocks instead of plank/strap. Deterministic final compositor nevertheless proved zero >Δ12 changes outside the allowed region.
 
-Useful proof:
-
-- SAM2 segmented the selected boxes cleanly;
-- deterministic regional composite preserved source pixels outside allowed masks with changed ratio >Δ12 of `0.0`.
-
-### Runner65 — hierarchy / COMPLETE
+### Runner65 — hierarchical localization / COMPLETE
 
 `full asset -> parent door -> child search -> SAM2 rerank`.
 
@@ -211,69 +216,77 @@ First proof:
 - elapsed `0.321 s`;
 - no model inference or manual mask.
 
-This demonstrates an important Studio pattern: semantic models may localize a repeated structure while cheap deterministic processors resolve atomic members before any expensive generation.
+This demonstrates an important Studio pattern: semantic models may localize a repeated structure while cheap deterministic processors resolve atomic members before expensive generation.
 
-### Runner67 — approved masks + visual locator guide / COMPLETE FAIL
+### Runner67 — colored locator / COMPLETE FAIL
 
-Architecture:
+Approved masks and compositor passed, but Qwen copied the red strap locator and shifted local plank geometry. Colored locator images are rejected as production control.
 
-`approved automatic mask -> source crop + red overlay reference -> Qwen2511 -> deterministic composite`.
+### Runner68 — native latent mask / COMPLETE FAIL AS EDITOR
 
-Technical execution passed but edit control failed:
+Native `SetLatentNoiseMask` removed the colored-guide problem and preserved exact region containment, but Qwen did not execute the physical operations strongly enough.
 
-- plank raw generation created a narrow opening that shifted relative to the separately applied mask, producing distorted strips after final composition;
-- strap raw generation copied the red locator rectangle into content instead of making a physical break;
-- outside-region changed ratio >Δ12 remained `0.0` for both tasks.
+Classification:
 
-Final classification:
+**MASK CONTROL PASS / COMPOSITOR PASS / SEMANTIC OPERATION FAIL.**
 
-**AUTOMATIC MASKS PASS / COMPOSITOR PASS / RED GUIDE LEAK FAIL / CROP-MASK ALIGNMENT FAIL.**
+This closes Qwen's mask-native precision role without invalidating the accepted perception/mask stack.
 
-Colored locator references are rejected as production control.
-
-## CURRENT PRECISION GATE — Runner68 / native automatic latent mask
+## CURRENT PRECISION GATE — Runner69 / dedicated SDXL Inpainting 0.1
 
 Canonical record:
 
-`docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
+`docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
 
 Implementation:
 
-- `tools/roguelite-asset-studio/qwen_image_edit_2511_masked_adapter.py`
-- `tools/roguelite-asset-studio/qwen2511_latent_mask_region_gate.py`
-- `tools/structured-2d-character-pipeline/68_run_qwen2511_latent_mask_region_edit.ps1`
+- `tools/roguelite-asset-studio/sdxl_inpaint_adapter.py`
+- `tools/roguelite-asset-studio/sdxl_inpaint_region_gate.py`
+- `tools/structured-2d-character-pipeline/69_bootstrap_and_run_sdxl_inpaint_precision_gate.ps1`
 
-Architecture:
+Hypothesis:
 
-`Runner66 approved automatic mask -> contextual source crop -> same-scale mask -> ImageToMask -> SetLatentNoiseMask on VAE source latent -> Qwen2511 -> deterministic final composite`.
+A model explicitly trained for inpainting should be materially better at physical remove/fill operations than a general semantic editor when the target mask is already correct.
 
-Key properties:
+Payload:
 
-- Qwen receives only the source crop as semantic image conditioning;
-- no colored guide image exists in the model inputs;
-- mask and source pass through the same Qwen/FluxKontext scaling path;
-- sampling noise is restricted natively to the automatic operation region;
-- final composition applies a second deterministic containment layer;
-- no new model download;
-- no user box or mask.
+- SDXL Inpainting 0.1 FP16 UNet, ~5.14 GB, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
+- SDXL Base 1.0 checkpoint, ~6.94 GB, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
+- license: CreativeML Open RAIL++-M.
 
-Operation semantics:
+Runtime:
 
-- plank removal: use the complete Runner66 atomic plank mask;
-- strap break: automatically derive and edit only the central `40%` of the approved strap mask so both ends remain source-authoritative.
+- first gate reuses the already-pinned ComfyUI installation under `Z:\AI\QwenImageEdit\ComfyUI_windows_portable`;
+- model/output state lives under `Z:\AI\SDXLInpaint`;
+- low-VRAM / reserve 1 GB;
+- 30 steps / CFG 6;
+- DPM++ 2M / Karras;
+- denoise 1.0;
+- seed 0.
 
-Runner68 PASS requires:
+Graph:
 
-1. plank becomes a clean aligned same-width opening;
-2. neighboring planks/door remain stable;
-3. strap middle is absent while both ends survive;
-4. no replacement bar;
-5. no locator-color leak;
-6. outside-region pixels remain source pixels by construction.
+`UNETLoader(inpaint) + CheckpointLoaderSimple(base CLIP/VAE) + source + mask -> InpaintModelConditioning -> KSampler -> VAEDecode`.
 
-If Runner68 passes, promote `automatic_region_edit` and test semantic multi-reference role separation before Exilada Character Lab.
+Operation semantics remain identical to Runner68:
 
-If Runner68 fails with correct masks, keep perception/decomposition/compositor accepted and replace only the regional editor with a dedicated mask-native/inpainting backend.
+- plank: full Runner66 atomic board mask;
+- strap: automatically derived central 40% of approved strap;
+- contextual image and mask crops use the exact same coordinates, aligned to 64-pixel dimensions;
+- deterministic final composite restores unrelated source pixels.
+
+PASS requires both operations visually:
+
+1. one plank becomes a real narrow opening/background continuation;
+2. no replacement plank;
+3. strap middle disappears and aged wood is reconstructed underneath;
+4. both outside strap ends survive;
+5. no replacement bar;
+6. unrelated geometry remains source-authoritative.
+
+If Runner69 passes, promote `automatic_region_inpaint` and continue to semantic multi-reference role separation before Exilada Character Lab.
+
+If Runner69 fails, retain the accepted perception/mask/compositor architecture, preserve evidence, remove the provisional SDXL payload and test the next dedicated inpainting backend.
 
 ## Current perception payload
 
@@ -291,7 +304,7 @@ If Runner68 fails with correct masks, keep perception/decomposition/compositor a
 - revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
 - SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`.
 
-Perception runs separately from Qwen so these models do not compete for VRAM.
+Perception runs separately from generative editors so these models do not compete for VRAM.
 
 ## Character Lab
 
@@ -331,8 +344,8 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 
 ## Immediate implementation order
 
-1. run Runner68 and review latent-mask plank/strap edits;
-2. if both pass, promote automatic regional precision editing;
+1. run Runner69 and review dedicated inpaint plank/strap edits;
+2. if both pass, promote `automatic_region_inpaint`;
 3. validate semantic multi-reference role separation;
 4. validate reopened Exilada as first difficult Character Lab case;
 5. validate another non-character asset class;
@@ -340,8 +353,8 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 7. wrap proven H3 Ref2VA behind the same orchestration boundary;
 8. resume final rendering-language/pixel-art specialization from approved masters.
 
-If Runner68 fails, replace only the regional editor behind the already-proven automatic target/mask/compositor contract before proceeding.
+If Runner69 fails, replace only the dedicated inpainting backend behind the already-proven automatic target/mask/compositor contract.
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**. Specialized generation, editing, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**. Specialized generation, semantic editing, inpainting, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
