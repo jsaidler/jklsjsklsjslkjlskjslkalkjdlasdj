@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-10**
+Status date: **2026-09-11**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
@@ -183,6 +183,18 @@ SAM2.1 Hiera Small:
 
 Perception runs and exits before Qwen starts, so it does not compete with the large editor for VRAM.
 
+### Runner64 first execution
+
+The first execution reached Qwen ComfyUI startup. Because the launcher only starts ComfyUI after the perception process exits successfully and all expected localization files exist, the following is already proven technically:
+
+**Grounding DINO Tiny + SAM2.1 local localization pipeline = TECHNICAL PASS.**
+
+Visual correctness of the selected plank/strap masks remains pending.
+
+The regional Qwen phase did **not** run. `qwen2511_region_control_gate.py` instantiated `QwenImageEdit2511Adapter` with the nonexistent keyword `timeout_seconds`; the inherited constructor accepts `timeout_minutes`. Python therefore exited with `TypeError` before any Qwen prompt submission. This is a harness/API mismatch, not editor evidence.
+
+Fix is committed: the regional executor now passes `timeout_minutes=args.timeout_minutes`. Existing perception weights/cache/localization outputs are reusable; no model needs to be redownloaded.
+
 Runner64 tests the same plank/strap facts. It persists detector candidates, selected boxes, SAM masks, crops and provenance. Qwen edits only a context crop and receives a second automatically generated target-guide image. Final full-image modification is deterministically constrained to a dilated/feathered automatic mask neighborhood.
 
 PASS requires both automatic perception and exact edit behavior to be useful. A wrong mask is classified as perception failure, not editor failure.
@@ -265,5 +277,5 @@ Do not accumulate checkpoints speculatively.
 - keep Klein Base while useful as training/specialization base;
 - Qwen2509 diffusion is retired/deleted; preserve its generated evidence;
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE;
-- Runner64 adds only compact public perception models;
+- keep Runner64 compact perception models/cache while localization hypothesis remains active;
 - do not download Step1X while Runner64 is active.
