@@ -1,5 +1,5 @@
 {
-  "registry_version": 11,
+  "registry_version": 12,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -86,13 +86,13 @@
     {
       "adapter_id": "qwen_image_edit_2511_fp8mixed",
       "family": "Qwen-Image-Edit-2511",
-      "status": "installed_semantic_editor_global_precision_partial_waiting_for_valid_region_masks",
+      "status": "installed_semantic_editor_global_precision_partial_atomic_region_gate_active",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/QwenImageEdit",
       "capabilities": ["semantic_edit_candidate", "appearance_edit_candidate", "single_reference_edit_technical", "multi_reference_edit_technical"],
       "not_routable_capabilities": ["unrestricted_global_precision_structural_edit"],
       "planned_capabilities": ["automatic_region_edit", "character_master_revision", "semantic_multi_reference_roles"],
-      "quality_tier": "strong_semantic_editor_requires_region_control_for_precision",
+      "quality_tier": "strong_semantic_editor_requires_automatic_region_control_for_precision",
       "files": [
         {"name": "qwen_image_edit_2511_fp8mixed.safetensors", "bytes": 20533762817, "sha256": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e"},
         {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"},
@@ -111,20 +111,20 @@
     {
       "adapter_id": "grounding_dino_tiny_localizer",
       "family": "Grounding DINO Tiny",
-      "status": "installed_hierarchical_parent_and_strap_pass_plank_repeated_structure_coarse",
+      "status": "active_hierarchical_parent_component_localizer_proven",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/RogueliteAssetStudio/localization",
       "capabilities": ["open_vocabulary_detection", "text_grounded_box_candidate", "hierarchical_parent_detection"],
-      "quality_tier": "compact_automatic_perception",
+      "quality_tier": "compact_automatic_perception_backend",
       "repo": "IDEA-Research/grounding-dino-tiny",
       "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
       "weight_sha256": "1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3",
-      "runner65_verdict": "parent door pass; lower-right strap pass; plank request localizes entire left repeated-structure leaf rather than one board"
+      "runner65_verdict": "parent door pass; lower-right strap pass; plank request localizes correct repeated-structure leaf rather than one board"
     },
     {
       "adapter_id": "sam2_1_hiera_small_segmenter",
       "family": "SAM2.1 Hiera Small",
-      "status": "installed_box_mask_proven_semantic_granularity_depends_on_input_box",
+      "status": "active_box_segmenter_proven",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/RogueliteAssetStudio/localization",
       "capabilities": ["box_prompt_segmentation", "automatic_component_mask"],
@@ -132,33 +132,37 @@
       "repo": "facebook/sam2.1-hiera-small",
       "revision": "e07df6aa19f5c6545121551bf89957b7663ee715",
       "weight_sha256": "0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60",
-      "runner65_verdict": "clean mask for correct strap and clean but too-coarse whole-left-leaf mask for plank request"
-    },
-    {
-      "adapter_id": "automatic_region_control_v1",
-      "family": "Asset Studio automatic localization + region control",
-      "status": "architecture_partial_compositor_pass_perception_refinement_active",
-      "license": "Pipeline code project-owned; component model licenses listed separately",
-      "workspace": "Z:/AI/RogueliteAssetStudio/localization + Z:/AI/QwenImageEdit",
-      "capabilities": [],
-      "technical_only_capabilities": ["deterministic_region_composite"],
-      "planned_capabilities": ["automatic_region_edit", "automatic_component_localization", "maskless_user_workflow"],
-      "quality_tier": "precision_control_architecture_under_validation",
-      "runner64": "flat localization failed; deterministic regional composite passed with zero >Delta12 changes outside allowed region",
-      "runner65": "hierarchical parent and lower-right strap passed; one-plank request remained a whole repeated leaf"
+      "runner65_verdict": "clean mask for correct strap and clean repeated-structure left-leaf mask; atomic member split delegated to Runner66 deterministic processor"
     },
     {
       "adapter_id": "repeated_element_decomposition_v1",
       "family": "Asset Studio repeated-element deterministic decomposer",
-      "status": "runner66_current_gate",
+      "status": "active_proven_first_case",
       "license": "Project-owned pipeline code",
       "workspace": "Z:/AI/RogueliteAssetStudio/localization/runner66_gate",
-      "capabilities": [],
-      "planned_capabilities": ["repeated_element_decomposition", "atomic_component_mask", "maskless_user_workflow"],
-      "quality_tier": "current_atomic_structure_gate",
-      "runner": "tools/structured-2d-character-pipeline/66_run_repeated_element_decomposition_gate.ps1",
-      "record": "docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md",
-      "notes": "Consumes Runner65 semantic repeated-structure mask and splits it into atomic repeated members using persistent oriented seam energy. First proof: one door plank. No model download or Qwen inference."
+      "capabilities": ["repeated_element_decomposition", "atomic_component_mask", "maskless_user_workflow"],
+      "quality_tier": "deterministic_precision_processor",
+      "runner66": {
+        "classification": "technical_pass_atomic_plank_visual_pass_retained_strap_pass",
+        "selected_interval": [358, 388],
+        "atomic_plank_bbox": [358, 295, 388, 644],
+        "area_rel_parent": 0.08923,
+        "vertical_aspect": 11.6333,
+        "elapsed_seconds": 0.321
+      }
+    },
+    {
+      "adapter_id": "automatic_region_control_v1",
+      "family": "Asset Studio automatic localization + atomic decomposition + region control",
+      "status": "runner67_atomic_region_edit_gate_active",
+      "license": "Pipeline code project-owned; component model licenses listed separately",
+      "workspace": "Z:/AI/RogueliteAssetStudio/localization + Z:/AI/QwenImageEdit",
+      "capabilities": ["automatic_component_localization_proven", "automatic_atomic_mask_proven", "deterministic_region_composite_proven"],
+      "planned_capabilities": ["automatic_region_edit"],
+      "quality_tier": "current_precision_control_architecture",
+      "runner": "tools/structured-2d-character-pipeline/67_run_qwen2511_atomic_region_edit.ps1",
+      "record": "docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md",
+      "notes": "Runner64 proved zero-drift outside deterministic allowed regions. Runner65 proved parent/strap localization. Runner66 proved automatic one-plank decomposition. Runner67 tests Qwen2511 only as the local semantic transform behind approved automatic geometry."
     },
     {
       "adapter_id": "sam3_1_future_localizer",
@@ -168,7 +172,7 @@
       "workspace": null,
       "capabilities": ["text_prompt_segmentation", "exemplar_prompt_segmentation", "visual_prompt_segmentation", "video_tracking"],
       "quality_tier": "future_perception_upgrade_candidate",
-      "notes": "Official ~3.5GB checkpoint is gated. Do not make it mandatory before semantic hierarchy plus Runner66 repeated-element decomposition are evaluated."
+      "notes": "Do not make it mandatory while compact hierarchy + deterministic decomposition remains viable."
     },
     {
       "adapter_id": "step1x_edit",
