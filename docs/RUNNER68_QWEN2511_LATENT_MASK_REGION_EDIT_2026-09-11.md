@@ -2,192 +2,125 @@
 
 Status date: **2026-09-11**
 
-Status: **PREPARED / CURRENT PRECISION-EDIT GATE**
+Status: **COMPLETE / TECHNICAL PASS / MASK CONTROL PASS / SEMANTIC OPERATION FAIL**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner68 exists
+## Purpose
 
-Runner67 was the first edit gate to consume visually approved automatic component masks from Runner66.
+Runner68 replaced Runner67's colored locator reference with native sampler control:
 
-Technical execution completed, but visual review exposed two different failures that are not perception failures:
+`Runner66 automatic target -> source crop -> automatic operation mask -> ImageToMask -> SetLatentNoiseMask(source latent) -> Qwen2511 -> deterministic final composite`.
 
-### Plank
+Qwen received only the source crop as semantic visual conditioning. No red/colored locator image was supplied.
 
-The Qwen raw crop did create a narrow opening, but the generated geometry shifted relative to the approved mask. The deterministic full-resolution composite then sampled misaligned edited pixels through the correct mask, producing narrow distorted strips rather than a clean same-width removed plank.
+## Accepted prerequisites
 
-Runner67 plank metrics:
+Runner66 remained authoritative:
 
-- Qwen elapsed: `639.175 s`;
-- final changed ratio >Δ12: `0.011878`;
-- inside-allowed changed ratio >Δ12: `0.272004`;
-- outside-allowed changed ratio >Δ12: `0.0`.
+- one-plank automatic mask: PASS;
+- lower-right strap automatic mask: PASS;
+- no user-drawn mask/box.
 
-### Strap
+Qwen runtime remained:
 
-The second red-overlay reference was treated as visual content. The raw crop and final result contain a red rectangular patch over the target strap instead of a physical break.
-
-Runner67 strap metrics:
-
-- Qwen elapsed: `601.176 s`;
-- final changed ratio >Δ12: `0.001682`;
-- inside-allowed changed ratio >Δ12: `0.124109`;
-- outside-allowed changed ratio >Δ12: `0.0`.
-
-Therefore Runner67 proves that the perception masks and deterministic compositor are not the remaining problem. The weak link is how Qwen receives target control.
-
-## Runner67 final classification
-
-**TECHNICAL PASS / APPROVED AUTOMATIC MASKS PASS / DETERMINISTIC COMPOSITOR PASS / RED VISUAL GUIDE LEAK FAIL / CROP-TO-MASK GEOMETRY ALIGNMENT FAIL / PRECISION EDIT FAIL.**
-
-Do not return to global prompt-only editing and do not weaken the masks.
-
-## Runner68 control change
-
-Runner68 removes the colored locator reference completely.
-
-Architecture:
-
-`Runner66 automatic target -> source crop -> automatic operation mask -> same image scaling path -> ImageToMask -> SetLatentNoiseMask on source latent -> Qwen2511 -> deterministic final composite`
-
-Qwen receives only the source crop as semantic image conditioning. The automatic mask is not shown as red, colored, alpha-overlay or second semantic reference.
-
-The mask becomes sampler control rather than image content.
-
-## Native ComfyUI mechanism
-
-Runner68 uses built-in nodes already expected in the pinned ComfyUI runtime:
-
-- `ImageToMask`;
-- `SetLatentNoiseMask`.
-
-The white-on-black control mask is passed through the same `FluxKontextImageScale` path as the source crop so source latent and mask remain geometrically aligned after Qwen's standard reference scaling.
-
-`SetLatentNoiseMask` attaches the resulting mask to the VAE-encoded source latent before `KSampler`.
-
-The Qwen recipe otherwise remains the proven 2511 recipe:
-
-- FP8mixed checkpoint;
+- `qwen_image_edit_2511_fp8mixed.safetensors`;
+- ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`;
 - Qwen2.5-VL 7B FP8 on CPU;
 - Qwen image VAE;
-- ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`;
-- low-VRAM mode;
-- AuraFlow shift `3.1`;
-- CFGNorm `1`;
+- low-VRAM / reserve 1 GB;
+- AuraFlow shift 3.1;
+- CFGNorm 1;
 - Euler/simple;
 - 20 steps;
-- CFG `4`;
-- seed `0`.
+- CFG 4;
+- seed 0.
 
-## Operation-aware automatic masks
+## Actual result
 
-Runner66 masks remain semantic target authority.
-
-### Plank removal
-
-The complete Runner66 atomic plank mask is the operation target.
-
-A small deterministic dilation/feather is used as the latent noise region to allow synthesis at the plank boundaries.
-
-### Strap break
-
-The requested operation is not "replace the entire strap"; it is "break the strap in the middle".
-
-Runner68 therefore derives an operation submask automatically from the approved strap:
-
-- keep the original full strap mask as provenance;
-- compute its bounding box;
-- intersect the mask with the central `40%` of its horizontal extent;
-- only that middle section receives latent noise.
-
-This guarantees the outer strap ends remain outside the edit region and cannot become another full-width replacement bar.
-
-No user mask or box is introduced.
-
-## Double containment
-
-Runner68 has two containment layers:
-
-1. native latent noise masking during Qwen sampling;
-2. deterministic final full-resolution composite through a slightly dilated/feathered operation mask.
-
-Even if the decoded Qwen crop drifts outside the operation region, the final asset restores source pixels outside the deterministic neighborhood.
-
-## Files
-
-Masked adapter:
-
-`tools/roguelite-asset-studio/qwen_image_edit_2511_masked_adapter.py`
-
-Executor:
-
-`tools/roguelite-asset-studio/qwen2511_latent_mask_region_gate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/68_run_qwen2511_latent_mask_region_edit.ps1`
-
-Output root:
-
-`Z:\AI\QwenImageEdit\runner68_latent_mask_region_edit`
-
-Principal expected outputs:
-
-- `plank_source_crop.png`
-- `plank_latent_noise_mask.png`
-- `plank_approved_target_overlay.png`
-- `plank_latent_operation_overlay.png`
-- `plank_masked_raw_crop_edit.png`
-- `plank_latent_mask_region_final.png`
-- `plank_allowed_region.png`
-- `strap_source_crop.png`
-- `strap_latent_noise_mask.png`
-- `strap_approved_target_overlay.png`
-- `strap_latent_operation_overlay.png`
-- `strap_masked_raw_crop_edit.png`
-- `strap_latent_mask_region_final.png`
-- `strap_allowed_region.png`
-- `runner68_latent_mask_contact_sheet.png`
-- `runner68_latent_mask_manifest.json`
-- `runner68_executor.log`
-
-## PASS criteria
-
-Technical PASS requires:
-
-- Runner66 automatic masks validate;
-- Qwen runtime/hash/commit validate;
-- `ImageToMask` and `SetLatentNoiseMask` are present in the pinned ComfyUI runtime;
-- both 20-step masked jobs complete;
-- final deterministic composites and diagnostics are written;
-- no download and no manual mask/box occur.
-
-Visual PASS requires both tasks.
+Runner68 completed technically for both operations.
 
 ### Plank
 
-- the one approved plank is replaced by a clean narrow open gap;
-- the gap remains aligned with the approved mask;
-- neighboring planks and broader door geometry remain stable;
-- no thin duplicated/reconstructed plank artifact remains.
+Approved/operation bbox:
+
+`[358,295,388,644]`
+
+Crop:
+
+`[268,232,478,707]`
+
+Qwen elapsed:
+
+`481.612 s`
+
+Difference metrics:
+
+- mean absolute RGB: `0.109842`;
+- changed ratio >Δ12: `0.001819`;
+- changed ratio >Δ24: `0.000541`;
+- inside-allowed changed ratio >Δ12: `0.059154`;
+- outside-allowed changed ratio >Δ12: `0.0`.
+
+Visual result: **FAIL**. The board remains present; the requested clean opening is not produced. Native latent masking constrains the region but Qwen is too conservative/semantic-edit oriented for this exact removal operation.
 
 ### Strap
 
-- a clear central section of the intended lower-right strap is absent;
-- both outside strap ends survive because they were never in the operation mask;
-- no replacement bar appears;
-- no red/colored locator artifact can appear because no locator image is conditioned.
+Approved strap bbox:
 
-### Preservation
+`[456,549,550,592]`
 
-Manifest outside-region changed ratio >Δ12 must remain effectively zero by construction.
+Automatically derived central-40% operation bbox:
 
-## Decision after Runner68
+`[484,550,522,590]`
 
-If both tasks pass, the project has a complete automatic precision-control route:
+Crop:
 
-`semantic hierarchy -> automatic segmentation/decomposition -> operation-aware latent mask -> semantic editor -> deterministic composite`.
+`[353,485,653,656]`
 
-Then `automatic_region_edit` can be promoted and the next static-system gate is semantic multi-reference role separation before the Exilada Character Lab.
+Qwen elapsed:
 
-If masks are correct but masked Qwen2511 still fails semantically, the perception and control architecture remain accepted and the next branch is a dedicated mask-native/inpainting editor behind the same automatic-mask contract. Do not return to red guide images, unrestricted global prompting or user-drawn production masks.
+`451.471 s`
+
+Difference metrics:
+
+- mean absolute RGB: `0.016693`;
+- changed ratio >Δ12: `0.000263`;
+- changed ratio >Δ24: `0.000080`;
+- inside-allowed changed ratio >Δ12: `0.052066`;
+- outside-allowed changed ratio >Δ12: `0.0`.
+
+Visual result: **FAIL**. The central strap remains effectively continuous; the requested physical break is not created.
+
+## What Runner68 proves
+
+Accepted:
+
+1. automatic perception/decomposition masks from Runner66;
+2. native mask-to-latent alignment path;
+3. no colored-guide leakage;
+4. operation-aware strap submask generation;
+5. deterministic final full-resolution containment;
+6. outside-region preservation (`>Δ12 = 0.0` for both tasks).
+
+Rejected:
+
+- Qwen2511 as the exact mask-native removal/fill backend for this precision role.
+
+The failure is not a perception regression and not a compositor failure. It is a semantic operation failure inside a correct edit region.
+
+## Final classification
+
+**TECHNICAL PASS / AUTOMATIC MASKS PASS / NATIVE LATENT MASK CONTROL PASS / OUTSIDE-REGION CONTAINMENT PASS / PLANK REMOVAL FAIL / STRAP BREAK FAIL / QWEN MASKED-PRECISION ROLE CLOSED.**
+
+Qwen2511 remains useful as the strongest installed high-level semantic editor. Do not delete it and do not return to unrestricted global precision prompting.
+
+## Next gate
+
+The next branch replaces only the regional editor with a dedicated inpainting model while retaining the accepted automatic-mask contract.
+
+Canonical next record:
+
+`docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
+
+Runner69 uses SDXL Inpainting 0.1 behind the exact same Runner66 masks and deterministic final composite.
