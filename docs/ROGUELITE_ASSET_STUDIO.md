@@ -2,7 +2,7 @@
 
 Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / REPEATED-ELEMENT PERCEPTION GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC LATENT-MASK PRECISION GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -14,7 +14,7 @@ The Roguelite Asset Studio is the local authoring/control plane used to create, 
 
 It must cover playable characters, NPCs, humanoid/non-humanoid enemies, bosses, weapons, armor/equipment, props/interactables, architecture, terrain, vegetation, environment set pieces, materials/textures, VFX/environment animation and UI art where needed.
 
-The Exilada is the first high-difficulty Character Lab case. **No Exilada-specific assumption defines the generic tool contract.**
+The Exilada remains the first high-difficulty Character Lab case. No Exilada-specific assumption defines the generic tool contract.
 
 ## Core production rule — HARD LOCK
 
@@ -22,17 +22,25 @@ The Asset Studio is a **model router + asset-state system**, not a wrapper aroun
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> model router -> specialized model/perception adapters -> local runtimes -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> router -> specialized generation/edit/perception/motion adapters -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
 
-The tool owns asset specification, semantic reference-role assignment, model routing, automatic localization when required, generation/edit execution, deterministic preprocessing/postprocessing, candidate comparison, provenance/history, explicit approval and export.
+The tool owns:
+
+- asset specification;
+- semantic reference roles;
+- model routing;
+- automatic localization/segmentation/decomposition when needed;
+- generation/edit execution;
+- deterministic preprocessing/postprocessing;
+- candidate comparison/provenance/history;
+- explicit approval;
+- runtime export.
 
 Models are replaceable. Approved asset state and provenance are not.
 
 ## Local-first requirement — HARD LOCK
 
 Routine production must work locally after installation because of repeatability, cost control, batch generation, arbitrary reference sets, mature/adult fictional states, long animation jobs, exact version preservation and future project-specific training.
-
-Hosted APIs may be optional accelerators/quality branches, never a mandatory normal-production dependency.
 
 Hardware baseline:
 
@@ -42,22 +50,24 @@ Hardware baseline:
 - AI root `Z:\AI`;
 - repo `D:\GOOGLE DRIVE\DEV\Roguelite`.
 
+Hosted APIs may be optional accelerators but never mandatory production dependencies.
+
 ## Asset taxonomy
 
-Initial types:
+Initial types include:
 
 - `character_playable`, `character_npc`, `enemy_humanoid`, `enemy_creature`, `boss`;
 - `weapon`, `armor_equipment`, `prop`;
 - `architecture_module`, `terrain_module`, `vegetation`, `environment_setpiece`, `tileable_material`;
 - `vfx`, `ui_art`.
 
-Initial output contracts include `static_master`, `static_rgba`, `variant_set`, `turnaround_reference`, `animated_action`, `animated_loop`, `sprite_row`, `sprite_atlas`, `layered_environment_module`, `tileable_texture`, `sequence_rgba`.
+Output contracts include static masters/RGBA, variant sets, turnaround references, animated actions/loops, sprite rows/atlases, layered environment modules, tileable textures and RGBA sequences.
 
 Asset type never implies one fixed model.
 
-## Reference roles — HARD CONTRACT
+## Semantic reference roles — HARD CONTRACT
 
-References are semantically typed:
+References are typed as:
 
 - `identity`
 - `anatomy`
@@ -72,303 +82,266 @@ References are semantically typed:
 - `environment`
 - `previous_approved_state`
 
-Adapters translate ordered semantic roles into model-specific conditioning. The UI/state layer must not hard-code ComfyUI graph semantics.
+Adapters translate ordered semantic roles into model-specific conditioning. Pipeline-control masks are not semantic references and must not be exposed as user-authored production inputs.
 
 ## Generic foundation — PASS
 
-Machine-readable foundation:
+Authority:
 
 - `tools/roguelite-asset-studio/asset_schema.json`
 - `tools/roguelite-asset-studio/model_registry.json`
 - `tools/roguelite-asset-studio/asset_studio_core.py`
 - `tools/roguelite-asset-studio/adapter_protocol.py`
 
-Runner55 proved referenced-character and reference-free-environment routing. `references` must exist structurally, while `references: []` is valid for reference-free generation.
+Runner55 proved referenced-character and reference-free-environment routing. `references` must exist structurally while `references: []` remains valid for reference-free generation.
 
 ## Canonical production stages
 
 1. brief/specification;
 2. concept/static master;
 3. controlled variants/states;
-4. automatic parent/component localization/segmentation when an edit needs subcomponent precision;
-5. deterministic structural decomposition when the localized target is a repeated/coarse structure rather than one atomic member;
-6. local or global semantic editing as appropriate;
-7. temporal generation where required;
-8. reconstruction into the approved game rendering language when needed;
-9. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
-10. explicit candidate review/approval;
-11. runtime export.
+4. automatic parent/component localization when precision is required;
+5. automatic segmentation and repeated-member decomposition when required;
+6. operation-aware region control;
+7. local/global semantic editing as appropriate;
+8. temporal generation where required;
+9. rendering-language reconstruction when needed;
+10. deterministic alpha/alignment/pivots/timing/seams/metadata;
+11. explicit candidate review/approval;
+12. runtime export.
 
 Routine manual per-frame repainting, hand compositing and user-drawn production masks are not dependencies.
 
 ## Current model routing
 
-### MiniMax H3 Base Ref2VA — ACTIVE / motion specialist
+### MiniMax H3 Base Ref2VA — ACTIVE motion specialist
 
-Current proven character-motion baseline. Uses target appearance reference + real motion video and produces complete temporal character masters including body/hair/cloth behavior. It is not the universal still generator.
+Proven character-motion baseline using appearance reference + real action video. Produces complete temporal character masters including body/hair/cloth behavior. Not a universal still generator.
 
-### MiniMax H3 FL2VA — temporal candidate
+### MiniMax H3 FL2VA — future temporal candidate
 
-Future candidate for environmental loops, VFX and first/last-frame tasks. Validate per asset class.
+Potential environment/VFX/first-last-frame specialist. Validate per asset class.
 
 ### FLUX.1 Kontext [dev] — R&D only
 
-Useful for editing/reconstruction research. Dev licensing prevents silently making it the commercial-production default.
+Useful for edit/reconstruction research. Dev licensing prevents making it the commercial-production default.
 
 ### FLUX.2 Klein 4B distilled — ACTIVE fast T2I/concept
 
-Runner56 proved fast local T2I on RTX 3060 12 GB at 768×768 / 4 steps / CFG 1 / Euler in **12.054 s**.
-
-Runners57/58 proved reference editing technically but rejected it visually for production: more steps produced broad rerender/material drift without reliable structural-fact obedience.
+Runner56 proved 768×768 / 4 steps / CFG 1 / Euler in `12.054 s` on RTX 3060 12 GB.
 
 Routable:
 
 - `text_to_image`
 - `interactive_concept`
 
-Not routable:
+Runners57/58 rejected it for production precision editing.
 
-- production precision/reference editing.
+### FLUX.2 Klein 4B Base — Base/training branch
 
-### FLUX.2 Klein 4B Base — valid Base/training branch, not precision editor
+Runner60 fixed the graph and proved sane runtime behavior; Runner61 proved exact structural edits remain too coarse.
 
-Runner60 fixed the Runner59 graph error and proved sane VAE/T2I/edit behavior. Runner61 then tested atomic and sequential editing.
+Retain for T2I/training/project-specialization research, not exact component routing.
 
-Final edit verdict:
+### Qwen-Image-Edit-2509 — retired
 
-**coarse semantic edit useful / exact structural localization FAIL.**
+Runner62 proved feasibility/preservation improvement but exact plank/strap facts still failed. Diffusion checkpoint deleted after evidence preservation; shared encoder/VAE retained.
 
-Retain for T2I/training/project-specialization research, not precision structural routing.
+### Qwen-Image-Edit-2511 — strongest installed semantic editor
 
-### Qwen-Image-Edit-2509 — retired precision candidate
+Installed:
 
-Runner62 proved native FP8 feasibility on RTX 3060 12 GB with low-VRAM execution and Qwen2.5-VL on CPU. It preserved/localized edits better than Klein but still failed exact one-plank and one-strap structural facts.
-
-The 2509 diffusion checkpoint has been removed after preserving generated evidence. Shared Qwen2.5-VL + Qwen image VAE remain installed for 2511.
-
-### Qwen-Image-Edit-2511 — strongest installed semantic editor / GLOBAL PRECISION PARTIAL
-
-Canonical evidence:
-
-`docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
-
-Installed checkpoint:
-
-`qwen_image_edit_2511_fp8mixed.safetensors`
-
+- `qwen_image_edit_2511_fp8mixed.safetensors`;
 - bytes `20,533,762,817`;
-- SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`.
+- SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`;
+- ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`;
+- Qwen2.5-VL 7B FP8 on CPU;
+- Qwen image VAE;
+- low-VRAM / reserve 1 GB;
+- AuraFlow shift 3.1;
+- CFGNorm 1;
+- Euler/simple / CFG 4.
 
-Runtime uses ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`, Qwen2.5-VL on CPU, `--lowvram`, `FluxKontextMultiReferenceLatentMethod(index_timestep_zero)`, AuraFlow shift 3.1, CFGNorm 1, Euler/simple and CFG 4.
+Runner63 closed unrestricted global precision prompting: plank improved but strap produced a large replacement bar, and 40 steps did not solve the hard case.
 
-Runner63 final result:
-
-- one-plank / 20 and 40 steps: meaningful improvement over 2509/Klein; narrow opening created with strong source preservation;
-- one-strap / 20 and 40 steps: FAIL; both produce a large replacement/transverse bar rather than breaking only the named lower-right strap;
-- 40 steps roughly doubles cost without solving the hard failure.
-
-Final classification:
-
-**TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT-ONLY PRECISION HYPOTHESIS CLOSED.**
-
-Qwen2511 remains installed as the strongest semantic editor, but unrestricted global prompts are not routable as `precision_structural_edit`.
+Qwen2511 remains the current semantic editor, but precision must come from external automatic control.
 
 ## Precision-control architecture
 
-Precision editing is treated as a composition of independent capabilities:
+Canonical precision architecture:
 
-`semantic request -> parent/component perception -> optional repeated-element decomposition -> automatic mask/crop -> semantic editor -> deterministic regional composite`
+`semantic request -> parent/component perception -> automatic segmentation/decomposition -> operation-specific mask -> semantic editor -> deterministic full-resolution composite`
 
-The no-manual-mask rule remains hard: detection, instance choice, segmentation, repeated-element splitting and crop construction are pipeline responsibilities.
+The no-manual-mask rule is hard.
 
-### Runner64 — flat localization experiment / COMPLETE
+### Runner64 — flat localization / COMPLETE
 
-Canonical evidence:
+Flat Grounding DINO search selected side stone blocks instead of the requested plank/strap.
 
-`docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+Useful proof:
 
-Runner64 tested:
+- SAM2 segmented the selected boxes cleanly;
+- deterministic regional composite preserved source pixels outside allowed masks with changed ratio >Δ12 of `0.0`.
 
-`semantic target -> Grounding DINO Tiny on full asset -> selector -> SAM2.1 -> Qwen2511 crop edit -> deterministic composite`
+### Runner65 — hierarchy / COMPLETE
 
-Actual result:
+`full asset -> parent door -> child search -> SAM2 rerank`.
 
-- technical pipeline completed;
-- plank selector chose the lower-left stone pedestal;
-- strap selector chose the lower-right stone block;
-- SAM2 segmented those wrong boxes cleanly;
-- Qwen regional outputs are invalid semantic evidence because the target masks were wrong;
-- deterministic compositing itself passed: pixels outside the allowed region had changed ratio above Δ12 of `0.0` in both tasks.
+Visual result:
 
-Final Runner64 classification:
+- parent door PASS;
+- lower-right strap PASS;
+- plank request found the correct repeated left leaf but not one board.
 
-**FLAT FULL-IMAGE SUBCOMPONENT LOCALIZATION FAIL / REGIONAL COMPOSITOR PASS.**
+### Runner66 — repeated-member decomposition / COMPLETE PASS
 
-This proves that regional containment is useful while flat perception is not.
+Project-owned deterministic processor:
 
-### Grounding DINO Tiny
+`semantic repeated structure -> persistent vertical seam energy -> atomic intervals -> one member mask`.
 
-Current compact open-vocabulary detector:
+First proof:
 
-- repo `IDEA-Research/grounding-dino-tiny`;
-- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
-- safetensors SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`;
-- Apache-2.0.
+- internal seam peaks `358`, `388`;
+- selected plank interval `[358,388]`;
+- width `30 px`;
+- bbox `[358,295,388,644]`;
+- vertical aspect `11.633`;
+- visual PASS for one actual plank;
+- Runner65 strap mask retained and still visually correct;
+- elapsed `0.321 s`;
+- no model inference or manual mask.
 
-### SAM2.1 Hiera Small
+This demonstrates an important Studio pattern: semantic models may localize a repeated structure while cheap deterministic processors resolve atomic members before any expensive generation.
 
-Current automatic box-to-mask segmenter:
-
-- repo `facebook/sam2.1-hiera-small`;
-- revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
-- safetensors SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
-- Apache-2.0.
-
-Perception runs separately from Qwen so the models do not compete for VRAM.
-
-## Runner65 — hierarchical perception / COMPLETE PARTIAL PASS
-
-Canonical record:
-
-`docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+### Runner67 — approved masks + visual locator guide / COMPLETE FAIL
 
 Architecture:
 
-`full asset -> parent object grounding -> parent crop/upscale -> component grounding -> SAM2 multi-candidate rerank -> human visual gate`
+`approved automatic mask -> source crop + red overlay reference -> Qwen2511 -> deterministic composite`.
 
-Actual result:
+Technical execution passed but edit control failed:
 
-- parent door: **PASS**;
-- lower-right strap: **PASS**;
-- plank request: Grounding DINO + SAM2 found the correct **left door leaf**, but not one individual board;
-- Runner65 plank mask bbox `[325,285,422,651]`, area relative to parent `0.27724`, visually the complete left leaf;
-- Runner65's `auto_valid=true` for the plank was too permissive for the semantic requirement.
+- plank raw generation created a narrow opening that shifted relative to the separately applied mask, producing distorted strips after final composition;
+- strap raw generation copied the red locator rectangle into content instead of making a physical break;
+- outside-region changed ratio >Δ12 remained `0.0` for both tasks.
 
 Final classification:
 
-**SEMANTIC HIERARCHY PASS / STRAP ATOMIC PASS / REPEATED-STRUCTURE LEAF PASS / ONE-PLANK ATOMIC GRANULARITY FAIL.**
+**AUTOMATIC MASKS PASS / COMPOSITOR PASS / RED GUIDE LEAK FAIL / CROP-MASK ALIGNMENT FAIL.**
 
-This evidence changes the next step: the perception stack already found the correct repeated structure. Replacing the detector immediately would conflate semantic localization with atomic repeated-member decomposition.
+Colored locator references are rejected as production control.
 
-## CURRENT PRECISION GATE — RUNNER66 / repeated-element atomic decomposition
+## CURRENT PRECISION GATE — Runner68 / native automatic latent mask
 
 Canonical record:
 
-`docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+`docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
 
-Processor:
+Implementation:
 
-`tools/roguelite-asset-studio/repeated_element_decomposer.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/66_run_repeated_element_decomposition_gate.ps1`
+- `tools/roguelite-asset-studio/qwen_image_edit_2511_masked_adapter.py`
+- `tools/roguelite-asset-studio/qwen2511_latent_mask_region_gate.py`
+- `tools/structured-2d-character-pipeline/68_run_qwen2511_latent_mask_region_edit.ps1`
 
 Architecture:
 
-`Runner65 localized repeated structure -> persistent oriented seam profile -> atomic intervals -> target-relative member -> deterministic mask -> visual gate`
+`Runner66 approved automatic mask -> contextual source crop -> same-scale mask -> ImageToMask -> SetLatentNoiseMask on VAE source latent -> Qwen2511 -> deterministic final composite`.
 
-Current first proof:
+Key properties:
 
-`door -> left leaf -> persistent vertical board joints -> one plank`
+- Qwen receives only the source crop as semantic image conditioning;
+- no colored guide image exists in the model inputs;
+- mask and source pass through the same Qwen/FluxKontext scaling path;
+- sampling noise is restricted natively to the automatic operation region;
+- final composition applies a second deterministic containment layer;
+- no new model download;
+- no user box or mask.
 
-Runner66 intentionally runs **no model inference** and no Qwen generation. It consumes the Runner65 source/mask/manifest and uses image structure only.
+Operation semantics:
 
-For the vertical plank proof:
+- plank removal: use the complete Runner66 atomic plank mask;
+- strap break: automatically derive and edit only the central `40%` of the approved strap mask so both ends remain source-authoritative.
 
-- horizontal pixel differences are measured inside the localized leaf;
-- differences are aggregated robustly across height so persistent vertical joints survive while local texture/horizontal hardware are attenuated;
-- seam peaks are non-maximum-suppressed;
-- seams plus leaf edges define board intervals;
-- intervals are ranked by target-relative position, seam strength, leaf occupancy and width plausibility;
-- the selected interval is intersected with the existing leaf mask;
-- the atomic geometry gate now requires small parent-relative area, high vertical aspect, narrow width and near-full leaf-height span.
+Runner68 PASS requires:
 
-Runner65's visually correct strap mask is retained unchanged rather than rerun.
+1. plank becomes a clean aligned same-width opening;
+2. neighboring planks/door remain stable;
+3. strap middle is absent while both ends survive;
+4. no replacement bar;
+5. no locator-color leak;
+6. outside-region pixels remain source pixels by construction.
 
-Runner66 PASS requires:
+If Runner68 passes, promote `automatic_region_edit` and test semantic multi-reference role separation before Exilada Character Lab.
 
-1. the plank mask corresponds to exactly one actual vertical board;
-2. the mask spans that board rather than a small patch;
-3. unrelated stone/frame regions are excluded;
-4. the retained lower-right strap mask remains correct.
+If Runner68 fails with correct masks, keep perception/decomposition/compositor accepted and replace only the regional editor with a dedicated mask-native/inpainting backend.
 
-Only after Runner66 passes visually should Qwen2511 be reconnected behind the deterministic regional compositor.
+## Current perception payload
 
-### Why repeated-element decomposition belongs in the generic Studio
+### Grounding DINO Tiny
 
-Many assets contain repeated members that open-vocabulary detectors reasonably collapse into a larger structure:
+- Apache-2.0;
+- `IDEA-Research/grounding-dino-tiny`;
+- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
+- SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`.
 
-- door/fence planks;
-- prison/cage bars;
-- railings;
-- roof slats;
-- repeated armor plates;
-- wall panels;
-- ribs/spines;
-- mechanical fins.
+### SAM2.1 Hiera Small
 
-The Studio therefore treats `repeated_element_decomposition` as a deterministic processing capability rather than a door-specific production hack.
+- Apache-2.0;
+- `facebook/sam2.1-hiera-small`;
+- revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
+- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`.
 
-### Future perception upgrade — deferred
-
-A stronger local concept/visual grounding or dense-correspondence backend may replace/augment the compact perception stack if semantic hierarchy plus repeated-element decomposition still cannot isolate difficult targets. Do not add larger perception checkpoints before Runner66 evidence exists.
-
-### Step1X-Edit — deferred
-
-Current memory profile remains poorly matched to the workstation. Do not prioritize while the automatic precision-control architecture is still being validated.
+Perception runs separately from Qwen so these models do not compete for VRAM.
 
 ## Character Lab
 
-The older Exilada-specific editor is prototype evidence only. Its useful concepts—identity/anatomy/style roles, iterative candidates, native resolution, history and explicit approval—belong behind the generic Studio contracts.
-
-The reopened Exilada master becomes the first high-difficulty Character Lab validation after the generic control architecture proves it can make precise non-character edits without manual masks.
+The reopened Exilada master is the first difficult Character Lab validation after the generic precision-control architecture proves a real non-character case.
 
 Character Lab must support identity, anatomy, style/material, approved-state and later motion references without routine manual masking or repainting.
 
+`assets/source/characters/exilada/reference/exilada_master.png` remains identity/anatomy evidence but is not final visual-design authority.
+
+Required redesign direction remains stronger Heavy Metal / Conan / Red Sonja / Frank Frazetta / Julie Bell charge, adult anatomy, materially caused clothing degradation/exposure, captivity wear and rejection of generic fantasy-bikini/MMO logic.
+
 ## Environment/map production principle
 
-The living belt-scroller world should not default to one flattened AI-painted gameplay map. Prefer reusable independently composed terrain patches, cliffs/walls, architecture modules, doors/gates, vegetation, rocks/debris, props, foreground/background pieces, loops and damage-state variants.
+The living belt-scroller world should prefer reusable independently composed terrain patches, architecture modules, vegetation, debris, props, foreground/background pieces, damage states and loops rather than one flattened AI-painted map.
 
 ## Animated-asset contract
 
 Characters/creatures:
 
-`approved static master + motion reference/context -> temporal motion master -> action distillation -> rendering-language reconstruction -> alpha/pivot/events -> one action row/sequence -> runtime`
+`approved static master + motion reference/context -> temporal master -> action distillation -> rendering-language reconstruction -> alpha/pivot/events -> sprite row/sequence -> runtime`.
 
 Environment/VFX:
 
-`approved static state + temporal instruction/reference -> temporal master -> loop/sequence extraction -> rendering-language reconstruction if needed -> alpha/seam/timing metadata -> runtime`
+`approved static state + temporal instruction/reference -> temporal master -> loop/sequence extraction -> reconstruction if needed -> alpha/seam/timing metadata -> runtime`.
 
 ## Resolution contract — HARD LOCK
 
-The Studio imposes no universal 128/192/384 px sprite-cell size. Preserve useful source/final generation resolution. Runtime apparent/world scale is separate and must not create a second destructively reduced gameplay raster asset.
+No universal 128/192/384 px sprite-cell size. Preserve useful source/final generation resolution. Runtime apparent/world scale is separate and must not create a second destructively reduced gameplay raster asset.
 
 ## Filesystem/provenance contract
 
-Large model/generated data remains outside Git. Long-term umbrella state:
+Large model/generated data remains outside Git. Long-term umbrella state lives under:
 
 `Z:\AI\RogueliteAssetStudio\`
 
-with project specs, references, candidate histories, approved state, jobs/cache and exports. Existing specialist workspaces may remain outside this root and be referenced by adapters.
-
-## Project-specific specialization strategy
-
-Once enough approved, licensable project art exists, train/evaluate Roguelite-specific adapters for rendering language/pixel art, character-family consistency, environment/material language, creature/anatomy families and damage/state variants.
+with specs, references, candidate histories, approved state, jobs/cache and exports. Specialist workspaces may remain separate and be referenced by adapters.
 
 ## Immediate implementation order
 
-1. run Runner66 and review the atomic plank mask plus retained Runner65 strap mask;
-2. if Runner66 perception/structure passes, reconnect Qwen2511 to the validated atomic regions and deterministic compositor;
-3. if repeated-element decomposition fails, improve/replace only the atomic-decomposition/perception backend behind the same no-manual-mask contract;
-4. if perception is correct but the local semantic edit still fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
-5. after regional precision passes, validate semantic multi-reference role separation;
-6. validate the reopened Exilada as the first difficult Character Lab case;
-7. validate another non-character class;
-8. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
-9. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
-10. resume final rendering-language/pixel-art specialization from approved masters.
+1. run Runner68 and review latent-mask plank/strap edits;
+2. if both pass, promote automatic regional precision editing;
+3. validate semantic multi-reference role separation;
+4. validate reopened Exilada as first difficult Character Lab case;
+5. validate another non-character asset class;
+6. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
+7. wrap proven H3 Ref2VA behind the same orchestration boundary;
+8. resume final rendering-language/pixel-art specialization from approved masters.
+
+If Runner68 fails, replace only the regional editor behind the already-proven automatic target/mask/compositor contract before proceeding.
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized generation, editing, perception, deterministic structure processors and motion models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**. Specialized generation, editing, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
