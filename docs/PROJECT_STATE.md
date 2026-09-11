@@ -8,16 +8,17 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
-4. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
-5. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
-6. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
-7. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
-8. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-9. `docs/VISUAL_DIRECTION.md`
-10. `docs/CHARACTERS.md`
-11. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-12. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
+4. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+5. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+6. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+7. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+8. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
+9. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
+10. `docs/VISUAL_DIRECTION.md`
+11. `docs/CHARACTERS.md`
+12. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+13. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
 Historical spike documents remain evidence but do not override the current gate.
 
@@ -49,7 +50,9 @@ Canonical architecture:
 
 It must cover playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, set pieces, materials, VFX/environment animation and UI art.
 
-Semantic reference roles remain a hard contract: `identity`, `anatomy`, `style`, `material`, `palette`, `structure`, `composition`, `pose`, `motion`, `camera`, `environment`, `previous_approved_state`.
+Semantic reference roles remain a hard contract:
+
+`identity`, `anatomy`, `style`, `material`, `palette`, `structure`, `composition`, `pose`, `motion`, `camera`, `environment`, `previous_approved_state`.
 
 Generic authority:
 
@@ -81,7 +84,7 @@ Not routable:
 
 ## FLUX.2 Klein 4B Base — precision edit hypothesis exhausted
 
-Runner60 corrected the original Base graph and proved healthy VAE/T2I/edit parity. Runner61 then proved that atomic and sequential requests remain too coarse.
+Runner60 corrected the Base graph and proved healthy VAE/T2I/edit parity. Runner61 proved atomic/sequential edit requests remain too coarse.
 
 Final role:
 
@@ -117,178 +120,160 @@ Runtime:
 - CFGNorm 1;
 - Euler/simple, CFG 4.
 
-### Runner63 actual result
+Runner63 actual result:
 
-Technical matrix completed successfully on RTX 3060 12 GB.
+- one-plank / 20 and 40 steps: meaningful improvement with narrow opening and strong source preservation;
+- one-strap / 20 and 40 steps: FAIL; large replacement/transverse bar instead of breaking only the named strap;
+- 40 steps materially increase cost without solving the hard failure.
 
-Plank:
-
-- 20 steps: 401.095 s, changed ratio >24 `0.018129`;
-- 40 steps: 691.408 s, changed ratio >24 `0.018307`;
-- visual: meaningful improvement; a narrow vertical gap is produced with strong source preservation.
-
-Strap:
-
-- 20 steps: 375.293 s, changed ratio >24 `0.014082`;
-- 40 steps: 777.197 s, changed ratio >24 `0.013060`;
-- visual: FAIL at both settings; a large replacement/transverse bar is created instead of breaking only the named lower-right strap.
-
-Runner63 final classification:
+Final classification:
 
 **TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT-ONLY PRECISION HYPOTHESIS CLOSED.**
 
-Do not add more blind 2511 step/prompt tests. Keep Qwen2511 installed as the current strongest semantic editor, but precision must be supplied by control architecture rather than unrestricted global prompting.
+Keep Qwen2511 installed as the current strongest semantic editor. Precision must come from control architecture, not unrestricted global prompting.
 
-## Runner64 — complete / flat perception failed / compositor validated
+## Precision-control architecture — current evidence
 
-Canonical record:
+Canonical architecture under test:
 
-`docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+`semantic request -> parent/component perception -> optional atomic repeated-member decomposition -> automatic mask/crop -> Qwen semantic editor -> deterministic regional composite`
 
-Architecture tested:
+Hard rule: the user does **not** draw masks or boxes.
 
-`semantic target -> Grounding DINO Tiny -> deterministic selector -> SAM2.1 -> contextual Qwen2511 crop edit -> deterministic regional composite`
+### Runner64 — COMPLETE / flat localization FAIL / compositor PASS
 
-### Actual result
+Runner64 searched subcomponents directly against the full gateway.
 
-Runner64 completed technically, including both Qwen crop edits and final composites.
+Actual result:
 
-Flat full-image localization failed visually:
+- plank selected the lower-left stone pedestal;
+- strap selected the lower-right stone block;
+- SAM2 segmented those wrong selections cleanly;
+- Qwen regional outputs are invalid semantic evidence because target masks were wrong;
+- deterministic full-resolution compositor passed: outside-allowed changed ratio >Δ12 = `0.0` for both tasks.
 
-- `plank` selected `[62.7451, 540.7537, 329.1651, 704.2875]`, the lower-left **stone pedestal**;
-- `strap` selected `[543.9662, 513.4839, 696.7905, 621.7897]`, the lower-right **stone block**.
+Classification:
 
-SAM2 segmented those wrong selected objects with high predicted IoU (`0.92298` and `0.95213`). The Qwen regional semantic result is therefore invalid evidence.
+**TECHNICAL PASS / FLAT SUBCOMPONENT LOCALIZATION FAIL / REGIONAL COMPOSITOR PASS / QWEN REGIONAL VERDICT INVALID.**
 
-The deterministic compositor did pass its preservation contract:
+### Runner65 — COMPLETE / hierarchy PASS / strap PASS / leaf-too-coarse plank
 
-- plank outside-allowed changed ratio >Δ12 = `0.0`;
-- strap outside-allowed changed ratio >Δ12 = `0.0`.
+Runner65 added parent-first hierarchical localization:
 
-Runner64 final classification:
+`full asset -> parent door -> parent crop/upscale -> child grounding -> SAM2 multi-candidate rerank`
 
-**TECHNICAL PASS / FLAT SUBCOMPONENT LOCALIZATION FAIL / SAM2-ON-SELECTED-BOX PASS / DETERMINISTIC REGIONAL COMPOSITOR PASS / QWEN REGIONAL VERDICT INVALID.**
-
-No `automatic_region_edit` production route is activated yet.
-
-## Runner65 — complete / hierarchy works / atomic plank still too coarse
-
-Canonical record:
-
-`docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
-
-Architecture tested:
-
-`full asset -> parent door grounding -> parent crop/upscale -> child component grounding -> SAM2 multi-candidate rerank -> geometry/containment gate -> visual review`
-
-### Actual result
+Actual result:
 
 Parent door:
 
-- raw selected box `[311.3596, 272.5457, 547.8800, 649.2131]`;
-- expanded box `[292, 253, 567, 669]`;
-- visual: **PASS**.
+- raw box `[311.3596, 272.5457, 547.8800, 649.2131]`;
+- expanded parent `[292, 253, 567, 669]`;
+- visual PASS.
 
 Lower-right strap:
 
-- selected box `[456.0091, 552.5553, 548.3988, 592.1567]`;
-- SAM predicted IoU `0.89715`;
+- box `[456.0091, 552.5553, 548.3988, 592.1567]`;
+- SAM IoU `0.89715`;
 - mask area relative to parent `0.01753`;
-- full parent containment;
-- visual: **PASS**. The mask corresponds to the intended lower-right horizontal iron strap.
+- visual PASS.
 
-Plank:
+Plank request:
 
-- selected mask bbox `[325, 285, 422, 651]`;
-- SAM predicted IoU `0.96534`;
-- mask area relative to parent `0.27724`;
-- visual: **FAIL at requested atomic granularity**. The mask is the entire left door leaf, not one plank.
+- selected bbox `[325, 285, 422, 651]`;
+- SAM IoU `0.96534`;
+- area relative to parent `0.27724`;
+- visual FAIL at atomic granularity: entire left door leaf selected.
 
-Runner65 final classification:
+Classification:
 
-**TECHNICAL PASS / PARENT PASS / STRAP PASS / REPEATED-STRUCTURE LEAF FOUND / ONE-PLANK GRANULARITY FAIL.**
+**TECHNICAL PASS / PARENT PASS / STRAP PASS / REPEATED STRUCTURE FOUND / ONE-PLANK GRANULARITY FAIL.**
 
-Important correction: Runner65's `auto_valid=true` for the plank was too permissive. A repeated structure can satisfy orientation/containment heuristics while still being too coarse for an atomic-member request.
-
-This does not yet justify replacing Grounding DINO/SAM2. The semantic hierarchy has already localized the correct repeated structure; the missing operation is decomposition of that structure into one member.
-
-## CURRENT IMPLEMENTATION GATE — RUNNER66 / deterministic repeated-element decomposition
+### Runner66 — COMPLETE / repeated-element decomposition PASS
 
 Canonical record:
 
 `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
 
+Architecture:
+
+`Runner65 repeated structure -> persistent vertical seam profile -> atomic intervals -> deterministic target member mask`
+
+Actual result:
+
+- seam peak `x=358`, energy `17.8333`;
+- seam peak `x=388`, energy `17.6667`;
+- selected interval `[358,388]`;
+- width `30 px`;
+- plank atomic bbox `[358,295,388,644]`;
+- area relative to parent `0.08923`;
+- vertical aspect `11.6333`;
+- width relative to parent `0.10909`;
+- height relative to leaf `0.95355`;
+- automatic geometry gate PASS;
+- visual atomic plank PASS;
+- retained Runner65 lower-right strap PASS.
+
+Classification:
+
+**TECHNICAL PASS / REPEATED-ELEMENT DECOMPOSITION PASS / ATOMIC PLANK VISUAL PASS / STRAP VISUAL PASS.**
+
+This is the first proof that the pipeline can automatically move from semantic parent/repeated structure to an atomic repeated member without a user mask.
+
+## CURRENT IMPLEMENTATION GATE — RUNNER67 / Qwen2511 behind approved atomic masks
+
+Canonical record:
+
+`docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/66_run_repeated_element_decomposition_gate.ps1`
+`tools/structured-2d-character-pipeline/67_run_qwen2511_atomic_region_edit.ps1`
 
-Processor:
+Executor:
 
-`tools/roguelite-asset-studio/repeated_element_decomposer.py`
+`tools/roguelite-asset-studio/qwen2511_atomic_region_gate.py`
 
 Architecture:
 
-`Runner65 semantic repeated structure -> persistent oriented seam profile -> atomic intervals -> target-relative member -> deterministic mask -> visual review`
+`Runner66 approved masks -> contextual crops -> automatic target guides -> Qwen2511 20-step local semantic edits -> deterministic regional composite`
 
-Current proof case:
+Rules:
 
-`door -> left leaf -> vertical board joints -> one plank`
-
-### Why this is the correct next step
-
-Runner65 already found the correct parent and repeated structure. Downloading a larger detector now would discard useful semantic evidence and conflate two different tasks: semantic localization and repeated-member decomposition.
-
-Runner66 therefore adds a deterministic structural processor behind the perception stack. The production concept generalizes to repeated slats, bars, ribs, panels, boards, fence elements, repeated armor plates and similar structures.
-
-### Runner66 rules
-
-- **No Qwen inference.** Do not spend another 20-step generation until perception/structure passes.
-- **No model inference at all.** Runner66 consumes Runner65 evidence only.
-- **No download.** It uses PIL/NumPy and existing files.
-- Persistent vertical seam energy is computed across the Runner65 left-leaf mask.
-- Detected internal seams plus leaf boundaries define atomic candidate intervals.
-- Candidate intervals are ranked by target position, seam strength, leaf occupancy and width plausibility.
-- The selected interval is intersected deterministically with the Runner65 leaf mask.
-- The stricter atomic geometry gate rejects an entire door leaf as one plank.
-- Runner65's visually correct strap mask is retained unchanged.
-- User draws no box or mask.
-
-Expected output root:
-
-`Z:\AI\RogueliteAssetStudio\localization\runner66_gate`
+- no perception rerun;
+- no new model download;
+- no manual masks/boxes;
+- Qwen does not choose the target location;
+- Runner66 masks are geometry authority;
+- source pixels outside a small deterministic dilation/feather neighborhood remain authoritative;
+- compare against Runner63 global outputs.
 
 Required visual PASS:
 
-1. atomic plank mask corresponds to exactly one actual vertical wooden plank;
-2. it spans the plank vertically rather than a small patch;
-3. unrelated stone/frame areas are excluded;
-4. the retained Runner65 strap mask remains on the lower-right iron strap.
+1. plank final removes only the one approved atomic plank and creates a narrow same-width opening;
+2. strap final breaks only the approved lower-right strap and does not create a replacement/transverse bar;
+3. unrelated full-image geometry remains stable outside automatic allowed regions.
 
-Only after Runner66 visual PASS should Qwen2511 regional editing be reintroduced using the valid automatic target regions.
+If both pass, the combined automatic perception + atomic decomposition + regional edit architecture becomes a proven precision-control path and `automatic_region_edit` can be promoted to a routable Studio capability.
 
-If Runner66 still cannot isolate one repeated member, change the atomic-decomposition/perception backend behind the same no-manual-mask contract. Do not return to global prompt-only editing.
+If masks are correct but Qwen still fails semantically, keep the now-proven perception/mask/compositor contract and replace only the regional editor with a mask-native/inpainting backend.
 
 ## Current perception payload
 
 Grounding DINO Tiny:
 
-- `IDEA-Research/grounding-dino-tiny`
-- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`
-- safetensors SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`
+- repo `IDEA-Research/grounding-dino-tiny`;
+- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
+- SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`;
 - Apache-2.0.
 
 SAM2.1 Hiera Small:
 
-- `facebook/sam2.1-hiera-small`
-- revision `e07df6aa19f5c6545121551bf89957b7663ee715`
-- safetensors SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
+- repo `facebook/sam2.1-hiera-small`;
+- revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
+- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
 - Apache-2.0.
 
-Runner66 adds no model payload.
-
-## Future perception candidate — not active
-
-A stronger concept/visual grounding or dense-correspondence backend may replace/augment the compact pair later if semantic hierarchy plus repeated-element decomposition still cannot isolate difficult parts. Do not add that payload speculatively before Runner66 evidence exists.
+Runner66/67 add no new checkpoint.
 
 ## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
 
@@ -362,6 +347,6 @@ Do not accumulate checkpoints speculatively.
 - keep Klein Base while useful as training/specialization base;
 - Qwen2509 diffusion is retired/deleted; preserve generated evidence;
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE;
-- keep Runner64/65 compact perception models/cache while the localization hypothesis remains active;
-- Runner66 adds no checkpoint and only deterministic evidence;
-- do not download another precision editor or larger perception model until Runner66 is reviewed.
+- keep compact GroundingDINO/SAM2 perception cache while the automatic precision path remains active;
+- Runner66/67 add no checkpoint;
+- do not download another precision editor unless Runner67 proves the current regional editor is the remaining failure point.
