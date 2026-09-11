@@ -8,14 +8,15 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
-4. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
-5. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
-6. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-7. `docs/VISUAL_DIRECTION.md`
-8. `docs/CHARACTERS.md`
-9. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-10. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+4. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+5. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+6. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
+7. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
+8. `docs/VISUAL_DIRECTION.md`
+9. `docs/CHARACTERS.md`
+10. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+11. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
 Historical spike documents remain evidence but do not override the current gate.
 
@@ -43,7 +44,7 @@ The local production tool is for the **entire visual asset base**, not only Exil
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> model router -> specialized adapters -> local runtimes -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> model router -> specialized model/perception adapters -> local runtimes -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
 
 It must cover playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, set pieces, materials, VFX/environment animation and UI art.
 
@@ -123,87 +124,125 @@ Plank:
 
 - 20 steps: 401.095 s, changed ratio >24 `0.018129`;
 - 40 steps: 691.408 s, changed ratio >24 `0.018307`;
-- visual: clear improvement; a narrow vertical gap is produced and source preservation is strong; still only partial evidence of universal component precision.
+- visual: meaningful improvement; a narrow vertical gap is produced with strong source preservation.
 
 Strap:
 
 - 20 steps: 375.293 s, changed ratio >24 `0.014082`;
 - 40 steps: 777.197 s, changed ratio >24 `0.013060`;
-- visual: FAIL at both settings; instead of breaking only the named lower-right strap, Qwen creates a large replacement/transverse bar across the lower doorway.
+- visual: FAIL at both settings; a large replacement/transverse bar is created instead of breaking only the named lower-right strap.
 
 Runner63 final classification:
 
 **TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT-ONLY PRECISION HYPOTHESIS CLOSED.**
 
-Do not add more blind 2511 step/prompt tests. Keep Qwen2511 installed as the current strongest semantic editor, but precision must be provided by control architecture rather than unrestricted global prompting.
+Do not add more blind 2511 step/prompt tests. Keep Qwen2511 installed as the current strongest semantic editor, but precision must be supplied by control architecture rather than unrestricted global prompting.
 
-## CURRENT IMPLEMENTATION GATE — RUNNER64 / automatic localization + region control
+## Runner64 — complete / perception failed / compositor validated
 
 Canonical record:
 
 `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
 
+Architecture tested:
+
+`semantic target -> Grounding DINO Tiny -> deterministic selector -> SAM2.1 -> contextual Qwen2511 crop edit -> deterministic regional composite`
+
+### Actual result
+
+Runner64 completed technically, including both Qwen crop edits and final composites.
+
+However visual review proved that flat full-image subcomponent localization failed:
+
+- `plank` selected `[62.7451, 540.7537, 329.1651, 704.2875]`, the lower-left **stone pedestal**, not a wooden plank;
+- `strap` selected `[543.9662, 513.4839, 696.7905, 621.7897]`, the lower-right **stone block**, not the iron strap.
+
+SAM2 then segmented those wrong objects with high predicted IoU (`0.92298` and `0.95213`). This is a target-localization failure, not a SAM execution failure.
+
+The regional Qwen semantic result is **invalid evidence** because Qwen received incorrect targets.
+
+The deterministic compositor did pass its preservation contract:
+
+- plank outside-allowed changed ratio >Δ12 = `0.0`;
+- strap outside-allowed changed ratio >Δ12 = `0.0`.
+
+Runner64 final classification:
+
+**TECHNICAL PASS / FLAT SUBCOMPONENT LOCALIZATION FAIL / SAM2-ON-SELECTED-BOX PASS / DETERMINISTIC REGIONAL COMPOSITOR PASS / QWEN REGIONAL VERDICT INVALID.**
+
+No `automatic_region_edit` production route is activated yet.
+
+## CURRENT IMPLEMENTATION GATE — RUNNER65 / hierarchical perception only
+
+Canonical record:
+
+`docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/64_bootstrap_and_run_automatic_region_control.ps1`
+`tools/structured-2d-character-pipeline/65_run_hierarchical_localization_gate.ps1`
 
-Perception/localization:
+Localizer:
 
-`tools/roguelite-asset-studio/automatic_region_localizer.py`
+`tools/roguelite-asset-studio/hierarchical_region_localizer.py`
 
-Regional editor/compositor:
+Architecture:
 
-`tools/roguelite-asset-studio/qwen2511_region_control_gate.py`
+`full asset -> parent door grounding -> parent crop/upscale -> child component grounding -> SAM2 multi-candidate rerank -> visual review`
 
-New architecture:
+### Why this is the correct next step
 
-`semantic target -> Grounding DINO Tiny -> deterministic instance selector -> SAM2.1 Hiera Small -> contextual Qwen2511 crop edit -> deterministic automatic regional composite`
+Runner64 failed because the small component was searched directly against the entire gateway and the spatial heuristic rewarded side/lower stone blocks. The next hypothesis keeps the same public compact models but gives the task the missing hierarchy: locate the parent first, then the component inside it.
 
-### Hard production rule
+This exhausts the existing perception stack more responsibly before downloading or switching to a larger detector/segmenter.
 
-The user does **not** draw masks or boxes. Localization/masking is a model/pipeline responsibility.
+### Runner65 rules
 
-### New perception payload
+- **No Qwen inference.** Do not spend another ~12 minutes per crop until perception itself passes.
+- **No new model download.** Reuse Runner64 Grounding DINO Tiny + SAM2.1 cache.
+- Hugging Face/Transformers are run offline for this gate.
+- Parent object is localized first from the full image.
+- Parent crop is upscaled to long side 1280 for component detection.
+- Component Grounding DINO thresholds are lowered to improve recall.
+- Up to ten component proposals are passed through SAM2.
+- Final reranking uses SAM IoU, parent containment, mask aspect, mask area and parent-relative side/vertical zone.
+- Geometry validation is fail-closed: an implausible mask is not silently accepted.
+- User draws no boxes or masks.
+
+Expected output root:
+
+`Z:\AI\RogueliteAssetStudio\localization\runner65_gate`
+
+Required visual PASS:
+
+1. parent box corresponds to the wooden double door rather than the entire gateway;
+2. plank mask corresponds to one actual vertical wooden plank;
+3. strap mask corresponds to the intended lower-right horizontal iron strap;
+4. neither mask selects stone pedestal/frame regions.
+
+Only after those pass should the regional Qwen phase be reintroduced using Runner65's automatic masks/crops.
+
+If Runner65 still fails, the next branch is a stronger **perception backend** behind the same parent/component contract, not more Qwen prompt tuning and not manual masking.
+
+## Current perception payload
 
 Grounding DINO Tiny:
 
 - `IDEA-Research/grounding-dino-tiny`
-- pinned revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`
+- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`
 - safetensors SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`
-- ~689 MB
 - Apache-2.0.
 
 SAM2.1 Hiera Small:
 
 - `facebook/sam2.1-hiera-small`
-- pinned revision `e07df6aa19f5c6545121551bf89957b7663ee715`
-- 184,305,280-byte safetensors
-- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
+- revision `e07df6aa19f5c6545121551bf89957b7663ee715`
+- safetensors SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
 - Apache-2.0.
 
-Perception runs and exits before Qwen starts, so it does not compete with the large editor for VRAM.
+## Future perception candidate — not active
 
-### Runner64 first execution
-
-The first execution reached Qwen ComfyUI startup. Because the launcher only starts ComfyUI after the perception process exits successfully and all expected localization files exist, the following is already proven technically:
-
-**Grounding DINO Tiny + SAM2.1 local localization pipeline = TECHNICAL PASS.**
-
-Visual correctness of the selected plank/strap masks remains pending.
-
-The regional Qwen phase did **not** run. `qwen2511_region_control_gate.py` instantiated `QwenImageEdit2511Adapter` with the nonexistent keyword `timeout_seconds`; the inherited constructor accepts `timeout_minutes`. Python therefore exited with `TypeError` before any Qwen prompt submission. This is a harness/API mismatch, not editor evidence.
-
-Fix is committed: the regional executor now passes `timeout_minutes=args.timeout_minutes`. Existing perception weights/cache/localization outputs are reusable; no model needs to be redownloaded.
-
-Runner64 tests the same plank/strap facts. It persists detector candidates, selected boxes, SAM masks, crops and provenance. Qwen edits only a context crop and receives a second automatically generated target-guide image. Final full-image modification is deterministically constrained to a dilated/feathered automatic mask neighborhood.
-
-PASS requires both automatic perception and exact edit behavior to be useful. A wrong mask is classified as perception failure, not editor failure.
-
-If localization is correct but Qwen still cannot execute the local semantic change, the next editor hypothesis must be a region-aware/inpainting backend behind the same mask contract; no return to manual masking.
-
-## Future perception candidate — SAM3.1
-
-SAM3.1 directly supports text/exemplar/visual prompt segmentation and is a strong later replacement candidate, but its official checkpoint is gated and ~3.5 GB under the SAM License. Do not make it mandatory before the public Apache-2.0 GroundingDINO+SAM2 Runner64 architecture is evaluated.
+A stronger concept/visual grounding backend may replace the compact pair later if Runner65 shows that hierarchy still cannot isolate difficult small parts. Do not add that payload speculatively before Runner65 evidence exists.
 
 ## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
 
@@ -275,7 +314,7 @@ Do not accumulate checkpoints speculatively.
 - keep Kontext R&D while still needed;
 - keep Klein distilled as fast T2I;
 - keep Klein Base while useful as training/specialization base;
-- Qwen2509 diffusion is retired/deleted; preserve its generated evidence;
+- Qwen2509 diffusion is retired/deleted; preserve generated evidence;
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE;
-- keep Runner64 compact perception models/cache while localization hypothesis remains active;
-- do not download Step1X while Runner64 is active.
+- keep Runner64/65 compact perception models/cache while the localization hypothesis remains active;
+- do not download another precision editor or larger perception model until Runner65 is reviewed.
