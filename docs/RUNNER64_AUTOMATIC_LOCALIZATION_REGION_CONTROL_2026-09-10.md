@@ -1,8 +1,8 @@
 # Runner64 — Automatic localization + region-control gate
 
-Status date: **2026-09-10**
+Status date: **2026-09-11**
 
-Status: **PREPARED / CURRENT GATE**
+Status: **CURRENT GATE / LOCALIZATION TECHNICALLY PASSED / FIRST REGIONAL ATTEMPT FAILED IN HARNESS BEFORE QWEN SUBMISSION / FIXED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -55,7 +55,7 @@ Pinned revision:
 Safetensors:
 
 - bytes: `184305280`
-- SHA256: `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
+- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
 
 License: Apache-2.0.
 
@@ -79,6 +79,39 @@ Perception runs **before** the Qwen ComfyUI server:
 4. Qwen2511 ComfyUI starts with the already-proven low-VRAM recipe.
 
 The perception models therefore do not compete with Qwen2511 for VRAM during generation.
+
+## First execution — localization technical PASS / regional harness FAIL
+
+The first Runner64 execution reached the Qwen ComfyUI startup successfully. By construction this means the complete localization phase had already returned exit code 0 and all required localization outputs had been verified by the launcher:
+
+- `plank_detection.png`
+- `plank_mask.png`
+- `plank_mask_overlay.png`
+- `plank_crop.png`
+- `plank_crop_mask.png`
+- `strap_detection.png`
+- `strap_mask.png`
+- `strap_mask_overlay.png`
+- `strap_crop.png`
+- `strap_crop_mask.png`
+- `runner64_localization_manifest.json`
+
+Therefore Grounding DINO Tiny + SAM2.1 are **technically proven to execute locally in this gate**. Their *visual target correctness* remains pending review until the Runner64 contact sheet/manifests are examined.
+
+The subsequent regional executor exited before submitting a Qwen job. Root cause was a harness/API mismatch in `qwen2511_region_control_gate.py`:
+
+- `QwenImageEdit2511Adapter` inherits `Flux2KleinAdapter.__init__`;
+- the constructor parameter is `timeout_minutes`;
+- Runner64 incorrectly passed `timeout_seconds=...`;
+- Python therefore raised `TypeError` during adapter construction.
+
+This is **not Qwen2511 regional-edit evidence**.
+
+Fix committed:
+
+- call now uses `timeout_minutes=args.timeout_minutes`;
+- existing localization models/cache and generated localization outputs are reusable;
+- no model download needs to be repeated merely because of this harness failure.
 
 ## Automatic target selection
 
