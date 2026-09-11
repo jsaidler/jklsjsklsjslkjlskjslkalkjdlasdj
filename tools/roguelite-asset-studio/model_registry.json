@@ -1,5 +1,5 @@
 {
-  "registry_version": 13,
+  "registry_version": 14,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -13,8 +13,7 @@
       "license": "MiniMax H3 Community License",
       "workspace": "Z:/AI/MiniMaxH3",
       "capabilities": ["animated_action", "reference_video_motion", "multimodal_reference", "character_motion", "creature_motion_candidate"],
-      "quality_tier": "motion_master",
-      "notes": "Current Exilada Base50 motion baseline; not a universal still generator."
+      "quality_tier": "motion_master"
     },
     {
       "adapter_id": "minimax_h3_fl2va",
@@ -73,34 +72,55 @@
     {
       "adapter_id": "qwen_image_edit_2511_fp8mixed",
       "family": "Qwen-Image-Edit-2511",
-      "status": "installed_semantic_editor_global_precision_partial_automatic_control_active",
+      "status": "installed_semantic_editor_precision_masked_role_closed",
       "license": "Apache-2.0",
       "workspace": "Z:/AI/QwenImageEdit",
       "capabilities": ["semantic_edit_candidate", "appearance_edit_candidate", "single_reference_edit_technical", "multi_reference_edit_technical"],
-      "not_routable_capabilities": ["unrestricted_global_precision_structural_edit"],
-      "planned_capabilities": ["automatic_region_edit", "character_master_revision", "semantic_multi_reference_roles"],
-      "quality_tier": "strong_semantic_editor_requires_external_precision_control",
+      "not_routable_capabilities": ["unrestricted_global_precision_structural_edit", "exact_masked_removal_fill"],
+      "planned_capabilities": ["character_master_revision", "semantic_multi_reference_roles"],
+      "quality_tier": "strong_semantic_editor_not_exact_inpainter",
       "files": [
         {"name": "qwen_image_edit_2511_fp8mixed.safetensors", "bytes": 20533762817, "sha256": "c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e"},
         {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"},
         {"name": "qwen_image_vae.safetensors", "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f"}
       ],
       "runner63": "global plank improved; global strap precision failed; 40 steps did not fix",
-      "runner67": "approved masks and compositor passed; red guide leaked into strap result; plank crop geometry shifted against final mask",
-      "current_gate": "Runner68 native automatic latent-noise mask"
+      "runner67": "approved masks/compositor passed; colored guide leaked and crop geometry shifted",
+      "runner68": {
+        "classification": "technical_pass_native_mask_control_pass_semantic_operation_fail",
+        "plank_elapsed_seconds": 481.612,
+        "plank_inside_allowed_changed_ratio_gt_12": 0.059154,
+        "strap_elapsed_seconds": 451.471,
+        "strap_inside_allowed_changed_ratio_gt_12": 0.052066,
+        "outside_allowed_changed_ratio_gt_12": 0.0
+      }
     },
     {
       "adapter_id": "qwen_image_edit_2511_masked_latent",
       "family": "Qwen-Image-Edit-2511 + native automatic latent noise mask",
-      "status": "runner68_current_gate",
+      "status": "technical_pass_semantic_noop_rejected_for_exact_inpaint",
       "license": "Apache-2.0 model + project-owned control adapter",
       "workspace": "Z:/AI/QwenImageEdit/runner68_latent_mask_region_edit",
       "capabilities": [],
-      "planned_capabilities": ["automatic_region_edit", "maskless_user_workflow", "operation_aware_component_edit"],
-      "quality_tier": "current_precision_edit_gate",
-      "runner": "tools/structured-2d-character-pipeline/68_run_qwen2511_latent_mask_region_edit.ps1",
-      "record": "docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md",
-      "notes": "Source crop is sole semantic image reference. Automatic mask is scaled with the source and attached via ImageToMask + SetLatentNoiseMask. Strap-break edits only the derived central 40 percent of the approved strap target."
+      "technical_only_capabilities": ["automatic_latent_mask_control", "outside_region_preservation"],
+      "quality_tier": "rejected_exact_masked_operation_backend"
+    },
+    {
+      "adapter_id": "sdxl_inpaint_0_1_fp16",
+      "family": "SDXL Inpainting 0.1",
+      "status": "runner69_current_gate_not_yet_installed",
+      "license": "CreativeML Open RAIL++-M",
+      "workspace": "Z:/AI/SDXLInpaint",
+      "runtime": "shared pinned ComfyUI under Z:/AI/QwenImageEdit/ComfyUI_windows_portable for first gate",
+      "capabilities": [],
+      "planned_capabilities": ["automatic_region_inpaint", "masked_object_removal", "masked_fill", "maskless_user_workflow"],
+      "quality_tier": "dedicated_mask_native_inpaint_candidate",
+      "files": [
+        {"name": "sdxl_inpaint_0.1_fp16.safetensors", "approx_bytes": 5520000000, "sha256": "6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f"},
+        {"name": "sd_xl_base_1.0.safetensors", "approx_bytes": 7460000000, "sha256": "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b", "usage": "CLIP/VAE source only in Runner69 graph"}
+      ],
+      "runner": "tools/structured-2d-character-pipeline/69_bootstrap_and_run_sdxl_inpaint_precision_gate.ps1",
+      "record": "docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md"
     },
     {
       "adapter_id": "grounding_dino_tiny_localizer",
@@ -112,8 +132,7 @@
       "quality_tier": "compact_automatic_perception",
       "repo": "IDEA-Research/grounding-dino-tiny",
       "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
-      "weight_sha256": "1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3",
-      "runner65_verdict": "parent door pass; lower-right strap pass; repeated left leaf found for plank"
+      "weight_sha256": "1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3"
     },
     {
       "adapter_id": "sam2_1_hiera_small_segmenter",
@@ -148,17 +167,18 @@
     {
       "adapter_id": "automatic_region_control_v1",
       "family": "Asset Studio automatic localization + operation-aware region control",
-      "status": "architecture_partial_current_runner68",
+      "status": "masks_and_compositor_proven_editor_switch_active_runner69",
       "license": "Pipeline code project-owned; component model licenses listed separately",
-      "workspace": "Z:/AI/RogueliteAssetStudio/localization + Z:/AI/QwenImageEdit",
-      "technical_only_capabilities": ["hierarchical_localization", "automatic_component_mask", "repeated_member_decomposition", "deterministic_region_composite"],
-      "planned_capabilities": ["automatic_region_edit", "operation_aware_component_edit", "maskless_user_workflow"],
-      "quality_tier": "precision_control_architecture_under_final_editor_validation",
-      "runner64": "flat localization failed; deterministic compositor passed with zero >Delta12 outside allowed region",
-      "runner65": "hierarchical parent/strap passed; plank reduced to repeated left leaf",
-      "runner66": "one-plank deterministic decomposition passed; strap retained",
-      "runner67": "colored guide control rejected due leakage/alignment failure",
-      "runner68": "native latent-noise mask gate active"
+      "workspace": "Z:/AI/RogueliteAssetStudio/localization + specialist editor workspaces",
+      "capabilities": ["hierarchical_localization", "automatic_component_mask", "repeated_member_decomposition", "deterministic_region_composite"],
+      "planned_capabilities": ["automatic_region_inpaint", "operation_aware_component_edit", "maskless_user_workflow"],
+      "quality_tier": "precision_control_architecture_editor_backend_under_validation",
+      "runner64": "flat localization failed; deterministic compositor passed",
+      "runner65": "hierarchical parent/strap passed; plank reduced to repeated leaf",
+      "runner66": "one-plank decomposition passed; strap retained",
+      "runner67": "colored-guide editor control failed",
+      "runner68": "native Qwen latent-mask containment passed but semantic removal/break remained near-no-op",
+      "current_gate": "Runner69 dedicated SDXL Inpainting 0.1"
     },
     {
       "adapter_id": "sam3_1_future_localizer",
