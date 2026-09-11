@@ -155,7 +155,7 @@ def main() -> int:
     adapter = QwenImageEdit2511Adapter(
         comfy_root=args.comfy_root,
         base_url=f"http://127.0.0.1:{args.port}",
-        timeout_seconds=args.timeout_minutes * 60,
+        timeout_minutes=args.timeout_minutes,
     )
     adapter.verify_runtime()
 
