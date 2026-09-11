@@ -2,7 +2,7 @@
 
 Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / HIERARCHICAL PERCEPTION GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / REPEATED-ELEMENT PERCEPTION GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -91,12 +91,13 @@ Runner55 proved referenced-character and reference-free-environment routing. `re
 2. concept/static master;
 3. controlled variants/states;
 4. automatic parent/component localization/segmentation when an edit needs subcomponent precision;
-5. local or global semantic editing as appropriate;
-6. temporal generation where required;
-7. reconstruction into the approved game rendering language when needed;
-8. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
-9. explicit candidate review/approval;
-10. runtime export.
+5. deterministic structural decomposition when the localized target is a repeated/coarse structure rather than one atomic member;
+6. local or global semantic editing as appropriate;
+7. temporal generation where required;
+8. reconstruction into the approved game rendering language when needed;
+9. deterministic extraction/alpha/alignment/pivots/timing/seams/metadata;
+10. explicit candidate review/approval;
+11. runtime export.
 
 Routine manual per-frame repainting, hand compositing and user-drawn production masks are not dependencies.
 
@@ -174,11 +175,11 @@ Qwen2511 remains installed as the strongest semantic editor, but unrestricted gl
 
 ## Precision-control architecture
 
-Precision editing is now treated as a composition of independent capabilities:
+Precision editing is treated as a composition of independent capabilities:
 
-`semantic request -> parent/component perception -> automatic mask/crop -> semantic editor -> deterministic regional composite`
+`semantic request -> parent/component perception -> optional repeated-element decomposition -> automatic mask/crop -> semantic editor -> deterministic regional composite`
 
-The no-manual-mask rule remains hard: detection, instance choice, segmentation and crop construction are pipeline responsibilities.
+The no-manual-mask rule remains hard: detection, instance choice, segmentation, repeated-element splitting and crop construction are pipeline responsibilities.
 
 ### Runner64 — flat localization experiment / COMPLETE
 
@@ -203,7 +204,7 @@ Final Runner64 classification:
 
 **FLAT FULL-IMAGE SUBCOMPONENT LOCALIZATION FAIL / REGIONAL COMPOSITOR PASS.**
 
-This proves that regional containment is useful while the current flat perception strategy is not.
+This proves that regional containment is useful while flat perception is not.
 
 ### Grounding DINO Tiny
 
@@ -225,44 +226,93 @@ Current automatic box-to-mask segmenter:
 
 Perception runs separately from Qwen so the models do not compete for VRAM.
 
-## CURRENT PRECISION GATE — RUNNER65 / hierarchical perception only
+## Runner65 — hierarchical perception / COMPLETE PARTIAL PASS
 
 Canonical record:
 
 `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
 
-Runner65 corrects the failed assumption before replacing any model:
+Architecture:
 
 `full asset -> parent object grounding -> parent crop/upscale -> component grounding -> SAM2 multi-candidate rerank -> human visual gate`
 
-Changes from Runner64:
+Actual result:
 
-- the door is localized as a parent before any plank/strap search;
-- the parent crop is upscaled to long side 1280;
-- component detection uses lower thresholds to improve recall;
-- component candidates are expressed relative to the parent, not the full gateway;
-- up to ten proposals are segmented by SAM2;
-- reranking uses SAM IoU, parent containment, mask orientation/aspect, mask area and parent-relative side/vertical zone;
-- invalid geometry is fail-closed rather than silently accepted.
+- parent door: **PASS**;
+- lower-right strap: **PASS**;
+- plank request: Grounding DINO + SAM2 found the correct **left door leaf**, but not one individual board;
+- Runner65 plank mask bbox `[325,285,422,651]`, area relative to parent `0.27724`, visually the complete left leaf;
+- Runner65's `auto_valid=true` for the plank was too permissive for the semantic requirement.
 
-Runner65 intentionally executes **no Qwen generation**. Precision editing will not spend another long 2511 inference until both automatic masks are visually correct.
+Final classification:
 
-No model download is required; Runner65 reuses the Runner64 perception cache in offline mode.
+**SEMANTIC HIERARCHY PASS / STRAP ATOMIC PASS / REPEATED-STRUCTURE LEAF PASS / ONE-PLANK ATOMIC GRANULARITY FAIL.**
 
-Runner65 PASS requires:
+This evidence changes the next step: the perception stack already found the correct repeated structure. Replacing the detector immediately would conflate semantic localization with atomic repeated-member decomposition.
 
-1. parent box isolates the wooden double door rather than the full gateway;
-2. plank mask isolates one real vertical wooden plank;
-3. strap mask isolates the intended lower-right horizontal iron strap;
-4. stone pedestal/frame masks are rejected.
+## CURRENT PRECISION GATE — RUNNER66 / repeated-element atomic decomposition
 
-Only after perception passes should Qwen2511 be reintroduced behind the existing deterministic compositor.
+Canonical record:
 
-If Runner65 fails, change/improve the **perception backend** behind the same parent/component interface. Do not return to unrestricted global prompts or manual masks.
+`docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+
+Processor:
+
+`tools/roguelite-asset-studio/repeated_element_decomposer.py`
+
+Runner:
+
+`tools/structured-2d-character-pipeline/66_run_repeated_element_decomposition_gate.ps1`
+
+Architecture:
+
+`Runner65 localized repeated structure -> persistent oriented seam profile -> atomic intervals -> target-relative member -> deterministic mask -> visual gate`
+
+Current first proof:
+
+`door -> left leaf -> persistent vertical board joints -> one plank`
+
+Runner66 intentionally runs **no model inference** and no Qwen generation. It consumes the Runner65 source/mask/manifest and uses image structure only.
+
+For the vertical plank proof:
+
+- horizontal pixel differences are measured inside the localized leaf;
+- differences are aggregated robustly across height so persistent vertical joints survive while local texture/horizontal hardware are attenuated;
+- seam peaks are non-maximum-suppressed;
+- seams plus leaf edges define board intervals;
+- intervals are ranked by target-relative position, seam strength, leaf occupancy and width plausibility;
+- the selected interval is intersected with the existing leaf mask;
+- the atomic geometry gate now requires small parent-relative area, high vertical aspect, narrow width and near-full leaf-height span.
+
+Runner65's visually correct strap mask is retained unchanged rather than rerun.
+
+Runner66 PASS requires:
+
+1. the plank mask corresponds to exactly one actual vertical board;
+2. the mask spans that board rather than a small patch;
+3. unrelated stone/frame regions are excluded;
+4. the retained lower-right strap mask remains correct.
+
+Only after Runner66 passes visually should Qwen2511 be reconnected behind the deterministic regional compositor.
+
+### Why repeated-element decomposition belongs in the generic Studio
+
+Many assets contain repeated members that open-vocabulary detectors reasonably collapse into a larger structure:
+
+- door/fence planks;
+- prison/cage bars;
+- railings;
+- roof slats;
+- repeated armor plates;
+- wall panels;
+- ribs/spines;
+- mechanical fins.
+
+The Studio therefore treats `repeated_element_decomposition` as a deterministic processing capability rather than a door-specific production hack.
 
 ### Future perception upgrade — deferred
 
-A stronger local concept/visual grounding backend may replace the compact detector/segmenter pair if hierarchical localization still fails. Do not add larger perception checkpoints before Runner65 evidence exists.
+A stronger local concept/visual grounding or dense-correspondence backend may replace/augment the compact perception stack if semantic hierarchy plus repeated-element decomposition still cannot isolate difficult targets. Do not add larger perception checkpoints before Runner66 evidence exists.
 
 ### Step1X-Edit — deferred
 
@@ -308,10 +358,10 @@ Once enough approved, licensable project art exists, train/evaluate Roguelite-sp
 
 ## Immediate implementation order
 
-1. run Runner65 and review the parent/plank/strap localization outputs before any Qwen job;
-2. if hierarchical perception passes, run the regional Qwen2511 editor/compositor with Runner65 masks/crops;
-3. if hierarchical perception fails, improve/replace only the perception backend behind the same parent/component contract;
-4. if perception is correct but the local semantic edit fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
+1. run Runner66 and review the atomic plank mask plus retained Runner65 strap mask;
+2. if Runner66 perception/structure passes, reconnect Qwen2511 to the validated atomic regions and deterministic compositor;
+3. if repeated-element decomposition fails, improve/replace only the atomic-decomposition/perception backend behind the same no-manual-mask contract;
+4. if perception is correct but the local semantic edit still fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
 5. after regional precision passes, validate semantic multi-reference role separation;
 6. validate the reopened Exilada as the first difficult Character Lab case;
 7. validate another non-character class;
@@ -321,4 +371,4 @@ Once enough approved, licensable project art exists, train/evaluate Roguelite-sp
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized generation, editing, perception and motion models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**, not a character-specific image editor. Specialized generation, editing, perception, deterministic structure processors and motion models remain interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
