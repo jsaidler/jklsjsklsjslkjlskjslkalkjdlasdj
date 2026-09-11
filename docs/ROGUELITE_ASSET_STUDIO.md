@@ -1,8 +1,8 @@
 # Roguelite Asset Studio — Local Generative Asset Production System
 
-Status date: **2026-09-10**
+Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC REGION-CONTROL GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / HIERARCHICAL PERCEPTION GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -90,7 +90,7 @@ Runner55 proved referenced-character and reference-free-environment routing. `re
 1. brief/specification;
 2. concept/static master;
 3. controlled variants/states;
-4. automatic component localization/segmentation when an edit needs subcomponent precision;
+4. automatic parent/component localization/segmentation when an edit needs subcomponent precision;
 5. local or global semantic editing as appropriate;
 6. temporal generation where required;
 7. reconstruction into the approved game rendering language when needed;
@@ -172,67 +172,101 @@ Final classification:
 
 Qwen2511 remains installed as the strongest semantic editor, but unrestricted global prompts are not routable as `precision_structural_edit`.
 
-## CURRENT PRECISION ARCHITECTURE — RUNNER64 / automatic localization + region control
+## Precision-control architecture
 
-Canonical record:
+Precision editing is now treated as a composition of independent capabilities:
+
+`semantic request -> parent/component perception -> automatic mask/crop -> semantic editor -> deterministic regional composite`
+
+The no-manual-mask rule remains hard: detection, instance choice, segmentation and crop construction are pipeline responsibilities.
+
+### Runner64 — flat localization experiment / COMPLETE
+
+Canonical evidence:
 
 `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
 
-Architecture:
+Runner64 tested:
 
-`semantic target -> Grounding DINO Tiny -> deterministic instance selector -> SAM2.1 Hiera Small -> contextual Qwen2511 crop edit -> deterministic automatic regional composite`
+`semantic target -> Grounding DINO Tiny on full asset -> selector -> SAM2.1 -> Qwen2511 crop edit -> deterministic composite`
 
-This is a control-architecture change, not another prompt-tuning pass.
+Actual result:
+
+- technical pipeline completed;
+- plank selector chose the lower-left stone pedestal;
+- strap selector chose the lower-right stone block;
+- SAM2 segmented those wrong boxes cleanly;
+- Qwen regional outputs are invalid semantic evidence because the target masks were wrong;
+- deterministic compositing itself passed: pixels outside the allowed region had changed ratio above Δ12 of `0.0` in both tasks.
+
+Final Runner64 classification:
+
+**FLAT FULL-IMAGE SUBCOMPONENT LOCALIZATION FAIL / REGIONAL COMPOSITOR PASS.**
+
+This proves that regional containment is useful while the current flat perception strategy is not.
 
 ### Grounding DINO Tiny
 
-Role: public Apache-2.0 open-vocabulary text-grounded detection.
-
-Pinned model:
+Current compact open-vocabulary detector:
 
 - repo `IDEA-Research/grounding-dino-tiny`;
 - revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
 - safetensors SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`;
-- ~689 MB.
+- Apache-2.0.
 
 ### SAM2.1 Hiera Small
 
-Role: convert the selected text-grounded box into an automatic component mask.
-
-Pinned model:
+Current automatic box-to-mask segmenter:
 
 - repo `facebook/sam2.1-hiera-small`;
 - revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
-- 184,305,280-byte safetensors;
-- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
+- safetensors SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
 - Apache-2.0.
 
-Perception runs and exits before the Qwen runtime starts so the models do not compete for VRAM.
+Perception runs separately from Qwen so the models do not compete for VRAM.
 
-### No-manual-mask rule — HARD LOCK
+## CURRENT PRECISION GATE — RUNNER65 / hierarchical perception only
 
-The user does **not** draw masks or boxes. Detection, instance choice, segmentation, crop construction and final regional composite are pipeline responsibilities.
+Canonical record:
 
-Runner64 persists candidate boxes, scores, masks, overlays, crops and provenance so perception errors can be distinguished from editor errors.
+`docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
 
-### Regional Qwen edit
+Runner65 corrects the failed assumption before replacing any model:
 
-Qwen2511 receives:
+`full asset -> parent object grounding -> parent crop/upscale -> component grounding -> SAM2 multi-candidate rerank -> human visual gate`
 
-1. Image 1 = contextual crop from the source;
-2. Image 2 = the same crop with an automatically generated target overlay.
+Changes from Runner64:
 
-The final crop result is composited into the original using an automatically dilated/feathered SAM2 mask. Pixels outside the generated allowed neighborhood remain sourced from the original image by construction.
+- the door is localized as a parent before any plank/strap search;
+- the parent crop is upscaled to long side 1280;
+- component detection uses lower thresholds to improve recall;
+- component candidates are expressed relative to the parent, not the full gateway;
+- up to ten proposals are segmented by SAM2;
+- reranking uses SAM IoU, parent containment, mask orientation/aspect, mask area and parent-relative side/vertical zone;
+- invalid geometry is fail-closed rather than silently accepted.
 
-Runner64 tests the same one-plank and lower-right-strap tasks that exposed the global-edit limitation.
+Runner65 intentionally executes **no Qwen generation**. Precision editing will not spend another long 2511 inference until both automatic masks are visually correct.
 
-### Future perception upgrade — SAM3.1
+No model download is required; Runner65 reuses the Runner64 perception cache in offline mode.
 
-SAM3.1 is a stronger future concept-segmentation candidate with text/exemplar/visual prompting, but its official checkpoint is gated and materially larger. Do not make it a mandatory dependency until Runner64 proves whether the control architecture itself is useful with the public compact stack.
+Runner65 PASS requires:
+
+1. parent box isolates the wooden double door rather than the full gateway;
+2. plank mask isolates one real vertical wooden plank;
+3. strap mask isolates the intended lower-right horizontal iron strap;
+4. stone pedestal/frame masks are rejected.
+
+Only after perception passes should Qwen2511 be reintroduced behind the existing deterministic compositor.
+
+If Runner65 fails, change/improve the **perception backend** behind the same parent/component interface. Do not return to unrestricted global prompts or manual masks.
+
+### Future perception upgrade — deferred
+
+A stronger local concept/visual grounding backend may replace the compact detector/segmenter pair if hierarchical localization still fails. Do not add larger perception checkpoints before Runner65 evidence exists.
 
 ### Step1X-Edit — deferred
 
-Current memory profile remains poorly matched to the workstation. Do not prioritize while the automatic region-control architecture is untested.
+Current memory profile remains poorly matched to the workstation. Do not prioritize while the automatic precision-control architecture is still being validated.
 
 ## Character Lab
 
@@ -274,15 +308,16 @@ Once enough approved, licensable project art exists, train/evaluate Roguelite-sp
 
 ## Immediate implementation order
 
-1. run Runner64 and validate automatic GroundingDINO + SAM2.1 localization and regional Qwen2511 control;
-2. if perception is wrong, improve/replace only the perception layer rather than blaming the editor;
-3. if perception is correct but the local semantic edit fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
-4. after regional precision passes, validate semantic multi-reference role separation;
-5. validate the reopened Exilada as the first difficult Character Lab case;
-6. validate another non-character class;
-7. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
-8. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
-9. resume final rendering-language/pixel-art specialization from approved masters.
+1. run Runner65 and review the parent/plank/strap localization outputs before any Qwen job;
+2. if hierarchical perception passes, run the regional Qwen2511 editor/compositor with Runner65 masks/crops;
+3. if hierarchical perception fails, improve/replace only the perception backend behind the same parent/component contract;
+4. if perception is correct but the local semantic edit fails, test a region-aware/inpainting editor behind the same automatic-mask contract;
+5. after regional precision passes, validate semantic multi-reference role separation;
+6. validate the reopened Exilada as the first difficult Character Lab case;
+7. validate another non-character class;
+8. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
+9. wrap proven H3 Ref2VA behind the same orchestration boundary for animated actions;
+10. resume final rendering-language/pixel-art specialization from approved masters.
 
 ## Hard conclusion
 
