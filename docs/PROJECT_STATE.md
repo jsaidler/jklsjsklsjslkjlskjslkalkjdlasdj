@@ -8,19 +8,18 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
-4. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
-5. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
-6. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
-7. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
-8. `docs/RUNNER62_QWEN_IMAGE_EDIT_2509_LOWVRAM_ATOMIC_2026-09-09.md`
-9. `docs/RUNNER61_FLUX2_KLEIN_BASE_ATOMIC_SEQUENCE_2026-09-09.md`
-10. `docs/VISUAL_DIRECTION.md`
-11. `docs/CHARACTERS.md`
-12. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-13. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
+4. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
+5. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+6. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+7. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+8. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+9. `docs/VISUAL_DIRECTION.md`
+10. `docs/CHARACTERS.md`
+11. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+12. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
-Historical spike documents remain evidence but do not override the current gate.
+Historical runner docs remain evidence but do not override the current gate.
 
 ## Living-document invariant — LOCKED
 
@@ -46,7 +45,7 @@ The local production tool is for the **entire visual asset base**, not only Exil
 
 Canonical architecture:
 
-`Studio UI -> asset spec/state -> model router -> specialized model/perception adapters -> local runtimes -> deterministic processing -> candidate/version store -> explicit approval -> runtime export`
+`Studio UI -> asset spec/state -> model router -> specialized generation/edit/perception/motion adapters -> deterministic processors -> candidate/version store -> explicit approval -> runtime export`
 
 It must cover playable characters, NPCs, enemies, creatures, bosses, equipment, props, architecture, terrain, vegetation, set pieces, materials, VFX/environment animation and UI art.
 
@@ -69,9 +68,9 @@ Runner56 proved fast local T2I on RTX 3060 12 GB:
 - 4 steps / CFG 1 / Euler;
 - 12.054 s;
 - no OOM;
-- useful architecture authoring master.
+- useful general static concept/master backend.
 
-Runners57/58 proved reference editing technically but failed production edit strength/obedience.
+Runners57/58 proved reference editing technically but rejected it visually for production precision.
 
 Routable:
 
@@ -80,200 +79,203 @@ Routable:
 
 Not routable:
 
-- production precision/reference editing.
+- production precision editing.
 
-## FLUX.2 Klein 4B Base — precision edit hypothesis exhausted
+## FLUX.2 Klein 4B Base — edit precision hypothesis exhausted
 
-Runner60 corrected the Base graph and proved healthy VAE/T2I/edit parity. Runner61 proved atomic/sequential edit requests remain too coarse.
+Runner60 fixed the original Base graph and proved healthy parity. Runner61 proved atomic/sequential edits remain too coarse.
 
 Final role:
 
-- valid Base/T2I research;
-- future Roguelite-specific LoRA/fine-tuning;
-- coarse concept revision R&D.
+- T2I/Base research;
+- future project LoRA/fine-tuning;
+- coarse concept revision.
 
 Not routable for exact component edits.
 
-## Qwen-Image-Edit-2509 — retired precision candidate
+## Qwen-Image-Edit-2509 — retired
 
 Runner62:
 
 **TECHNICAL PASS / BETTER PRESERVATION THAN KLEIN / EXACT STRUCTURAL FACT FAIL.**
 
-The diffusion checkpoint has been removed after evidence preservation. Shared Qwen2.5-VL encoder and Qwen VAE remain because 2511 uses them.
+Its diffusion checkpoint was removed after preserving evidence. Shared Qwen2.5-VL encoder and Qwen VAE remain for 2511.
 
-## Qwen-Image-Edit-2511 — strongest installed semantic editor / global precision partial
-
-Canonical record:
-
-`docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+## Qwen-Image-Edit-2511 — strongest installed semantic editor
 
 Runtime:
 
 - `qwen_image_edit_2511_fp8mixed.safetensors`
-- 20,533,762,817 bytes
+- bytes `20,533,762,817`
 - SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`
 - ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`
-- Qwen2.5-VL 7B FP8 on CPU;
-- `--lowvram`, reserve 1 GB;
-- AuraFlow shift 3.1;
-- CFGNorm 1;
-- Euler/simple, CFG 4.
+- Qwen2.5-VL 7B FP8 on CPU
+- `--lowvram`, reserve 1 GB
+- AuraFlow shift 3.1
+- CFGNorm 1
+- Euler/simple, CFG 4
 
-Runner63 actual result:
+Runner63 closed unrestricted global precision prompting:
 
-- one-plank / 20 and 40 steps: meaningful improvement with narrow opening and strong source preservation;
-- one-strap / 20 and 40 steps: FAIL; large replacement/transverse bar instead of breaking only the named strap;
-- 40 steps materially increase cost without solving the hard failure.
+- plank improved materially;
+- strap failed with a large replacement bar;
+- 40 steps roughly doubled runtime without solving the hard case.
 
-Final classification:
+Qwen2511 remains installed, but exact structural edits require automatic control architecture.
 
-**TECHNICAL PASS / PLANK IMPROVED / STRAP PRECISION FAIL / GLOBAL-PROMPT-ONLY PRECISION HYPOTHESIS CLOSED.**
+## Precision-control architecture — CURRENT
 
-Keep Qwen2511 installed as the current strongest semantic editor. Precision must come from control architecture, not unrestricted global prompting.
+Canonical production idea:
 
-## Precision-control architecture — current evidence
+`semantic request -> parent/component perception -> automatic mask/decomposition -> operation-specific control -> semantic editor -> deterministic full-resolution composite`
 
-Canonical architecture under test:
+No user-drawn production mask/box is allowed.
 
-`semantic request -> parent/component perception -> optional atomic repeated-member decomposition -> automatic mask/crop -> Qwen semantic editor -> deterministic regional composite`
+### Runner64 — COMPLETE
 
-Hard rule: the user does **not** draw masks or boxes.
+Flat full-image localization selected stone blocks instead of plank/strap.
 
-### Runner64 — COMPLETE / flat localization FAIL / compositor PASS
+Useful proof:
 
-Runner64 searched subcomponents directly against the full gateway.
-
-Actual result:
-
-- plank selected the lower-left stone pedestal;
-- strap selected the lower-right stone block;
-- SAM2 segmented those wrong selections cleanly;
-- Qwen regional outputs are invalid semantic evidence because target masks were wrong;
-- deterministic full-resolution compositor passed: outside-allowed changed ratio >Δ12 = `0.0` for both tasks.
+- SAM2 segmented selected boxes cleanly;
+- deterministic regional compositor preserved source pixels outside the allowed region with changed ratio >Δ12 of `0.0`.
 
 Classification:
 
-**TECHNICAL PASS / FLAT SUBCOMPONENT LOCALIZATION FAIL / REGIONAL COMPOSITOR PASS / QWEN REGIONAL VERDICT INVALID.**
+**FLAT LOCALIZATION FAIL / COMPOSITOR PASS.**
 
-### Runner65 — COMPLETE / hierarchy PASS / strap PASS / leaf-too-coarse plank
+### Runner65 — COMPLETE
 
-Runner65 added parent-first hierarchical localization:
+Hierarchical localization:
 
-`full asset -> parent door -> parent crop/upscale -> child grounding -> SAM2 multi-candidate rerank`
+`full image -> parent door -> child search -> SAM2 rerank`.
 
-Actual result:
+Visual result:
 
-Parent door:
-
-- raw box `[311.3596, 272.5457, 547.8800, 649.2131]`;
-- expanded parent `[292, 253, 567, 669]`;
-- visual PASS.
-
-Lower-right strap:
-
-- box `[456.0091, 552.5553, 548.3988, 592.1567]`;
-- SAM IoU `0.89715`;
-- mask area relative to parent `0.01753`;
-- visual PASS.
-
-Plank request:
-
-- selected bbox `[325, 285, 422, 651]`;
-- SAM IoU `0.96534`;
-- area relative to parent `0.27724`;
-- visual FAIL at atomic granularity: entire left door leaf selected.
+- parent door: PASS;
+- lower-right strap: PASS;
+- plank request: correct left repeated-structure leaf found, but entire leaf selected.
 
 Classification:
 
-**TECHNICAL PASS / PARENT PASS / STRAP PASS / REPEATED STRUCTURE FOUND / ONE-PLANK GRANULARITY FAIL.**
+**PARENT PASS / STRAP PASS / REPEATED STRUCTURE FOUND / ONE-PLANK GRANULARITY FAIL.**
 
-### Runner66 — COMPLETE / repeated-element decomposition PASS
+### Runner66 — COMPLETE / STRUCTURAL PERCEPTION PASS
 
-Canonical record:
+Deterministic repeated-member decomposition split the Runner65 left leaf by persistent vertical seam energy.
 
-`docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+Actual plank evidence:
+
+- seam peaks: `x=358`, `x=388`;
+- selected interval: `[358,388]`;
+- width: `30 px`;
+- bbox: `[358,295,388,644]`;
+- area relative to parent: `0.08923`;
+- vertical aspect: `11.633`;
+- width relative to parent: `0.10909`;
+- elapsed: `0.321 s`;
+- visual: **PASS — exactly one vertical plank**.
+
+Runner65 strap mask remained visually correct and was retained unchanged.
+
+Classification:
+
+**TECHNICAL PASS / ONE-PLANK MASK PASS / LOWER-RIGHT STRAP MASK PASS / NO MANUAL INPUT.**
+
+### Runner67 — COMPLETE / EDIT CONTROL FAIL
 
 Architecture:
 
-`Runner65 repeated structure -> persistent vertical seam profile -> atomic intervals -> deterministic target member mask`
+`approved automatic mask -> source crop + red target-guide image -> Qwen2511 -> deterministic regional composite`.
 
-Actual result:
+Technical jobs completed and the deterministic compositor again preserved outside-region pixels exactly enough that changed ratio >Δ12 remained `0.0`.
 
-- seam peak `x=358`, energy `17.8333`;
-- seam peak `x=388`, energy `17.6667`;
-- selected interval `[358,388]`;
-- width `30 px`;
-- plank atomic bbox `[358,295,388,644]`;
-- area relative to parent `0.08923`;
-- vertical aspect `11.6333`;
-- width relative to parent `0.10909`;
-- height relative to leaf `0.95355`;
-- automatic geometry gate PASS;
-- visual atomic plank PASS;
-- retained Runner65 lower-right strap PASS.
+Plank:
+
+- Qwen raw crop produced a narrow opening;
+- local geometry shifted relative to the separately applied automatic mask;
+- final composite produced elongated/reconstructed strips instead of a clean removed plank.
+
+Strap:
+
+- Qwen copied the red locator rectangle into generated content;
+- the final result contained a red patch rather than a physical break.
+
+Runner67 metrics:
+
+- plank Qwen elapsed `639.175 s`, inside-allowed changed ratio >Δ12 `0.272004`;
+- strap Qwen elapsed `601.176 s`, inside-allowed changed ratio >Δ12 `0.124109`;
+- both outside-allowed changed ratio >Δ12 `0.0`.
 
 Classification:
 
-**TECHNICAL PASS / REPEATED-ELEMENT DECOMPOSITION PASS / ATOMIC PLANK VISUAL PASS / STRAP VISUAL PASS.**
+**TECHNICAL PASS / MASKS PASS / COMPOSITOR PASS / RED GUIDE LEAK FAIL / CROP-MASK ALIGNMENT FAIL / PRECISION EDIT FAIL.**
 
-This is the first proof that the pipeline can automatically move from semantic parent/repeated structure to an atomic repeated member without a user mask.
+Colored target guides are rejected as a control mechanism.
 
-## CURRENT IMPLEMENTATION GATE — RUNNER67 / Qwen2511 behind approved atomic masks
+## CURRENT IMPLEMENTATION GATE — RUNNER68 / native automatic latent mask
 
 Canonical record:
 
-`docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
+`docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
 
 Runner:
 
-`tools/structured-2d-character-pipeline/67_run_qwen2511_atomic_region_edit.ps1`
+`tools/structured-2d-character-pipeline/68_run_qwen2511_latent_mask_region_edit.ps1`
+
+Masked adapter:
+
+`tools/roguelite-asset-studio/qwen_image_edit_2511_masked_adapter.py`
 
 Executor:
 
-`tools/roguelite-asset-studio/qwen2511_atomic_region_gate.py`
+`tools/roguelite-asset-studio/qwen2511_latent_mask_region_gate.py`
 
 Architecture:
 
-`Runner66 approved masks -> contextual crops -> automatic target guides -> Qwen2511 20-step local semantic edits -> deterministic regional composite`
+`Runner66 automatic mask -> source crop -> same-scale automatic mask -> ImageToMask -> SetLatentNoiseMask(source latent) -> Qwen2511 -> deterministic full-resolution composite`
 
-Rules:
+Key changes from Runner67:
 
-- no perception rerun;
-- no new model download;
-- no manual masks/boxes;
-- Qwen does not choose the target location;
-- Runner66 masks are geometry authority;
-- source pixels outside a small deterministic dilation/feather neighborhood remain authoritative;
-- compare against Runner63 global outputs.
+- no red/colored locator image is passed to Qwen;
+- source crop is the only semantic image reference;
+- automatic mask controls where sampling noise is injected;
+- mask and source pass through the same `FluxKontextImageScale` path to preserve alignment;
+- plank uses its full atomic operation mask;
+- strap-break derives the central 40% of the approved strap mask so both ends are outside the editable region;
+- deterministic final composite remains as a second containment layer;
+- no download and no manual mask/box.
 
-Required visual PASS:
+Runner68 PASS requires:
 
-1. plank final removes only the one approved atomic plank and creates a narrow same-width opening;
-2. strap final breaks only the approved lower-right strap and does not create a replacement/transverse bar;
-3. unrelated full-image geometry remains stable outside automatic allowed regions.
+1. plank becomes one clean aligned same-width opening;
+2. neighboring planks/door geometry remain stable;
+3. strap middle is clearly absent while both strap ends remain;
+4. no replacement bar appears;
+5. no locator-color artifact exists;
+6. outside allowed regions remain source pixels by construction.
 
-If both pass, the combined automatic perception + atomic decomposition + regional edit architecture becomes a proven precision-control path and `automatic_region_edit` can be promoted to a routable Studio capability.
+If Runner68 passes, promote `automatic_region_edit` and move to semantic multi-reference role separation before Character Lab.
 
-If masks are correct but Qwen still fails semantically, keep the now-proven perception/mask/compositor contract and replace only the regional editor with a mask-native/inpainting backend.
+If Runner68 fails with correct masks, keep perception/decomposition/compositor accepted and replace only the regional editor with a dedicated mask-native/inpainting backend.
 
 ## Current perception payload
 
 Grounding DINO Tiny:
 
-- repo `IDEA-Research/grounding-dino-tiny`;
-- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
-- SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`;
+- `IDEA-Research/grounding-dino-tiny`
+- revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`
+- SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`
 - Apache-2.0.
 
 SAM2.1 Hiera Small:
 
-- repo `facebook/sam2.1-hiera-small`;
-- revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
-- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`;
+- `facebook/sam2.1-hiera-small`
+- revision `e07df6aa19f5c6545121551bf89957b7663ee715`
+- SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`
 - Apache-2.0.
 
-Runner66/67 add no new checkpoint.
+Repeated-element decomposition is project-owned deterministic code and adds no model payload.
 
 ## Motion branch — MiniMax H3 Base Ref2VA / ACTIVE PROVEN
 
@@ -309,7 +311,7 @@ Routine production must work locally after installation. Hosted services may be 
 
 ## Resolution contract — HARD LOCK
 
-The old 128px Exilada baseline is retired. There is no universal 160/180/200/192/384px production sprite resolution.
+The old 128px baseline is retired. There is no universal 160/180/200/192/384px production sprite resolution.
 
 Preserve useful native/final generation resolution. Apparent runtime/world scale is separate and must not create a second destructively reduced gameplay raster asset. Same rule applies to non-character assets.
 
@@ -345,8 +347,8 @@ Do not accumulate checkpoints speculatively.
 - keep Kontext R&D while still needed;
 - keep Klein distilled as fast T2I;
 - keep Klein Base while useful as training/specialization base;
-- Qwen2509 diffusion is retired/deleted; preserve generated evidence;
+- Qwen2509 diffusion remains retired/deleted; preserve evidence;
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE;
-- keep compact GroundingDINO/SAM2 perception cache while the automatic precision path remains active;
-- Runner66/67 add no checkpoint;
-- do not download another precision editor unless Runner67 proves the current regional editor is the remaining failure point.
+- keep Grounding DINO Tiny + SAM2.1 while precision architecture remains active;
+- Runner66/68 add no model checkpoint;
+- do not download another regional editor until Runner68 evidence exists.
