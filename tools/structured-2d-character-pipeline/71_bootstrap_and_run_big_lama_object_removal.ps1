@@ -12,8 +12,8 @@ $ErrorActionPreference = 'Stop'
 
 $LaMaUrl = 'https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt'
 $LaMaName = 'big-lama.pt'
-$LaMaSha = '344c77bbcb158f17dd143070d1e789f38a66c04202311ae3a258ef66667a9ea9'
-$LaMaBytes = [int64]206134115
+$LaMaSha = '7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c'
+$LaMaBytes = [int64]205803670
 
 $SDXLInpaintName = 'sdxl_inpaint_0.1_fp16.safetensors'
 $SDXLInpaintSha = '6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f'
@@ -119,7 +119,7 @@ Write-Host '[EDITOR CHANGE ONLY] Runner66 masks, operation semantics and determi
 Write-Host '[SPECIALIST] Big-LaMa is a lightweight resolution-robust object-removal/inpainting model; no text prompt is used.' -ForegroundColor Green
 Write-Host '[LICENSE] Apache-2.0 upstream LaMa lineage.' -ForegroundColor Green
 Write-Host '[SECURITY] TorchScript is executable; the runner loads only the exact pinned SHA256 artifact.' -ForegroundColor Yellow
-Write-Host '[MATRIX] Tight and expanded automatic boundary masks for plank and strap; four cheap inference jobs total.' -ForegroundColor Green
+Write-Host '[MATRIX] one-plank and one-strap object-removal edits using tight and expanded automatic boundary masks.' -ForegroundColor Green
 Write-Host '[NO MANUAL MASKS] Uses accepted Runner66 masks only.' -ForegroundColor Green
 Write-Host ''
 
