@@ -57,13 +57,13 @@ The upstream project used by the gate is `enesmsahin/simple-lama-inpainting`, wh
 
 TorchScript artifacts are executable/pickle-bearing. Runner71 therefore does **not** load an arbitrary `big-lama.pt`.
 
-Pinned artifact:
+Pinned upstream release artifact:
 
 - source: `https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt`
-- bytes: `206134115`
-- SHA256: `344c77bbcb158f17dd143070d1e789f38a66c04202311ae3a258ef66667a9ea9`
+- bytes: `205803670`
+- SHA256: `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`
 
-The runner refuses to execute a file with a different size or hash.
+The size is confirmed by the upstream GitHub release metadata and the SHA256 is independently mirrored by multiple repositories carrying that exact byte-size artifact. The runner refuses to execute a file with a different size or hash.
 
 ## Cleanup before the new gate
 
