@@ -1,5 +1,5 @@
 {
-  "registry_version": 15,
+  "registry_version": 16,
   "hardware_profile": {
     "os": "Windows 11",
     "gpu": "RTX 3060 12GB",
@@ -84,56 +84,63 @@
         {"name": "qwen_2.5_vl_7b_fp8_scaled.safetensors", "sha256": "cb5636d852a0ea6a9075ab1bef496c0db7aef13c02350571e388aea959c5c0b4"},
         {"name": "qwen_image_vae.safetensors", "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f"}
       ],
-      "runner63": "global plank improved; global strap precision failed; 40 steps did not fix",
-      "runner67": "approved masks/compositor passed; colored guide leaked and crop geometry shifted",
       "runner68": {
         "classification": "technical_pass_native_mask_control_pass_semantic_operation_fail",
-        "plank_elapsed_seconds": 481.612,
         "plank_inside_allowed_changed_ratio_gt_12": 0.059154,
-        "strap_elapsed_seconds": 451.471,
         "strap_inside_allowed_changed_ratio_gt_12": 0.052066,
         "outside_allowed_changed_ratio_gt_12": 0.0
       }
     },
     {
-      "adapter_id": "qwen_image_edit_2511_masked_latent",
-      "family": "Qwen-Image-Edit-2511 + native automatic latent noise mask",
-      "status": "technical_pass_semantic_noop_rejected_for_exact_inpaint",
-      "license": "Apache-2.0 model + project-owned control adapter",
-      "workspace": "Z:/AI/QwenImageEdit/runner68_latent_mask_region_edit",
-      "capabilities": [],
-      "technical_only_capabilities": ["automatic_latent_mask_control", "outside_region_preservation"],
-      "quality_tier": "rejected_exact_masked_operation_backend"
-    },
-    {
       "adapter_id": "sdxl_inpaint_0_1_fp16",
       "family": "SDXL Inpainting 0.1",
-      "status": "installed_runner69_subtraining_resolution_fail_runner70_1024_parity_active",
+      "status": "retired_after_runner70_1024_visual_fail_cleanup_pending_runner71",
       "license": "CreativeML Open RAIL++-M",
       "workspace": "Z:/AI/SDXLInpaint",
-      "runtime": "shared pinned ComfyUI under Z:/AI/QwenImageEdit/ComfyUI_windows_portable",
       "capabilities": [],
       "technical_only_capabilities": ["mask_native_inpaint", "automatic_region_inpaint_runtime", "outside_region_preservation"],
-      "planned_capabilities": ["automatic_region_inpaint", "masked_object_removal", "masked_fill", "maskless_user_workflow"],
-      "quality_tier": "dedicated_mask_native_inpaint_candidate_resolution_parity_under_test",
-      "files": [
-        {"name": "sdxl_inpaint_0.1_fp16.safetensors", "approx_bytes": 5520000000, "sha256": "6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f"},
-        {"name": "sd_xl_base_1.0.safetensors", "approx_bytes": 7460000000, "sha256": "31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b", "usage": "CLIP/VAE source only"}
-      ],
+      "quality_tier": "rejected_exact_removal_backend",
       "runner69": {
-        "classification": "technical_pass_mask_response_pass_visual_operation_fail_at_subtraining_resolution",
         "plank_input_size": [256, 512],
-        "plank_elapsed_seconds": 18.075,
         "plank_inside_allowed_changed_ratio_gt_12": 0.539487,
         "strap_input_size": [384, 256],
-        "strap_elapsed_seconds": 10.047,
         "strap_inside_allowed_changed_ratio_gt_12": 0.336265,
         "outside_allowed_changed_ratio_gt_12": 0.0,
-        "visual": "plank shiny reconstruction artifacts; strap no clean break"
+        "visual": "strong response but wrong reconstruction"
       },
-      "current_gate": "Runner70 512 source context -> 1024x1024 model-input parity",
-      "runner": "tools/structured-2d-character-pipeline/70_run_sdxl_inpaint_1024_parity_gate.ps1",
-      "record": "docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md"
+      "runner70": {
+        "classification": "technical_pass_1024_parity_visual_operation_fail",
+        "model_input_size": [1024, 1024],
+        "plank_elapsed_seconds": 34.071,
+        "plank_inside_allowed_changed_ratio_gt_12": 0.31658,
+        "strap_elapsed_seconds": 26.069,
+        "strap_inside_allowed_changed_ratio_gt_12": 0.165934,
+        "outside_allowed_changed_ratio_gt_12": 0.0,
+        "visual": "plank remained; strap remained continuous"
+      },
+      "cleanup": "Runner71 removes UNet + SDXL Base checkpoint only after preserved Runner69/70 evidence and exact hash verification"
+    },
+    {
+      "adapter_id": "big_lama_object_removal",
+      "family": "Big-LaMa",
+      "status": "runner71_current_gate_not_yet_installed",
+      "license": "Apache-2.0",
+      "workspace": "Z:/AI/LaMaInpaint",
+      "capabilities": [],
+      "planned_capabilities": ["automatic_region_object_removal", "masked_object_removal", "texture_continuation", "maskless_user_workflow"],
+      "quality_tier": "lightweight_dedicated_object_removal_candidate",
+      "runtime": "direct TorchScript on existing embedded PyTorch; no ComfyUI server",
+      "files": [
+        {
+          "name": "big-lama.pt",
+          "bytes": 205803670,
+          "sha256": "7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c",
+          "source": "enesmsahin/simple-lama-inpainting v0.1.0 release"
+        }
+      ],
+      "security": "TorchScript executable artifact; load only pinned size+SHA256",
+      "runner": "tools/structured-2d-character-pipeline/71_bootstrap_and_run_big_lama_object_removal.ps1",
+      "record": "docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md"
     },
     {
       "adapter_id": "grounding_dino_tiny_localizer",
@@ -180,19 +187,19 @@
     {
       "adapter_id": "automatic_region_control_v1",
       "family": "Asset Studio automatic localization + operation-aware region control",
-      "status": "masks_and_compositor_proven_editor_resolution_parity_active_runner70",
+      "status": "masks_and_compositor_proven_specialist_removal_backend_active_runner71",
       "license": "Pipeline code project-owned; component model licenses listed separately",
       "workspace": "Z:/AI/RogueliteAssetStudio/localization + specialist editor workspaces",
       "capabilities": ["hierarchical_localization", "automatic_component_mask", "repeated_member_decomposition", "deterministic_region_composite"],
-      "planned_capabilities": ["automatic_region_inpaint", "operation_aware_component_edit", "maskless_user_workflow"],
+      "planned_capabilities": ["automatic_region_object_removal", "automatic_region_inpaint", "operation_aware_component_edit", "maskless_user_workflow"],
       "quality_tier": "precision_control_architecture_editor_backend_under_validation",
       "runner64": "flat localization failed; deterministic compositor passed",
       "runner65": "hierarchical parent/strap passed; plank reduced to repeated leaf",
       "runner66": "one-plank decomposition passed; strap retained",
-      "runner67": "colored-guide editor control failed",
       "runner68": "native Qwen latent-mask containment passed but semantic removal/break remained near-no-op",
-      "runner69": "SDXL dedicated inpaint reacted strongly but 256x512/384x256 inputs produced visual failure below 1024 training regime",
-      "current_gate": "Runner70 SDXL 1024 training-resolution parity"
+      "runner69": "SDXL dedicated inpaint active but wrong semantics below training resolution",
+      "runner70": "SDXL 1024 parity still failed plank removal and strap break; hypothesis closed",
+      "current_gate": "Runner71 Big-LaMa object removal"
     },
     {
       "adapter_id": "sam3_1_future_localizer",
