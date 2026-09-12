@@ -129,20 +129,22 @@ $Runner71Manifest = Join-Path $Runner71Dir 'runner71_lama_object_removal_manifes
 $Runner71Contact = Join-Path $Runner71Dir 'runner71_lama_object_removal_contact_sheet.png'
 $LaMaModel = Join-Path $LaMaWorkspace "models\$LaMaName"
 $CustomNodeRoot = Join-Path $ComfyRoot 'custom_nodes\ComfyUI-BrushNet'
-$VenvRoot = Join-Path $PowerPaintWorkspace 'venv'
-$VenvPython = Join-Path $VenvRoot 'Scripts\python.exe'
+$LegacyVenvRoot = Join-Path $PowerPaintWorkspace 'venv'
+$PyDepsRoot = Join-Path $PowerPaintWorkspace 'pydeps'
+$DepsMarker = Join-Path $PowerPaintWorkspace '.powerpaint_pydeps_0.29.2_0.31.0_0.11.1.ok'
 $Output = Join-Path $PowerPaintWorkspace 'runner72_object_removal_gate'
 $Adapter = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\powerpaint_brushnet_adapter.py'
 $Executor = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\powerpaint_object_removal_gate.py'
 $Protocol = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\adapter_protocol.py'
 $SharedAdapter = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\flux2_klein_adapter.py'
+$OverlayLauncher = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\python_overlay_launcher.py'
 
 $SD15Path = Join-Path $ComfyRoot "models\checkpoints\$SD15Name"
 $BrushPath = Join-Path $ComfyRoot "models\inpaint\powerpaint\$BrushName"
 $PPTextPath = Join-Path $ComfyRoot "models\inpaint\powerpaint\$PPTextName"
 $BaseClipPath = Join-Path $ComfyRoot "models\clip\$BaseClipName"
 
-foreach ($required in @($BasePython,$MainPy,$Runner71Manifest,$Runner71Contact,$Adapter,$Executor,$Protocol,$SharedAdapter)) {
+foreach ($required in @($BasePython,$MainPy,$Runner71Manifest,$Runner71Contact,$Adapter,$Executor,$Protocol,$SharedAdapter,$OverlayLauncher)) {
     if (-not (Test-Path $required -PathType Leaf)) { Fail "required prerequisite missing: $required" }
 }
 
@@ -161,7 +163,7 @@ Write-Host 'Roguelite Runner 72 - POWERPAINT V2.1 / TASK-CONDITIONED OBJECT REMO
 Write-Host '[WHY] Big-LaMa was extremely fast but reconstructed local continuity instead of executing the requested removal.' -ForegroundColor Yellow
 Write-Host '[ONE BACKEND CHANGE] Runner66/71 masks, source contexts, operation semantics and deterministic compositor remain authoritative.' -ForegroundColor Green
 Write-Host '[TASK CONDITIONING] PowerPaint object-removal mode uses learned P_ctxt/P_obj task tokens rather than blind context completion.' -ForegroundColor Green
-Write-Host '[RUNTIME ISOLATION] A dedicated venv inherits the proven Torch/ComfyUI install but pins BrushNet dependencies without changing Qwen runtime packages.' -ForegroundColor Green
+Write-Host '[RUNTIME ISOLATION] BrushNet-only dependencies live in Z:\AI\PowerPaint\pydeps and are prepended process-locally; the Qwen portable site-packages are not modified.' -ForegroundColor Green
 Write-Host '[MATRIX] plank/strap x tight/expanded masks, exactly matching Runner71 boundary variants.' -ForegroundColor Green
 Write-Host '[NO MANUAL MASKS] Uses Runner71 masks derived from accepted Runner66 geometry.' -ForegroundColor Green
 Write-Host ''
@@ -184,32 +186,45 @@ $actualBrushCommit = (& git.exe -C $CustomNodeRoot rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $actualBrushCommit -ne $BrushNetCommit) { Fail "ComfyUI-BrushNet commit mismatch: $actualBrushCommit" }
 Write-Host "  ComfyUI-BrushNet commit verified: $actualBrushCommit" -ForegroundColor Green
 
-if (-not (Test-Path $VenvPython -PathType Leaf)) {
-    Write-Host 'Creating isolated PowerPaint venv with access to proven portable Torch packages...' -ForegroundColor Cyan
-    & $BasePython -m venv --system-site-packages $VenvRoot
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $VenvPython -PathType Leaf)) {
-        Write-Host 'stdlib venv failed; installing virtualenv helper into portable Python and retrying...' -ForegroundColor Yellow
-        & $BasePython -m pip install --disable-pip-version-check --retries 12 --timeout 120 virtualenv
-        if ($LASTEXITCODE -ne 0) { Fail 'could not install virtualenv fallback' }
-        & $BasePython -m virtualenv --system-site-packages $VenvRoot
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $VenvPython -PathType Leaf)) { Fail 'could not create isolated PowerPaint venv' }
-    }
+# The first Runner72 bootstrap used venv --system-site-packages. Python's embedded
+# Windows distribution did not expose its Torch site-packages to that venv. That
+# strategy is retired; remove only the Runner72-owned failed venv if it exists.
+if (Test-Path $LegacyVenvRoot -PathType Container) {
+    Write-Host 'Removing failed Runner72 legacy venv; base portable runtime remains untouched...' -ForegroundColor Yellow
+    Remove-Item -LiteralPath $LegacyVenvRoot -Recurse -Force
 }
 
-$DepsMarker = Join-Path $VenvRoot '.powerpaint_deps_0.29.2_0.31.0_0.11.1.ok'
+# Verify the proven base runtime before layering anything on top of it.
+& $BasePython -s -c "import torch; print('Base portable Torch OK', torch.__version__, 'CUDA', torch.cuda.is_available())"
+if ($LASTEXITCODE -ne 0) { Fail 'base portable Python no longer sees Torch; refusing to alter the runtime' }
+
 if (-not (Test-Path $DepsMarker -PathType Leaf)) {
+    if (Test-Path $PyDepsRoot -PathType Container) {
+        Write-Host 'Removing incomplete PowerPaint dependency overlay from a previous attempt...' -ForegroundColor Yellow
+        Remove-Item -LiteralPath $PyDepsRoot -Recurse -Force
+    }
+    New-Item -ItemType Directory -Force -Path $PyDepsRoot | Out-Null
     $depsInstalled = $false
     for ($attempt=1; $attempt -le 5; $attempt++) {
-        Write-Host "Installing isolated PowerPaint dependencies (attempt $attempt/5)..." -ForegroundColor Cyan
-        & $VenvPython -m pip install --disable-pip-version-check --retries 12 --timeout 120 --no-deps 'diffusers==0.29.2' 'accelerate==0.31.0' 'peft==0.11.1'
+        Write-Host "Installing isolated PowerPaint dependency overlay (attempt $attempt/5)..." -ForegroundColor Cyan
+        & $BasePython -s -m pip install --disable-pip-version-check --retries 12 --timeout 120 --no-deps --upgrade --target $PyDepsRoot 'diffusers==0.29.2' 'accelerate==0.31.0' 'peft==0.11.1'
         if ($LASTEXITCODE -eq 0) { $depsInstalled=$true; break }
-        if ($attempt -lt 5) { $delay=10*$attempt; Write-Host "pip failed; retrying in $delay seconds..." -ForegroundColor Yellow; Start-Sleep -Seconds $delay }
+        if ($attempt -lt 5) {
+            $delay=10*$attempt
+            Write-Host "pip failed; retrying in $delay seconds..." -ForegroundColor Yellow
+            Start-Sleep -Seconds $delay
+        }
     }
-    if (-not $depsInstalled) { Fail 'PowerPaint dependency installation failed after retries' }
-    Set-Content -LiteralPath $DepsMarker -Value 'diffusers=0.29.2 accelerate=0.31.0 peft=0.11.1' -Encoding ASCII
+    if (-not $depsInstalled) { Fail 'PowerPaint dependency overlay installation failed after retries' }
+    Set-Content -LiteralPath $DepsMarker -Value 'diffusers=0.29.2 accelerate=0.31.0 peft=0.11.1 overlay=pydeps' -Encoding ASCII
 }
-& $VenvPython -c "import torch, diffusers, accelerate, peft; print('PowerPaint venv imports OK', torch.__version__, diffusers.__version__, accelerate.__version__, peft.__version__)"
-if ($LASTEXITCODE -ne 0) { Fail 'isolated PowerPaint dependency import check failed' }
+
+$overlayProbe = "import sys; sys.path.insert(0, r'$PyDepsRoot'); import torch, diffusers, accelerate, peft; assert diffusers.__version__ == '0.29.2'; assert accelerate.__version__ == '0.31.0'; assert peft.__version__ == '0.11.1'; print('PowerPaint overlay imports OK', torch.__version__, diffusers.__version__, accelerate.__version__, peft.__version__)"
+& $BasePython -s -c $overlayProbe
+if ($LASTEXITCODE -ne 0) {
+    Remove-Item -LiteralPath $DepsMarker -Force -ErrorAction SilentlyContinue
+    Fail 'PowerPaint process-local dependency overlay import check failed'
+}
 
 $driveRoot = [System.IO.Path]::GetPathRoot($PowerPaintWorkspace)
 $driveInfo = [System.IO.DriveInfo]::new($driveRoot)
@@ -238,24 +253,44 @@ try { $null=Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2; $portBusy
 if ($portBusy) { Fail "port $Port already serves an unmanaged process" }
 
 $env:PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True'
-$launchArgs=@('-s',$MainPy,'--windows-standalone-build','--listen','127.0.0.1','--port',"$Port",'--disable-auto-launch','--lowvram','--reserve-vram','1.0')
-$process=Start-Process -FilePath $VenvPython -ArgumentList $launchArgs -WorkingDirectory $ComfyRoot -RedirectStandardOutput $ComfyStdout -RedirectStandardError $ComfyStderr -WindowStyle Hidden -PassThru
+$launchArgs=@(
+    '-s',(Quote-ProcessArg $OverlayLauncher),(Quote-ProcessArg $PyDepsRoot),(Quote-ProcessArg $MainPy),
+    '--windows-standalone-build','--listen','127.0.0.1','--port',"$Port",'--disable-auto-launch','--lowvram','--reserve-vram','1.0'
+)
+$process=Start-Process -FilePath $BasePython -ArgumentList $launchArgs -WorkingDirectory $ComfyRoot -RedirectStandardOutput $ComfyStdout -RedirectStandardError $ComfyStderr -WindowStyle Hidden -PassThru
 Set-Content -LiteralPath $PidFile -Value $process.Id -Encoding ASCII
-Write-Host "Started isolated-dependency ComfyUI PID $($process.Id) for PowerPaint on port $Port" -ForegroundColor Green
+Write-Host "Started process-local-overlay ComfyUI PID $($process.Id) for PowerPaint on port $Port" -ForegroundColor Green
 
 $ready=$false
 for ($i=0; $i -lt 420; $i++) {
     try { $null=Invoke-RestMethod -Uri "$Base/system_stats" -TimeoutSec 2; $ready=$true; break }
     catch {
-        if ($process.HasExited) { Print-TextFile $ComfyStderr '--- COMFYUI STDERR ---' 400; Stop-Managed $PidFile; Fail "ComfyUI exited before readiness: $($process.ExitCode)" }
+        if ($process.HasExited) {
+            Print-TextFile $ComfyStderr '--- COMFYUI STDERR ---' 400
+            Stop-Managed $PidFile
+            Fail "ComfyUI exited before readiness: $($process.ExitCode)"
+        }
         Start-Sleep -Seconds 1
     }
 }
-if (-not $ready) { Print-TextFile $ComfyStderr '--- COMFYUI STDERR ---' 400; Stop-Managed $PidFile; Fail 'ComfyUI did not become ready' }
+if (-not $ready) {
+    Print-TextFile $ComfyStderr '--- COMFYUI STDERR ---' 400
+    Stop-Managed $PidFile
+    Fail 'ComfyUI did not become ready'
+}
 
 foreach ($node in @('BrushNetLoader','PowerPaintCLIPLoader','PowerPaint')) {
-    try { $info=Invoke-RestMethod -Uri "$Base/object_info/$node" -TimeoutSec 20 } catch { Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 400; Stop-Managed $PidFile; Fail "could not query PowerPaint node $node" }
-    if ($null -eq $info.$node) { Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 400; Stop-Managed $PidFile; Fail "PowerPaint custom node unavailable: $node" }
+    try { $info=Invoke-RestMethod -Uri "$Base/object_info/$node" -TimeoutSec 20 }
+    catch {
+        Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 400
+        Stop-Managed $PidFile
+        Fail "could not query PowerPaint node $node"
+    }
+    if ($null -eq $info.$node) {
+        Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 400
+        Stop-Managed $PidFile
+        Fail "PowerPaint custom node unavailable: $node"
+    }
 }
 Write-Host '  PowerPaint custom nodes loaded successfully.' -ForegroundColor Green
 
@@ -264,7 +299,7 @@ $ExecStderr=Join-Path $Output 'runner72_python_stderr.log'
 $ExecLog=Join-Path $Output 'runner72_executor.log'
 foreach ($p in @($ExecStdout,$ExecStderr,$ExecLog)) { if (Test-Path $p) { Remove-Item -LiteralPath $p -Force } }
 $execArgs=@(
-    '-s',(Quote-ProcessArg $Executor),
+    '-s',(Quote-ProcessArg $OverlayLauncher),(Quote-ProcessArg $PyDepsRoot),(Quote-ProcessArg $Executor),
     '--comfy-root',(Quote-ProcessArg $ComfyRoot),
     '--workspace',(Quote-ProcessArg $PowerPaintWorkspace),
     '--runner71-dir',(Quote-ProcessArg $Runner71Dir),
@@ -276,16 +311,21 @@ $execArgs=@(
 $executorExit=1
 try {
     Write-Host 'RUNNER72: launching PowerPaint task-conditioned object-removal executor...' -ForegroundColor Cyan
-    $ep=Start-Process -FilePath $VenvPython -ArgumentList $execArgs -WorkingDirectory $ProjectRepoRoot -RedirectStandardOutput $ExecStdout -RedirectStandardError $ExecStderr -WindowStyle Hidden -PassThru -Wait
+    $ep=Start-Process -FilePath $BasePython -ArgumentList $execArgs -WorkingDirectory $ProjectRepoRoot -RedirectStandardOutput $ExecStdout -RedirectStandardError $ExecStderr -WindowStyle Hidden -PassThru -Wait
     $executorExit=$ep.ExitCode
-} finally { Stop-Managed $PidFile }
+} finally {
+    Stop-Managed $PidFile
+}
 
 $stdoutText=Read-TextFileOrEmpty $ExecStdout
 $stderrText=Read-TextFileOrEmpty $ExecStderr
 Set-Content -LiteralPath $ExecLog -Value (@('=== PYTHON STDOUT ===',$stdoutText,'=== PYTHON STDERR ===',$stderrText) -join [Environment]::NewLine) -Encoding UTF8
 Print-TextFile $ExecStdout '--- RUNNER72 PYTHON STDOUT ---'
 if (-not [string]::IsNullOrWhiteSpace($stderrText)) { Print-TextFile $ExecStderr '--- RUNNER72 PYTHON STDERR ---' 300 }
-if ($executorExit -ne 0) { Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 450; Fail "PowerPaint executor exited with code $executorExit" }
+if ($executorExit -ne 0) {
+    Print-TextFile $ComfyStderr '--- COMFYUI STDERR TAIL ---' 450
+    Fail "PowerPaint executor exited with code $executorExit"
+}
 
 foreach ($name in @(
     'plank_source_context.png','plank_approved_target_overlay.png','plank_powerpaint_tight_raw.png','plank_powerpaint_tight_final.png','plank_powerpaint_expanded_raw.png','plank_powerpaint_expanded_final.png',
