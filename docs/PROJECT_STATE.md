@@ -1,6 +1,6 @@
 # Roguelite — Current Project State
 
-Status date: **2026-09-11**
+Status date: **2026-09-12**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are source of truth.
 
@@ -8,18 +8,16 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
-4. `docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
-5. `docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
+3. `docs/RUNNER72_POWERPAINT_OBJECT_REMOVAL_2026-09-12.md`
+4. `docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
+5. `docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
 6. `docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
-7. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
-8. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
-9. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
-10. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
-11. `docs/VISUAL_DIRECTION.md`
-12. `docs/CHARACTERS.md`
-13. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-14. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+7. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+8. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+9. `docs/VISUAL_DIRECTION.md`
+10. `docs/CHARACTERS.md`
+11. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+12. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
 Historical runner docs remain evidence but do not override the current gate.
 
@@ -37,7 +35,8 @@ Every state-changing action updates the relevant thematic docs/registry and this
 - Klein: `Z:\AI\Flux2Klein`
 - Qwen edit: `Z:\AI\QwenImageEdit`
 - SDXL evidence: `Z:\AI\SDXLInpaint`
-- Big-LaMa: `Z:\AI\LaMaInpaint`
+- Big-LaMa evidence/workspace: `Z:\AI\LaMaInpaint`
+- PowerPaint: `Z:\AI\PowerPaint`
 - automatic localization: `Z:\AI\RogueliteAssetStudio\localization`
 - Wan paused: `Z:\AI\WanAnimate2`
 - SSD evidence retained: `Z:\AI\SpriteSheetDiffusionSpike`
@@ -145,40 +144,32 @@ Accepted precision components:
 5. operation-aware automatic submask derivation;
 6. deterministic full-resolution composite.
 
-The uncertainty is now only which specialist should execute a physical remove/fill operation behind those accepted masks.
+The only unresolved component in this gate is the specialist that actually executes physical removal behind a correct mask.
 
 ## Qwen regional precision branch — CLOSED
 
-Runner67 rejected colored visual locator conditioning because the guide leaked into the output.
+Runner67 rejected colored locator conditioning because the guide leaked into the image.
 
-Runner68 removed the colored guide and used native latent masking. Containment passed perfectly, but Qwen remained semantically too conservative to remove the plank or break the strap.
+Runner68 used native latent masking. Exact containment passed, but Qwen remained semantically too conservative to remove the plank or break the strap.
 
-Final role: semantic editor, not exact mask-native remover.
+Final role: semantic/reference editor, not exact mask-native remover.
 
-## SDXL Inpainting 0.1 branch — EXHAUSTED
+## SDXL Inpainting 0.1 branch — EXHAUSTED / PAYLOAD REMOVED
 
-### Runner69 — subtraining-resolution test
+Runner69 showed strong masked response but wrong reconstruction on tiny crops.
 
-Technical pass. Strong local response, perfect deterministic containment, wrong semantics:
+Runner70 removed the resolution confound with source-authoritative `512x512` contexts upscaled jointly to `1024x1024` before inference.
 
-- plank `256x512`, inside-allowed >Delta12 `0.539487`, shiny/vertical reconstruction artifact;
-- strap `384x256`, inside-allowed >Delta12 `0.336265`, no clean central break;
-- outside >Delta12 `0.0`.
+Runner70 final evidence:
 
-Because SDXL Inpainting 0.1 was trained at 1024×1024, this was not used as the final verdict.
-
-### Runner70 — 1024 training-resolution parity / FINAL VERDICT
-
-Same masks and semantics, source-authoritative `512x512` context upscaled jointly with mask to `1024x1024`, same sampler/steps/CFG, then deterministic downsample/composite.
-
-Plank:
+### Plank
 
 - elapsed `34.071 s`;
 - inside-allowed >Delta12 `0.316580`;
 - outside >Delta12 `0.0`;
 - visual: board remained present; local retexturing/deformation instead of a real opening.
 
-Strap:
+### Strap
 
 - elapsed `26.069 s`;
 - inside-allowed >Delta12 `0.165934`;
@@ -189,59 +180,143 @@ Classification:
 
 **TECHNICAL PASS / 1024 PARITY PASS / MASK+COMPOSITOR PASS / VISUAL OPERATION FAIL / SDXL INPAINTING EXHAUSTED.**
 
-Do not add more arbitrary SDXL prompt/step tuning for this role.
+Runner69/70 generated evidence remains under `Z:\AI\SDXLInpaint`. Runner71 removed the SDXL Inpainting UNet and SDXL Base checkpoint only after exact-hash verification.
 
-Runner69/70 evidence is preserved under `Z:\AI\SDXLInpaint`. Runner71 removes the SDXL Inpainting UNet and SDXL Base checkpoint only after evidence validation and exact hash verification.
-
-## CURRENT IMPLEMENTATION GATE — RUNNER71 / Big-LaMa object removal
+## Runner71 — Big-LaMa / COMPLETE FAIL FOR EXACT REMOVAL
 
 Canonical record:
 
 `docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
 
+Pinned model:
+
+- `big-lama.pt`;
+- bytes `205803670`;
+- SHA256 `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`.
+
+Technical result:
+
+- all four tight/expanded jobs completed on CUDA;
+- total gate time `7.478 s`;
+- deterministic outside-region change >Delta12 remained `0.0`.
+
+Metrics:
+
+- plank tight inside >Delta12 `0.275328`;
+- plank expanded `0.276856`;
+- strap tight `0.125950`;
+- strap expanded `0.156337`.
+
+Visual verdict:
+
+- plank: Big-LaMa reconstructed local door/wood continuity rather than an empty one-board opening;
+- strap: it reconstructed/smoothed local ferrage rather than a clean absent middle section exposing wood;
+- tight vs expanded masks did not change the semantic conclusion.
+
+Classification:
+
+**TECHNICAL PASS / VERY FAST / MASK+COMPOSITOR PASS / VISUAL OBJECT-REMOVAL FAIL.**
+
+Big-LaMa is not routable as exact object remover. Runner72 preserves its evidence and removes the model only by exact-hash verification.
+
+## CURRENT IMPLEMENTATION GATE — RUNNER72 / PowerPaint v2.1 task-conditioned object removal
+
+Canonical record:
+
+`docs/RUNNER72_POWERPAINT_OBJECT_REMOVAL_2026-09-12.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/71_bootstrap_and_run_big_lama_object_removal.ps1`
+`tools/structured-2d-character-pipeline/72_bootstrap_and_run_powerpaint_object_removal.ps1`
 
 Adapter:
 
-`tools/roguelite-asset-studio/lama_inpaint_adapter.py`
+`tools/roguelite-asset-studio/powerpaint_brushnet_adapter.py`
 
 Executor:
 
-`tools/roguelite-asset-studio/lama_object_removal_gate.py`
+`tools/roguelite-asset-studio/powerpaint_object_removal_gate.py`
 
-Hypothesis:
+### Why this is a different hypothesis
 
-The current hard operations are fundamentally object removal/background continuation. Test a specialist that does not interpret prompt semantics and only receives the already-approved automatic mask.
+Big-LaMa is blind context completion. PowerPaint has learned task modes. In `object removal`, the pinned native ComfyUI implementation uses learned `P_ctxt` positive and `P_obj` negative task conditioning.
 
-Pinned model:
+Runner72 therefore tests whether explicit removal semantics prevent the backend from simply rebuilding the object that the mask erased.
 
-- upstream release: `enesmsahin/simple-lama-inpainting v0.1.0`;
-- file: `big-lama.pt`;
-- bytes: `205803670`;
-- SHA256: `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`;
-- Apache-2.0 LaMa lineage;
-- TorchScript executable artifact: load only the pinned size/hash.
+### Runtime isolation
 
-Runtime:
+Reuse ComfyUI code at:
 
-- direct `torch.jit.load` using existing embedded PyTorch;
-- no ComfyUI server;
-- CUDA when available;
-- `512x512` source-authoritative contexts from Runner70;
-- four cheap jobs: plank tight/expanded mask boundary, strap tight/expanded mask boundary.
+`6eba895f7d3615284da81e95bf49eaed4a5f7309`
 
-Runner71 PASS requires at least one variant per task:
+Pin custom node:
 
-1. atomic plank actually disappears and reads as an opening/background continuation;
-2. central strap section actually disappears and underlying aged door/wood is plausible;
-3. outside strap ends survive;
-4. unrelated geometry remains source-authoritative.
+`nullquant/ComfyUI-BrushNet@505d8ef917ddf3896afd1926770ecc9b099704e2`
 
-If Runner71 passes, promote `automatic_region_object_removal` as a lightweight specialist and keep prompt-driven semantic fill as a separate route.
+Do **not** downgrade the Qwen environment. Runner72 creates a dedicated venv under `Z:\AI\PowerPaint` with `--system-site-packages`, inheriting proven Torch/ComfyUI packages while pinning:
 
-If Runner71 fails, retain the accepted perception/mask/compositor architecture and replace only the removal backend.
+- `diffusers==0.29.2`;
+- `accelerate==0.31.0`;
+- `peft==0.11.1`.
+
+The venv import check occurs before multi-GB downloads.
+
+### New payload
+
+SD1.5 base:
+
+- `v1-5-pruned-emaonly.safetensors`;
+- bytes `4265146304`;
+- SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`.
+
+PowerPaint v2.1 BrushNet:
+
+- bytes `3544366408`;
+- SHA256 `530f2886ef5bcdf199269ec344155a517639ba64219b85eeb23fd86aab93147f`.
+
+PowerPaint learned text encoder:
+
+- bytes `492401329`;
+- SHA256 `73709b4360ca06ef990a67d090e8d81a4310943d67a88845653fc4e9f7f26b65`.
+
+SD1.5 FP16 CLIP:
+
+- bytes `246144864`;
+- SHA256 `77795e2023adcf39bc29a884661950380bd093cf0750a966d473d1718dc9ef4e`.
+
+Total new model payload: approximately `8.55 GB`.
+
+### Matrix
+
+Exact Runner71 source contexts and masks are reused:
+
+- plank / tight;
+- plank / expanded;
+- strap / tight;
+- strap / expanded.
+
+Recipe:
+
+- PowerPaint function `object removal`;
+- fitting `1.0`;
+- BrushNet scale `1.0`;
+- `save_memory=max`;
+- 20 steps;
+- CFG `7.5`;
+- Euler / normal;
+- denoise `1.0`;
+- seed `0`.
+
+Runner72 PASS requires at least one variant per hard operation:
+
+1. one actual plank disappears and becomes a narrow opening/background continuation;
+2. the central strap section disappears and underlying aged wood is visible;
+3. external strap ends survive;
+4. unrelated source geometry remains source-authoritative.
+
+If Runner72 passes, promote `automatic_region_object_removal` and move to semantic multi-reference role separation before Character Lab.
+
+If Runner72 fails, preserve evidence, clean the provisional PowerPaint payload and replace only the removal backend. Do not reopen perception/masks/compositor or return to manual masks.
 
 ## Current perception payload
 
@@ -333,6 +408,17 @@ Do not accumulate checkpoints speculatively.
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE as semantic editor;
 - keep Grounding DINO Tiny + SAM2.1 while automatic perception remains active;
 - keep Runner66 deterministic processor as project code;
-- Runner69/70 SDXL generated evidence remains preserved;
-- Runner71 removes the retired SDXL model payload before downloading Big-LaMa;
-- keep Big-LaMa only if its object-removal gate is visually useful.
+- SDXL model payload is removed; preserve Runner69/70 generated evidence;
+- Big-LaMa model is rejected and Runner72 removes it after evidence/hash validation;
+- keep PowerPaint payload only if Runner72 proves a useful production role.
+
+## Immediate implementation order
+
+1. run Runner72 and review task-conditioned object-removal results;
+2. if both hard operations pass, promote `automatic_region_object_removal`;
+3. validate semantic multi-reference role separation with the installed Qwen semantic editor;
+4. validate reopened Exilada as first difficult Character Lab case;
+5. validate another non-character asset class;
+6. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
+7. wrap proven H3 Ref2VA behind the same orchestration boundary;
+8. resume final rendering-language/pixel-art specialization from approved masters.
