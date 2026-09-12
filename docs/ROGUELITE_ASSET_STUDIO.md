@@ -2,7 +2,7 @@
 
 Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC MASK STACK PROVEN / DEDICATED INPAINT EDITOR GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC MASK STACK PROVEN / SDXL 1024 INPAINT PARITY GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -171,7 +171,7 @@ Runner68 metrics:
 - strap inside-allowed changed ratio >Δ12 `0.052066`, outside `0.0`;
 - visual: plank remains; strap remains continuous.
 
-Final routing implication:
+Routing implication:
 
 - keep Qwen2511 for semantic/appearance/reference-driven revision;
 - do **not** route exact component removal/fill/inpainting to Qwen2511.
@@ -232,61 +232,76 @@ Classification:
 
 This closes Qwen's mask-native precision role without invalidating the accepted perception/mask stack.
 
-## CURRENT PRECISION GATE — Runner69 / dedicated SDXL Inpainting 0.1
+## SDXL Inpainting 0.1 — dedicated inpainting branch
+
+Payload installed after Runner68:
+
+- `sdxl_inpaint_0.1_fp16.safetensors`, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
+- `sd_xl_base_1.0.safetensors`, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
+- CreativeML Open RAIL++-M provenance retained.
+
+### Runner69 — COMPLETE / technically healthy, visually failed below training resolution
+
+Runner69 reused the accepted Runner66 masks and native `InpaintModelConditioning` with 30 steps / CFG 6 / DPM++ 2M / Karras.
+
+Results:
+
+- plank crop `256x512`, elapsed `18.075 s`, inside-allowed >Δ12 `0.539487`, outside `0.0`;
+- strap crop `384x256`, elapsed `10.047 s`, inside-allowed >Δ12 `0.336265`, outside `0.0`.
+
+Visual result:
+
+- plank reacted strongly but created bright/shiny vertical artifacts instead of a clean opening;
+- strap did not create a clean central break with coherent matching wood.
+
+Important qualification: the official SDXL Inpainting 0.1 model was trained at `1024x1024`, so Runner69's small rectangular crops are a meaningful confound. The model is not rejected yet.
+
+Classification:
+
+**TECHNICAL PASS / MASK-NATIVE RESPONSE PASS / VISUAL OPERATION FAIL AT SUBTRAINING RESOLUTION / FINAL SDXL VERDICT DEFERRED.**
+
+## CURRENT PRECISION GATE — Runner70 / SDXL 1024 training-resolution parity
 
 Canonical record:
 
-`docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
+`docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
 
 Implementation:
 
-- `tools/roguelite-asset-studio/sdxl_inpaint_adapter.py`
-- `tools/roguelite-asset-studio/sdxl_inpaint_region_gate.py`
-- `tools/structured-2d-character-pipeline/69_bootstrap_and_run_sdxl_inpaint_precision_gate.ps1`
+- reuse `tools/roguelite-asset-studio/sdxl_inpaint_adapter.py` unchanged;
+- `tools/roguelite-asset-studio/sdxl_inpaint_1024_parity_gate.py`;
+- `tools/structured-2d-character-pipeline/70_run_sdxl_inpaint_1024_parity_gate.ps1`.
 
-Hypothesis:
+One-variable hypothesis:
 
-A model explicitly trained for inpainting should be materially better at physical remove/fill operations than a general semantic editor when the target mask is already correct.
+The artifacts in Runner69 may be caused by using a 1024-trained inpainting model on 256x512 / 384x256 crops. Test the same editor at its training-scale spatial regime before switching models.
 
-Payload:
+Pipeline:
 
-- SDXL Inpainting 0.1 FP16 UNet, ~5.14 GB, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
-- SDXL Base 1.0 checkpoint, ~6.94 GB, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
-- license: CreativeML Open RAIL++-M.
+`Runner66 target -> exact 512x512 source-authoritative context -> jointly upscale source+mask to 1024x1024 -> same InpaintModelConditioning recipe -> downsample generated result back to exact 512 source coordinates -> deterministic full-resolution composite`.
 
-Runtime:
+Unchanged:
 
-- first gate reuses the already-pinned ComfyUI installation under `Z:\AI\QwenImageEdit\ComfyUI_windows_portable`;
-- model/output state lives under `Z:\AI\SDXLInpaint`;
-- low-VRAM / reserve 1 GB;
-- 30 steps / CFG 6;
+- same automatic masks;
+- same plank and strap operation semantics;
+- same model/checkpoints;
+- 30 steps;
+- CFG 6;
 - DPM++ 2M / Karras;
 - denoise 1.0;
-- seed 0.
+- seed 0;
+- no user box/mask;
+- no new download.
 
-Graph:
+PASS requires both:
 
-`UNETLoader(inpaint) + CheckpointLoaderSimple(base CLIP/VAE) + source + mask -> InpaintModelConditioning -> KSampler -> VAEDecode`.
+1. plank becomes a real narrow opening with no bright/shiny reconstructed strip;
+2. strap middle is absent and matching aged wood is visible while both external ends survive;
+3. unrelated source geometry remains source-authoritative.
 
-Operation semantics remain identical to Runner68:
+If Runner70 passes, promote `automatic_region_inpaint` and continue to semantic multi-reference role separation before Exilada Character Lab.
 
-- plank: full Runner66 atomic board mask;
-- strap: automatically derived central 40% of approved strap;
-- contextual image and mask crops use the exact same coordinates, aligned to 64-pixel dimensions;
-- deterministic final composite restores unrelated source pixels.
-
-PASS requires both operations visually:
-
-1. one plank becomes a real narrow opening/background continuation;
-2. no replacement plank;
-3. strap middle disappears and aged wood is reconstructed underneath;
-4. both outside strap ends survive;
-5. no replacement bar;
-6. unrelated geometry remains source-authoritative.
-
-If Runner69 passes, promote `automatic_region_inpaint` and continue to semantic multi-reference role separation before Exilada Character Lab.
-
-If Runner69 fails, retain the accepted perception/mask/compositor architecture, preserve evidence, remove the provisional SDXL payload and test the next dedicated inpainting backend.
+If Runner70 fails, SDXL Inpainting is exhausted fairly. Preserve Runner69/70 evidence, remove its provisional payload under cleanup policy, and test the next dedicated mask-native backend behind the same accepted automatic-mask contract.
 
 ## Current perception payload
 
@@ -344,7 +359,7 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 
 ## Immediate implementation order
 
-1. run Runner69 and review dedicated inpaint plank/strap edits;
+1. run Runner70 and review the same SDXL inpaint operations at 1024 training-resolution parity;
 2. if both pass, promote `automatic_region_inpaint`;
 3. validate semantic multi-reference role separation;
 4. validate reopened Exilada as first difficult Character Lab case;
@@ -353,7 +368,7 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 7. wrap proven H3 Ref2VA behind the same orchestration boundary;
 8. resume final rendering-language/pixel-art specialization from approved masters.
 
-If Runner69 fails, replace only the dedicated inpainting backend behind the already-proven automatic target/mask/compositor contract.
+If Runner70 fails, replace only the inpainting backend behind the already-proven automatic target/mask/compositor contract after preserving evidence and cleaning the SDXL payload.
 
 ## Hard conclusion
 
