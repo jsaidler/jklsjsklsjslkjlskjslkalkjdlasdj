@@ -1,187 +1,107 @@
 # Runner71 — Big-LaMa automatic-mask object-removal gate
 
-Status date: **2026-09-11**
+Status date: **2026-09-12**
 
-Status: **PREPARED / CURRENT DEDICATED REMOVAL GATE**
+Status: **COMPLETE / TECHNICAL PASS / VISUAL OBJECT-REMOVAL FAIL**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner71 exists
+## Why Runner71 existed
 
-Runner70 exhausted SDXL Inpainting 0.1 fairly. Running the same accepted automatic masks through the model at its 1024x1024 training regime did not produce the required structural operations.
+Runner70 exhausted SDXL Inpainting 0.1 fairly: even at its `1024x1024` training-resolution regime, the model reinterpreted/reconstructed the masked regions instead of performing the required physical removals.
 
-Runner70 actual result:
-
-### Plank
-
-- model input `1024x1024` from an exact source-authoritative `512x512` context;
-- elapsed `34.071 s`;
-- inside-allowed changed ratio >Delta12 `0.316580`;
-- outside-allowed changed ratio >Delta12 `0.0`;
-- visual: the plank remained present; the region was retextured/deformed rather than becoming an opening.
-
-### Strap
-
-- model input `1024x1024` from an exact source-authoritative `512x512` context;
-- elapsed `26.069 s`;
-- inside-allowed changed ratio >Delta12 `0.165934`;
-- outside-allowed changed ratio >Delta12 `0.0`;
-- visual: the strap remained structurally continuous; no clean middle break exposing matching wood was produced.
-
-Runner70 classification:
-
-**TECHNICAL PASS / 1024 TRAINING-RESOLUTION PARITY PASS / OUTSIDE-REGION CONTAINMENT PASS / VISUAL OPERATION FAIL / SDXL INPAINTING HYPOTHESIS EXHAUSTED.**
-
-The SDXL payload is therefore retired and Runner71 removes it only after confirming Runner69/70 evidence exists.
-
-## New editor hypothesis
-
-Runner71 changes only the regional removal backend.
+Runner71 changed only the removal backend while preserving the accepted automatic masks, source contexts and deterministic compositor.
 
 Editor:
 
-**Big-LaMa** — resolution-robust large-mask inpainting with Fourier convolutions.
+**Big-LaMa** via the pinned `enesmsahin/simple-lama-inpainting` TorchScript artifact.
 
-Why this is a rational next specialist:
+Pinned artifact:
 
-- it is specifically designed for object removal/inpainting rather than general semantic editing;
-- it does not need a text prompt, eliminating another source of interpretation error;
-- the accepted Runner66 masks already define exactly what must be removed;
-- it is extremely lightweight compared with the previous diffusion backends;
-- it is resolution-robust and can operate directly on the exact source-coordinate context;
-- LaMa lineage is Apache-2.0.
+- `big-lama.pt`;
+- bytes `205803670`;
+- SHA256 `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`;
+- Apache-2.0 LaMa lineage.
 
-The upstream project used by the gate is `enesmsahin/simple-lama-inpainting`, which loads the released Big-LaMa TorchScript model directly.
+## Control contract
 
-## Security/provenance note
+`Runner66 approved automatic target -> Runner71 tight/expanded operation mask -> Big-LaMa -> deterministic full-resolution composite`
 
-TorchScript artifacts are executable/pickle-bearing. Runner71 therefore does **not** load an arbitrary `big-lama.pt`.
+No prompt, manual mask, manual box or repaint was used.
 
-Pinned upstream release artifact:
+The gate reused the same `512x512` source-authoritative contexts later used for direct backend comparison.
 
-- source: `https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt`
-- bytes: `205803670`
-- SHA256: `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`
+## Actual technical result
 
-The size is confirmed by the upstream GitHub release metadata and the SHA256 is independently mirrored by multiple repositories carrying that exact byte-size artifact. The runner refuses to execute a file with a different size or hash.
+Classification:
 
-## Cleanup before the new gate
+**TECHNICAL PASS / VERY FAST / MASK+COMPOSITOR PASS / VISUAL OBJECT-REMOVAL FAIL.**
 
-Preserve:
+All four jobs completed on CUDA.
 
-- Runner69 outputs/manifest/contact sheet;
-- Runner70 outputs/manifest/contact sheet.
+Total gate time: `7.478 s`.
 
-Then remove the retired SDXL payload, but only if the local file hashes exactly match the pinned artifacts:
+### Plank / tight
 
-- `sdxl_inpaint_0.1_fp16.safetensors`;
-- `sd_xl_base_1.0.safetensors`.
+- inference: `1.676 s`;
+- inside-allowed changed ratio >Delta12: `0.275328`;
+- outside-allowed changed ratio >Delta12: `0.0`.
 
-This recovers approximately 12.1 GB before the ~196 MiB Big-LaMa download.
+### Plank / expanded
 
-## Automatic control contract — unchanged
+- inference: `2.870 s`;
+- inside-allowed changed ratio >Delta12: `0.276856`;
+- outside-allowed changed ratio >Delta12: `0.0`.
 
-Runner71 keeps the accepted precision stack:
+### Strap / tight
 
-`semantic request -> hierarchy/perception -> SAM2/repeated-member decomposition -> Runner66 operation mask -> specialist removal backend -> deterministic full-resolution composite`.
+- inference: `0.094 s`;
+- inside-allowed changed ratio >Delta12: `0.125950`;
+- outside-allowed changed ratio >Delta12: `0.0`.
 
-No manual box or mask is introduced.
+### Strap / expanded
 
-### Plank
+- inference: `0.092 s`;
+- inside-allowed changed ratio >Delta12: `0.156337`;
+- outside-allowed changed ratio >Delta12: `0.0`.
 
-- target: Runner66 exact one-plank mask;
-- operation: remove the whole atomic board;
-- desired fill: plausible narrow opening/background continuation;
-- neighboring planks/hardware remain source-authoritative outside the allowed neighborhood.
+The deterministic compositor therefore continued to satisfy the exact containment contract.
 
-### Strap
+## Visual verdict
 
-- target: Runner66 retained lower-right strap mask;
-- operation: remove the central 40% only;
-- desired fill: plausible underlying aged door/wood;
-- outside strap ends survive.
+### Plank — FAIL
 
-## Cheap boundary matrix
+Both mask-boundary variants reconstructed plausible **door/wood continuity** through the target rather than producing the required empty one-board opening. The model reacted locally but solved the missing region as texture/context completion instead of object removal.
 
-Because LaMa is inexpensive, Runner71 does not jump models after one arbitrary mask edge setting. It tests two deterministic boundary variants for each operation:
+### Strap — FAIL
 
-- `tight`: small dilation around the semantic operation;
-- `expanded`: larger but still local dilation to give the object-removal network more boundary context.
+Both variants reconstructed/smoothed local ferrage/door continuity. Neither produced a clearly absent center section with aged wood exposed beneath while preserving the two outside strap ends.
 
-Four inference jobs total:
+The tight/expanded matrix therefore rules out a simple mask-edge explanation.
 
-- plank/tight;
-- plank/expanded;
-- strap/tight;
-- strap/expanded.
+## Architectural conclusion
 
-The semantic target itself never changes.
+Big-LaMa is a useful lightweight context-completion inpainter, but it is **not routable as the project's exact automatic object-removal specialist** for this contract.
 
-## Runtime
+The result does not reopen:
 
-No ComfyUI server is used.
+- Grounding DINO/SAM2 hierarchy;
+- Runner66 repeated-element decomposition;
+- operation-specific automatic masks;
+- deterministic full-resolution composition.
 
-Runner71 reuses the already-installed embedded Python/PyTorch runtime under:
+Those components remain accepted. Only the regional removal backend changes.
 
-`Z:\AI\QwenImageEdit\ComfyUI_windows_portable\python_embeded\python.exe`
+## Cleanup
 
-The model is loaded directly with pinned `torch.jit.load` and runs on CUDA when available.
+Runner71 manifest/contact sheet/generated evidence is retained.
 
-Workspace:
+`big-lama.pt` is rejected for production routing and Runner72 removes it only after validating preserved Runner71 evidence and its exact SHA256.
 
-`Z:\AI\LaMaInpaint`
+## Next gate
 
-Output root:
+Runner72:
 
-`Z:\AI\LaMaInpaint\runner71_object_removal_gate`
+`docs/RUNNER72_POWERPAINT_OBJECT_REMOVAL_2026-09-12.md`
 
-## Implementation
-
-Adapter:
-
-`tools/roguelite-asset-studio/lama_inpaint_adapter.py`
-
-Executor:
-
-`tools/roguelite-asset-studio/lama_object_removal_gate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/71_bootstrap_and_run_big_lama_object_removal.ps1`
-
-## PASS criteria
-
-Technical PASS:
-
-- Runner66 and Runner70 evidence validate;
-- retired SDXL payload is removed only by exact hash;
-- Big-LaMa download size/hash validate;
-- TorchScript loads on the local runtime;
-- all four jobs complete;
-- outputs/contact sheet/manifest are written;
-- no manual mask/box and no ComfyUI server is used.
-
-Visual PASS requires at least one mask variant per task.
-
-### Plank
-
-- exactly the atomic plank is absent;
-- its region reads as an actual opening/background continuation;
-- LaMa must not simply reconstruct another wooden board across the gap;
-- neighboring components remain coherent.
-
-### Strap
-
-- central strap section is absent;
-- the fill reads as underlying aged door/wood rather than a replacement metal bar;
-- both outside strap ends remain.
-
-### Preservation
-
-The deterministic final composite must continue to keep unrelated source geometry authoritative.
-
-## Decision after Runner71
-
-If both tasks pass in at least one variant, promote Big-LaMa as the lightweight `automatic_region_object_removal` specialist. Keep prompt-driven semantic fill as a separate routing problem rather than forcing one backend to do both.
-
-If LaMa preserves/reconstructs the removed object instead of producing a useful fill, retain the accepted perception/mask/compositor stack and test the next dedicated mask-native backend. Do not regress to manual masks or global prompt-only editing.
+PowerPaint v2.1 / BrushNet is a materially different hypothesis because it has an explicit learned `object removal` task using `P_ctxt`/`P_obj` conditioning rather than blind local context completion.
