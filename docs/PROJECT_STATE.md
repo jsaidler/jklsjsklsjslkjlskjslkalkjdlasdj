@@ -8,17 +8,18 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are s
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/ROGUELITE_ASSET_STUDIO.md`
-3. `docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
-4. `docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
-5. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
-6. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
-7. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
-8. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
-9. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
-10. `docs/VISUAL_DIRECTION.md`
-11. `docs/CHARACTERS.md`
-12. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
-13. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
+3. `docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
+4. `docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
+5. `docs/RUNNER68_QWEN2511_LATENT_MASK_REGION_EDIT_2026-09-11.md`
+6. `docs/RUNNER67_QWEN2511_ATOMIC_REGION_EDIT_2026-09-11.md`
+7. `docs/RUNNER66_REPEATED_ELEMENT_DECOMPOSITION_2026-09-11.md`
+8. `docs/RUNNER65_HIERARCHICAL_LOCALIZATION_2026-09-11.md`
+9. `docs/RUNNER64_AUTOMATIC_LOCALIZATION_REGION_CONTROL_2026-09-10.md`
+10. `docs/RUNNER63_QWEN_IMAGE_EDIT_2511_PRECISION_2026-09-10.md`
+11. `docs/VISUAL_DIRECTION.md`
+12. `docs/CHARACTERS.md`
+13. `docs/LOCAL_SPRITESHEET_AUTHORING_WORKFLOW.md`
+14. `docs/MINIMAX_H3_REF2VA_LOCAL_SPIKE_2026-09-08.md`
 
 Historical runner docs remain evidence but do not override the current gate.
 
@@ -83,9 +84,9 @@ Not routable:
 
 - production precision editing.
 
-## FLUX.2 Klein 4B Base — edit precision hypothesis exhausted
+## FLUX.2 Klein 4B Base — edit precision exhausted
 
-Runner60 fixed the original Base graph and proved healthy parity. Runner61 proved atomic/sequential edits remain too coarse.
+Runner60 fixed the graph and proved healthy parity. Runner61 proved atomic/sequential edits remain too coarse.
 
 Final role:
 
@@ -103,7 +104,7 @@ Runner62:
 
 Its diffusion checkpoint was removed after preserving evidence. Shared Qwen2.5-VL encoder and Qwen VAE remain for 2511.
 
-## Qwen-Image-Edit-2511 — installed semantic editor / masked precision role closed
+## Qwen-Image-Edit-2511 — installed semantic editor / exact masked role closed
 
 Runtime:
 
@@ -117,39 +118,21 @@ Runtime:
 - CFGNorm 1
 - Euler/simple, CFG 4
 
-Runner63 closed unrestricted global precision prompting: plank improved, strap produced a large replacement bar, and 40 steps did not solve it.
+Runner63 closed unrestricted global precision prompting. Runner67 closed colored locator conditioning. Runner68 proved native latent mask containment but Qwen remained semantically near-no-op inside the mask.
 
-Runner67 closed colored visual locator conditioning: automatic masks/compositor passed, but red locator content leaked and crop geometry shifted.
+Runner68:
 
-Runner68 closed Qwen as the exact mask-native removal/fill backend:
+- plank inside-allowed changed ratio >Δ12 `0.059154`;
+- strap inside-allowed changed ratio >Δ12 `0.052066`;
+- both outside-allowed changed ratio >Δ12 `0.0`;
+- plank remained present;
+- strap remained effectively continuous.
 
-### Runner68 actual result
-
-Architecture:
-
-`Runner66 automatic mask -> source crop -> ImageToMask -> SetLatentNoiseMask(source latent) -> Qwen2511 -> deterministic composite`.
-
-Plank:
-
-- Qwen elapsed `481.612 s`;
-- approved bbox `[358,295,388,644]`;
-- inside-allowed changed ratio >Δ12 `0.059154`;
-- outside-allowed changed ratio >Δ12 `0.0`;
-- visual: **FAIL — board remains present; no clean opening**.
-
-Strap:
-
-- Qwen elapsed `451.471 s`;
-- operation bbox `[484,550,522,590]` (central 40% of approved strap);
-- inside-allowed changed ratio >Δ12 `0.052066`;
-- outside-allowed changed ratio >Δ12 `0.0`;
-- visual: **FAIL — strap remains effectively continuous**.
-
-Runner68 classification:
+Classification:
 
 **TECHNICAL PASS / AUTOMATIC MASK CONTROL PASS / OUTSIDE-REGION CONTAINMENT PASS / SEMANTIC OPERATION FAIL / QWEN MASKED-PRECISION ROLE CLOSED.**
 
-Qwen2511 remains installed for higher-level semantic/appearance/reference editing. Do not delete it and do not route exact component removal/fill to it.
+Qwen2511 remains installed for higher-level semantic/appearance/reference editing. Do not route exact component removal/fill to it.
 
 ## Precision-control architecture — ACCEPTED THROUGH MASK/COMPOSITOR
 
@@ -165,7 +148,7 @@ Flat full-image localization failed; deterministic regional compositor passed wi
 
 ### Runner65 — COMPLETE
 
-Hierarchical localization passed for parent door and lower-right strap; plank request found the correct repeated left leaf but not one board.
+Hierarchical localization passed for parent door and lower-right strap. Plank request found the correct repeated left leaf but not one board.
 
 ### Runner66 — COMPLETE / STRUCTURAL PERCEPTION PASS
 
@@ -191,70 +174,96 @@ Accepted precision components:
 5. operation-aware submask derivation;
 6. deterministic full-resolution composite.
 
-The only active uncertainty is now the dedicated regional inpainting backend.
+The active uncertainty is only the dedicated regional inpainting backend and its correct operating regime.
 
-## CURRENT IMPLEMENTATION GATE — RUNNER69 / dedicated SDXL Inpainting 0.1
+## Runner69 — COMPLETE / SDXL dedicated inpaint at subtraining resolution
 
 Canonical record:
 
 `docs/RUNNER69_SDXL_INPAINT_PRECISION_2026-09-11.md`
 
+Payload:
+
+- SDXL Inpainting 0.1 FP16 UNet, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
+- SDXL Base 1.0 checkpoint, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
+- license: CreativeML Open RAIL++-M.
+
+Technical execution passed on RTX 3060 12 GB with no OOM.
+
+Plank:
+
+- crop `256x512`;
+- elapsed `18.075 s`;
+- inside-allowed changed ratio >Δ12 `0.539487`;
+- outside >Δ12 `0.0`;
+- visually reacted strongly but produced bright/shiny vertical reconstruction artifacts instead of a clean opening.
+
+Strap:
+
+- crop `384x256`;
+- elapsed `10.047 s`;
+- inside-allowed changed ratio >Δ12 `0.336265`;
+- outside >Δ12 `0.0`;
+- visually failed to create a clean central break with matching wood underneath.
+
+Important qualification:
+
+SDXL Inpainting 0.1 was trained at `1024x1024`, so Runner69 used inputs far below the model's intended spatial regime. Runner69 is therefore **not** the final verdict on the backend.
+
+Classification:
+
+**TECHNICAL PASS / MASK-NATIVE RESPONSE PASS / OUTSIDE-REGION CONTAINMENT PASS / VISUAL OPERATION FAIL AT SUBTRAINING RESOLUTION / SDXL HYPOTHESIS STILL OPEN.**
+
+## CURRENT IMPLEMENTATION GATE — RUNNER70 / SDXL 1024 training-resolution parity
+
+Canonical record:
+
+`docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
+
 Runner:
 
-`tools/structured-2d-character-pipeline/69_bootstrap_and_run_sdxl_inpaint_precision_gate.ps1`
-
-Adapter:
-
-`tools/roguelite-asset-studio/sdxl_inpaint_adapter.py`
+`tools/structured-2d-character-pipeline/70_run_sdxl_inpaint_1024_parity_gate.ps1`
 
 Executor:
 
-`tools/roguelite-asset-studio/sdxl_inpaint_region_gate.py`
+`tools/roguelite-asset-studio/sdxl_inpaint_1024_parity_gate.py`
+
+Existing adapter reused:
+
+`tools/roguelite-asset-studio/sdxl_inpaint_adapter.py`
 
 Hypothesis:
 
-Qwen respected mask containment but did not perform strong structural removal. Test a model explicitly trained for inpainting while holding all automatic target masks and final containment constant.
+Runner69's artifacts may be caused by running a 1024-trained model on tiny rectangular crops. Test the exact same backend and operation semantics at native training-scale geometry before switching models.
 
-Payload:
+One-variable architecture:
 
-- SDXL Inpainting 0.1 FP16 UNet, ~5.14 GB, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
-- SDXL Base 1.0 checkpoint, ~6.94 GB, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
-- license: CreativeML Open RAIL++-M; preserve license/use-restriction provenance.
+`Runner66 target -> exact 512x512 source context -> jointly upscale source+mask to 1024x1024 -> same SDXL InpaintModelConditioning recipe -> downsample generated crop back to 512 source coordinates -> deterministic full-resolution composite`.
 
-Runtime:
+Unchanged recipe:
 
-- reuse pinned ComfyUI under `Z:\AI\QwenImageEdit\ComfyUI_windows_portable` for first gate;
-- SDXL output/model state under `Z:\AI\SDXLInpaint`;
-- low-VRAM / reserve 1 GB;
 - 30 steps;
 - CFG 6;
 - DPM++ 2M / Karras;
 - denoise 1.0;
-- seed 0.
+- seed 0;
+- low-VRAM / reserve 1 GB.
 
-Native graph:
+No download is allowed. Runner70 reuses the verified Runner69 payload.
 
-`UNETLoader(inpaint) + CheckpointLoaderSimple(base CLIP/VAE) + source + automatic mask -> InpaintModelConditioning -> KSampler -> VAEDecode`.
-
-Operation contract:
-
-- plank: full Runner66 atomic plank mask;
-- strap: central 40% automatically derived from approved strap mask;
-- contextual source/mask crops share exact coordinates and are padded to multiples of 64;
-- deterministic final composite remains the second containment layer.
-
-Runner69 PASS requires:
+Runner70 PASS requires:
 
 1. one plank becomes a true narrow opening/background continuation;
-2. neighboring wood/hardware remain coherent;
-3. strap central metal section disappears and coherent aged wood is reconstructed underneath;
-4. both strap ends remain;
-5. no replacement bar;
-6. unrelated geometry stays source-authoritative.
+2. no bright/shiny replacement strip appears;
+3. neighboring boards/hardware remain coherent;
+4. strap center disappears and matching aged wood is visible;
+5. both external strap ends survive;
+6. no replacement/continuous bar appears;
+7. unrelated geometry remains source-authoritative.
 
-If Runner69 passes, promote a dedicated `automatic_region_inpaint` route and move to semantic multi-reference role separation before Character Lab.
+If Runner70 passes, promote a dedicated `automatic_region_inpaint` route and move to semantic multi-reference role separation before Character Lab.
 
-If Runner69 fails, preserve evidence, remove the SDXL inpaint payload under cleanup policy, and test the next dedicated mask-native backend behind the same accepted masks. Do not regress to global prompt-only editing or manual production masks.
+If Runner70 fails, SDXL Inpainting is exhausted fairly. Preserve Runner69/70 evidence, remove the provisional ~12.1 GB SDXL payload under cleanup policy, and test the next dedicated mask-native backend behind the accepted masks. Do not add arbitrary extra step/prompt tuning.
 
 ## Current perception payload
 
@@ -348,5 +357,5 @@ Do not accumulate checkpoints speculatively.
 - keep Qwen2511 + shared Qwen2.5-VL + Qwen VAE as semantic editor;
 - keep Grounding DINO Tiny + SAM2.1 while automatic perception remains active;
 - Runner66 deterministic processor remains project code;
-- SDXL Inpainting/Base payload is provisional until Runner69 visual review;
-- if Runner69 fails, preserve outputs/manifest then remove its ~12.1 GB payload before testing another inpainting backend.
+- keep SDXL Inpainting/Base payload through Runner70 because Runner69 was resolution-confounded;
+- if Runner70 fails, preserve evidence then remove the ~12.1 GB SDXL payload before testing another inpainting backend.
