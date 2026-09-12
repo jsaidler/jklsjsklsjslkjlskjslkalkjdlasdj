@@ -2,7 +2,7 @@
 
 Status date: **2026-09-12**
 
-Status: **PREPARED / CURRENT SPECIALIST REMOVAL GATE / PORTABLE-RUNTIME PREFLIGHT FIXED**
+Status: **PREPARED / CURRENT SPECIALIST REMOVAL GATE / PORTABLE-RUNTIME PREFLIGHT PASS**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -54,7 +54,7 @@ Reasons:
 - supports `save_memory=max`, important for RTX 3060 12 GB;
 - graph semantics are directly inspectable and versionable.
 
-## Portable Python dependency isolation — FIXED AFTER FIRST PREFLIGHT
+## Portable Python dependency isolation — PREFLIGHT PASS
 
 The first Runner72 bootstrap attempted to create a dedicated `venv --system-site-packages` from the ComfyUI Windows embedded Python. The venv was created, but its interpreter did **not** inherit the portable runtime's Torch installation. The preflight failed exactly at:
 
@@ -92,6 +92,27 @@ Consequences:
 - the failed `Z:\AI\PowerPaint\venv` is deleted as Runner72-owned transient state;
 - the import check still occurs before any multi-GB model download;
 - the import probe asserts the exact three pinned overlay versions.
+
+### Actual corrected preflight result
+
+Command:
+
+`tools/structured-2d-character-pipeline/72_preflight_powerpaint_runtime.ps1`
+
+Result on **2026-09-12**:
+
+`RUNNER72-PREFLIGHT: PASS - BASE TORCH + ISOLATED POWERPAINT OVERLAY VERIFIED`
+
+`No PowerPaint model payload was downloaded by this preflight.`
+
+This proves the corrected process-local overlay can simultaneously import:
+
+- the proven base portable Torch runtime;
+- `diffusers==0.29.2`;
+- `accelerate==0.31.0`;
+- `peft==0.11.1`.
+
+Runner72 is therefore cleared to proceed to the model-download/custom-node/full inference phase. No model-quality conclusion exists yet.
 
 ## Model payload
 
@@ -248,6 +269,10 @@ Portable dependency launcher:
 
 `tools/roguelite-asset-studio/python_overlay_launcher.py`
 
+Runtime-only preflight:
+
+`tools/structured-2d-character-pipeline/72_preflight_powerpaint_runtime.ps1`
+
 Runner:
 
 `tools/structured-2d-character-pipeline/72_bootstrap_and_run_powerpaint_object_removal.ps1`
@@ -267,6 +292,8 @@ Technical PASS requires:
 - `BrushNetLoader`, `PowerPaintCLIPLoader` and `PowerPaint` load through ComfyUI;
 - all four jobs complete;
 - contact sheet + manifest + deterministic composites are written.
+
+The runtime/import portion of this technical gate is already **PASS** from `72_preflight_powerpaint_runtime.ps1`; model/custom-node/inference completion remains pending.
 
 Visual PASS requires at least one boundary variant per task.
 
