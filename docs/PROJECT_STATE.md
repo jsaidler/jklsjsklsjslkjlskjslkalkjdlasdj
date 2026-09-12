@@ -237,13 +237,17 @@ Executor:
 
 `tools/roguelite-asset-studio/powerpaint_object_removal_gate.py`
 
+Portable dependency launcher:
+
+`tools/roguelite-asset-studio/python_overlay_launcher.py`
+
 ### Why this is a different hypothesis
 
 Big-LaMa is blind context completion. PowerPaint has learned task modes. In `object removal`, the pinned native ComfyUI implementation uses learned `P_ctxt` positive and `P_obj` negative task conditioning.
 
 Runner72 therefore tests whether explicit removal semantics prevent the backend from simply rebuilding the object that the mask erased.
 
-### Runtime isolation
+### Runtime isolation — FIRST PREFLIGHT FIXED
 
 Reuse ComfyUI code at:
 
@@ -253,13 +257,28 @@ Pin custom node:
 
 `nullquant/ComfyUI-BrushNet@505d8ef917ddf3896afd1926770ecc9b099704e2`
 
-Do **not** downgrade the Qwen environment. Runner72 creates a dedicated venv under `Z:\AI\PowerPaint` with `--system-site-packages`, inheriting proven Torch/ComfyUI packages while pinning:
+The first Runner72 bootstrap attempted `venv --system-site-packages`. The venv interpreter did not inherit Torch from the Windows embedded Python and failed before any multi-GB model download with:
+
+`ModuleNotFoundError: No module named 'torch'`
+
+This was an integration/preflight failure, not a model verdict. The venv strategy is retired.
+
+Corrected isolation:
+
+- keep the proven embedded Python/Torch runtime unchanged;
+- install only Runner72-specific version overrides under `Z:\AI\PowerPaint\pydeps` using `pip --target --no-deps`;
+- prepend that directory explicitly to `sys.path` through `python_overlay_launcher.py` for the ComfyUI and executor processes only;
+- do not rely on `PYTHONPATH`, because embedded Python `_pth` isolation can ignore it;
+- delete only the failed Runner72-owned `Z:\AI\PowerPaint\venv`;
+- do **not** downgrade or modify Qwen portable site-packages.
+
+Pinned process-local overlay:
 
 - `diffusers==0.29.2`;
 - `accelerate==0.31.0`;
 - `peft==0.11.1`.
 
-The venv import check occurs before multi-GB downloads.
+The runner independently confirms that the base embedded interpreter imports Torch, then asserts all three exact overlay versions before any model download.
 
 ### New payload
 
@@ -409,12 +428,13 @@ Do not accumulate checkpoints speculatively.
 - keep Grounding DINO Tiny + SAM2.1 while automatic perception remains active;
 - keep Runner66 deterministic processor as project code;
 - SDXL model payload is removed; preserve Runner69/70 generated evidence;
-- Big-LaMa model is rejected and Runner72 removes it after evidence/hash validation;
+- Big-LaMa model is rejected and may already be removed by the first Runner72 verified cleanup; preserve Runner71 evidence;
+- delete the failed Runner72-owned legacy `venv`; use process-local `pydeps` overlay instead;
 - keep PowerPaint payload only if Runner72 proves a useful production role.
 
 ## Immediate implementation order
 
-1. run Runner72 and review task-conditioned object-removal results;
+1. rerun corrected Runner72 and review task-conditioned object-removal results;
 2. if both hard operations pass, promote `automatic_region_object_removal`;
 3. validate semantic multi-reference role separation with the installed Qwen semantic editor;
 4. validate reopened Exilada as first difficult Character Lab case;
