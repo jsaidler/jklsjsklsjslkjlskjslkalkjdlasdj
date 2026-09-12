@@ -2,7 +2,7 @@
 
 Status date: **2026-09-12**
 
-Status: **PREPARED / CURRENT SPECIALIST REMOVAL GATE / PORTABLE-RUNTIME PREFLIGHT PASS**
+Status: **CURRENT SPECIALIST REMOVAL GATE / RUNTIME+PAYLOAD PASS / PROMPT-PATH FIXED / INFERENCE RETRY PENDING**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -112,7 +112,44 @@ This proves the corrected process-local overlay can simultaneously import:
 - `accelerate==0.31.0`;
 - `peft==0.11.1`.
 
-Runner72 is therefore cleared to proceed to the model-download/custom-node/full inference phase. No model-quality conclusion exists yet.
+## Windows dropdown-path validation failure — FIXED
+
+The first full Runner72 attempt after the runtime preflight successfully progressed through:
+
+- shared ComfyUI startup;
+- ComfyUI-BrushNet custom-node loading;
+- model payload download + hash validation;
+- API readiness;
+- first prompt submission.
+
+The prompt was rejected **before inference** because the adapter sent canonical POSIX-style relative model ids:
+
+- `powerpaint/diffusion_pytorch_model.safetensors`;
+- `powerpaint/pytorch_model.bin`.
+
+The pinned custom node builds its dropdown values from `get_files_with_extension()`. On Windows, the exact advertised values were:
+
+- `powerpaint\\diffusion_pytorch_model.safetensors`;
+- `powerpaint\\pytorch_model.bin`.
+
+ComfyUI validates dropdown strings literally, so equivalent filesystem paths with a different separator were rejected.
+
+This is a harness/platform-path failure, **not a PowerPaint inference or model-quality result**.
+
+Fix committed in:
+
+`tools/roguelite-asset-studio/powerpaint_brushnet_adapter.py`
+
+The adapter now:
+
+1. queries each relevant node's `/object_info` schema;
+2. normalizes slash direction only for matching against the canonical Asset Studio model id;
+3. stores and submits the **exact runtime-advertised dropdown string**;
+4. therefore remains portable across Windows/POSIX separator conventions.
+
+Because this failure occurred after the four large payloads had already been downloaded and validated, the retry must reuse them by hash and proceed directly toward the first valid inference; no multi-GB redownload is expected.
+
+No visual verdict exists yet.
 
 ## Model payload
 
@@ -151,7 +188,7 @@ Used as the SD1.5 MODEL/CLIP/VAE authority required by PowerPaint.
 - bytes: `246144864`;
 - SHA256: `77795e2023adcf39bc29a884661950380bd093cf0750a966d473d1718dc9ef4e`.
 
-Total new model payload is approximately **8.55 GB**.
+Total new model payload is approximately **8.55 GB** and is now locally present/validated from the first full attempt.
 
 ## Cleanup
 
@@ -290,10 +327,11 @@ Technical PASS requires:
 - no Qwen site-package downgrade/modification occurs;
 - all four model files validate by size + SHA256;
 - `BrushNetLoader`, `PowerPaintCLIPLoader` and `PowerPaint` load through ComfyUI;
+- model dropdown values are resolved from runtime `object_info` rather than guessed path separators;
 - all four jobs complete;
 - contact sheet + manifest + deterministic composites are written.
 
-The runtime/import portion of this technical gate is already **PASS** from `72_preflight_powerpaint_runtime.ps1`; model/custom-node/inference completion remains pending.
+The runtime/import, payload-installation and custom-node-loading portions of this technical gate are already **PASS**. First valid inference remains pending after the Windows dropdown-path fix.
 
 Visual PASS requires at least one boundary variant per task.
 
