@@ -2,7 +2,7 @@
 
 Status date: **2026-09-12**
 
-Status: **PREPARED / CURRENT SPECIALIST REMOVAL GATE**
+Status: **PREPARED / CURRENT SPECIALIST REMOVAL GATE / PORTABLE-RUNTIME PREFLIGHT FIXED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -54,15 +54,44 @@ Reasons:
 - supports `save_memory=max`, important for RTX 3060 12 GB;
 - graph semantics are directly inspectable and versionable.
 
-The custom node is installed under the already-pinned ComfyUI tree, but Python dependencies are isolated in a dedicated venv with `--system-site-packages`. This gives the PowerPaint process access to the proven portable Torch/ComfyUI packages while pinning its own Diffusers/Accelerate/PEFT versions without downgrading the Qwen runtime environment.
+## Portable Python dependency isolation — FIXED AFTER FIRST PREFLIGHT
 
-Pinned isolated dependencies:
+The first Runner72 bootstrap attempted to create a dedicated `venv --system-site-packages` from the ComfyUI Windows embedded Python. The venv was created, but its interpreter did **not** inherit the portable runtime's Torch installation. The preflight failed exactly at:
+
+`ModuleNotFoundError: No module named 'torch'`
+
+No PowerPaint model payload had been downloaded yet. This was an integration failure, not a PowerPaint/model verdict.
+
+That strategy is retired.
+
+The corrected Runner72 keeps the proven embedded interpreter itself:
+
+`Z:\AI\QwenImageEdit\ComfyUI_windows_portable\python_embeded\python.exe`
+
+and installs only the BrushNet-specific version overrides into:
+
+`Z:\AI\PowerPaint\pydeps`
+
+using `pip --target --no-deps`:
 
 - `diffusers==0.29.2`;
 - `accelerate==0.31.0`;
 - `peft==0.11.1`.
 
-The bootstrap runs an import check before any multi-GB model download.
+A project-owned launcher:
+
+`tools/roguelite-asset-studio/python_overlay_launcher.py`
+
+prepends that directory to `sys.path` **inside only the Runner72 process** before executing ComfyUI or the gate executor. This is deliberate: Windows embedded Python may ignore ordinary `PYTHONPATH` behavior through its `_pth` isolation rules.
+
+Consequences:
+
+- Torch continues to come from the already-proven portable runtime;
+- Diffusers/Accelerate/PEFT come from the Runner72 overlay first;
+- the Qwen portable site-packages are not modified or downgraded;
+- the failed `Z:\AI\PowerPaint\venv` is deleted as Runner72-owned transient state;
+- the import check still occurs before any multi-GB model download;
+- the import probe asserts the exact three pinned overlay versions.
 
 ## Model payload
 
@@ -112,6 +141,8 @@ The Big-LaMa model is removed only after:
 1. Runner71 manifest reports technical completion;
 2. Runner71 contact sheet exists and its SHA256 matches the manifest;
 3. local `big-lama.pt` matches the pinned SHA256.
+
+If the first Runner72 preflight already removed Big-LaMa before the venv import failure, the corrected runner treats its absence as the expected already-cleaned state.
 
 PowerPaint files are kept only if the backend proves useful; the project does not accumulate failed checkpoints speculatively.
 
@@ -195,6 +226,10 @@ Workspace:
 
 `Z:\AI\PowerPaint`
 
+Dependency overlay:
+
+`Z:\AI\PowerPaint\pydeps`
+
 Output root:
 
 `Z:\AI\PowerPaint\runner72_object_removal_gate`
@@ -209,6 +244,10 @@ Executor:
 
 `tools/roguelite-asset-studio/powerpaint_object_removal_gate.py`
 
+Portable dependency launcher:
+
+`tools/roguelite-asset-studio/python_overlay_launcher.py`
+
 Runner:
 
 `tools/structured-2d-character-pipeline/72_bootstrap_and_run_powerpaint_object_removal.ps1`
@@ -218,10 +257,12 @@ Runner:
 Technical PASS requires:
 
 - Runner71 evidence validates;
-- rejected Big-LaMa payload is removed only by exact hash;
+- rejected Big-LaMa payload is removed only by exact hash, or is already absent after the first verified cleanup;
 - shared ComfyUI commit validates;
 - ComfyUI-BrushNet is pinned at the exact tested commit;
-- isolated dependency venv/import check passes;
+- base portable interpreter independently imports Torch;
+- process-local dependency overlay imports Torch + exact pinned Diffusers/Accelerate/PEFT versions;
+- no Qwen site-package downgrade/modification occurs;
 - all four model files validate by size + SHA256;
 - `BrushNetLoader`, `PowerPaintCLIPLoader` and `PowerPaint` load through ComfyUI;
 - all four jobs complete;
