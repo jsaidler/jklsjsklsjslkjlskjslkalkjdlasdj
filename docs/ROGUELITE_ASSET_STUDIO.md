@@ -1,8 +1,8 @@
 # Roguelite Asset Studio — Local Generative Asset Production System
 
-Status date: **2026-09-11**
+Status date: **2026-09-12**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / AUTOMATIC MASK STACK PROVEN / SPECIALIST OBJECT-REMOVAL GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / AUTOMATIC MASK STACK PROVEN / TASK-CONDITIONED OBJECT-REMOVAL GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -26,7 +26,7 @@ The tool owns:
 - semantic reference roles;
 - model routing;
 - automatic localization/segmentation/decomposition when needed;
-- generation/edit/inpainting execution;
+- generation/edit/inpainting/removal execution;
 - deterministic preprocessing/postprocessing;
 - candidate comparison/provenance/history;
 - explicit approval;
@@ -75,7 +75,7 @@ Pipeline-control masks are not semantic references and must not be exposed as us
 4. automatic parent/component localization when precision is required;
 5. automatic segmentation and repeated-member decomposition when required;
 6. operation-aware automatic mask generation;
-7. route by operation type to semantic editor, object-removal backend, prompted fill/inpainting backend, or other specialist;
+7. route by operation type to semantic editor, task-conditioned object-removal backend, prompted fill backend, or another specialist;
 8. deterministic regional/full-resolution composition;
 9. temporal generation where required;
 10. rendering-language reconstruction when needed;
@@ -93,61 +93,63 @@ Proven character-motion baseline using appearance reference + real action video.
 
 ### FLUX.2 Klein 4B distilled — ACTIVE fast T2I/concept
 
-Runner56 proved 768×768 / 4 steps / CFG 1 / Euler in `12.054 s` on RTX 3060 12 GB.
+Runner56 proved fast local static generation. Runners57/58 rejected it for production precision editing.
 
 Routable:
 
 - `text_to_image`
 - `interactive_concept`
 
-Runners57/58 rejected it for production precision editing.
-
 ### FLUX.2 Klein 4B Base — Base/training branch
 
-Runner60 fixed the graph and proved sane runtime behavior; Runner61 proved exact structural edits remain too coarse.
-
-Retain for T2I/training/project-specialization research, not exact component routing.
+Runner60 proved healthy Base parity; Runner61 proved exact structural edits remain too coarse. Retain for T2I/training/project-specialization research, not exact component routing.
 
 ### Qwen-Image-Edit-2511 — ACTIVE higher-level semantic editor
 
-Keep for semantic/appearance/reference-driven revision and future Character Lab role separation.
+Keep for semantic/appearance/reference-driven revision and future Character Lab multi-reference role separation.
 
-Do not route exact component removal/fill to Qwen2511. Runner68 proved native latent-mask containment but the requested operations remained semantic near-no-ops.
+Do not route exact component removal/fill to Qwen2511. Runner68 proved native mask containment while requested physical operations remained near-no-ops.
 
-### SDXL Inpainting 0.1 — RETIRED exact-removal candidate
+### SDXL Inpainting 0.1 — RETIRED
 
-Runner69 proved strong local mask response but wrong reconstruction on subtraining-resolution crops. Runner70 removed the resolution confound by running exact `1024x1024` parity and still failed both hard operations.
+Runner69 showed strong local response but wrong reconstruction below training resolution. Runner70 repeated the hard gate at `1024x1024` training-resolution parity and still failed both operations:
 
-Runner70 final evidence:
+- plank remained rather than becoming an opening;
+- strap remained structurally continuous;
+- unrelated pixels remained perfectly protected.
 
-- plank inside-allowed >Delta12 `0.316580`, outside `0.0`, board remained present;
-- strap inside-allowed >Delta12 `0.165934`, outside `0.0`, strap remained structurally continuous.
+Generated evidence is retained; the model payload was removed by Runner71 after exact-hash verification.
+
+### Big-LaMa — RETIRED exact-removal candidate
+
+Runner71 proved Big-LaMa technically healthy and exceptionally fast:
+
+- four jobs in `7.478 s` total;
+- exact deterministic outside-region preservation;
+- no prompt or ComfyUI dependency.
+
+However, both tight and expanded variants failed semantically:
+
+- plank: reconstructed wooden/door continuity instead of a true opening;
+- strap: reconstructed/smoothed local ferrage instead of exposing a real wood break.
 
 Classification:
 
-**TECHNICAL PASS / MASK+COMPOSITOR PASS / VISUAL OPERATION FAIL / SDXL EXACT-REMOVAL ROLE CLOSED.**
+**TECHNICAL PASS / VERY FAST / MASK+COMPOSITOR PASS / VISUAL OBJECT-REMOVAL FAIL.**
 
-Runner69/70 generated evidence is retained. Runner71 removes the retired SDXL model payload after exact-hash verification.
+The model is not production-routable and Runner72 removes its checkpoint after validating Runner71 evidence.
 
-### Big-LaMa — CURRENT lightweight object-removal candidate
+### PowerPaint v2.1 / BrushNet — CURRENT object-removal candidate
 
-Runner71 tests a deliberately narrower specialist:
+Runner72 tests a backend with an explicit learned `object removal` task rather than generic context completion.
 
-- no text prompt;
-- input = source context + accepted automatic binary operation mask;
-- direct TorchScript inference;
-- no ComfyUI server;
-- Apache-2.0 LaMa lineage;
-- ~196 MiB model rather than another multi-GB diffusion stack.
+Pinned PowerPaint behavior:
 
-Pinned artifact:
+- learned positive task token family: `P_ctxt`;
+- learned negative task token family: `P_obj`;
+- standard text conditioning remains available to describe desired empty context and name the object that must not return.
 
-- `big-lama.pt`;
-- bytes `205803670`;
-- SHA256 `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`;
-- upstream `enesmsahin/simple-lama-inpainting` v0.1.0 release.
-
-TorchScript is executable; only the pinned size/hash may be loaded.
+This directly addresses the repeated failure mode of LaMa/SDXL/Qwen: reconstructing or preserving the target because that is easier than understanding the requested physical operation.
 
 ## Precision-control architecture — MASK STACK ACCEPTED
 
@@ -195,64 +197,96 @@ This demonstrates a core Studio pattern: semantic models may localize a repeated
 
 Qwen copied the visual locator and shifted local geometry. Colored locator images are not a production control mechanism.
 
-### Runner68 — native latent mask / containment pass, editor fail
+### Runner68 — native Qwen latent mask / containment pass, editor fail
 
 Native masking removed guide leakage and preserved exact region containment, but Qwen did not execute the removal/break strongly enough.
 
 ### Runner69/70 — SDXL dedicated inpaint / exhausted
 
-SDXL was given a fair second gate at 1024 training-resolution parity. It remained semantically wrong for the hard operations, so the backend is retired rather than tuned indefinitely.
+Resolution parity was tested. The semantic operation still failed, so further arbitrary steps/CFG tuning was rejected.
 
-## CURRENT PRECISION GATE — Runner71 / Big-LaMa automatic object removal
+### Runner71 — Big-LaMa / exhausted
+
+The lightweight backend was fast and resolution-robust but performed blind context continuation rather than task-aware removal.
+
+## CURRENT PRECISION GATE — Runner72 / PowerPaint v2.1 task-conditioned object removal
 
 Canonical record:
 
-`docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
+`docs/RUNNER72_POWERPAINT_OBJECT_REMOVAL_2026-09-12.md`
 
 Implementation:
 
-- `tools/roguelite-asset-studio/lama_inpaint_adapter.py`
-- `tools/roguelite-asset-studio/lama_object_removal_gate.py`
-- `tools/structured-2d-character-pipeline/71_bootstrap_and_run_big_lama_object_removal.ps1`
+- `tools/roguelite-asset-studio/powerpaint_brushnet_adapter.py`
+- `tools/roguelite-asset-studio/powerpaint_object_removal_gate.py`
+- `tools/structured-2d-character-pipeline/72_bootstrap_and_run_powerpaint_object_removal.ps1`
 
-Runner71 keeps all accepted geometry/mask/compositor authority and changes only the removal engine.
+### Native integration
 
-To avoid rejecting a very cheap backend because of one arbitrary edge treatment, it tests two automatic mask-boundary variants per task:
+Use `nullquant/ComfyUI-BrushNet` pinned at:
 
-- tight;
-- expanded.
+`505d8ef917ddf3896afd1926770ecc9b099704e2`
 
-Four jobs total:
+Reuse shared ComfyUI code pinned at:
+
+`6eba895f7d3615284da81e95bf49eaed4a5f7309`
+
+Python dependencies are isolated in `Z:\AI\PowerPaint\venv` so the Qwen environment is not downgraded:
+
+- `diffusers==0.29.2`;
+- `accelerate==0.31.0`;
+- `peft==0.11.1`.
+
+### Payload
+
+- SD1.5 base checkpoint: `4265146304` bytes, SHA256 `6ce0161689b3853acaa03779ec93eafe75a02f4ced659bee03f50797806fa2fa`;
+- PowerPaint v2.1 BrushNet: `3544366408` bytes, SHA256 `530f2886ef5bcdf199269ec344155a517639ba64219b85eeb23fd86aab93147f`;
+- learned PowerPaint text encoder: `492401329` bytes, SHA256 `73709b4360ca06ef990a67d090e8d81a4310943d67a88845653fc4e9f7f26b65`;
+- SD1.5 FP16 CLIP: `246144864` bytes, SHA256 `77795e2023adcf39bc29a884661950380bd093cf0750a966d473d1718dc9ef4e`.
+
+Total new model payload: approximately `8.55 GB`.
+
+### Matrix
+
+Runner72 reuses Runner71's exact `512x512` source contexts and tight/expanded masks:
 
 - plank/tight;
 - plank/expanded;
 - strap/tight;
 - strap/expanded.
 
-Visual PASS requires at least one variant per task:
+PowerPaint recipe:
+
+- function `object removal`;
+- fitting `1.0`;
+- scale `1.0`;
+- `save_memory=max`;
+- 20 steps;
+- CFG `7.5`;
+- Euler / normal;
+- denoise `1.0`;
+- seed `0`.
+
+Visual PASS requires at least one mask variant per task:
 
 1. one atomic plank actually disappears and becomes a plausible narrow opening/background continuation;
-2. the strap middle actually disappears and exposes plausible underlying aged door/wood;
+2. the strap middle actually disappears and exposes plausible aged wood;
 3. both external strap ends survive;
 4. unrelated source geometry remains authoritative.
 
-If Big-LaMa passes, route **object removal/background continuation** to it and keep prompt-driven semantic fill as a distinct capability. The Studio should not force one model to perform both jobs.
-
-If it fails, replace only the removal backend; do not reopen perception, accepted masks or deterministic composition.
+If PowerPaint passes, route task-conditioned object removal to it. If it fails, replace only this backend; do not reopen the accepted perception, masks or deterministic compositor.
 
 ## Current perception payload
 
 ### Grounding DINO Tiny
 
 - Apache-2.0;
-- `IDEA-Research/grounding-dino-tiny`;
 - revision `a2bb814dd30d776dcf7e30523b00659f4f141c71`;
 - SHA256 `1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3`.
 
 ### SAM2.1 Hiera Small
 
 - Apache-2.0;
-- `facebook/sam2.1-hiera-small`;
 - revision `e07df6aa19f5c6545121551bf89957b7663ee715`;
 - SHA256 `0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60`.
 
@@ -296,9 +330,9 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 
 ## Immediate implementation order
 
-1. run Runner71 and review Big-LaMa tight/expanded object-removal results;
-2. if both operations pass, promote `automatic_region_object_removal`;
-3. separately validate prompted semantic fill/multi-reference role separation;
+1. run Runner72 and review task-conditioned object-removal results;
+2. if both hard operations pass, promote `automatic_region_object_removal`;
+3. validate semantic multi-reference role separation using Qwen2511;
 4. validate reopened Exilada as first difficult Character Lab case;
 5. validate another non-character asset class;
 6. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
@@ -307,4 +341,4 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**. Specialized generation, semantic editing, object removal, prompted inpainting, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**. Specialized generation, semantic editing, task-conditioned object removal, inpainting, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
