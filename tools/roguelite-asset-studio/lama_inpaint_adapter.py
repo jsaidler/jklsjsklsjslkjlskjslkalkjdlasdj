@@ -24,8 +24,8 @@ from PIL import Image
 import torch
 
 MODEL_NAME = "big-lama.pt"
-MODEL_SHA256 = "344c77bbcb158f17dd143070d1e789f38a66c04202311ae3a258ef66667a9ea9"
-MODEL_BYTES = 206_134_115
+MODEL_SHA256 = "7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c"
+MODEL_BYTES = 205_803_670
 
 
 def sha256_file(path: Path) -> str:
