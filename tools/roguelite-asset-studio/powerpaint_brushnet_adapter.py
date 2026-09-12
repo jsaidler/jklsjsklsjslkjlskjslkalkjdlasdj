@@ -56,6 +56,39 @@ REQUIRED_NODES = (
 class PowerPaintBrushNetAdapter(Flux2KleinAdapter):
     adapter_id = "powerpaint_v2_1_brushnet_object_removal"
 
+    @staticmethod
+    def _normalized_dropdown_path(value: str) -> str:
+        return str(value).replace("\\", "/")
+
+    def _resolve_dropdown_value(self, node_name: str, input_name: str, preferred: str) -> str:
+        """Return the exact dropdown value advertised by ComfyUI.
+
+        ComfyUI custom nodes often expose relative model paths using the host OS
+        separator. Asset Studio stores canonical model ids with forward slashes.
+        Compare normalized forms, but send the exact runtime-advertised string back
+        in the prompt so validation is platform-independent.
+        """
+        info = self._request_json(self.base_url + f"/object_info/{node_name}", timeout=30)
+        try:
+            spec = info[node_name]["input"]["required"][input_name]
+            choices = spec[0]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError(
+                f"could not inspect dropdown {node_name}.{input_name}: {info}"
+            ) from exc
+        if not isinstance(choices, list):
+            raise RuntimeError(
+                f"ComfyUI dropdown {node_name}.{input_name} did not expose a choice list: {choices!r}"
+            )
+        wanted = self._normalized_dropdown_path(preferred)
+        for choice in choices:
+            if self._normalized_dropdown_path(str(choice)) == wanted:
+                return str(choice)
+        raise RuntimeError(
+            f"required model option {preferred!r} not advertised by {node_name}.{input_name}; "
+            f"available={choices!r}"
+        )
+
     def verify_runtime(self) -> None:
         if self._verified:
             return
@@ -84,6 +117,18 @@ class PowerPaintBrushNetAdapter(Flux2KleinAdapter):
             info = self._request_json(self.base_url + f"/object_info/{node_name}", timeout=30)
             if node_name not in info:
                 raise RuntimeError(f"required ComfyUI-BrushNet node unavailable: {node_name}")
+
+        # Model dropdowns are host-path-sensitive. Resolve the exact strings that
+        # this ComfyUI instance advertises instead of assuming POSIX separators.
+        self._brushnet_dropdown = self._resolve_dropdown_value(
+            "BrushNetLoader", "brushnet", POWERPAINT_BRUSHNET
+        )
+        self._powerpaint_text_dropdown = self._resolve_dropdown_value(
+            "PowerPaintCLIPLoader", "powerpaint", POWERPAINT_TEXT_ENCODER
+        )
+        self._base_clip_dropdown = self._resolve_dropdown_value(
+            "PowerPaintCLIPLoader", "base", BASE_CLIP
+        )
         self._verified = True
 
     def _prepare_native_file(self, source: Path, job_id: str, filename: str, mask: bool = False) -> tuple[str, str]:
@@ -131,12 +176,15 @@ class PowerPaintBrushNetAdapter(Flux2KleinAdapter):
         }
         brush_id = self._next_id(counter)
         graph[brush_id] = {
-            "inputs": {"brushnet": POWERPAINT_BRUSHNET, "dtype": "float16"},
+            "inputs": {"brushnet": self._brushnet_dropdown, "dtype": "float16"},
             "class_type": "BrushNetLoader",
         }
         ppclip_id = self._next_id(counter)
         graph[ppclip_id] = {
-            "inputs": {"base": BASE_CLIP, "powerpaint": POWERPAINT_TEXT_ENCODER},
+            "inputs": {
+                "base": self._base_clip_dropdown,
+                "powerpaint": self._powerpaint_text_dropdown,
+            },
             "class_type": "PowerPaintCLIPLoader",
         }
         source_id = self._next_id(counter)
