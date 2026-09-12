@@ -2,46 +2,13 @@
 
 Status date: **2026-09-11**
 
-Status: **PREPARED / CURRENT MASK-NATIVE EDITOR GATE**
+Status: **COMPLETE / TECHNICAL PASS / VISUAL FAIL / SDXL INPAINTING EXHAUSTED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
-## Why Runner70 exists
+## Why Runner70 existed
 
-Runner69 proved that the dedicated SDXL Inpainting 0.1 backend is technically healthy, mask-native, fast and materially more active inside the accepted automatic masks than Qwen2511. However, its model inputs were far below the model's training regime:
-
-- plank crop: `256x512`;
-- strap crop: `384x256`;
-- official SDXL Inpainting 0.1 training resolution: `1024x1024`.
-
-Runner69 therefore cannot be used as the final verdict on the SDXL inpainting hypothesis.
-
-Actual Runner69 visual result:
-
-### Plank
-
-- mask and target were correct;
-- raw inpaint strongly modified the masked strip;
-- result produced bright/shiny vertical reconstruction artifacts rather than a clean opening;
-- final inside-allowed changed ratio >Delta12: `0.539487`;
-- outside-allowed changed ratio >Delta12: `0.0`;
-- elapsed `18.075 s`.
-
-### Strap
-
-- mask and target were correct;
-- inpainting remained too conservative/continuous and did not create a clean central break exposing coherent wood;
-- final inside-allowed changed ratio >Delta12: `0.336265`;
-- outside-allowed changed ratio >Delta12: `0.0`;
-- elapsed `10.047 s`.
-
-Runner69 classification:
-
-**TECHNICAL PASS / MASK-NATIVE RESPONSE PASS / OUTSIDE-REGION CONTAINMENT PASS / VISUAL OPERATION FAIL AT SUBTRAINING RESOLUTION / FINAL SDXL VERDICT DEFERRED.**
-
-## One-variable correction
-
-Runner70 changes only model-input geometry.
+Runner69 proved that SDXL Inpainting 0.1 was technically healthy and mask-native, but it ran on `256x512` and `384x256` crops even though the model was trained at `1024x1024`. Runner70 therefore changed only model-input geometry before rejecting the backend.
 
 Unchanged:
 
@@ -52,115 +19,81 @@ Unchanged:
 - strap central-40-percent break operation;
 - 30 steps;
 - CFG 6.0;
-- DPM++ 2M;
-- Karras;
+- DPM++ 2M / Karras;
 - denoise 1.0;
 - seed 0;
-- ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`;
-- deterministic final full-resolution composite;
+- deterministic full-resolution composite;
 - no manual box or mask.
 
 Changed:
 
-1. extract an exact `512x512` source-authoritative context square around each accepted target;
-2. upscale source image and operation mask together to `1024x1024`;
-3. run the existing native `InpaintModelConditioning` graph at 1024;
-4. downsample the generated result to the exact `512x512` source-coordinate crop;
-5. composite through the same deterministic allowed region into the untouched full source.
+1. exact `512x512` source-authoritative context around each target;
+2. joint source+mask upscale to `1024x1024`;
+3. native `InpaintModelConditioning` at 1024;
+4. generated result downsampled back to the exact 512 source coordinates;
+5. deterministic composite into the untouched full source.
 
-This preserves aspect ratio and avoids stretching a rectangular crop to a square by taking a square source context before scaling.
-
-## Why 1024
-
-The official `diffusers/stable-diffusion-xl-1.0-inpainting-0.1` model card states that the model was trained for 40k steps at `1024x1024`. Runner70 therefore tests the backend in its intended spatial regime before the project decides whether to retain or remove the ~12.1 GB SDXL payload.
-
-## Runtime and payload
-
-No download.
-
-Reuse:
-
-- `sdxl_inpaint_0.1_fp16.safetensors`
-- SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`
-- `sd_xl_base_1.0.safetensors`
-- SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`
-- shared pinned ComfyUI under `Z:\AI\QwenImageEdit\ComfyUI_windows_portable`
-- Runner66 masks under `Z:\AI\RogueliteAssetStudio\localization\runner66_gate`.
-
-Output root:
-
-`Z:\AI\SDXLInpaint\runner70_1024_parity_gate`
-
-## Implementation
-
-Executor:
-
-`tools/roguelite-asset-studio/sdxl_inpaint_1024_parity_gate.py`
-
-Runner:
-
-`tools/structured-2d-character-pipeline/70_run_sdxl_inpaint_1024_parity_gate.ps1`
-
-Existing adapter reused unchanged:
-
-`tools/roguelite-asset-studio/sdxl_inpaint_adapter.py`
-
-## Expected diagnostics
-
-Per task:
-
-- `*_source_context_512.png`
-- `*_model_source_1024.png`
-- `*_inpaint_mask_1024.png`
-- `*_sdxl_1024_raw.png`
-- `*_sdxl_1024_downsampled_512.png`
-- `*_sdxl_1024_region_final.png`
-- `*_allowed_region.png`
-
-Comparison:
-
-`runner70_sdxl_1024_contact_sheet.png`
+## Actual Runner70 result
 
 Manifest:
 
-`runner70_sdxl_1024_manifest.json`
+`Z:\AI\SDXLInpaint\runner70_1024_parity_gate\runner70_sdxl_1024_manifest.json`
 
-## PASS criteria
+Contact sheet:
 
-Technical PASS:
+`Z:\AI\SDXLInpaint\runner70_1024_parity_gate\runner70_sdxl_1024_contact_sheet.png`
 
-- existing SDXL hashes and pinned ComfyUI validate;
-- Runner66 masks validate;
-- Runner69 evidence validates;
-- exact 512 square context is produced for each task;
-- source and mask are both exactly 1024x1024 at model input;
-- both 30-step jobs complete;
-- output is downsampled back to the exact source coordinate system;
-- deterministic final composites are produced;
-- no download or manual mask occurs.
-
-Visual PASS requires both tasks.
+Total elapsed: `62.217 s`.
 
 ### Plank
 
-- one atomic board is truly absent;
-- its region reads as a narrow opening/background continuation;
-- no bright/chrome/shiny reconstructed strip remains;
-- neighboring boards and hardware remain coherent.
+- source context: `[117,214,629,726]` = `512x512`;
+- model input: `1024x1024`;
+- elapsed: `34.071 s`;
+- inside-allowed changed ratio >Delta12: `0.316580`;
+- outside-allowed changed ratio >Delta12: `0.0`.
+
+Visual verdict:
+
+**FAIL.** The selected plank remains present. The model changes/retextures/deforms the masked board region but does not create a clean narrow opening/background continuation. Training-resolution parity removes the strongest Runner69 shiny artifact but does not execute the requested structural removal.
 
 ### Strap
 
-- central strap section is absent;
-- matching aged wood is visible in the break;
-- both external strap ends survive;
-- no continuous/replacement bar appears.
+- source context: `[247,256,759,768]` = `512x512`;
+- model input: `1024x1024`;
+- elapsed: `26.069 s`;
+- inside-allowed changed ratio >Delta12: `0.165934`;
+- outside-allowed changed ratio >Delta12: `0.0`.
 
-### Preservation
+Visual verdict:
 
-Outside the deterministic allowed neighborhood, source pixels remain authoritative.
+**FAIL.** The lower-right strap remains structurally continuous. The generated patch is conservative and does not create a clear missing middle section exposing coherent matching wood.
 
-## Decision after Runner70
+## What passed
 
-If both tasks pass, promote SDXL Inpainting 0.1 as the first `automatic_region_inpaint` specialist and continue to semantic multi-reference role separation before Character Lab.
+- 1024 parity execution;
+- local RTX 3060 12 GB feasibility;
+- automatic masks;
+- source/mask alignment;
+- deterministic region containment;
+- zero >Delta12 changes outside the allowed region.
 
-If Runner70 still fails either hard operation, the SDXL Inpainting hypothesis is exhausted fairly. Preserve Runner69/70 evidence, remove the provisional SDXL payload under the cleanup rule, and test the next dedicated mask-native backend behind the already-accepted perception/mask/compositor contract. Do not add more arbitrary step/prompt tuning.
+## What failed
+
+The backend still does not perform either hard physical operation after the only major unresolved confound — training resolution — was removed.
+
+Classification:
+
+**TECHNICAL PASS / TRAINING-RESOLUTION PARITY PASS / AUTOMATIC MASK PASS / OUTSIDE-REGION CONTAINMENT PASS / VISUAL OPERATION FAIL / SDXL INPAINTING HYPOTHESIS EXHAUSTED.**
+
+## Decision
+
+Do not add more arbitrary prompt/step tuning to SDXL Inpainting 0.1 for this role.
+
+Preserve Runner69/70 outputs and manifests. Under the project cleanup rule, remove the provisional SDXL Inpainting UNet and SDXL Base checkpoint only after evidence validation, then test the next specialist behind the exact same accepted Runner66 masks and deterministic compositor.
+
+The next canonical gate is:
+
+`docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
+
+Runner71 tests lightweight Big-LaMa as an object-removal specialist and changes no perception/mask/compositor assumptions.
