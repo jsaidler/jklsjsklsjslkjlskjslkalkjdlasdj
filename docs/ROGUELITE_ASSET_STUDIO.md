@@ -2,23 +2,19 @@
 
 Status date: **2026-09-11**
 
-Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / STATIC T2I PROVEN / AUTOMATIC MASK STACK PROVEN / SDXL 1024 INPAINT PARITY GATE ACTIVE**
+Status: **CANONICAL UMBRELLA TOOL ARCHITECTURE / LOCAL-FIRST / MODEL-ROUTED / AUTOMATIC MASK STACK PROVEN / SPECIALIST OBJECT-REMOVAL GATE ACTIVE**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 ## Purpose
 
-The project requires a production tool for the **entire game's visual asset base**, not an Exilada-specific editor and not a single-model prompt UI.
-
-The Roguelite Asset Studio is the local authoring/control plane used to create, revise, animate, approve, version and export game assets with specialized generative models and deterministic processing.
+The Roguelite Asset Studio is the local authoring/control plane for the **entire game's visual asset base**. It is not an Exilada-specific editor and not a wrapper around one model.
 
 It must cover playable characters, NPCs, humanoid/non-humanoid enemies, bosses, weapons, armor/equipment, props/interactables, architecture, terrain, vegetation, environment set pieces, materials/textures, VFX/environment animation and UI art where needed.
 
 The Exilada remains the first high-difficulty Character Lab case. No Exilada-specific assumption defines the generic tool contract.
 
 ## Core production rule — HARD LOCK
-
-The Asset Studio is a **model router + asset-state system**, not a wrapper around one checkpoint.
 
 Canonical architecture:
 
@@ -52,19 +48,6 @@ Hardware baseline:
 
 Hosted APIs may be optional accelerators but never mandatory production dependencies.
 
-## Asset taxonomy
-
-Initial types include:
-
-- `character_playable`, `character_npc`, `enemy_humanoid`, `enemy_creature`, `boss`;
-- `weapon`, `armor_equipment`, `prop`;
-- `architecture_module`, `terrain_module`, `vegetation`, `environment_setpiece`, `tileable_material`;
-- `vfx`, `ui_art`.
-
-Output contracts include static masters/RGBA, variant sets, turnaround references, animated actions/loops, sprite rows/atlases, layered environment modules, tileable textures and RGBA sequences.
-
-Asset type never implies one fixed model.
-
 ## Semantic reference roles — HARD CONTRACT
 
 References are typed as:
@@ -84,17 +67,6 @@ References are typed as:
 
 Pipeline-control masks are not semantic references and must not be exposed as user-authored production inputs.
 
-## Generic foundation — PASS
-
-Authority:
-
-- `tools/roguelite-asset-studio/asset_schema.json`
-- `tools/roguelite-asset-studio/model_registry.json`
-- `tools/roguelite-asset-studio/asset_studio_core.py`
-- `tools/roguelite-asset-studio/adapter_protocol.py`
-
-Runner55 proved referenced-character and reference-free-environment routing. `references` must exist structurally while `references: []` remains valid for reference-free generation.
-
 ## Canonical production stages
 
 1. brief/specification;
@@ -103,7 +75,7 @@ Runner55 proved referenced-character and reference-free-environment routing. `re
 4. automatic parent/component localization when precision is required;
 5. automatic segmentation and repeated-member decomposition when required;
 6. operation-aware automatic mask generation;
-7. route either to semantic editor or dedicated inpainting backend depending on operation;
+7. route by operation type to semantic editor, object-removal backend, prompted fill/inpainting backend, or other specialist;
 8. deterministic regional/full-resolution composition;
 9. temporal generation where required;
 10. rendering-language reconstruction when needed;
@@ -118,14 +90,6 @@ Routine manual per-frame repainting, hand compositing and user-drawn production 
 ### MiniMax H3 Base Ref2VA — ACTIVE motion specialist
 
 Proven character-motion baseline using appearance reference + real action video. Produces complete temporal character masters including body/hair/cloth behavior. Not a universal still generator.
-
-### MiniMax H3 FL2VA — future temporal candidate
-
-Potential environment/VFX/first-last-frame specialist. Validate per asset class.
-
-### FLUX.1 Kontext [dev] — R&D only
-
-Useful for edit/reconstruction research. Dev licensing prevents making it the commercial-production default.
 
 ### FLUX.2 Klein 4B distilled — ACTIVE fast T2I/concept
 
@@ -144,51 +108,60 @@ Runner60 fixed the graph and proved sane runtime behavior; Runner61 proved exact
 
 Retain for T2I/training/project-specialization research, not exact component routing.
 
-### Qwen-Image-Edit-2509 — retired
-
-Runner62 proved feasibility/preservation improvement but exact plank/strap facts still failed. Diffusion checkpoint deleted after evidence preservation; shared encoder/VAE retained.
-
 ### Qwen-Image-Edit-2511 — ACTIVE higher-level semantic editor
 
-Installed:
+Keep for semantic/appearance/reference-driven revision and future Character Lab role separation.
 
-- `qwen_image_edit_2511_fp8mixed.safetensors`;
-- bytes `20,533,762,817`;
-- SHA256 `c9fdc158e46d3b61ef75f21ae866ca2fe808bf4a53643120d1c1e87c19280a4e`;
-- ComfyUI commit `6eba895f7d3615284da81e95bf49eaed4a5f7309`;
-- Qwen2.5-VL 7B FP8 on CPU;
-- Qwen image VAE;
-- low-VRAM / reserve 1 GB;
-- AuraFlow shift 3.1;
-- CFGNorm 1;
-- Euler/simple / CFG 4.
+Do not route exact component removal/fill to Qwen2511. Runner68 proved native latent-mask containment but the requested operations remained semantic near-no-ops.
 
-Runner63 closed unrestricted global precision prompting. Runner67 closed colored-locator reference control. Runner68 proved native latent masking technically but also proved Qwen too conservative for exact masked removal/fill operations.
+### SDXL Inpainting 0.1 — RETIRED exact-removal candidate
 
-Runner68 metrics:
+Runner69 proved strong local mask response but wrong reconstruction on subtraining-resolution crops. Runner70 removed the resolution confound by running exact `1024x1024` parity and still failed both hard operations.
 
-- plank inside-allowed changed ratio >Δ12 `0.059154`, outside `0.0`;
-- strap inside-allowed changed ratio >Δ12 `0.052066`, outside `0.0`;
-- visual: plank remains; strap remains continuous.
+Runner70 final evidence:
 
-Routing implication:
+- plank inside-allowed >Delta12 `0.316580`, outside `0.0`, board remained present;
+- strap inside-allowed >Delta12 `0.165934`, outside `0.0`, strap remained structurally continuous.
 
-- keep Qwen2511 for semantic/appearance/reference-driven revision;
-- do **not** route exact component removal/fill/inpainting to Qwen2511.
+Classification:
+
+**TECHNICAL PASS / MASK+COMPOSITOR PASS / VISUAL OPERATION FAIL / SDXL EXACT-REMOVAL ROLE CLOSED.**
+
+Runner69/70 generated evidence is retained. Runner71 removes the retired SDXL model payload after exact-hash verification.
+
+### Big-LaMa — CURRENT lightweight object-removal candidate
+
+Runner71 tests a deliberately narrower specialist:
+
+- no text prompt;
+- input = source context + accepted automatic binary operation mask;
+- direct TorchScript inference;
+- no ComfyUI server;
+- Apache-2.0 LaMa lineage;
+- ~196 MiB model rather than another multi-GB diffusion stack.
+
+Pinned artifact:
+
+- `big-lama.pt`;
+- bytes `205803670`;
+- SHA256 `7ba7aa7ac37a4d41fdbbeba3a2af7ead18058552997e3a3cd1a3b2210c9e6b4c`;
+- upstream `enesmsahin/simple-lama-inpainting` v0.1.0 release.
+
+TorchScript is executable; only the pinned size/hash may be loaded.
 
 ## Precision-control architecture — MASK STACK ACCEPTED
 
 Canonical precision architecture:
 
-`semantic request -> parent/component perception -> automatic segmentation/decomposition -> operation-specific mask -> specialized regional editor -> deterministic full-resolution composite`
+`semantic request -> parent/component perception -> automatic segmentation/decomposition -> operation-specific mask -> specialist regional backend -> deterministic full-resolution composite`
 
 The no-manual-mask rule is hard.
 
-### Runner64 — flat localization / COMPLETE
+### Runner64 — flat localization
 
-Flat Grounding DINO search selected side stone blocks instead of plank/strap. Deterministic final compositor nevertheless proved zero >Δ12 changes outside the allowed region.
+Flat Grounding DINO search selected side stone blocks instead of plank/strap. Deterministic compositor nevertheless proved exact outside-region preservation.
 
-### Runner65 — hierarchical localization / COMPLETE
+### Runner65 — hierarchical localization
 
 `full asset -> parent door -> child search -> SAM2 rerank`.
 
@@ -206,102 +179,66 @@ Project-owned deterministic processor:
 
 First proof:
 
-- internal seam peaks `358`, `388`;
+- seam peaks `358`, `388`;
 - selected plank interval `[358,388]`;
 - width `30 px`;
 - bbox `[358,295,388,644]`;
 - vertical aspect `11.633`;
 - visual PASS for one actual plank;
-- Runner65 strap mask retained and still visually correct;
+- Runner65 strap mask retained and visually correct;
 - elapsed `0.321 s`;
 - no model inference or manual mask.
 
-This demonstrates an important Studio pattern: semantic models may localize a repeated structure while cheap deterministic processors resolve atomic members before expensive generation.
+This demonstrates a core Studio pattern: semantic models may localize a repeated structure while cheap deterministic processors resolve atomic members before expensive generation.
 
-### Runner67 — colored locator / COMPLETE FAIL
+### Runner67 — colored locator / rejected
 
-Approved masks and compositor passed, but Qwen copied the red strap locator and shifted local plank geometry. Colored locator images are rejected as production control.
+Qwen copied the visual locator and shifted local geometry. Colored locator images are not a production control mechanism.
 
-### Runner68 — native latent mask / COMPLETE FAIL AS EDITOR
+### Runner68 — native latent mask / containment pass, editor fail
 
-Native `SetLatentNoiseMask` removed the colored-guide problem and preserved exact region containment, but Qwen did not execute the physical operations strongly enough.
+Native masking removed guide leakage and preserved exact region containment, but Qwen did not execute the removal/break strongly enough.
 
-Classification:
+### Runner69/70 — SDXL dedicated inpaint / exhausted
 
-**MASK CONTROL PASS / COMPOSITOR PASS / SEMANTIC OPERATION FAIL.**
+SDXL was given a fair second gate at 1024 training-resolution parity. It remained semantically wrong for the hard operations, so the backend is retired rather than tuned indefinitely.
 
-This closes Qwen's mask-native precision role without invalidating the accepted perception/mask stack.
-
-## SDXL Inpainting 0.1 — dedicated inpainting branch
-
-Payload installed after Runner68:
-
-- `sdxl_inpaint_0.1_fp16.safetensors`, SHA256 `6470840731e98cc16713ddf3ac7ee458c9fdbcb881a98c6727cd4a938f227d3f`;
-- `sd_xl_base_1.0.safetensors`, SHA256 `31e35c80fc4829d14f90153f4c74cd59c90b779f6afe05a74cd6120b893f7e5b`, used only for CLIP/VAE;
-- CreativeML Open RAIL++-M provenance retained.
-
-### Runner69 — COMPLETE / technically healthy, visually failed below training resolution
-
-Runner69 reused the accepted Runner66 masks and native `InpaintModelConditioning` with 30 steps / CFG 6 / DPM++ 2M / Karras.
-
-Results:
-
-- plank crop `256x512`, elapsed `18.075 s`, inside-allowed >Δ12 `0.539487`, outside `0.0`;
-- strap crop `384x256`, elapsed `10.047 s`, inside-allowed >Δ12 `0.336265`, outside `0.0`.
-
-Visual result:
-
-- plank reacted strongly but created bright/shiny vertical artifacts instead of a clean opening;
-- strap did not create a clean central break with coherent matching wood.
-
-Important qualification: the official SDXL Inpainting 0.1 model was trained at `1024x1024`, so Runner69's small rectangular crops are a meaningful confound. The model is not rejected yet.
-
-Classification:
-
-**TECHNICAL PASS / MASK-NATIVE RESPONSE PASS / VISUAL OPERATION FAIL AT SUBTRAINING RESOLUTION / FINAL SDXL VERDICT DEFERRED.**
-
-## CURRENT PRECISION GATE — Runner70 / SDXL 1024 training-resolution parity
+## CURRENT PRECISION GATE — Runner71 / Big-LaMa automatic object removal
 
 Canonical record:
 
-`docs/RUNNER70_SDXL_INPAINT_1024_PARITY_2026-09-11.md`
+`docs/RUNNER71_BIG_LAMA_OBJECT_REMOVAL_2026-09-11.md`
 
 Implementation:
 
-- reuse `tools/roguelite-asset-studio/sdxl_inpaint_adapter.py` unchanged;
-- `tools/roguelite-asset-studio/sdxl_inpaint_1024_parity_gate.py`;
-- `tools/structured-2d-character-pipeline/70_run_sdxl_inpaint_1024_parity_gate.ps1`.
+- `tools/roguelite-asset-studio/lama_inpaint_adapter.py`
+- `tools/roguelite-asset-studio/lama_object_removal_gate.py`
+- `tools/structured-2d-character-pipeline/71_bootstrap_and_run_big_lama_object_removal.ps1`
 
-One-variable hypothesis:
+Runner71 keeps all accepted geometry/mask/compositor authority and changes only the removal engine.
 
-The artifacts in Runner69 may be caused by using a 1024-trained inpainting model on 256x512 / 384x256 crops. Test the same editor at its training-scale spatial regime before switching models.
+To avoid rejecting a very cheap backend because of one arbitrary edge treatment, it tests two automatic mask-boundary variants per task:
 
-Pipeline:
+- tight;
+- expanded.
 
-`Runner66 target -> exact 512x512 source-authoritative context -> jointly upscale source+mask to 1024x1024 -> same InpaintModelConditioning recipe -> downsample generated result back to exact 512 source coordinates -> deterministic full-resolution composite`.
+Four jobs total:
 
-Unchanged:
+- plank/tight;
+- plank/expanded;
+- strap/tight;
+- strap/expanded.
 
-- same automatic masks;
-- same plank and strap operation semantics;
-- same model/checkpoints;
-- 30 steps;
-- CFG 6;
-- DPM++ 2M / Karras;
-- denoise 1.0;
-- seed 0;
-- no user box/mask;
-- no new download.
+Visual PASS requires at least one variant per task:
 
-PASS requires both:
+1. one atomic plank actually disappears and becomes a plausible narrow opening/background continuation;
+2. the strap middle actually disappears and exposes plausible underlying aged door/wood;
+3. both external strap ends survive;
+4. unrelated source geometry remains authoritative.
 
-1. plank becomes a real narrow opening with no bright/shiny reconstructed strip;
-2. strap middle is absent and matching aged wood is visible while both external ends survive;
-3. unrelated source geometry remains source-authoritative.
+If Big-LaMa passes, route **object removal/background continuation** to it and keep prompt-driven semantic fill as a distinct capability. The Studio should not force one model to perform both jobs.
 
-If Runner70 passes, promote `automatic_region_inpaint` and continue to semantic multi-reference role separation before Exilada Character Lab.
-
-If Runner70 fails, SDXL Inpainting is exhausted fairly. Preserve Runner69/70 evidence, remove its provisional payload under cleanup policy, and test the next dedicated mask-native backend behind the same accepted automatic-mask contract.
+If it fails, replace only the removal backend; do not reopen perception, accepted masks or deterministic composition.
 
 ## Current perception payload
 
@@ -323,7 +260,7 @@ Perception runs separately from generative editors so these models do not compet
 
 ## Character Lab
 
-The reopened Exilada master is the first difficult Character Lab validation after the generic precision-control architecture proves a real non-character case.
+The reopened Exilada master is the first difficult Character Lab validation after the generic precision-control architecture proves a useful non-character case.
 
 Character Lab must support identity, anatomy, style/material, approved-state and later motion references without routine manual masking or repainting.
 
@@ -359,17 +296,15 @@ with specs, references, candidate histories, approved state, jobs/cache and expo
 
 ## Immediate implementation order
 
-1. run Runner70 and review the same SDXL inpaint operations at 1024 training-resolution parity;
-2. if both pass, promote `automatic_region_inpaint`;
-3. validate semantic multi-reference role separation;
+1. run Runner71 and review Big-LaMa tight/expanded object-removal results;
+2. if both operations pass, promote `automatic_region_object_removal`;
+3. separately validate prompted semantic fill/multi-reference role separation;
 4. validate reopened Exilada as first difficult Character Lab case;
 5. validate another non-character asset class;
 6. expose approved adapters through the generic Studio UI/state/candidate/history/approval layer;
 7. wrap proven H3 Ref2VA behind the same orchestration boundary;
 8. resume final rendering-language/pixel-art specialization from approved masters.
 
-If Runner70 fails, replace only the inpainting backend behind the already-proven automatic target/mask/compositor contract after preserving evidence and cleaning the SDXL payload.
-
 ## Hard conclusion
 
-The project is building a **local generative game-asset production system**. Specialized generation, semantic editing, inpainting, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
+The project is building a **local generative game-asset production system**. Specialized generation, semantic editing, object removal, prompted inpainting, perception and motion models are interchangeable; approved asset identity/state and provenance remain stable; static and animated production must scale from one protagonist to the entire game asset catalog.
