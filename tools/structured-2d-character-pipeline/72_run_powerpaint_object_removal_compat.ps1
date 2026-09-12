@@ -13,6 +13,7 @@ $BasePython = Join-Path $PortableRoot 'python_embeded\python.exe'
 $ComfyRoot = Join-Path $PortableRoot 'ComfyUI'
 $BrushNetRoot = Join-Path $ComfyRoot 'custom_nodes\ComfyUI-BrushNet'
 $BrushNetNodes = Join-Path $BrushNetRoot 'brushnet_nodes.py'
+$ModelPatch = Join-Path $BrushNetRoot 'model_patch.py'
 $Patcher = Join-Path $ProjectRepoRoot 'tools\roguelite-asset-studio\apply_powerpaint_clip_loader_compat.py'
 $Runner = Join-Path $ProjectRepoRoot 'tools\structured-2d-character-pipeline\72_bootstrap_and_run_powerpaint_object_removal.ps1'
 
@@ -21,7 +22,7 @@ function Fail([string]$Message) {
     exit 1
 }
 
-foreach ($required in @($BasePython,$BrushNetNodes,$Patcher,$Runner)) {
+foreach ($required in @($BasePython,$BrushNetNodes,$ModelPatch,$Patcher,$Runner)) {
     if (-not (Test-Path $required -PathType Leaf)) { Fail "required file missing: $required" }
 }
 if (-not (Test-Path (Join-Path $BrushNetRoot '.git') -PathType Container)) {
@@ -34,8 +35,8 @@ if ($LASTEXITCODE -ne 0 -or $actualCommit -ne $BrushNetCommit) {
 }
 Write-Host "RUNNER72-COMPAT: pinned ComfyUI-BrushNet commit verified: $actualCommit" -ForegroundColor Green
 
-Write-Host 'RUNNER72-COMPAT: applying verified process-local CLIP loader compatibility patch...' -ForegroundColor Cyan
-& $BasePython -s $Patcher --brushnet-nodes $BrushNetNodes
+Write-Host 'RUNNER72-COMPAT: applying verified automatic BrushNet compatibility layer...' -ForegroundColor Cyan
+& $BasePython -s $Patcher --brushnet-nodes $BrushNetNodes --model-patch $ModelPatch
 if ($LASTEXITCODE -ne 0) { Fail "compatibility patcher exited with code $LASTEXITCODE" }
 
 Write-Host 'RUNNER72-COMPAT: launching canonical Runner72...' -ForegroundColor Cyan
@@ -47,4 +48,4 @@ $runnerExit = $LASTEXITCODE
 if ($runnerExit -ne 0) { Fail "canonical Runner72 exited with code $runnerExit" }
 
 Write-Host ''
-Write-Host 'RUNNER72-COMPAT: PASS - AUTOMATIC COMPATIBILITY PATCH + CANONICAL RUNNER72 COMPLETE' -ForegroundColor Green
+Write-Host 'RUNNER72-COMPAT: PASS - AUTOMATIC COMPATIBILITY LAYER + CANONICAL RUNNER72 COMPLETE' -ForegroundColor Green
