@@ -20,11 +20,11 @@ Every state-changing action updates the relevant thematic docs and this file. Ch
 
 ## Active objective — LOCKED
 
-Build a tool that lets the user write dialogue, choose a scenario and optionally specify appearance/framing, then generate a short realistic video of themselves speaking the new text with convincing identity, voice and natural movement, without recording a new performance.
+Build a tool that lets João write dialogue, choose a scenario and optionally specify appearance/framing, then generate a realistic video of himself speaking the new text with convincing identity, voice and natural movement, without recording a new performance.
 
 Target program length: up to approximately one minute.
 
-**The only active product focus is now João's video production.** Game/sprite/character-runtime work is historical only.
+**The only active product focus is João's video production.** Game/sprite/character-runtime work is historical only.
 
 ## Cleanup policy — LOCKED
 
@@ -51,29 +51,13 @@ The active repository working tree is intentionally limited to Video Studio mate
 
 ## H3 conclusion — LOCKED
 
-Canonical classification:
-
 **H3 LOCAL: FUNCTIONAL PASS / PRODUCTION VISUAL QUALITY FAIL / PAUSED AS FINAL RENDERER.**
 
-H3 proved:
+H3 proved identity preservation, useful voice/lip-sync behavior, autonomous motion without a driving video, scene separation, and local execution. It did not prove production-grade effective detail, anatomy/hands, temporal texture stability, or a practical high-resolution finish on the RTX 3060.
 
-- recognizable identity from still references;
-- user-approved voice behavior;
-- useful lip sync;
-- autonomous motion without driving video;
-- scene separation using cropped identity references;
-- fully local execution.
+The user explicitly rejected the persistent effective-resolution/detail level. Turbo4/Base20 did not justify continuing into Base50 or heavy upscaling as the next main strategy.
 
-It did not prove:
-
-- production-grade spatial detail;
-- production-grade hands/gestures/anatomy;
-- production-grade temporal texture stability;
-- a practical path to high-resolution finished output on the RTX 3060.
-
-The user explicitly judged the effective visual resolution/detail as persistently poor. Turbo4 and Base20 did not justify continuing into Base50 or heavy upscaling as the next main strategy.
-
-H3 remains preserved as video evidence/baseline. Do not delete it in the game cleanup.
+H3 remains preserved as video evidence/baseline.
 
 ## Current hardware
 
@@ -84,8 +68,6 @@ H3 remains preserved as video evidence/baseline. Do not delete it in the game cl
 - AI root: `Z:\AI`
 
 ## Active renderer direction — Wan2.2-S2V-14B
-
-The project has returned to the original modular plan that existed before the H3 detour.
 
 Target architecture:
 
@@ -110,31 +92,30 @@ Do not require one monolithic model to solve identity, voice generation, scene g
 
 ## Wan S2V preparation — COMPLETED 2026-09-15 17:55
 
-Machine/runtime checks passed:
+Checks passed:
 
-- RTX 3060 12 GB;
-- 47.7 GB RAM;
+- RTX 3060 12 GB / 47.7 GB RAM;
 - FFmpeg available;
-- native `WanSoundImageToVideo`, `AudioEncoderLoader`, and `AudioEncoderEncode` support present.
+- native `WanSoundImageToVideo`, `AudioEncoderLoader`, `AudioEncoderEncode` support present.
 
 Downloaded and SHA-256 verified:
 
-- `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
-- `wav2vec2_large_english_fp16.safetensors` (~631 MB).
+- `Z:\AI\WanAnimate2\models\diffusion_models\wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
+- `Z:\AI\WanAnimate2\models\audio_encoders\wav2vec2_large_english_fp16.safetensors` (~631 MB).
 
-Reused without duplicate download:
+Reused:
 
 - `umt5_xxl_fp16.safetensors`;
 - `Wan2_1_VAE_bf16.safetensors`.
 
-Prepared benchmark assets:
+Prepared:
 
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
 - pinned official ComfyUI S2V template;
 - preparation manifest.
 
-CosyVoice remains intentionally deferred until the renderer itself clears the visual-quality gate.
+CosyVoice remains intentionally deferred until the renderer clears the visual-quality gate.
 
 ## First Wan quality gate — READY TO RUN
 
@@ -150,9 +131,7 @@ Locked first-test settings:
 - reused Wan2.1 VAE BF16;
 - wav2vec2 audio encoder;
 - **480x832 vertical**;
-- 77 frames;
-- 16 fps;
-- ~4.8 seconds;
+- 77 frames at 16 fps (~4.8 s);
 - 20 steps;
 - CFG 6;
 - `uni_pc` / `simple`;
@@ -163,26 +142,38 @@ Locked first-test settings:
 - no CosyVoice;
 - no long-form extension.
 
-The 480x832 frame has approximately the same pixel budget as the official 640x640 template but matches the intended vertical-video use.
+The 480x832 frame has approximately the same pixel budget as the official 640x640 template while matching the intended vertical-video use.
 
-The runner prefers the current Flux2Klein ComfyUI portable runtime, exposes `Z:\AI\WanAnimate2\models` through `extra_model_paths`, copies only the prepared benchmark inputs into the runtime input root, validates node/model visibility, runs on dedicated port 8192, records timing/evidence, and shuts down the server process it started.
+The runner prefers the current Flux2Klein ComfyUI portable runtime and exposes `Z:\AI\WanAnimate2\models` through `extra_model_paths`, avoiding model duplication. It runs on dedicated port 8192 and records evidence/timing.
+
+### Quality-preserving output path — LOCKED
+
+For this benchmark, ComfyUI saves the decoded output as **lossless PNG frames** rather than a compressed intermediary MP4. The runner then assembles the exact frames with FFmpeg using libx264 `slow`, CRF 14, `yuv420p`, and AAC 192 kb/s.
+
+This prevents ComfyUI video encoding from obscuring whether a softness/detail defect belongs to Wan itself.
+
+The official first-frame VAE workaround is retained before frame export.
 
 Output root:
 
 `Z:\AI\VideoStudioRuns\wan-s2v-gates\<timestamp>\`
 
-Expected MP4:
+Expected evidence:
 
-`wan_s2v_fp8_20step.mp4`
+- `frames\frame_0001.png` ... lossless frames;
+- `wan_s2v_fp8_20step.mp4`;
+- `api_graph.json`;
+- `manifest.json`;
+- `comfy_server.log`.
 
-Judge:
+Judge full-size/in-motion:
 
 1. effective detail/resolution;
 2. identity stability;
 3. glasses/eyes/beard/hair;
 4. mouth/teeth/jaw;
 5. hands/arms/shoulders;
-6. skin/clothing texture stability;
+6. skin/clothing temporal stability;
 7. naturalness of body performance;
 8. AV sync;
 9. runtime practicality;
@@ -201,23 +192,12 @@ Do not switch engines randomly. Compare them against the same short-shot quality
 
 ## Video Studio implementation direction
 
-`tools/video-studio/` remains the orchestration prototype.
-
-It should evolve toward a backend-adapter architecture:
-
-- persistent profile assets;
-- separate voice stage;
-- optional scene/look still generation;
-- interchangeable video renderer backend;
-- evidence / timing / model manifests;
-- FFmpeg assembly.
+`tools/video-studio/` remains the orchestration prototype and should evolve toward persistent profile assets, separate voice stage, optional scene/look still generation, interchangeable renderer backend, manifests/evidence, and final assembly.
 
 Do not resume one-minute workflow/UI polish until a single short shot is genuinely publishable.
 
 ## Immediate next action
 
-Run the prepared Wan2.2-S2V single-shot benchmark and evaluate the resulting MP4 against the production visual-quality gate before installing CosyVoice or any additional renderer.
+Run the prepared Wan2.2-S2V single-shot benchmark and evaluate its MP4 and lossless PNG frames before installing CosyVoice or any additional renderer.
 
-Canonical procedure:
-
-`docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
+Canonical procedure: `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`.
