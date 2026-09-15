@@ -55,7 +55,27 @@ Canonical cleanup script:
 
 It defaults to dry-run size accounting and writes evidence under `tools/video-studio/reports/`. Actual deletion requires `-Execute`.
 
-Git history is retained. Rewriting repository history is not part of the disk-space cleanup.
+## Repository working-tree cleanup — ACTIVE / LOCKED
+
+The active `main` branch must no longer carry the retired game project as current working-tree content.
+
+After cleanup, the tracked working tree is intentionally reduced to:
+
+- `.gitignore`;
+- `README.md`;
+- `docs/PROJECT_STATE.md`;
+- `docs/VIDEO_STUDIO*.md`;
+- `tools/video-studio/**`.
+
+Everything else in the old tracked working tree is classified as retired Roguelite-era material for the active branch, including game assets, Exilada/sprite/character documents, gameplay documents, old game runner logs, and non-Video-Studio tool directories.
+
+Canonical script:
+
+`tools/video-studio/cleanup_repository_to_video_studio.ps1`
+
+The script requires branch `main` and a clean tracked worktree. With `-Execute -Push` it removes the retired tracked files, commits the cleanup and pushes `main`.
+
+This is **not a Git-history rewrite**. Old game material remains recoverable from historical commits, but no longer clutters the current checkout or canonical project state.
 
 ## H3 conclusion — LOCKED
 
@@ -220,10 +240,11 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-1. reclaim local disk space by deleting the explicitly classified game-only AI roots;
-2. keep all video/reusable roots intact;
-3. continue Wan S2V preparation without redundant downloads;
-4. run one ~4.8 s benchmark before adding CosyVoice.
+1. delete the explicitly classified game-only AI roots;
+2. purge retired Roguelite working-tree content from `main` while preserving Git history;
+3. keep all video/reusable roots and Video Studio files intact;
+4. continue Wan S2V preparation without redundant downloads;
+5. run one ~4.8 s benchmark before adding CosyVoice.
 
 Canonical procedures:
 
