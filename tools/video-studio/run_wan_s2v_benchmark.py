@@ -30,7 +30,7 @@ WIDTH = 480
 HEIGHT = 832
 LENGTH = 77
 FPS = 16
-STEPS = 20
+STEPS = 10
 CFG = 6.0
 SAMPLER = "uni_pc"
 SCHEDULER = "simple"
@@ -265,7 +265,7 @@ def build_graph(image_name: str, audio_name: str, seed: int, frame_prefix: str) 
         "13": {"class_type": "LatentCut", "inputs": {"samples": ["12", 0], "dim": "t", "index": 0, "amount": 1}},
         "14": {"class_type": "LatentConcat", "inputs": {"samples1": ["13", 0], "samples2": ["12", 0], "dim": "t"}},
         "15": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["6", 0]}},
-        "16": {"class_type": "ImageFromBatch", "inputs": {"image": ["15", 0], "batch_index": 3, "length": LENGTH}},
+        "16": {"class_type": "ImageFromBatch", "inputs": {"image": ["15", 0], "batch_index": 1, "length": LENGTH}},
         "17": {"class_type": "SaveImage", "inputs": {"images": ["16", 0], "filename_prefix": frame_prefix}},
     }
 
@@ -385,7 +385,7 @@ def main() -> int:
         elapsed = time.time() - inference_started
 
         frame_dir, frame_count = collect_frames(comfy_root, frame_folder, run_dir)
-        final = run_dir / "wan_s2v_fp8_20step.mp4"
+        final = run_dir / "wan_s2v_fp8_10step.mp4"
         assemble_video(frame_dir, runtime_audio, final)
 
         manifest = {
@@ -407,6 +407,7 @@ def main() -> int:
                 "scheduler": SCHEDULER,
                 "shift": SHIFT,
                 "seed": args.seed,
+                "single_chunk_batch_index": 1,
                 "lowvram": bool(args.lowvram),
                 "final_encode": "H.264 libx264 preset slow CRF 14 + AAC 192k",
             },
