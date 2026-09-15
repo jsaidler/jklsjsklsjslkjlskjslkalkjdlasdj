@@ -1,6 +1,7 @@
 param(
     [int]$Port = 8192,
     [int]$Seed = 0,
+    [int]$Steps = 20,
     [int]$TimeoutMinutes = 360,
     [switch]$LowVram
 )
@@ -24,13 +25,17 @@ if ($null -eq $Python) {
 if (-not (Test-Path -LiteralPath $Runner -PathType Leaf)) {
     throw "Wan S2V benchmark runner not found: $Runner"
 }
+if ($Steps -lt 1) {
+    throw "Steps must be >= 1."
+}
 
-Write-Host "WAN-S2V-BENCHMARK-01"
+Write-Host "WAN-S2V-BENCHMARK-02"
 Write-Host "===================="
 Write-Host "Repo: $RepoRoot"
 Write-Host "Python: $Python"
 Write-Host "Port: $Port"
 Write-Host "Seed: $Seed"
+Write-Host "Steps: $Steps"
 Write-Host "Timeout: $TimeoutMinutes min"
 Write-Host "LowVram: $LowVram"
 Write-Host ""
@@ -41,6 +46,7 @@ $Args = @(
     $Runner,
     "--port", $Port,
     "--seed", $Seed,
+    "--steps", $Steps,
     "--timeout-minutes", $TimeoutMinutes
 )
 
