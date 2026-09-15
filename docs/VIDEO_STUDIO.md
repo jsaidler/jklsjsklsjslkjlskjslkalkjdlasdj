@@ -1,9 +1,10 @@
 # Local Video Studio — canonical architecture
 
 Status date: **2026-09-15**  
-Status: **ACTIVE / MVP IMPLEMENTATION**
+Status: **ACTIVE PROTOTYPE / PRODUCTION QUALITY GATE OPEN**
 
-Canonical cross-chat state: `docs/PROJECT_STATE.md`.
+Canonical cross-chat state: `docs/PROJECT_STATE.md`.  
+Quality gate: `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`.
 
 ## Objective
 
@@ -17,11 +18,24 @@ Persistent profile input:
 
 `cropped identity references + voice reference`
 
-Normal output:
+Target output:
 
-`vertical MP4 with the user's preserved identity, cloned/referenced voice, new lip-synced dialogue, autonomous body motion and the requested scene`
+`vertical MP4 with the user's preserved identity, referenced/cloned voice, new lip-synced dialogue, autonomous body motion and the requested scene`
 
-Target program duration is up to approximately one minute. One minute is assembled from H3-safe short shots rather than generated as one continuous diffusion sequence.
+Target program duration is up to approximately one minute, assembled from short H3-safe shots.
+
+## Current status — IMPORTANT
+
+The architecture is proven, but **production visual quality is not**.
+
+The 2026-09-15 tests established that H3 can use still identity references plus a standalone voice reference, generate autonomous movement without a driving video, and create a different scene. The user did **not** approve the visual result as production quality.
+
+Therefore:
+
+- H3 Ref2VA is the active engine candidate, not yet a production-approved engine;
+- the existing Turbo4 path is a functional baseline, not a production preset;
+- UI/productization work is subordinate to the active visual-quality gate;
+- no one-minute/multi-shot output should be treated as production-ready until one short shot passes the quality gate.
 
 ## Canonical architecture
 
@@ -44,8 +58,8 @@ Existing ComfyUI portable @ Z:\AI\MiniMaxH3
         v
 MiniMax H3 Ref2VA
         |
-        +-- native generated video
-        +-- native generated voice/audio
+        +-- generated video
+        +-- generated voice/audio
         |
         v
 FFmpeg final assembly
@@ -54,34 +68,32 @@ FFmpeg final assembly
 Z:\AI\MiniMaxH3\VideoStudioRuns\<job>\video_studio_<job>.mp4
 ```
 
-ComfyUI is an inference runtime, not the normal authoring UI. The user should not need to understand, repair or operate the node graph for routine jobs.
+ComfyUI remains an inference runtime, not the intended authoring interface.
 
 ## Persistent profile
 
-Current validated profile inputs:
+Current functionally validated profile inputs:
 
 - `joao_id_face.png`
 - `joao_id_shoulders.png`
 - `joao_id_upperbody.png`
 - `joao_ref_voice.wav`
 
-The three images intentionally contain progressively more anatomy while minimizing scene/background authority.
+The images intentionally contain progressively more anatomy while minimizing scene/background authority.
 
-This separation is a production rule: full-frame identity references caused H3 to reproduce the original room even when the prompt requested a new environment. Cropped references removed that coupling.
+Full-frame identity references reproduced the source room even when a new environment was requested. Cropped references materially reduced that coupling, so the identity-only role is retained.
 
 ## Prompt contract
 
-Every production prompt must make reference roles explicit:
+For image-only recording-free experiments:
 
 - `<Picture 1..N>` = **identity only**;
 - `<Audio 1>` = **voice identity only**;
 - no normal `<Video 1>` driving reference;
-- scenario text = authority for environment;
-- optional appearance text = authority for clothing;
-- framing preset = authority for camera crop;
+- scenario text = environment authority;
+- optional appearance text = clothing authority;
+- framing preset = camera crop authority;
 - H3 generates body performance autonomously.
-
-Identity prompt language explicitly excludes background, room, furniture, windows, bottles, equipment, colors and lighting from the reference images.
 
 Dialogue is encoded as:
 
@@ -89,13 +101,13 @@ Dialogue is encoded as:
 <d>[Portuguese] ...</d>
 ```
 
-The user has explicitly judged the generated voice from the validation run as good.
+The user explicitly judged the generated voice as good. That voice verdict does not imply a visual-quality pass.
 
-## Engine
+## Engine candidate
 
-Active engine: **MiniMax H3 Ref2VA**.
+Active candidate: **MiniMax H3 Ref2VA**.
 
-Installed production payload:
+Installed payload:
 
 - `minimax_h3_ref2va_pruned_int8_convrot.safetensors`
 - `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
@@ -103,86 +115,109 @@ Installed production payload:
 - `minimax_h3_audio_vae_fp32.safetensors`
 - `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`
 
-Generation is 24 fps. Production vertical canvas is currently `768×1344`.
+Generation is 24 fps. Current comparison canvas is 768-class vertical (`768×1344` requested; H3 may align the realized canvas to its internal constraints).
 
-## Production preset
+## Presets — EXPERIMENTAL
 
-Current default is **Turbo 4-step**, not because it is theoretically maximal quality but because this exact use case passed the practical validation gate:
+Backend keys are retained for compatibility with the first MVP code, but their human meaning is:
 
-- recognizable/stable identity;
-- user-approved voice;
-- lip synchronization;
-- autonomous motion without driving video;
-- new scene separated from identity-reference backgrounds.
+### `draft`
 
-Preset:
+- Turbo4;
+- 480×864;
+- cheap prompt/composition smoke test only.
 
+### `production` — LEGACY KEY NAME ONLY
+
+- Turbo4;
 - 768×1344;
 - 4 steps;
-- `res_multistep`;
-- `simple` scheduler;
-- Ref2V Turbo LoRA strength 1.0;
-- `ref_image_size=max`;
-- MiniMax H3 sigma shifts video/audio 12/3.
+- `res_multistep` + `simple`;
+- `ref_image_size=max`.
 
-Base 20- and 50-step modes remain available as controlled quality experiments. The historical 2026-09-08 game-motion result that rejected Turbo4 cannot be generalized to this different talking-video task.
+This key must **not** be described as production approved. It is only the high-resolution fast functional baseline from the initial spike.
 
-## Script segmentation
+### `quality`
 
-The orchestrator estimates speech duration at roughly 2.2 words/second plus headroom and keeps an individual generated shot at <= ~12.5 seconds.
+- Base H3;
+- no Turbo LoRA;
+- 20 steps;
+- `res_multistep` + `beta`;
+- 768×1344;
+- `ref_image_size=max`.
 
-For a longer script it:
+This is the first active quality candidate.
 
-1. splits on sentence boundaries;
-2. packs sentences within the shot budget;
-3. breaks oversized sentences when required;
-4. computes a target duration;
-5. snaps to H3's valid 24 fps `17k+5` frame grid;
-6. renders shots sequentially;
-7. re-encodes/concatenates them into one final MP4.
+### `max`
 
-A scenario field may contain several scene descriptions separated by a line containing `---`. Scene 1 applies to shot 1, scene 2 to shot 2, and the final provided scene is reused for any remaining shots.
+- Base H3;
+- no Turbo LoRA;
+- 50 steps;
+- `res_multistep` + `beta`;
+- 768×1344;
+- `ref_image_size=max`.
 
-## Evidence policy
+This is the maximum currently defined H3 quality candidate. It may be extremely slow on the RTX 3060 and is justified only after controlled comparison.
 
-Each job stores:
+## Production visual-quality gate
 
-- original request;
-- per-shot compiled prompt;
-- per-shot ComfyUI API graph;
-- ComfyUI prompt id;
-- elapsed time;
-- generated shot copy;
-- SHA-256 for shots, profile refs and final MP4;
-- final run manifest.
+No preset is promoted until it passes `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`.
 
-Generated media is local and is not committed to Git.
+The gate includes:
 
-## Current UI
+- face/identity stability;
+- eyes/glasses/hair/beard;
+- mouth/teeth/jaw;
+- hands/fingers/wrists/arms;
+- natural body performance rather than generic AI-presenter gestures;
+- skin/detail texture;
+- clothing continuity;
+- background geometry stability;
+- lighting/camera coherence;
+- voice/AV sync;
+- overall publishability without manual frame repair.
+
+A conspicuous visual artifact is a production failure even if voice/identity technically work.
+
+## Current implementation
 
 Implementation lives at `tools/video-studio/`.
 
-Normal controls:
+It already provides:
 
-- dialogue;
-- scenario;
-- optional clothing/appearance;
-- framing;
-- quality preset;
+- localhost UI;
+- dialogue/scenario/appearance/framing inputs;
+- profile injection;
+- H3 API graph construction;
+- serial GPU execution;
+- shot splitting;
+- FFmpeg assembly;
+- run evidence and manifests.
+
+This is useful infrastructure, but it is presently a **prototype harness** for quality development, not a finished production tool.
+
+## Current development order
+
+1. controlled Turbo4 vs Base20 comparison under identical conditions;
+2. Base50 only if warranted by the comparison;
+3. if sampling does not solve the visible defects, improve the canonical identity reference pack;
+4. repeat the best H3 sampling path;
+5. if H3 remains visually inadequate, compare another local video/avatar engine on the same benchmark;
+6. only after a short-shot quality pass, resume long-form/multi-shot productization.
+
+Do not spend the next cycle on subtitles, B-roll, cosmetic UI work or one-minute continuity while the single-shot image quality is still below the user's standard.
+
+## Evidence policy
+
+Every controlled quality run should store:
+
+- exact prompt;
+- exact preset/model paths;
 - seed;
-- Generate.
+- identity/voice reference hashes;
+- dimensions/frame count/fps;
+- elapsed time;
+- output MP4 and SHA-256;
+- explicit human visual verdict.
 
-The interface intentionally does **not** expose sampler graphs, VAE wiring, model paths or ComfyUI internals.
-
-## Future gates
-
-The following are useful next experiments, but are not prerequisites for the MVP:
-
-1. controlled A/B: validated Turbo4 vs Base20 vs Base50 on the same talking-video prompt;
-2. better automatic shot planning for 30–60 second scripts, including deliberate visual cut variation;
-3. canonical neutral-background identity pack created/refined through Qwen/FLUX if it materially improves identity/scenario separation;
-4. optional subtitle generation and burn-in/SRT output;
-5. continuity controls across adjacent shots where desired;
-6. optional B-roll shots that do not show the speaker.
-
-Do not install a second talking-avatar engine merely because it exists. A competing model is justified only by a concrete quality deficiency that H3 cannot resolve after controlled testing.
+No automatic metric overrides visible defects.
