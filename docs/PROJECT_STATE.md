@@ -132,17 +132,22 @@ Locked first-test settings:
 - wav2vec2 audio encoder;
 - **480x832 vertical**;
 - 77 frames at 16 fps (~4.8 s);
-- 20 steps;
+- **10 steps**;
 - CFG 6;
 - `uni_pc` / `simple`;
 - ModelSamplingSD3 shift 8;
 - seed 0;
+- single chunk / batch size 1;
 - real João speech audio;
 - no upscaler;
 - no CosyVoice;
 - no long-form extension.
 
+The official ComfyUI S2V template uses 10 steps / CFG 6 / `uni_pc` / `simple` on the native path. The earlier 20-step assumption was a workflow-reading error and is retired rather than spending twice the inference time without evidence of benefit.
+
 The 480x832 frame has approximately the same pixel budget as the official 640x640 template while matching the intended vertical-video use.
+
+The official first-frame VAE workaround is retained. Because the benchmark is one chunk, `ImageFromBatch` removes **one** duplicated/overbaked decoded start frame; the multi-chunk example's index 3 does not apply.
 
 The runner prefers the current Flux2Klein ComfyUI portable runtime and exposes `Z:\AI\WanAnimate2\models` through `extra_model_paths`, avoiding model duplication. It runs on dedicated port 8192 and records evidence/timing.
 
@@ -152,8 +157,6 @@ For this benchmark, ComfyUI saves the decoded output as **lossless PNG frames** 
 
 This prevents ComfyUI video encoding from obscuring whether a softness/detail defect belongs to Wan itself.
 
-The official first-frame VAE workaround is retained before frame export.
-
 Output root:
 
 `Z:\AI\VideoStudioRuns\wan-s2v-gates\<timestamp>\`
@@ -161,7 +164,7 @@ Output root:
 Expected evidence:
 
 - `frames\frame_0001.png` ... lossless frames;
-- `wan_s2v_fp8_20step.mp4`;
+- `wan_s2v_fp8_10step.mp4`;
 - `api_graph.json`;
 - `manifest.json`;
 - `comfy_server.log`.
