@@ -6,7 +6,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import time
 import urllib.error
 import urllib.request
@@ -67,8 +66,7 @@ REQUIRED_NODES = [
     "LatentConcat",
     "VAEDecode",
     "ImageFromBatch",
-    "CreateVideo",
-    "SaveVideo",
+    "SaveImage",
 ]
 
 
@@ -125,7 +123,7 @@ def ping(base_url: str, timeout: float = 2.0) -> bool:
         return False
 
 
-def copy_inputs(comfy_root: Path) -> tuple[str, str]:
+def copy_inputs(comfy_root: Path) -> tuple[str, str, Path]:
     source_dir = WAN_ROOT / "input" / "video_studio" / "wan_s2v_benchmark"
     src_image = source_dir / "joao_wan_s2v_ref.png"
     src_audio = source_dir / "joao_wan_s2v_test_4p5s.wav"
@@ -138,9 +136,10 @@ def copy_inputs(comfy_root: Path) -> tuple[str, str]:
     input_dir.mkdir(parents=True, exist_ok=True)
     image_name = "wan_s2v_joao_ref.png"
     audio_name = "wan_s2v_joao_audio.wav"
+    target_audio = input_dir / audio_name
     shutil.copy2(src_image, input_dir / image_name)
-    shutil.copy2(src_audio, input_dir / audio_name)
-    return image_name, audio_name
+    shutil.copy2(src_audio, target_audio)
+    return image_name, audio_name, target_audio
 
 
 def start_comfy(portable: Path, port: int, extra_paths: Path, server_log: Path, lowvram: bool) -> tuple[subprocess.Popen | None, Any]:
@@ -222,48 +221,18 @@ def validate_runtime(base_url: str) -> None:
             raise BenchError(f"{node} cannot see required model {expected}. Visible count: {len(values)}")
 
 
-def build_graph(image_name: str, audio_name: str, seed: int, prefix: str) -> dict[str, Any]:
+def build_graph(image_name: str, audio_name: str, seed: int, frame_prefix: str) -> dict[str, Any]:
     return {
-        "1": {
-            "class_type": "UNETLoader",
-            "inputs": {"unet_name": DIFFUSION, "weight_dtype": "default"},
-        },
-        "2": {
-            "class_type": "ModelSamplingSD3",
-            "inputs": {"model": ["1", 0], "shift": SHIFT},
-        },
-        "3": {
-            "class_type": "CLIPLoader",
-            "inputs": {"clip_name": TEXT_ENCODER, "type": "wan", "device": "default"},
-        },
-        "4": {
-            "class_type": "CLIPTextEncode",
-            "inputs": {"text": POSITIVE, "clip": ["3", 0]},
-        },
-        "5": {
-            "class_type": "CLIPTextEncode",
-            "inputs": {"text": NEGATIVE, "clip": ["3", 0]},
-        },
-        "6": {
-            "class_type": "VAELoader",
-            "inputs": {"vae_name": VAE},
-        },
-        "7": {
-            "class_type": "AudioEncoderLoader",
-            "inputs": {"audio_encoder_name": AUDIO_ENCODER},
-        },
-        "8": {
-            "class_type": "LoadAudio",
-            "inputs": {"audio": audio_name},
-        },
-        "9": {
-            "class_type": "AudioEncoderEncode",
-            "inputs": {"audio_encoder": ["7", 0], "audio": ["8", 0]},
-        },
-        "10": {
-            "class_type": "LoadImage",
-            "inputs": {"image": image_name},
-        },
+        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": DIFFUSION, "weight_dtype": "default"}},
+        "2": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["1", 0], "shift": SHIFT}},
+        "3": {"class_type": "CLIPLoader", "inputs": {"clip_name": TEXT_ENCODER, "type": "wan", "device": "default"}},
+        "4": {"class_type": "CLIPTextEncode", "inputs": {"text": POSITIVE, "clip": ["3", 0]}},
+        "5": {"class_type": "CLIPTextEncode", "inputs": {"text": NEGATIVE, "clip": ["3", 0]}},
+        "6": {"class_type": "VAELoader", "inputs": {"vae_name": VAE}},
+        "7": {"class_type": "AudioEncoderLoader", "inputs": {"audio_encoder_name": AUDIO_ENCODER}},
+        "8": {"class_type": "LoadAudio", "inputs": {"audio": audio_name}},
+        "9": {"class_type": "AudioEncoderEncode", "inputs": {"audio_encoder": ["7", 0], "audio": ["8", 0]}},
+        "10": {"class_type": "LoadImage", "inputs": {"image": image_name}},
         "11": {
             "class_type": "WanSoundImageToVideo",
             "inputs": {
@@ -293,40 +262,11 @@ def build_graph(image_name: str, audio_name: str, seed: int, prefix: str) -> dic
                 "denoise": 1.0,
             },
         },
-        "13": {
-            "class_type": "LatentCut",
-            "inputs": {"samples": ["12", 0], "dim": "t", "index": 0, "amount": 1},
-        },
-        "14": {
-            "class_type": "LatentConcat",
-            "inputs": {"samples1": ["13", 0], "samples2": ["12", 0], "dim": "t"},
-        },
-        "15": {
-            "class_type": "VAEDecode",
-            "inputs": {"samples": ["14", 0], "vae": ["6", 0]},
-        },
-        "16": {
-            "class_type": "ImageFromBatch",
-            "inputs": {"image": ["15", 0], "batch_index": 3, "length": LENGTH},
-        },
-        "17": {
-            "class_type": "CreateVideo",
-            "inputs": {"images": ["16", 0], "fps": float(FPS), "audio": ["8", 0]},
-        },
-        "18": {
-            "class_type": "SaveVideo",
-            "inputs": {
-                "video": ["17", 0],
-                "filename_prefix": prefix,
-                "format": {
-                    "format": "mp4",
-                    "codec": {
-                        "codec": "h264",
-                        "encoding": {"encoding": "re-encode", "crf": 14.0},
-                    },
-                },
-            },
-        },
+        "13": {"class_type": "LatentCut", "inputs": {"samples": ["12", 0], "dim": "t", "index": 0, "amount": 1}},
+        "14": {"class_type": "LatentConcat", "inputs": {"samples1": ["13", 0], "samples2": ["12", 0], "dim": "t"}},
+        "15": {"class_type": "VAEDecode", "inputs": {"samples": ["14", 0], "vae": ["6", 0]}},
+        "16": {"class_type": "ImageFromBatch", "inputs": {"image": ["15", 0], "batch_index": 3, "length": LENGTH}},
+        "17": {"class_type": "SaveImage", "inputs": {"images": ["16", 0], "filename_prefix": frame_prefix}},
     }
 
 
@@ -360,19 +300,38 @@ def wait_for_prompt(base_url: str, prompt_id: str, timeout_minutes: int) -> dict
     raise BenchError(f"Timeout after {timeout_minutes} minutes waiting for prompt {prompt_id}")
 
 
-def find_output(comfy_root: Path, prefix_leaf: str, started_at: float) -> Path:
-    output = comfy_root / "output"
-    candidates = []
-    if output.is_dir():
-        for path in output.rglob("*.mp4"):
-            try:
-                if prefix_leaf in path.name and path.stat().st_mtime >= started_at - 5:
-                    candidates.append(path)
-            except OSError:
-                pass
-    if not candidates:
-        raise BenchError(f"Inference completed but benchmark MP4 was not found under {output}")
-    return max(candidates, key=lambda p: p.stat().st_mtime)
+def collect_frames(comfy_root: Path, frame_folder: str, run_dir: Path) -> tuple[Path, int]:
+    source_dir = comfy_root / "output" / frame_folder
+    if not source_dir.is_dir():
+        raise BenchError(f"Inference completed but lossless frame folder was not found: {source_dir}")
+    source_frames = sorted(source_dir.glob("*.png"), key=lambda p: p.name.lower())
+    if not source_frames:
+        raise BenchError(f"No PNG frames were saved under: {source_dir}")
+
+    target_dir = run_dir / "frames"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    for index, source in enumerate(source_frames, start=1):
+        shutil.copy2(source, target_dir / f"frame_{index:04d}.png")
+    return target_dir, len(source_frames)
+
+
+def assemble_video(frame_dir: Path, audio_path: Path, final_path: Path) -> None:
+    ffmpeg = shutil.which("ffmpeg") or shutil.which("ffmpeg.exe")
+    if not ffmpeg:
+        raise BenchError("ffmpeg not found in PATH for final lossless-frame assembly.")
+    cmd = [
+        ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
+        "-framerate", str(FPS), "-i", str(frame_dir / "frame_%04d.png"),
+        "-i", str(audio_path),
+        "-c:v", "libx264", "-preset", "slow", "-crf", "14", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k", "-shortest", str(final_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "unknown ffmpeg error").strip()
+        raise BenchError(f"ffmpeg assembly failed: {detail}")
+    if not final_path.is_file():
+        raise BenchError(f"ffmpeg returned success but final MP4 is missing: {final_path}")
 
 
 def main() -> int:
@@ -393,7 +352,7 @@ def main() -> int:
     portable = find_portable()
     comfy_root = portable / "ComfyUI"
     extra_paths = write_extra_model_paths()
-    image_name, audio_name = copy_inputs(comfy_root)
+    image_name, audio_name, runtime_audio = copy_inputs(comfy_root)
     base_url = f"http://127.0.0.1:{args.port}"
 
     print("WAN-S2V-BENCHMARK-01")
@@ -404,19 +363,19 @@ def main() -> int:
     print(f"Frames/FPS: {LENGTH} / {FPS}")
     print(f"Sampling: {STEPS} steps, CFG {CFG:g}, {SAMPLER}/{SCHEDULER}, shift {SHIFT:g}")
     print(f"Seed: {args.seed}")
+    print("Output strategy: lossless PNG frames -> ffmpeg H.264 CRF 14")
     print(f"Run dir: {run_dir}")
     print("")
 
     proc = None
     log_handle = None
-    inference_started = None
     try:
         proc, log_handle = start_comfy(portable, args.port, extra_paths, server_log, args.lowvram)
         validate_runtime(base_url)
         print("Runtime/model visibility: PASS")
 
-        prefix = f"video/wan_s2v_benchmark_{stamp}"
-        graph = build_graph(image_name, audio_name, args.seed, prefix)
+        frame_folder = f"wan_s2v_frames_{stamp}"
+        graph = build_graph(image_name, audio_name, args.seed, f"{frame_folder}/frame")
         graph_path.write_text(json.dumps(graph, indent=2, ensure_ascii=False), encoding="utf-8")
 
         inference_started = time.time()
@@ -425,17 +384,18 @@ def main() -> int:
         wait_for_prompt(base_url, prompt_id, args.timeout_minutes)
         elapsed = time.time() - inference_started
 
-        source = find_output(comfy_root, f"wan_s2v_benchmark_{stamp}", inference_started)
+        frame_dir, frame_count = collect_frames(comfy_root, frame_folder, run_dir)
         final = run_dir / "wan_s2v_fp8_20step.mp4"
-        shutil.copy2(source, final)
+        assemble_video(frame_dir, runtime_audio, final)
 
         manifest = {
             "schema": "WAN-S2V-BENCHMARK-01",
             "created": datetime.now().isoformat(),
             "runtime": str(portable),
             "model_root": str(WAN_ROOT),
-            "source_output": str(source),
             "final_output": str(final),
+            "lossless_frames": str(frame_dir),
+            "frame_count": frame_count,
             "settings": {
                 "width": WIDTH,
                 "height": HEIGHT,
@@ -448,6 +408,7 @@ def main() -> int:
                 "shift": SHIFT,
                 "seed": args.seed,
                 "lowvram": bool(args.lowvram),
+                "final_encode": "H.264 libx264 preset slow CRF 14 + AAC 192k",
             },
             "models": {
                 "diffusion": DIFFUSION,
@@ -464,7 +425,8 @@ def main() -> int:
         print("")
         print("RESULT")
         print("======")
-        print(f"Elapsed: {elapsed / 60:.1f} min")
+        print(f"Inference elapsed: {elapsed / 60:.1f} min")
+        print(f"Lossless frames: {frame_count} -> {frame_dir}")
         print(f"VIDEO: {final}")
         print(f"MANIFEST: {manifest_path}")
         print("")
