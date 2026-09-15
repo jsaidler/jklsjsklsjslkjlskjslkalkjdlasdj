@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Local Video Studio</title>
+  <title>Local Video Studio — protótipo</title>
   <style>
-    :root { color-scheme: dark; --bg:#111315; --panel:#1a1d20; --line:#343a40; --text:#f1f3f5; --muted:#adb5bd; --accent:#f59f00; --bad:#ff6b6b; --good:#69db7c; }
+    :root { color-scheme: dark; --bg:#111315; --panel:#1a1d20; --line:#343a40; --text:#f1f3f5; --muted:#adb5bd; --accent:#f59f00; --bad:#ff6b6b; --good:#69db7c; --warn:#ffd43b; }
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif; }
     main { max-width:1180px; margin:0 auto; padding:28px; }
-    header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:24px; }
+    header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:18px; }
     h1 { font-size:28px; margin:0 0 6px; }
     h2 { font-size:17px; margin:0 0 14px; }
     p { margin:0; }
     .muted { color:var(--muted); }
+    .banner { border:1px solid #7f6a18; background:#29230d; color:#ffe66d; border-radius:10px; padding:12px 14px; margin-bottom:20px; }
     .status { border:1px solid var(--line); border-radius:999px; padding:7px 11px; white-space:nowrap; color:var(--muted); }
     .status.ok { color:var(--good); border-color:#2b6d39; }
     .status.bad { color:var(--bad); border-color:#7c3030; }
@@ -31,7 +32,6 @@
     progress { width:100%; height:14px; margin:12px 0 8px; }
     pre { white-space:pre-wrap; word-break:break-word; background:#0f1113; border:1px solid #30363c; border-radius:8px; padding:12px; min-height:120px; max-height:300px; overflow:auto; color:#ced4da; }
     video { width:100%; background:#050505; border-radius:9px; margin-top:14px; max-height:64vh; }
-    a { color:#ffd43b; }
     .preset-help { min-height:38px; margin-top:6px; color:var(--muted); font-size:12px; }
     .smallgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media (max-width:850px){ main{padding:16px}.grid{grid-template-columns:1fr}.row,.smallgrid{grid-template-columns:1fr} header{display:block}.status{display:inline-block;margin-top:12px} }
@@ -42,24 +42,28 @@
   <header>
     <div>
       <h1>Local Video Studio</h1>
-      <p class="muted">Texto + cenário → você falando, com identidade e voz locais via MiniMax H3.</p>
+      <p class="muted">Protótipo local: texto + cenário → vídeo falado via MiniMax H3.</p>
     </div>
     <div id="systemStatus" class="status">verificando…</div>
   </header>
 
+  <div class="banner">
+    <strong>Qualidade de produção ainda NÃO aprovada.</strong>
+    A arquitetura funciona, mas os vídeos atuais ainda apresentam problemas visuais. Use esta interface como bancada de teste até o quality gate ser fechado.
+  </div>
+
   <div class="grid">
     <section class="card">
-      <h2>Gerar vídeo</h2>
+      <h2>Gerar vídeo experimental</h2>
       <label for="text">Texto que será falado</label>
-      <textarea id="text" placeholder="Escreva o roteiro em português. O Studio divide automaticamente textos maiores em planos curtos."></textarea>
-      <div class="hint">Limite operacional desta versão: aproximadamente 1 minuto por geração.</div>
+      <textarea id="text" placeholder="Escreva o roteiro em português."></textarea>
+      <div class="hint">O suporte a roteiros longos já existe, mas a prioridade atual é aprovar a qualidade de um único plano curto.</div>
 
       <label for="scenario">Cenário</label>
       <textarea id="scenario" placeholder="Ex.: laboratório fotográfico escuro, paredes foscas, bancada de madeira, luz lateral suave…"></textarea>
-      <div class="hint">Para trocar de cenário entre trechos, separe descrições com uma linha contendo apenas <b>---</b>.</div>
 
       <label for="appearance">Roupa / aparência <span class="muted">(opcional)</span></label>
-      <input id="appearance" placeholder="Ex.: camiseta preta simples; avental de laboratório; camisa social escura…" />
+      <input id="appearance" placeholder="Ex.: camiseta preta simples" />
 
       <div class="row">
         <div>
@@ -71,7 +75,7 @@
           </select>
         </div>
         <div>
-          <label for="preset">Qualidade</label>
+          <label for="preset">Preset experimental</label>
           <select id="preset"></select>
           <div id="presetHelp" class="preset-help"></div>
         </div>
@@ -88,14 +92,14 @@
         </div>
       </div>
 
-      <button id="generate">Gerar vídeo</button>
+      <button id="generate">Gerar teste</button>
     </section>
 
     <aside class="card">
       <h2>Execução</h2>
       <progress id="progress" max="100" value="0"></progress>
       <p id="message" class="muted">Nenhum trabalho iniciado.</p>
-      <pre id="log">O ComfyUI fica oculto. Quando necessário, o Studio o inicia e envia o grafo automaticamente.</pre>
+      <pre id="log">O ComfyUI fica oculto. O Studio envia o grafo automaticamente.</pre>
       <div id="result"></div>
     </aside>
   </div>
@@ -104,21 +108,35 @@
 const $ = id => document.getElementById(id);
 let config = null;
 let activeJob = null;
-let pollTimer = null;
 
 function setLog(text){ $('log').textContent = text; $('log').scrollTop = $('log').scrollHeight; }
 function appendLog(text){ $('log').textContent += `\n${text}`; $('log').scrollTop = $('log').scrollHeight; }
 function setSystem(ok, text){ const el=$('systemStatus'); el.textContent=text; el.className='status '+(ok?'ok':'bad'); }
 
+function displayPreset(key,val){
+  if(key==='production') return {label:'Turbo4 · baseline funcional (NÃO produção)', description:'4 passos, 768×1344. Serve como referência rápida; a qualidade visual foi rejeitada como produção.'};
+  if(key==='quality') return {label:'Base20 · candidato de qualidade', description:'20 passos, sem Turbo, 768×1344. Primeiro candidato do quality gate.'};
+  if(key==='max') return {label:'Base50 · candidato máximo H3', description:'50 passos, sem Turbo, 768×1344. Muito lento; usar quando o quality gate justificar.'};
+  if(key==='draft') return {label:'Rascunho Turbo4 · 480×864', description:'Somente teste barato de prompt/composição.'};
+  return {label:val.label||key, description:val.description||''};
+}
+
 async function loadConfig(){
   config = await fetch('/api/config').then(r=>r.json());
   const select=$('preset'); select.innerHTML='';
   for(const [key,val] of Object.entries(config.presets)){
-    const o=document.createElement('option'); o.value=key; o.textContent=val.label; if(key===config.default_preset)o.selected=true; select.appendChild(o);
+    const shown=displayPreset(key,val);
+    const o=document.createElement('option'); o.value=key; o.textContent=shown.label; if(key===config.default_preset)o.selected=true; select.appendChild(o);
   }
-  $('profileInfo').textContent=`${config.identity_reference_count} imagens de identidade + 1 voz`; updatePresetHelp();
+  $('profileInfo').textContent=`${config.identity_reference_count} imagens de identidade + 1 voz`;
+  updatePresetHelp();
 }
-function updatePresetHelp(){ if(!config)return; $('presetHelp').textContent=config.presets[$('preset').value]?.description||''; }
+
+function updatePresetHelp(){
+  if(!config)return;
+  const key=$('preset').value;
+  $('presetHelp').textContent=displayPreset(key,config.presets[key]||{}).description;
+}
 
 async function refreshStatus(){
   try{
@@ -137,7 +155,7 @@ async function generate(){
     preset:$('preset').value,
     seed:Number($('seed').value||0)
   };
-  $('generate').disabled=true; $('result').innerHTML=''; $('progress').value=0; setLog('Enviando trabalho…');
+  $('generate').disabled=true; $('result').innerHTML=''; $('progress').value=0; setLog('Enviando trabalho experimental…');
   try{
     const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await r.json();
@@ -155,14 +173,14 @@ async function poll(){
     setLog(`Job: ${job.id}\nStatus: ${job.status}\n${job.message||''}${clips?'\n\n'+clips:''}${job.error?'\n\nERRO: '+job.error:''}`);
     if(job.status==='COMPLETED'){
       $('generate').disabled=false; activeJob=null;
-      $('result').innerHTML=`<video controls playsinline src="/api/jobs/${job.id}/video"></video><p class="hint">Arquivo: ${job.output}</p>`;
+      $('result').innerHTML=`<video controls playsinline src="/api/jobs/${job.id}/video"></video><p class="hint">Resultado experimental. Não implica aprovação para produção.<br>Arquivo: ${job.output}</p>`;
       refreshStatus(); return;
     }
     if(job.status==='FAILED'){
       $('generate').disabled=false; activeJob=null; return;
     }
-    pollTimer=setTimeout(poll,2500);
-  }catch(e){ appendLog('Falha consultando job: '+e.message); pollTimer=setTimeout(poll,4000); }
+    setTimeout(poll,2500);
+  }catch(e){ appendLog('Falha consultando job: '+e.message); setTimeout(poll,4000); }
 }
 
 $('preset').addEventListener('change',updatePresetHelp);
