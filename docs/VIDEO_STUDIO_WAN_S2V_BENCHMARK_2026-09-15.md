@@ -7,89 +7,41 @@ Canonical state: `docs/PROJECT_STATE.md`.
 
 ## Decision
 
-The project returns to the pre-H3 architecture instead of continuing to spend time trying to rescue MiniMax H3 local output with more steps or heavy upscaling.
+The project returned to the pre-H3 modular architecture. The primary renderer benchmark is **Wan2.2-S2V-14B**, with voice generation kept as a separate stage. CosyVoice remains deferred until the renderer itself clears the visual-quality gate.
 
-Primary next renderer benchmark:
+## Preparation — COMPLETED 2026-09-15 17:55
 
-**Wan2.2-S2V-14B + separate voice generation**.
-
-Voice synthesis/cloning will ultimately be a separate stage, with CosyVoice remaining the intended local candidate. However, CosyVoice is **not required for the first Wan S2V visual-quality benchmark**. The first benchmark deliberately uses an already-recorded João voice sample so that we can isolate the video renderer quality before adding another model.
-
-## Preflight result — 2026-09-15 17:14
-
-Machine:
+Machine/runtime checks passed:
 
 - NVIDIA RTX 3060 12 GB;
 - 47.7 GB system RAM;
 - FFmpeg available;
-- current `Z:\AI\WanAnimate2` payload present.
+- native `WanSoundImageToVideo`, `AudioEncoderLoader`, and `AudioEncoderEncode` support present.
 
-Original Wan payload before S2V preparation:
+Downloaded and SHA-256 verified:
 
-- `wan_animate_2_bf16.safetensors` — 30.54 GB;
-- `umt5_xxl_fp16.safetensors` — 10.59 GB;
-- `clip_vision_h.safetensors` — 1.18 GB;
-- `Wan2_1_VAE_bf16.safetensors` — 0.24 GB.
+- `Z:\AI\WanAnimate2\models\diffusion_models\wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
+- `Z:\AI\WanAnimate2\models\audio_encoders\wav2vec2_large_english_fp16.safetensors` (~631 MB).
 
-The existing Wan installation was Animate-oriented, not S2V-oriented.
-
-## S2V preparation — COMPLETED 2026-09-15 17:55
-
-The preparation gate completed successfully.
-
-Confirmed available and SHA-256 verified:
-
-- `Z:\AI\WanAnimate2\models\diffusion_models\wan2.2_s2v_14B_fp8_scaled.safetensors` — ~16.4 GB;
-- `Z:\AI\WanAnimate2\models\audio_encoders\wav2vec2_large_english_fp16.safetensors` — ~631 MB.
-
-Confirmed reused:
+Reused:
 
 - `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors`;
 - `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors`.
 
-Confirmed native node support:
-
-- `WanSoundImageToVideo`;
-- `AudioEncoderLoader`;
-- `AudioEncoderEncode`.
-
 Prepared benchmark assets:
 
-- reference image: `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
-- speech audio: `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
 - pinned official template: `Z:\AI\WanAnimate2\video_wan2_2_14B_s2v_official_pinned.json`;
 - preparation manifest: `Z:\AI\WanAnimate2\wan_s2v_benchmark_prepare_manifest.json`.
 
-## Official workflow basis
-
-The benchmark runner follows the native ComfyUI Wan2.2 S2V path rather than a custom third-party node stack.
-
-Core path:
-
-```text
-UNETLoader -> ModelSamplingSD3 (shift 8)
-CLIPLoader (Wan UMT5) -> positive / negative conditioning
-LoadAudio -> AudioEncoderLoader -> AudioEncoderEncode
-LoadImage
-        -> WanSoundImageToVideo
-        -> KSampler
-        -> VAE decode
-        -> CreateVideo + source audio
-        -> SaveVideo
-```
-
-The official first-frame VAE workaround is retained in the benchmark through `LatentCut` + `LatentConcat` + `ImageFromBatch`.
-
 ## First benchmark settings — LOCKED
 
-The first test is a controlled quality test, not a speed preset.
-
-- diffusion: `wan2.2_s2v_14B_fp8_scaled.safetensors`;
-- text encoder: reused `umt5_xxl_fp16.safetensors`;
-- VAE: reused `Wan2_1_VAE_bf16.safetensors`;
-- audio encoder: `wav2vec2_large_english_fp16.safetensors`;
-- resolution: **480x832** vertical;
-- reason: approximately the same pixel budget as the stock 640x640 template while matching the intended vertical-video use;
+- diffusion: Wan2.2 S2V 14B FP8 scaled;
+- text encoder: reused UMT5 FP16;
+- VAE: reused Wan2.1 VAE BF16;
+- audio encoder: wav2vec2 large English FP16;
+- resolution: **480x832 vertical**;
 - frame count: **77**;
 - frame rate: **16 fps**;
 - duration: ~4.81 s;
@@ -104,36 +56,57 @@ The first test is a controlled quality test, not a speed preset.
 - no long-form extension;
 - no upscaler.
 
-The runner requests high-quality H.264 output at CRF 14 when supported by the active ComfyUI SaveVideo implementation so that compression does not unnecessarily contaminate the renderer-quality judgment.
+The 480x832 frame has approximately the same pixel budget as the official 640x640 template while matching the intended vertical-video use.
 
 ## Runtime strategy
 
-The benchmark reuses one of the protected current ComfyUI portable runtimes, preferring:
+The benchmark reuses a protected current ComfyUI portable runtime, preferring:
 
 1. `Z:\AI\Flux2Klein\ComfyUI_windows_portable`;
 2. MiniMaxH3 portable fallback;
 3. QwenImageEdit portable fallback.
 
-Wan models stay in `Z:\AI\WanAnimate2\models` and are exposed to the chosen runtime via a generated `extra_model_paths` YAML. Models are not duplicated into another ComfyUI installation.
+Wan models stay in `Z:\AI\WanAnimate2\models` and are exposed to the selected runtime with a generated `extra_model_paths` YAML. Models are not duplicated.
 
-The test runs on a dedicated local ComfyUI port (`8192` by default), validates required nodes/model visibility, submits the graph through the ComfyUI API, records timing/evidence, and shuts down the ComfyUI process if the runner started it.
+The runner uses a dedicated local ComfyUI port (`8192` by default), validates required nodes and model visibility, submits the graph through the API, records timing/evidence, and shuts down the ComfyUI process if it started it.
+
+## Quality-preserving output path — LOCKED
+
+The first quality gate must not be contaminated by an uncertain ComfyUI MP4 encoder configuration.
+
+Therefore the ComfyUI graph ends in **`SaveImage`**, preserving the decoded result as lossless PNG frames. After inference, the runner assembles those exact frames with system FFmpeg:
+
+- H.264 / libx264;
+- preset `slow`;
+- CRF 14;
+- `yuv420p`;
+- AAC 192 kb/s;
+- source benchmark audio preserved.
+
+This makes the renderer comparison depend on the generated frames rather than on a low-bitrate intermediary MP4.
+
+The official first-frame VAE workaround is retained with `LatentCut` + `LatentConcat` + `ImageFromBatch` before saving frames.
 
 Canonical runner:
 
 - `tools/video-studio/run_wan_s2v_benchmark.ps1`
 - `tools/video-studio/run_wan_s2v_benchmark.py`
 
-Outputs:
+Output root:
 
 `Z:\AI\VideoStudioRuns\wan-s2v-gates\<timestamp>\`
 
-Expected final file:
+Expected evidence:
 
-`wan_s2v_fp8_20step.mp4`
+- `frames\frame_0001.png` ... lossless generated frames;
+- `wan_s2v_fp8_20step.mp4` — CRF14 viewing copy;
+- `api_graph.json`;
+- `manifest.json`;
+- `comfy_server.log`.
 
 ## Quality gate
 
-Judge the actual MP4 at full size and in motion:
+Judge the actual MP4 at full size and in motion, with the PNG frames available to distinguish renderer defects from encoding defects:
 
 1. effective detail/resolution;
 2. identity stability;
@@ -153,10 +126,8 @@ Inference success alone is not a production-quality pass.
 1. **Wan2.2-S2V-14B FP8 + real João audio** — ready to run.
 2. If visual quality passes, add **CosyVoice** and test text-only speech generation.
 3. Compare against **HunyuanVideo-Avatar** only if Wan quality or runtime is insufficient.
-4. Keep **EchoMimicV3-Flash** as the lower-compute fallback, not the default quality target.
+4. Keep **EchoMimicV3-Flash** as lower-compute fallback.
 
 ## H3 status
 
-MiniMax H3 remains preserved as functional evidence and a baseline comparison. It is not the active renderer optimization target.
-
-Do not resume Base50 / SeedVR2 work unless a later comparison creates a specific reason to do so.
+MiniMax H3 remains preserved as functional evidence and a baseline comparison. It is not the active renderer optimization target. Do not resume Base50 / SeedVR2 work unless a later comparison creates a specific reason to do so.
