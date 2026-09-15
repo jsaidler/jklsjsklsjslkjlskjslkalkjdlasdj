@@ -26,11 +26,11 @@ Target program length: up to approximately one minute.
 
 **The only active product focus is now João's video production.** Game/sprite/character-runtime work is historical only.
 
-## Game-only local payload cleanup — ACTIVE
+## Cleanup policy — LOCKED
 
-The abandoned Roguelite objective must no longer consume local AI storage when a runtime exists only for game/sprite/character production.
+The retired Roguelite objective must not consume active local AI storage or clutter the current `main` working tree.
 
-Canonical safe-delete roots:
+Local game-only AI roots classified for deletion:
 
 - `Z:\AI\RogueliteAssetStudio`
 - `Z:\AI\SpriteSheetDiffusionSpike`
@@ -38,7 +38,7 @@ Canonical safe-delete roots:
 - `Z:\AI\QwenImageEditSpike`
 - `Z:\AI\Flux2RefControlSpike`
 
-Protected from this cleanup because they remain video-related or generally reusable:
+Protected video/reusable roots:
 
 - `Z:\AI\WanAnimate2`
 - `Z:\AI\MiniMaxH3`
@@ -47,39 +47,9 @@ Protected from this cleanup because they remain video-related or generally reusa
 - `Z:\AI\FluxKontext`
 - `Z:\AI\VideoStudioRuns`
 
-General-purpose PowerPaint / LaMa / SDXL-style payloads are not deleted in the first pass merely for being inactive; they require a separate utility audit because they are not intrinsically game-only.
-
-Canonical cleanup script:
-
-`tools/video-studio/cleanup_game_ai_payload.ps1`
-
-It defaults to dry-run size accounting and writes evidence under `tools/video-studio/reports/`. Actual deletion requires `-Execute`.
-
-## Repository working-tree cleanup — ACTIVE / LOCKED
-
-The active `main` branch must no longer carry the retired game project as current working-tree content.
-
-After cleanup, the tracked working tree is intentionally reduced to:
-
-- `.gitignore`;
-- `README.md`;
-- `docs/PROJECT_STATE.md`;
-- `docs/VIDEO_STUDIO*.md`;
-- `tools/video-studio/**`.
-
-Everything else in the old tracked working tree is classified as retired Roguelite-era material for the active branch, including game assets, Exilada/sprite/character documents, gameplay documents, old game runner logs, and non-Video-Studio tool directories.
-
-Canonical script:
-
-`tools/video-studio/cleanup_repository_to_video_studio.ps1`
-
-The script requires branch `main` and a clean tracked worktree. With `-Execute -Push` it removes the retired tracked files, commits the cleanup and pushes `main`.
-
-This is **not a Git-history rewrite**. Old game material remains recoverable from historical commits, but no longer clutters the current checkout or canonical project state.
+The active repository working tree is intentionally limited to Video Studio material plus root metadata. Old game material remains recoverable from Git history; Git history is not rewritten.
 
 ## H3 conclusion — LOCKED
-
-The local MiniMax H3 path proved the architecture but did **not** reach the user's production-quality standard.
 
 Canonical classification:
 
@@ -117,10 +87,6 @@ H3 remains preserved as video evidence/baseline. Do not delete it in the game cl
 
 The project has returned to the original modular plan that existed before the H3 detour.
 
-Active next benchmark:
-
-**Wan2.2-S2V-14B + separate voice stage.**
-
 Target architecture:
 
 ```text
@@ -142,63 +108,72 @@ multi-shot assembly only after quality pass
 
 Do not require one monolithic model to solve identity, voice generation, scene generation, body performance and final resolution simultaneously.
 
-## Wan local preflight — COMPLETED 2026-09-15 17:14
+## Wan S2V preparation — COMPLETED 2026-09-15 17:55
 
-Machine/runtime result:
+Machine/runtime checks passed:
 
-- RTX 3060 12 GB detected;
+- RTX 3060 12 GB;
 - 47.7 GB RAM;
 - FFmpeg available;
-- `Z:\AI\WanAnimate2` exists;
-- current Wan installation is **Animate-oriented**, not S2V-oriented.
+- native `WanSoundImageToVideo`, `AudioEncoderLoader`, and `AudioEncoderEncode` support present.
 
-Current Wan payload:
+Downloaded and SHA-256 verified:
 
-- `wan_animate_2_bf16.safetensors` — 30.54 GB;
-- `umt5_xxl_fp16.safetensors` — 10.59 GB;
-- `clip_vision_h.safetensors` — 1.18 GB;
-- `Wan2_1_VAE_bf16.safetensors` — 0.24 GB.
+- `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
+- `wav2vec2_large_english_fp16.safetensors` (~631 MB).
 
-Missing for native Wan2.2 S2V:
+Reused without duplicate download:
 
-- S2V diffusion checkpoint;
+- `umt5_xxl_fp16.safetensors`;
+- `Wan2_1_VAE_bf16.safetensors`.
+
+Prepared benchmark assets:
+
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
+- pinned official ComfyUI S2V template;
+- preparation manifest.
+
+CosyVoice remains intentionally deferred until the renderer itself clears the visual-quality gate.
+
+## First Wan quality gate — READY TO RUN
+
+Canonical runner:
+
+- `tools/video-studio/run_wan_s2v_benchmark.ps1`
+- `tools/video-studio/run_wan_s2v_benchmark.py`
+
+Locked first-test settings:
+
+- Wan2.2 S2V 14B FP8 scaled;
+- reused UMT5 FP16;
+- reused Wan2.1 VAE BF16;
 - wav2vec2 audio encoder;
-- CosyVoice components.
-
-Important discovery: current ComfyUI template packages already contain the official native `video_wan2_2_14B_s2v.json` workflow.
-
-## Download minimization — LOCKED FOR FIRST S2V TEST
-
-Do **not** download the entire stock bundle blindly.
-
-First benchmark will use:
-
-- `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB) — download;
-- `wav2vec2_large_english_fp16.safetensors` (~631 MB) — download;
-- existing `umt5_xxl_fp16.safetensors` — reuse first;
-- existing `Wan2_1_VAE_bf16.safetensors` — reuse first.
-
-Only download the stock-template FP8 UMT5 / standard VAE if the local loaders reject the existing compatible components.
-
-## CosyVoice status
-
-CosyVoice remains the intended local text-to-speech / voice-cloning candidate, but it is intentionally deferred by one gate.
-
-The first Wan benchmark will use an already-recorded João audio sample to isolate **video renderer quality**.
-
-Reason: if Wan S2V itself is visually inadequate or impractically slow on the RTX 3060, there is no reason to spend another cycle installing and debugging the voice stage first.
-
-## First Wan quality gate
-
-Use approximately one native 77-frame S2V chunk:
-
+- **480x832 vertical**;
+- 77 frames;
 - 16 fps;
 - ~4.8 seconds;
-- one high-quality João upper-body reference;
+- 20 steps;
+- CFG 6;
+- `uni_pc` / `simple`;
+- ModelSamplingSD3 shift 8;
+- seed 0;
 - real João speech audio;
-- no long-form extension;
 - no upscaler;
-- no CosyVoice yet.
+- no CosyVoice;
+- no long-form extension.
+
+The 480x832 frame has approximately the same pixel budget as the official 640x640 template but matches the intended vertical-video use.
+
+The runner prefers the current Flux2Klein ComfyUI portable runtime, exposes `Z:\AI\WanAnimate2\models` through `extra_model_paths`, copies only the prepared benchmark inputs into the runtime input root, validates node/model visibility, runs on dedicated port 8192, records timing/evidence, and shuts down the server process it started.
+
+Output root:
+
+`Z:\AI\VideoStudioRuns\wan-s2v-gates\<timestamp>\`
+
+Expected MP4:
+
+`wan_s2v_fp8_20step.mp4`
 
 Judge:
 
@@ -210,9 +185,10 @@ Judge:
 6. skin/clothing texture stability;
 7. naturalness of body performance;
 8. AV sync;
-9. runtime practicality.
+9. runtime practicality;
+10. overall publishability without manual frame repair.
 
-If Wan S2V materially beats H3 and runtime is acceptable, then add CosyVoice and scene/look preparation.
+Inference completion does not equal production approval.
 
 ## Secondary renderer benchmarks
 
@@ -240,13 +216,8 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-1. delete the explicitly classified game-only AI roots;
-2. purge retired Roguelite working-tree content from `main` while preserving Git history;
-3. keep all video/reusable roots and Video Studio files intact;
-4. continue Wan S2V preparation without redundant downloads;
-5. run one ~4.8 s benchmark before adding CosyVoice.
+Run the prepared Wan2.2-S2V single-shot benchmark and evaluate the resulting MP4 against the production visual-quality gate before installing CosyVoice or any additional renderer.
 
-Canonical procedures:
+Canonical procedure:
 
-- `docs/VIDEO_STUDIO_GAME_PAYLOAD_CLEANUP_2026-09-15.md`
-- `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
+`docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
