@@ -1,0 +1,19 @@
+{
+  "repo_root": "../..",
+  "comfy_root": "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\ComfyUI",
+  "comfy_port": 8188,
+  "comfy_launch_bat": "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\run_nvidia_gpu.bat",
+  "ffmpeg": "ffmpeg",
+  "identity_images": [
+    "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\ComfyUI\\input\\joao_id_face.png",
+    "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\ComfyUI\\input\\joao_id_shoulders.png",
+    "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\ComfyUI\\input\\joao_id_upperbody.png"
+  ],
+  "voice_reference": "Z:\\AI\\MiniMaxH3\\ComfyUI_windows_portable\\ComfyUI\\input\\joao_ref_voice.wav",
+  "output_root": "Z:\\AI\\MiniMaxH3\\VideoStudioRuns",
+  "web_host": "127.0.0.1",
+  "web_port": 8765,
+  "subject_description": "the same adult Brazilian man shown in the identity reference pictures",
+  "default_preset": "production",
+  "default_seed": 0
+}
