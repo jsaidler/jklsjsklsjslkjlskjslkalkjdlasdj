@@ -39,8 +39,11 @@ if ($NoOpen) {
 }
 
 Write-Host ""
-Write-Host "Local Video Studio"
-Write-Host "=================="
+Write-Host "Local Video Studio — PROTÓTIPO"
+Write-Host "==============================="
+Write-Host "ATENÇÃO: a arquitetura foi validada, mas a qualidade visual de produção ainda NÃO foi aprovada."
+Write-Host "Use tools\video-studio\run_quality_gate.ps1 para o benchmark controlado."
+Write-Host ""
 Write-Host "Config: $Config"
 Write-Host "Interface: http://127.0.0.1:8765/"
 Write-Host "Feche esta janela ou pressione Ctrl+C para encerrar o Studio."
