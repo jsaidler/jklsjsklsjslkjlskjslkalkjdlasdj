@@ -12,11 +12,11 @@ $Python = "Z:\AI\MiniMaxH3\ComfyUI_windows_portable\python_embeded\python.exe"
 $Runner = Join-Path $ToolRoot "run_quality_gate.py"
 
 if (-not (Test-Path $Python)) {
-    throw "Python portátil do MiniMaxH3 não encontrado: $Python"
+    throw "Python portatil do MiniMaxH3 nao encontrado: $Python"
 }
 
 if (-not (Test-Path $Runner)) {
-    throw "Quality gate runner não encontrado: $Runner"
+    throw "Quality gate runner nao encontrado: $Runner"
 }
 
 if (-not (Test-Path $Config)) {
@@ -33,8 +33,8 @@ Write-Host "======================="
 Write-Host "Presets: $Presets"
 Write-Host "Seed: $Seed"
 Write-Host ""
-Write-Host "ATENÇÃO: conclusão da inferência NÃO significa aprovação de qualidade."
-Write-Host "Os MP4s precisam de revisão visual humana antes de qualquer promoção."
+Write-Host "ATENCAO: conclusao da inferencia NAO significa aprovacao de qualidade."
+Write-Host "Os MP4s precisam de revisao visual humana antes de qualquer promocao."
 Write-Host ""
 
 & $Python $Runner `
