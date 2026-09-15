@@ -37,6 +37,8 @@ Prepared benchmark assets:
 
 ## First benchmark settings — LOCKED
 
+The first gate intentionally follows the official native sampling settings instead of doubling work without evidence of benefit.
+
 - diffusion: Wan2.2 S2V 14B FP8 scaled;
 - text encoder: reused UMT5 FP16;
 - VAE: reused Wan2.1 VAE BF16;
@@ -45,18 +47,26 @@ Prepared benchmark assets:
 - frame count: **77**;
 - frame rate: **16 fps**;
 - duration: ~4.81 s;
-- steps: **20**;
+- steps: **10**;
 - CFG: **6**;
 - sampler: **uni_pc**;
 - scheduler: **simple**;
 - ModelSamplingSD3 shift: **8**;
 - seed: **0** unless explicitly changed;
-- input speech: real João audio;
+- single-chunk batch size: **1**;
 - no CosyVoice;
 - no long-form extension;
 - no upscaler.
 
+The official ComfyUI template shows 10 sampling steps / CFG 6 / `uni_pc` / `simple` for the native S2V path. The earlier 20-step assumption came from misreading the seed value in the workflow and is retired.
+
 The 480x832 frame has approximately the same pixel budget as the official 640x640 template while matching the intended vertical-video use.
+
+## First-frame VAE workaround
+
+The official template duplicates each chunk's first latent before VAE decode and then removes the corresponding overbaked decoded frame. The template's `Batch sizes` value is also used as the `ImageFromBatch` start index: a three-chunk example uses index 3.
+
+Our benchmark has exactly **one chunk**, so the correct `ImageFromBatch` start index is **1**, not 3.
 
 ## Runtime strategy
 
@@ -85,8 +95,6 @@ Therefore the ComfyUI graph ends in **`SaveImage`**, preserving the decoded resu
 
 This makes the renderer comparison depend on the generated frames rather than on a low-bitrate intermediary MP4.
 
-The official first-frame VAE workaround is retained with `LatentCut` + `LatentConcat` + `ImageFromBatch` before saving frames.
-
 Canonical runner:
 
 - `tools/video-studio/run_wan_s2v_benchmark.ps1`
@@ -99,7 +107,7 @@ Output root:
 Expected evidence:
 
 - `frames\frame_0001.png` ... lossless generated frames;
-- `wan_s2v_fp8_20step.mp4` — CRF14 viewing copy;
+- `wan_s2v_fp8_10step.mp4` — CRF14 viewing copy;
 - `api_graph.json`;
 - `manifest.json`;
 - `comfy_server.log`.
