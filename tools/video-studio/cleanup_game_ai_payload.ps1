@@ -99,7 +99,12 @@ $ProtectedRoots = @(
 Section "PROTECTED VIDEO / REUSABLE ROOTS"
 foreach ($Item in $ProtectedRoots) {
     $Exists = Test-Path -LiteralPath $Item.path
-    Log ((if ($Exists) { "KEEP" } else { "ABSENT" }) + "  " + $Item.path)
+    if ($Exists) {
+        $Status = "KEEP"
+    } else {
+        $Status = "ABSENT"
+    }
+    Log ($Status + "  " + $Item.path)
     Log ("      " + $Item.reason)
 }
 
