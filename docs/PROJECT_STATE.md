@@ -9,9 +9,10 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO.md`
 3. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
-4. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
-5. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
-6. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
+4. `docs/VIDEO_STUDIO_GAME_PAYLOAD_CLEANUP_2026-09-15.md`
+5. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
+6. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
+7. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
 
 ## Living-document invariant — LOCKED
 
@@ -22,6 +23,39 @@ Every state-changing action updates the relevant thematic docs and this file. Ch
 Build a tool that lets the user write dialogue, choose a scenario and optionally specify appearance/framing, then generate a short realistic video of themselves speaking the new text with convincing identity, voice and natural movement, without recording a new performance.
 
 Target program length: up to approximately one minute.
+
+**The only active product focus is now João's video production.** Game/sprite/character-runtime work is historical only.
+
+## Game-only local payload cleanup — ACTIVE
+
+The abandoned Roguelite objective must no longer consume local AI storage when a runtime exists only for game/sprite/character production.
+
+Canonical safe-delete roots:
+
+- `Z:\AI\RogueliteAssetStudio`
+- `Z:\AI\SpriteSheetDiffusionSpike`
+- `Z:\AI\RogueliteCharacterPipeline`
+- `Z:\AI\QwenImageEditSpike`
+- `Z:\AI\Flux2RefControlSpike`
+
+Protected from this cleanup because they remain video-related or generally reusable:
+
+- `Z:\AI\WanAnimate2`
+- `Z:\AI\MiniMaxH3`
+- `Z:\AI\QwenImageEdit`
+- `Z:\AI\Flux2Klein`
+- `Z:\AI\FluxKontext`
+- `Z:\AI\VideoStudioRuns`
+
+General-purpose PowerPaint / LaMa / SDXL-style payloads are not deleted in the first pass merely for being inactive; they require a separate utility audit because they are not intrinsically game-only.
+
+Canonical cleanup script:
+
+`tools/video-studio/cleanup_game_ai_payload.ps1`
+
+It defaults to dry-run size accounting and writes evidence under `tools/video-studio/reports/`. Actual deletion requires `-Execute`.
+
+Git history is retained. Rewriting repository history is not part of the disk-space cleanup.
 
 ## H3 conclusion — LOCKED
 
@@ -49,7 +83,7 @@ It did not prove:
 
 The user explicitly judged the effective visual resolution/detail as persistently poor. Turbo4 and Base20 did not justify continuing into Base50 or heavy upscaling as the next main strategy.
 
-H3 remains preserved as evidence/baseline. Do not delete it yet.
+H3 remains preserved as video evidence/baseline. Do not delete it in the game cleanup.
 
 ## Current hardware
 
@@ -186,6 +220,12 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-Prepare the Wan S2V runtime without redundant downloads, verify native node support, download only the FP8 S2V checkpoint + wav2vec2 audio encoder, and prepare one ~4.8 s benchmark asset set.
+1. reclaim local disk space by deleting the explicitly classified game-only AI roots;
+2. keep all video/reusable roots intact;
+3. continue Wan S2V preparation without redundant downloads;
+4. run one ~4.8 s benchmark before adding CosyVoice.
 
-Canonical procedure: `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`.
+Canonical procedures:
+
+- `docs/VIDEO_STUDIO_GAME_PAYLOAD_CLEANUP_2026-09-15.md`
+- `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
