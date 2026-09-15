@@ -194,9 +194,13 @@ $TargetAudio = Join-Path $AssetDir "joao_wan_s2v_test_4p5s.wav"
 
 Copy-Item -LiteralPath $SourceImage -Destination $TargetImage -Force
 
-& ffmpeg -y -i $SourceAudio -t $AudioSeconds -ac 1 -ar 16000 -c:a pcm_s16le $TargetAudio 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw "ffmpeg failed preparing Wan S2V test audio."
+# Windows PowerShell 5.1 can promote redirected native stderr to NativeCommandError
+# when ErrorActionPreference is Stop. Keep ffmpeg stderr native, suppress normal
+# banner/progress output with loglevel, and trust the native process exit code.
+& ffmpeg.exe -hide_banner -loglevel error -y -i $SourceAudio -t $AudioSeconds -ac 1 -ar 16000 -c:a pcm_s16le $TargetAudio
+$FfmpegExitCode = $LASTEXITCODE
+if ($FfmpegExitCode -ne 0) {
+    throw "ffmpeg failed preparing Wan S2V test audio with exit code $FfmpegExitCode."
 }
 Require-File $TargetAudio "Prepared Wan S2V test audio"
 
