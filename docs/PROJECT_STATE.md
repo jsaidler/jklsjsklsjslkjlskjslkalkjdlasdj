@@ -7,12 +7,13 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
-3. `docs/VIDEO_STUDIO.md`
-4. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
-5. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
-6. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
-7. `docs/VIDEO_STUDIO_GAME_PAYLOAD_CLEANUP_2026-09-15.md`
+2. `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`
+3. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
+4. `docs/VIDEO_STUDIO.md`
+5. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
+6. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
+7. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
+8. `docs/VIDEO_STUDIO_GAME_PAYLOAD_CLEANUP_2026-09-15.md`
 
 ## Living-document invariant — LOCKED
 
@@ -63,138 +64,120 @@ Old game material remains recoverable from Git history; Git history is not rewri
 
 H3 proved the architecture but failed the user's production-quality bar, especially effective detail/resolution, anatomy/hands, texture stability, and generic presenter-like visual behavior. Do not resume H3 Base50 / SeedVR2 as the main strategy without new evidence.
 
-## Active renderer direction — Wan2.2-S2V-14B
+## Wan S2V result — COMPLETED / BASELINE PRESERVED
 
-Target architecture:
-
-```text
-written text + target scene + optional appearance
-        |
-        +--> voice synthesis / cloning (CosyVoice candidate)
-        |
-        +--> high-quality identity / scene still preparation
-        |
-        v
-Wan2.2-S2V-14B
-        |
-        v
-short validated shot
-        |
-        v
-multi-shot assembly only after quality pass
-```
-
-Do not require one monolithic model to solve identity, voice generation, scene generation, body performance and final resolution simultaneously.
-
-## Wan S2V preparation — COMPLETED
-
-Installed/verified:
-
-- `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
-- `wav2vec2_large_english_fp16.safetensors` (~631 MB).
-
-Reused:
-
-- `umt5_xxl_fp16.safetensors`;
-- `Wan2_1_VAE_bf16.safetensors`.
-
-Native S2V nodes are present. Benchmark reference image/audio and pinned official template are prepared under `Z:\AI\WanAnimate2`.
-
-CosyVoice remains intentionally deferred until the renderer clears the visual-quality gate.
-
-## First Wan result — COMPLETED / REVIEWED 2026-09-15
-
-First result used:
+First Wan2.2-S2V result used:
 
 - Wan2.2 S2V 14B FP8 scaled;
 - 480x832 vertical;
-- intended 77-frame single chunk at 16 fps;
+- 77-frame single chunk at 16 fps;
 - 10 steps;
 - CFG 6;
 - `uni_pc` / `simple`;
 - shift 8;
 - seed 0;
-- real recorded João speech audio;
+- real João speech audio;
 - no upscaler;
 - no CosyVoice.
 
-Uploaded viewing copy metadata:
+Measured inference runtime:
 
-- 480x832;
-- 16 fps;
-- 4.5 s;
-- 72 encoded video frames.
-
-The 72-frame MP4 was caused by the old runner using FFmpeg `-shortest` against 4.5 s audio. Runner v2 pads audio to the full generated-frame duration and no longer truncates the generated sequence.
-
-### Visual result
+- **1713.2926 s = 28.55 min**.
 
 Canonical classification:
 
-**WAN S2V 10-STEP FP8: STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL / QUALITY GATE STILL OPEN.**
+**WAN S2V 10-STEP FP8: STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL.**
 
-Promising relative to H3:
+Relative strengths over H3:
 
-- stable body topology/shoulders;
+- more stable body topology/shoulders;
 - substantially better hand behavior;
-- asymmetric, more natural conversational gesture pattern;
-- stable background;
-- stable clothing;
-- stable framing/camera;
-- face broadly coherent after the opening transient.
+- asymmetric, more natural conversational gestures;
+- stable background/clothing/framing;
+- broadly coherent face after an opening transient.
 
-Still failing production quality:
+Remaining blockers:
 
 - insufficient effective detail at 480x832;
-- opening-frame transient;
-- subtle eyeglass geometry/reflection drift;
+- opening transient;
+- eyeglass drift;
 - beard/hairline/facial texture crawl;
-- mouth/teeth/jaw softness/synthetic deformation in some positions;
+- mouth/teeth/jaw softness;
 - moving-hand detail loss;
-- diffusion-style skin smoothing/temporal texture instability.
+- diffusion-style skin smoothing/temporal instability.
 
-AV sync requires playback review and is not automatically promoted to PASS from frame inspection.
+The first viewing MP4 contained 72 frames because the old FFmpeg mux used `-shortest` against 4.5 s audio; the evidence folder contains all 77 generated PNG frames. Runner v2 fixes the mux by padding audio.
 
-## Critical sampling correction — LOCKED
+## Wan quality baseline correction — LOCKED
 
-The earlier project state incorrectly treated 10 steps as the documented non-Lightning quality path. That claim is retired.
+Current ComfyUI documentation states that the non-Lightning Wan2.2-S2V quality path is **20 steps / CFG 6**. The completed 10-step render is therefore under-sampled relative to the documented quality baseline.
 
-Current ComfyUI Wan2.2-S2V documentation states:
+However, a 20-step repeat is expected to cost roughly **55–60 min** on this RTX 3060 based on the measured 28.55 min 10-step run.
 
-- with 4-step Lightning LoRA: 4 steps / CFG 1;
-- without Lightning LoRA: **20 steps / CFG 6**;
-- Lightning significantly reduces generation time but also causes significant dynamic/quality loss;
-- if quality is insufficient, use the original 20-step workflow.
+**Decision: PAUSE the Wan 20-step A/B until HunyuanVideo-Avatar is tested.**
 
-Therefore the completed 10-step render was **under-sampled relative to the documented ComfyUI non-Lightning quality baseline**.
+If Hunyuan is worse, return directly to Wan and run the controlled 20-step FP8 test. Do not discard Wan before that comparison.
 
-Canonical runner v2 now exposes `-Steps` and defaults to 20.
+## Active renderer benchmark — HunyuanVideo-Avatar
 
-## Native resolution headroom
+Next candidate:
 
-Wan2.2 S2V-14B officially supports **480P and 720P**. Wan therefore has a native higher-resolution path that H3 local did not give us.
+**Hunyuan Video Avatar 720p 13B via DeepBeepMeep WanGP, quantized INT8 path.**
 
-Do not launch 720p blindly on RTX 3060 12 GB. First determine whether a proper 20-step 480x832 run gives enough quality gain to justify the increased cost.
+Why this route:
 
-## Immediate decision gate
+- HunyuanVideo-Avatar is specialized for reference-image + speech-driven human video;
+- Tencent's original single-GPU path documents at least ~24 GB VRAM for its 704x768x129f case and is tested on Linux;
+- Tencent explicitly points to WanGP/Wan2GP for a ~10 GB VRAM route;
+- the local machine has 12 GB VRAM and Windows 11, so WanGP is the practical implementation path.
 
-Before another GPU-heavy inference, recover `elapsed_seconds` from the completed 10-step run's `manifest.json`.
+Candidate main checkpoint:
 
-Decision rule:
+- `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` (~13.4 GB).
 
-- if 10-step runtime was reasonably short, run a controlled **20-step** A/B with the same seed/reference/audio/resolution;
-- if 10-step was already close to an hour or otherwise impractical, do not blindly double local inference time; proceed to another renderer comparison;
-- only if 20-step materially improves quality and remains practical should 720p be tested;
-- do not download BF16 automatically; FP8 remains the 12 GB VRAM path unless evidence justifies the much heavier BF16 route.
+Approximate core dependency footprint through WanGP:
 
-## Secondary renderer benchmarks
+- LLaVA/VLM INT8 encoder ~9.43 GB;
+- Hunyuan VAE ~0.99 GB;
+- CLIP ViT-L/14 ~1.71 GB;
+- Whisper Tiny ~0.15 GB;
+- smaller alignment/config/tokenizer assets;
+- WanGP environment/caches additional several GB.
 
-If Wan S2V does not clear the quality/time bar:
+Reserve **>=35 GB free** before installation/download. Do not download the full Tencent 80+ GB repository.
 
-1. HunyuanVideo-Avatar — quality comparison candidate;
-2. EchoMimicV3-Flash — lower-compute fallback.
+## Direct comparison inputs — LOCKED
 
-Do not switch engines randomly. Compare against the same short-shot quality gate.
+Reuse the exact same assets used for Wan:
+
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`
+
+No CosyVoice yet.
+
+WanGP's Hunyuan Avatar handler uses 25 fps and a default 129-frame segment, about 5.16 s, which is close enough to the Wan ~4.8 s gate for a useful direct visual comparison.
+
+## Hunyuan decision rule
+
+Use the same quality criteria as Wan/H3:
+
+1. effective detail/resolution;
+2. identity stability;
+3. glasses/eyes/beard/hair;
+4. mouth/teeth/jaw;
+5. hands/arms/shoulders;
+6. skin/clothing temporal stability;
+7. naturalness of body performance;
+8. AV sync;
+9. runtime practicality;
+10. overall publishability without manual repair.
+
+After one Hunyuan render:
+
+- if Hunyuan clearly beats Wan 10-step, promote Hunyuan;
+- if tied, compare runtime and resolution headroom;
+- if worse, stop Hunyuan tuning and return to Wan 20-step;
+- do not keep changing models without completing this direct gate.
 
 ## Video Studio implementation direction
 
@@ -211,6 +194,10 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-Inspect the completed Wan run's manifest for actual inference time. Do not start a 20-step or 720p render until that cost is known.
+Run:
 
-Canonical procedure: `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`.
+`tools/video-studio/preflight_hunyuan_avatar.ps1`
+
+This checks disk, Windows/runtime prerequisites, exact benchmark assets, any existing WanGP installation, and any Hunyuan payload already present before downloading anything.
+
+Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
