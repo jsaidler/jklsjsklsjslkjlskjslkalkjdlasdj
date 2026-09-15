@@ -1,7 +1,7 @@
 # Local Video Studio — Wan2.2 S2V benchmark
 
 Date: **2026-09-15**  
-Status: **ACTIVE NEXT ENGINE TEST**
+Status: **READY TO RUN FIRST RENDERER QUALITY TEST**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -22,94 +22,135 @@ Machine:
 - NVIDIA RTX 3060 12 GB;
 - 47.7 GB system RAM;
 - FFmpeg available;
-- current `Z:\AI\WanAnimate2` runtime present.
+- current `Z:\AI\WanAnimate2` payload present.
 
-Current Wan payload:
+Original Wan payload before S2V preparation:
 
 - `wan_animate_2_bf16.safetensors` — 30.54 GB;
 - `umt5_xxl_fp16.safetensors` — 10.59 GB;
 - `clip_vision_h.safetensors` — 1.18 GB;
 - `Wan2_1_VAE_bf16.safetensors` — 0.24 GB.
 
-Confirmed missing:
+The existing Wan installation was Animate-oriented, not S2V-oriented.
 
-- Wan2.2 S2V diffusion checkpoint;
-- Wan S2V wav2vec2 audio encoder;
-- CosyVoice runtime/models.
+## S2V preparation — COMPLETED 2026-09-15 17:55
 
-The existing Wan installation is Animate-oriented, not S2V-oriented.
+The preparation gate completed successfully.
 
-## Important discovery
+Confirmed available and SHA-256 verified:
 
-A current ComfyUI installation already contains the official native workflow template:
+- `Z:\AI\WanAnimate2\models\diffusion_models\wan2.2_s2v_14B_fp8_scaled.safetensors` — ~16.4 GB;
+- `Z:\AI\WanAnimate2\models\audio_encoders\wav2vec2_large_english_fp16.safetensors` — ~631 MB.
 
-`video_wan2_2_14B_s2v.json`
+Confirmed reused:
 
-The official ComfyUI workflow requires:
+- `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors`;
+- `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors`.
 
-- diffusion model: `wan2.2_s2v_14B_fp8_scaled.safetensors` or BF16 equivalent;
-- text encoder: `umt5_xxl_fp8_e4m3fn_scaled.safetensors` in the stock workflow;
-- VAE: `wan_2.1_vae.safetensors` in the stock workflow;
-- audio encoder: `wav2vec2_large_english_fp16.safetensors`.
+Confirmed native node support:
 
-For the RTX 3060 12 GB benchmark, the first model choice is the **FP8 scaled S2V checkpoint**, not BF16.
+- `WanSoundImageToVideo`;
+- `AudioEncoderLoader`;
+- `AudioEncoderEncode`.
 
-## Download-minimization rule
+Prepared benchmark assets:
 
-Do not download every stock-template dependency blindly.
+- reference image: `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
+- speech audio: `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
+- pinned official template: `Z:\AI\WanAnimate2\video_wan2_2_14B_s2v_official_pinned.json`;
+- preparation manifest: `Z:\AI\WanAnimate2\wan_s2v_benchmark_prepare_manifest.json`.
 
-For the first benchmark:
+## Official workflow basis
 
-- **download** `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
-- **download** `wav2vec2_large_english_fp16.safetensors` (~631 MB);
-- first attempt to **reuse** the already-installed `umt5_xxl_fp16.safetensors`;
-- first attempt to **reuse** the already-installed `Wan2_1_VAE_bf16.safetensors`.
+The benchmark runner follows the native ComfyUI Wan2.2 S2V path rather than a custom third-party node stack.
 
-If the native loaders reject either reused component, then download the exact stock-template FP8 text encoder / standard VAE. Do not pre-download them merely for naming symmetry.
+Core path:
 
-## First benchmark scope
+```text
+UNETLoader -> ModelSamplingSD3 (shift 8)
+CLIPLoader (Wan UMT5) -> positive / negative conditioning
+LoadAudio -> AudioEncoderLoader -> AudioEncoderEncode
+LoadImage
+        -> WanSoundImageToVideo
+        -> KSampler
+        -> VAE decode
+        -> CreateVideo + source audio
+        -> SaveVideo
+```
 
-The first S2V test is intentionally short and isolates renderer quality.
+The official first-frame VAE workaround is retained in the benchmark through `LatentCut` + `LatentConcat` + `ImageFromBatch`.
 
-Inputs:
+## First benchmark settings — LOCKED
 
-- one high-quality still reference of João, preferably upper-body;
-- approximately 4–5 seconds of real João speech;
-- concise prompt describing restrained natural speaking behavior;
-- no CosyVoice yet;
-- no one-minute extension chain yet;
+The first test is a controlled quality test, not a speed preset.
+
+- diffusion: `wan2.2_s2v_14B_fp8_scaled.safetensors`;
+- text encoder: reused `umt5_xxl_fp16.safetensors`;
+- VAE: reused `Wan2_1_VAE_bf16.safetensors`;
+- audio encoder: `wav2vec2_large_english_fp16.safetensors`;
+- resolution: **480x832** vertical;
+- reason: approximately the same pixel budget as the stock 640x640 template while matching the intended vertical-video use;
+- frame count: **77**;
+- frame rate: **16 fps**;
+- duration: ~4.81 s;
+- steps: **20**;
+- CFG: **6**;
+- sampler: **uni_pc**;
+- scheduler: **simple**;
+- ModelSamplingSD3 shift: **8**;
+- seed: **0** unless explicitly changed;
+- input speech: real João audio;
+- no CosyVoice;
+- no long-form extension;
 - no upscaler.
 
-Target questions:
+The runner requests high-quality H.264 output at CRF 14 when supported by the active ComfyUI SaveVideo implementation so that compression does not unnecessarily contaminate the renderer-quality judgment.
 
-1. Does Wan S2V preserve materially more real image detail than H3 local?
-2. Are face, glasses, beard, mouth and skin more stable?
-3. Are hands/shoulders/body motion more natural?
-4. Does the output look like real video rather than a soft diffusion render?
-5. Is runtime on the RTX 3060 remotely practical?
+## Runtime strategy
 
-Only after this visual benchmark passes do we add:
+The benchmark reuses one of the protected current ComfyUI portable runtimes, preferring:
 
-- CosyVoice text-to-speech / voice cloning;
-- high-quality scene/look preparation;
-- multi-shot generation;
-- long-form assembly.
+1. `Z:\AI\Flux2Klein\ComfyUI_windows_portable`;
+2. MiniMaxH3 portable fallback;
+3. QwenImageEdit portable fallback.
 
-## Known native workflow facts
+Wan models stay in `Z:\AI\WanAnimate2\models` and are exposed to the chosen runtime via a generated `extra_model_paths` YAML. Models are not duplicated into another ComfyUI installation.
 
-The official ComfyUI S2V workflow is a 16 fps path.
+The test runs on a dedicated local ComfyUI port (`8192` by default), validates required nodes/model visibility, submits the graph through the ComfyUI API, records timing/evidence, and shuts down the ComfyUI process if the runner started it.
 
-- default chunk length: 77 frames;
-- 77 frames at 16 fps ≈ 4.81 seconds;
-- additional S2V Extend stages add more 77-frame chunks;
-- stock high-quality path is approximately 20 steps / CFG 6;
-- Lightning path can use approximately 4 steps / CFG 1.
+Canonical runner:
 
-The first benchmark should stay in a single short chunk where possible. Long audio is deliberately deferred.
+- `tools/video-studio/run_wan_s2v_benchmark.ps1`
+- `tools/video-studio/run_wan_s2v_benchmark.py`
+
+Outputs:
+
+`Z:\AI\VideoStudioRuns\wan-s2v-gates\<timestamp>\`
+
+Expected final file:
+
+`wan_s2v_fp8_20step.mp4`
+
+## Quality gate
+
+Judge the actual MP4 at full size and in motion:
+
+1. effective detail/resolution;
+2. identity stability;
+3. glasses/eyes/beard/hair;
+4. mouth/teeth/jaw;
+5. hands/arms/shoulders;
+6. skin/clothing texture stability;
+7. naturalness of body performance;
+8. AV sync;
+9. runtime practicality;
+10. overall publishability without manual frame repair.
+
+Inference success alone is not a production-quality pass.
 
 ## Benchmark order
 
-1. **Wan2.2-S2V-14B FP8 + real João audio** — active next test.
+1. **Wan2.2-S2V-14B FP8 + real João audio** — ready to run.
 2. If visual quality passes, add **CosyVoice** and test text-only speech generation.
 3. Compare against **HunyuanVideo-Avatar** only if Wan quality or runtime is insufficient.
 4. Keep **EchoMimicV3-Flash** as the lower-compute fallback, not the default quality target.
