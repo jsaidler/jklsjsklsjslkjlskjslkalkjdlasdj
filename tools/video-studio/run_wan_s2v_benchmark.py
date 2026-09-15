@@ -30,7 +30,7 @@ WIDTH = 480
 HEIGHT = 832
 LENGTH = 77
 FPS = 16
-STEPS = 10
+DEFAULT_STEPS = 20
 CFG = 6.0
 SAMPLER = "uni_pc"
 SCHEDULER = "simple"
@@ -221,7 +221,7 @@ def validate_runtime(base_url: str) -> None:
             raise BenchError(f"{node} cannot see required model {expected}. Visible count: {len(values)}")
 
 
-def build_graph(image_name: str, audio_name: str, seed: int, frame_prefix: str) -> dict[str, Any]:
+def build_graph(image_name: str, audio_name: str, seed: int, steps: int, frame_prefix: str) -> dict[str, Any]:
     return {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": DIFFUSION, "weight_dtype": "default"}},
         "2": {"class_type": "ModelSamplingSD3", "inputs": {"model": ["1", 0], "shift": SHIFT}},
@@ -255,7 +255,7 @@ def build_graph(image_name: str, audio_name: str, seed: int, frame_prefix: str) 
                 "negative": ["11", 1],
                 "latent_image": ["11", 2],
                 "seed": int(seed),
-                "steps": STEPS,
+                "steps": int(steps),
                 "cfg": CFG,
                 "sampler_name": SAMPLER,
                 "scheduler": SCHEDULER,
@@ -315,16 +315,19 @@ def collect_frames(comfy_root: Path, frame_folder: str, run_dir: Path) -> tuple[
     return target_dir, len(source_frames)
 
 
-def assemble_video(frame_dir: Path, audio_path: Path, final_path: Path) -> None:
+def assemble_video(frame_dir: Path, audio_path: Path, final_path: Path, frame_count: int) -> None:
     ffmpeg = shutil.which("ffmpeg") or shutil.which("ffmpeg.exe")
     if not ffmpeg:
         raise BenchError("ffmpeg not found in PATH for final lossless-frame assembly.")
+    video_seconds = frame_count / FPS
     cmd = [
         ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
         "-framerate", str(FPS), "-i", str(frame_dir / "frame_%04d.png"),
         "-i", str(audio_path),
+        "-map", "0:v:0", "-map", "1:a:0",
         "-c:v", "libx264", "-preset", "slow", "-crf", "14", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "192k", "-shortest", str(final_path),
+        "-c:a", "aac", "-b:a", "192k", "-af", "apad",
+        "-t", f"{video_seconds:.6f}", str(final_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -338,9 +341,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run one controlled Wan2.2-S2V quality benchmark.")
     parser.add_argument("--port", type=int, default=8192)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--steps", type=int, default=DEFAULT_STEPS)
     parser.add_argument("--timeout-minutes", type=int, default=360)
     parser.add_argument("--lowvram", action="store_true")
     args = parser.parse_args()
+    if args.steps < 1:
+        raise BenchError("--steps must be >= 1")
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = OUTPUT_ROOT / stamp
@@ -355,15 +361,15 @@ def main() -> int:
     image_name, audio_name, runtime_audio = copy_inputs(comfy_root)
     base_url = f"http://127.0.0.1:{args.port}"
 
-    print("WAN-S2V-BENCHMARK-01")
+    print("WAN-S2V-BENCHMARK-02")
     print("====================")
     print(f"Runtime: {portable}")
     print(f"Model: {DIFFUSION}")
     print(f"Resolution: {WIDTH}x{HEIGHT}")
     print(f"Frames/FPS: {LENGTH} / {FPS}")
-    print(f"Sampling: {STEPS} steps, CFG {CFG:g}, {SAMPLER}/{SCHEDULER}, shift {SHIFT:g}")
+    print(f"Sampling: {args.steps} steps, CFG {CFG:g}, {SAMPLER}/{SCHEDULER}, shift {SHIFT:g}")
     print(f"Seed: {args.seed}")
-    print("Output strategy: lossless PNG frames -> ffmpeg H.264 CRF 14")
+    print("Output strategy: lossless PNG frames -> ffmpeg H.264 CRF 14; audio padded to full frame duration")
     print(f"Run dir: {run_dir}")
     print("")
 
@@ -375,7 +381,7 @@ def main() -> int:
         print("Runtime/model visibility: PASS")
 
         frame_folder = f"wan_s2v_frames_{stamp}"
-        graph = build_graph(image_name, audio_name, args.seed, f"{frame_folder}/frame")
+        graph = build_graph(image_name, audio_name, args.seed, args.steps, f"{frame_folder}/frame")
         graph_path.write_text(json.dumps(graph, indent=2, ensure_ascii=False), encoding="utf-8")
 
         inference_started = time.time()
@@ -385,11 +391,11 @@ def main() -> int:
         elapsed = time.time() - inference_started
 
         frame_dir, frame_count = collect_frames(comfy_root, frame_folder, run_dir)
-        final = run_dir / "wan_s2v_fp8_10step.mp4"
-        assemble_video(frame_dir, runtime_audio, final)
+        final = run_dir / f"wan_s2v_fp8_{args.steps}step.mp4"
+        assemble_video(frame_dir, runtime_audio, final, frame_count)
 
         manifest = {
-            "schema": "WAN-S2V-BENCHMARK-01",
+            "schema": "WAN-S2V-BENCHMARK-02",
             "created": datetime.now().isoformat(),
             "runtime": str(portable),
             "model_root": str(WAN_ROOT),
@@ -401,7 +407,7 @@ def main() -> int:
                 "height": HEIGHT,
                 "length": LENGTH,
                 "fps": FPS,
-                "steps": STEPS,
+                "steps": args.steps,
                 "cfg": CFG,
                 "sampler": SAMPLER,
                 "scheduler": SCHEDULER,
@@ -409,7 +415,7 @@ def main() -> int:
                 "seed": args.seed,
                 "single_chunk_batch_index": 1,
                 "lowvram": bool(args.lowvram),
-                "final_encode": "H.264 libx264 preset slow CRF 14 + AAC 192k",
+                "final_encode": "H.264 libx264 preset slow CRF 14 + AAC 192k; audio padded to generated-frame duration",
             },
             "models": {
                 "diffusion": DIFFUSION,
