@@ -8,9 +8,10 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO.md`
-3. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
-4. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
-5. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
+3. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
+4. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
+5. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
+6. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
 
 ## Living-document invariant — LOCKED
 
@@ -22,7 +23,7 @@ Build a tool that lets the user write dialogue, choose a scenario and optionally
 
 Target program length: up to approximately one minute.
 
-## Critical direction reset — 2026-09-15
+## H3 conclusion — LOCKED
 
 The local MiniMax H3 path proved the architecture but did **not** reach the user's production-quality standard.
 
@@ -30,26 +31,25 @@ Canonical classification:
 
 **H3 LOCAL: FUNCTIONAL PASS / PRODUCTION VISUAL QUALITY FAIL / PAUSED AS FINAL RENDERER.**
 
-The user specifically identified the effective visual resolution as persistently poor. The Turbo4 and Base20 comparison did not justify continuing to spend hours on progressively slower local inference and post-upscaling.
+H3 proved:
 
-Therefore the following are paused:
+- recognizable identity from still references;
+- user-approved voice behavior;
+- useful lip sync;
+- autonomous motion without driving video;
+- scene separation using cropped identity references;
+- fully local execution.
 
-- Base50 as an automatic next step;
-- SeedVR2 or other heavy temporal upscaling as the presumed solution;
-- further local H3 sampler-chasing;
-- productizing the current H3 output as if it were nearly production-ready.
+It did not prove:
 
-The problem is architectural: the currently open/local H3-Base path is fundamentally a 768p-class base renderer, while MiniMax's official H3-Regenerate-2K stage is not currently open-sourced for local use. Conventional upscaling cannot be assumed to recover the missing generative detail.
+- production-grade spatial detail;
+- production-grade hands/gestures/anatomy;
+- production-grade temporal texture stability;
+- a practical path to high-resolution finished output on the RTX 3060.
 
-## Constraint correction — QUALITY OVERRIDES LOCAL-ONLY
+The user explicitly judged the effective visual resolution/detail as persistently poor. Turbo4 and Base20 did not justify continuing into Base50 or heavy upscaling as the next main strategy.
 
-The old `local-first` rule is retired as a hard constraint for the final renderer.
-
-New rule:
-
-> Keep orchestration, assets, references, prompts, manifests and optional preprocessing local where useful, but allow a hosted/cloud render backend when that is what is required to reach production quality in practical time.
-
-A local backend remains desirable when it can meet the quality/time bar. It is no longer allowed to force a visibly inferior result simply to remain local.
+H3 remains preserved as evidence/baseline. Do not delete it yet.
 
 ## Current hardware
 
@@ -59,89 +59,133 @@ A local backend remains desirable when it can meet the quality/time bar. It is n
 - repo checkout: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - AI root: `Z:\AI`
 
-This hardware remains useful for image preparation, reference management, prompt planning, local experiments and some video tasks. It is not treated as sufficient evidence that the final photorealistic avatar renderer must also run locally.
+## Active renderer direction — Wan2.2-S2V-14B
 
-## What H3 proved and what it did not
+The project has returned to the original modular plan that existed before the H3 detour.
 
-H3 proved locally:
+Active next benchmark:
 
-- recognizable identity from still references;
-- user-approved voice behavior from a voice reference;
-- useful lip sync;
-- autonomous motion without a driving video;
-- scene separation using cropped identity references;
-- fully local execution.
+**Wan2.2-S2V-14B + separate voice stage.**
 
-H3 did not prove:
-
-- production-grade spatial detail;
-- production-grade hands/gestures/anatomy;
-- production-grade temporal texture stability;
-- a practical path to high-resolution finished output on the RTX 3060.
-
-The H3 infrastructure remains preserved as research/fallback evidence. Do not delete it yet.
-
-## New target architecture — ACTIVE DIRECTION
-
-The Video Studio becomes **backend-agnostic**:
+Target architecture:
 
 ```text
-local UI / orchestrator
-    -> persistent identity + voice profile
-    -> optional high-quality still / look generation
-    -> render-backend adapter
-         -> production hosted avatar/video engine
-         -> optional local research backend (H3 etc.)
-    -> final assembly / captions / manifests
+written text + target scene + optional appearance
+        |
+        +--> voice synthesis / cloning (CosyVoice candidate)
+        |
+        +--> high-quality identity / scene still preparation
+        |
+        v
+Wan2.2-S2V-14B
+        |
+        v
+short validated shot
+        |
+        v
+multi-shot assembly only after quality pass
 ```
 
-The first production benchmark should use a renderer designed specifically for high-quality personal avatars rather than forcing a general-purpose local video model to approximate one.
+Do not require one monolithic model to solve identity, voice generation, scene generation, body performance and final resolution simultaneously.
 
-## Preferred first production benchmark
+## Wan local preflight — COMPLETED 2026-09-15 17:14
 
-**HeyGen Digital Twin / Avatar V if available to the account, otherwise Avatar IV Digital Twin** is the first candidate because it is directly aligned with the user's actual goal:
+Machine/runtime result:
 
-- trained from the user's own video footage;
-- script-adaptive body language and expressions;
-- full-body support;
-- high-resolution output;
-- API integration;
-- no need to record each new script.
+- RTX 3060 12 GB detected;
+- 47.7 GB RAM;
+- FFmpeg available;
+- `Z:\AI\WanAnimate2` exists;
+- current Wan installation is **Animate-oriented**, not S2V-oriented.
 
-For arbitrary scene/appearance changes, use a two-stage production architecture when useful:
+Current Wan payload:
 
-1. create a high-quality canonical look/still of the user in the target scene;
-2. animate that look with the avatar backend using cloned/referenced voice and the script.
+- `wan_animate_2_bf16.safetensors` — 30.54 GB;
+- `umt5_xxl_fp16.safetensors` — 10.59 GB;
+- `clip_vision_h.safetensors` — 1.18 GB;
+- `Wan2_1_VAE_bf16.safetensors` — 0.24 GB.
 
-**Kling Avatar 2.0 Pro** is the second benchmark candidate for image+audio driven scene-specific shots if it provides better whole-body/scene behavior.
+Missing for native Wan2.2 S2V:
 
-## Open-source alternatives — RESEARCH, NOT FIRST PRACTICAL CHOICE
+- S2V diffusion checkpoint;
+- wav2vec2 audio encoder;
+- CosyVoice components.
 
-Current open models remain relevant for comparison, but their hardware/runtime cost matters:
+Important discovery: current ComfyUI template packages already contain the official native `video_wan2_2_14B_s2v.json` workflow.
 
-- LongCat-Video-Avatar 1.5 has strong 2026 quality claims and 8-step distilled inference, but practical reference implementations still target much larger GPUs than 12 GB;
-- HunyuanVideo-Avatar can be made to run on lower VRAM through community low-memory paths, but it remains a slow 720p-class route and is not the obvious answer to the user's resolution complaint;
-- InfiniteTalk is useful for long audio-driven generation but does not by itself resolve the quality/time mismatch on this hardware.
+## Download minimization — LOCKED FOR FIRST S2V TEST
 
-Do not start downloading another 20–50+ GB local model merely to continue the same pattern.
+Do **not** download the entire stock bundle blindly.
 
-## Local Video Studio implementation
+First benchmark will use:
+
+- `wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB) — download;
+- `wav2vec2_large_english_fp16.safetensors` (~631 MB) — download;
+- existing `umt5_xxl_fp16.safetensors` — reuse first;
+- existing `Wan2_1_VAE_bf16.safetensors` — reuse first.
+
+Only download the stock-template FP8 UMT5 / standard VAE if the local loaders reject the existing compatible components.
+
+## CosyVoice status
+
+CosyVoice remains the intended local text-to-speech / voice-cloning candidate, but it is intentionally deferred by one gate.
+
+The first Wan benchmark will use an already-recorded João audio sample to isolate **video renderer quality**.
+
+Reason: if Wan S2V itself is visually inadequate or impractically slow on the RTX 3060, there is no reason to spend another cycle installing and debugging the voice stage first.
+
+## First Wan quality gate
+
+Use approximately one native 77-frame S2V chunk:
+
+- 16 fps;
+- ~4.8 seconds;
+- one high-quality João upper-body reference;
+- real João speech audio;
+- no long-form extension;
+- no upscaler;
+- no CosyVoice yet.
+
+Judge:
+
+1. effective detail/resolution;
+2. identity stability;
+3. glasses/eyes/beard/hair;
+4. mouth/teeth/jaw;
+5. hands/arms/shoulders;
+6. skin/clothing texture stability;
+7. naturalness of body performance;
+8. AV sync;
+9. runtime practicality.
+
+If Wan S2V materially beats H3 and runtime is acceptable, then add CosyVoice and scene/look preparation.
+
+## Secondary renderer benchmarks
+
+If Wan S2V does not clear the quality/time bar:
+
+1. HunyuanVideo-Avatar — quality comparison candidate;
+2. EchoMimicV3-Flash — lower-compute fallback.
+
+Do not switch engines randomly. Compare them against the same short-shot quality gate.
+
+## Video Studio implementation direction
 
 `tools/video-studio/` remains the orchestration prototype.
 
-It should now evolve toward a provider/renderer adapter architecture instead of assuming MiniMax H3 is the permanent backend.
+It should evolve toward a backend-adapter architecture:
 
-The current H3 quality/resolution runners are retained as evidence and diagnostics, not as the active production path.
+- persistent profile assets;
+- separate voice stage;
+- optional scene/look still generation;
+- interchangeable video renderer backend;
+- evidence / timing / model manifests;
+- FFmpeg assembly.
+
+Do not resume one-minute workflow/UI polish until a single short shot is genuinely publishable.
 
 ## Immediate next action
 
-Do not run Base50 or the resolution/upscaling gate as the next production step.
+Prepare the Wan S2V runtime without redundant downloads, verify native node support, download only the FP8 S2V checkpoint + wav2vec2 audio encoder, and prepare one ~4.8 s benchmark asset set.
 
-Next decision gate:
-
-1. benchmark one short personal-avatar clip on a production hosted engine using the user's real footage and the same script;
-2. judge it against the existing H3 output;
-3. if the quality jump is large enough, integrate that renderer into Video Studio behind an adapter;
-4. only then optimize cost, scene generation and multi-shot assembly.
-
-The benchmark should be short enough to cost little and answer the quality question quickly.
+Canonical procedure: `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`.
