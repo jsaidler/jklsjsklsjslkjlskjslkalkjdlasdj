@@ -20,6 +20,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+# ComfyUI's Windows portable uses the Python embeddable distribution. Depending
+# on its pythonXY._pth isolation settings, the directory containing the executed
+# script is not guaranteed to be importable. Add this tool directory explicitly
+# before importing the sibling backend module.
+TOOL_ROOT = Path(__file__).resolve().parent
+if str(TOOL_ROOT) not in sys.path:
+    sys.path.insert(0, str(TOOL_ROOT))
+
 import video_studio as vs
 
 DEFAULT_TEXT = (
