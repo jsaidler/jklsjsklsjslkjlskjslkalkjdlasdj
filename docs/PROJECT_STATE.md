@@ -9,9 +9,10 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO.md`
 3. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
-4. `tools/video-studio/README.md`
+4. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
+5. `tools/video-studio/README.md`
 
-All Roguelite/game-design, sprite, character-asset and game-runtime documents created before the 2026-09-15 pivot are now **historical evidence only**. They do not define the active product, implementation gate or production defaults.
+All Roguelite/game-design, sprite, character-asset and game-runtime documents created before the 2026-09-15 pivot are historical evidence only. They do not define the active product or current gate.
 
 ## Living-document invariant — LOCKED
 
@@ -19,15 +20,13 @@ Every state-changing action updates the relevant thematic docs and this file. Ch
 
 ## Project pivot — LOCKED
 
-The Roguelite game has been abandoned as the active objective because the visual-production burden is not useful enough for the user's current needs.
-
-The repository is retained and repurposed rather than replaced.
+The Roguelite game is abandoned as the active objective. The repository is retained and repurposed.
 
 Active objective:
 
 > Build a local tool that lets the user write dialogue, choose a scenario and optionally specify appearance/framing, then generate a short realistic video of themselves speaking that new text with their own recognizable identity and voice, without recording a new video performance.
 
-Target normal program length: **up to approximately 60 seconds**, assembled automatically from short generated shots.
+Target normal program length: up to approximately 60 seconds, assembled automatically from short generated shots.
 
 Working title: **Local Video Studio**.
 
@@ -36,24 +35,38 @@ Working title: **Local Video Studio**.
 - Windows 11
 - NVIDIA RTX 3060 12 GB
 - 48 GB system RAM
+- repo checkout: `D:\GOOGLE DRIVE\DEV\Roguelite`
 - AI root: `Z:\AI`
 - active H3 runtime: `Z:\AI\MiniMaxH3`
 - ComfyUI: `Z:\AI\MiniMaxH3\ComfyUI_windows_portable\ComfyUI`
-- normal ComfyUI port: `8188`
+- ComfyUI port: `8188`
 - Video Studio UI port: `8765`
 - generated-run root: `Z:\AI\MiniMaxH3\VideoStudioRuns`
 
-The old repository-local path remains whatever checkout the user currently uses; old docs referenced `D:\GOOGLE DRIVE\DEV\Roguelite`. Do not make runtime media dependent on that historical folder name.
+## Critical correction — PRODUCTION QUALITY NOT VALIDATED
 
-## Local-first production — HARD LOCK
+The 2026-09-15 H3 tests validated the **functional architecture**, not production visual quality.
 
-Routine production must work locally after installation. Hosted video/avatar services may be evaluated as optional comparisons or accelerators, but they are not mandatory dependencies for normal use.
+Canonical classification:
 
-Normal authoring must not require direct ComfyUI graph editing.
+**FUNCTIONAL / ARCHITECTURAL PASS — PRODUCTION QUALITY FAIL / OPEN GATE.**
 
-## Main engine — MiniMax H3 Ref2VA / ACTIVE PROVEN
+The tests proved that the installed local stack can:
 
-The already-installed MiniMax H3 stack is the active engine.
+- preserve recognizable identity;
+- use the user's voice reference for new Portuguese dialogue;
+- produce useful lip synchronization;
+- generate autonomous body motion without a driving video;
+- separate identity references from a newly requested environment when cropped identity references are used;
+- execute locally on the RTX 3060.
+
+They did **not** establish that the resulting image quality is acceptable for publication/production.
+
+The user explicitly rejected that interpretation after reviewing the generated videos. Therefore all previous wording such as **production validated**, **production preset**, or **fit for production** is retired until the visual-quality gate passes.
+
+Known visual concerns already observed in discussion include generic "AI presenter" gesture language and hand/pose behavior. Additional visual defects visible in the actual outputs remain part of the open quality review and must not be hand-waved away by the functional pass.
+
+## Active engine — MiniMax H3 Ref2VA / CANDIDATE, NOT YET PRODUCTION-APPROVED
 
 Installed core payload:
 
@@ -63,29 +76,25 @@ Installed core payload:
 - `minimax_h3_audio_vae_fp32.safetensors`
 - `minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16.safetensors`
 
-H3 is now promoted from a game-motion specialist to the production speaking-video engine because the new use case was directly validated.
+H3 remains the first candidate because it proved the required architecture locally. It is not locked as the final production engine until controlled quality testing is exhausted.
 
-Canonical validation: `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`.
+Do not install another avatar/video engine merely because it exists. A replacement becomes justified if the finite H3 quality ladder fails to reach the required visual standard.
 
-## Personal profile inputs — LOCKED FOR CURRENT USER
+## Personal profile inputs — FUNCTIONALLY VALIDATED
 
-Current validated identity references:
+Current identity references:
 
 - `joao_id_face.png`
 - `joao_id_shoulders.png`
 - `joao_id_upperbody.png`
 
-Current validated voice reference:
+Current voice reference:
 
 - `joao_ref_voice.wav`
 
-These files currently live under the H3 ComfyUI input directory and are configured in `tools/video-studio/config.example.json`.
+The identity images are intentionally cropped. Their role is identity/anatomy evidence only, not environment/style authority.
 
-The identity images are intentionally cropped. Their role is **identity/anatomy only**, not environment/style authority.
-
-## Validated generation chain — HARD LOCK
-
-The 2026-09-15 experiments proved:
+## Functional generation chain — PROVEN
 
 ```text
 cropped identity stills
@@ -99,153 +108,135 @@ MiniMax H3 Ref2VA
 recognizable user + generated voice + lip sync + autonomous movement + new environment
 ```
 
-A driving/motion video is **not required** for the normal talking-video path.
+A driving/motion video is not required for the normal talking-video hypothesis.
 
 ### Test 1 — video + voice reference
 
 `MiniMax_H3_00001_.mp4`
 
-Passed identity, voice and basic lip sync, but inherited substantial gesture/motion trajectory from the driving video. This was insufficient for the final product goal.
+Passed identity/voice/basic lip-sync behavior but inherited substantial gesture trajectory from the driving video. It did not prove recording-free operation.
 
-### Test 2 — full-frame identity stills + voice / no video
+### Test 2 — full-frame identity stills + voice / no driving video
 
 `MiniMax_H3_00002_.mp4`
 
-Passed identity, voice and autonomous motion with no driving video. Failed scene separation: H3 reproduced much of the room contained in the identity images.
+Proved autonomous motion without a driving video but failed scene separation because H3 reproduced much of the room contained in the identity images.
 
-### Test 3 — cropped identity stills + voice / no video / new scene
+### Test 3 — cropped identity stills + voice / no driving video / new scene
 
 `MiniMax_H3_00003_.mp4`
 
-Passed the required gate:
+Passed the functional gate:
 
-- identity preserved;
-- voice preserved and explicitly approved by the user;
-- new written dialogue spoken;
-- lip synchronization acceptable;
+- recognizable identity;
+- stable-enough identity for the spike;
+- voice explicitly judged good by the user;
+- new dialogue;
+- useful lip synchronization;
 - autonomous blinking/head/body/hand motion;
 - no driving video;
-- clearly different requested environment;
-- local RTX 3060 execution.
+- different requested environment;
+- local execution.
 
-## Reference-role contract — HARD LOCK
+It **did not pass the production visual-quality gate**.
 
-For normal jobs:
+## Reference-role contract — RETAIN
+
+For image-only talking-video experiments:
 
 - `<Picture 1..N>` = identity only;
 - `<Audio 1>` = voice identity only;
 - scenario field = environment authority;
 - appearance field = clothing/appearance authority;
 - framing field = camera crop authority;
-- there is no `<Video 1>` movement authority.
+- no `<Video 1>` movement authority in the normal recording-free path.
 
-Prompts must explicitly reject carrying the identity references' room, furniture, windows, bottles, equipment, colors, lighting and composition into the new scene.
+Prompts must explicitly reject carrying the identity references' room/composition into the new scene.
 
-Full-frame room images are not canonical identity inputs.
+## Current presets — EXPERIMENTAL ONLY
 
-## Current production preset — ACTIVE
+No preset is currently called production.
 
-The first production default is the **validated high-resolution Turbo4 avatar path**:
+Existing backend keys remain temporarily for compatibility with the first MVP code, but their status is:
 
-- task: Ref2VA;
-- output: 768×1344 vertical;
-- 24 fps;
-- Ref2V Turbo 4-step LoRA at 1.0;
-- 4 steps;
-- sampler: `res_multistep`;
-- scheduler: `simple`;
-- `ref_image_size=max`;
-- H3 sigma shifts: video 12 / audio 3;
-- deterministic seed supplied by the Studio, incremented per shot.
+- `draft`: Turbo4 at 480×864 — cheap functional/composition test only;
+- `production`: **legacy key name only**; Turbo4 at 768×1344 — functional baseline, visually rejected as a production claim;
+- `quality`: Base20 at 768×1344, `res_multistep/beta` — unvalidated quality candidate;
+- `max`: Base50 at 768×1344, `res_multistep/beta` — unvalidated maximum-quality H3 candidate, very slow.
 
-This does **not** revoke the historical finding that Turbo4 was inadequate for the old game-motion-master task. That finding was task-specific. For the present talking-video task, the 4-step route passed the practical gate and is therefore the correct current default until a controlled comparison proves otherwise.
+The UI/documentation must not present the legacy `production` key as approved production quality.
 
-Available controlled alternatives:
+## Current gate — VIDEO-STUDIO-QUALITY-01 / ACTIVE
 
-- `draft`: Turbo4 at 480×864;
-- `quality`: Base20, 768×1344, `res_multistep/beta`;
-- `max`: Base50, 768×1344, `res_multistep/beta`.
+The next step is **not** general UI polish and not one-minute assembly. First establish a visually acceptable single short shot.
 
-Base20/Base50 are not yet declared superior for the present use case.
+Canonical quality procedure: `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`.
 
-## Long-form strategy — LOCKED
+Controlled comparison uses identical:
 
-Do not ask H3 to generate a continuous one-minute clip.
+- identity references;
+- voice reference;
+- dialogue;
+- scenario;
+- appearance;
+- framing;
+- seed;
+- output canvas.
 
-For ~15–60 second programs:
+Finite H3 ladder:
 
-1. sentence-aware script segmentation;
-2. estimate speech duration per segment;
-3. keep generated shots <= ~12.5 s;
-4. align each shot to H3's valid 24 fps `17k+5` frame structure;
-5. generate serially on the single GPU;
-6. concatenate automatically with FFmpeg;
-7. preserve per-shot prompts/API graphs and a final job manifest.
+1. Turbo4 768×1344 as the rejected functional baseline;
+2. Base20 768×1344;
+3. Base50 768×1344 if Base20 is materially better or still leaves plausible room for improvement;
+4. if sampling quality is not enough, improve the canonical identity-reference pack and repeat the best sampler path;
+5. only after exhausting those variables consider a different local video/avatar engine.
 
-Multiple scene descriptions may be separated by `---`; the Studio maps them to successive shots.
+No result is promoted merely because it is more expensive/slower.
 
-## Current implementation — Local Video Studio MVP / ACTIVE
+## Production visual acceptance criteria — HARD GATE
 
-New active tool:
+A candidate must be reviewed at full size and in motion for:
+
+1. facial identity and facial geometry from first to last frame;
+2. eyes, eyelids, eyeglasses, beard/hairline and teeth/mouth stability;
+3. lip/jaw motion without rubbery or synthetic deformation;
+4. hands/fingers/wrists/elbows and absence of anatomically implausible gestures;
+5. natural, non-repetitive body performance without generic AI-presenter choreography;
+6. clothing topology/material stability;
+7. skin/detail texture without obvious waxy diffusion artifacts;
+8. background geometry/object stability and absence of melting/morphing;
+9. scene/composition compliance;
+10. voice identity and audiovisual synchronization;
+11. absence of distracting temporal flicker, identity drift or local warping;
+12. overall result being acceptable for public release without manual frame repair.
+
+A failure on a conspicuous defect is a production failure even if identity/voice technically pass.
+
+## Local Video Studio MVP — IMPLEMENTED PROTOTYPE, NOT PRODUCTION TOOL YET
+
+Implementation exists under:
 
 `tools/video-studio/`
 
-Normal launch:
+Architecture:
 
-```powershell
-.\tools\video-studio\start_video_studio.ps1
-```
+`local web UI -> orchestrator -> ComfyUI HTTP API -> H3 Ref2VA -> video+audio -> FFmpeg assembly`
 
-Normal UI:
+This remains useful infrastructure, but productization is paused behind the active quality gate. Do not spend effort on multi-shot/60-second polish until a single-shot quality preset passes.
 
-`http://127.0.0.1:8765/`
-
-Implemented architecture:
-
-`local web UI -> Video Studio orchestrator -> ComfyUI HTTP API -> H3 Ref2VA -> native video+audio -> FFmpeg shot assembly -> final MP4 + manifest`
-
-The backend is Python-standard-library-only and is designed to run with the existing H3 portable embedded Python. It automatically starts the current ComfyUI launcher when needed and serializes GPU jobs.
-
-Normal user controls:
-
-- text to speak;
-- scenario;
-- optional clothing/appearance;
-- framing;
-- quality preset;
-- seed;
-- Generate.
-
-Normal users should not touch the ComfyUI graph.
-
-## Evidence / reproducibility contract
-
-Each Video Studio job records locally:
-
-- request JSON;
-- compiled H3 prompt per shot;
-- ComfyUI API graph per shot;
-- prompt id;
-- elapsed time;
-- local copy of each shot;
-- SHA-256 of profile references, shots and final video;
-- final manifest.
-
-Generated media and local mutable configuration are not committed to Git.
+Normal authoring must ultimately hide ComfyUI, but the immediate development priority is quality, not interface completeness.
 
 ## Supporting image tools — RETAIN
 
-These remain useful because scenario/reference preparation and identity-pack refinement may benefit from still-image generation/editing:
+Potentially useful for a stronger canonical identity pack or controlled scene/reference preparation:
 
 - `Z:\AI\QwenImageEdit`
 - `Z:\AI\Flux2Klein`
-- `Z:\AI\FluxKontext` — retain until Qwen/Klein fully replace any useful role.
+- `Z:\AI\FluxKontext`
 
-They are support tools, not required by the first Video Studio MVP path.
+## Former game-only payload — RETIRED / CLEANUP CANDIDATES
 
-## Former game-only local payload — RETIRED / CLEANUP CANDIDATES
-
-The following are no longer active production infrastructure for the new project:
+No longer active for the new project:
 
 - `Z:\AI\RogueliteAssetStudio`
 - `Z:\AI\SpriteSheetDiffusionSpike`
@@ -253,48 +244,12 @@ The following are no longer active production infrastructure for the new project
 - `Z:\AI\QwenImageEditSpike`
 - game-specific contents of `Z:\AI\Flux2RefControlSpike`
 
-`Z:\AI\WanAnimate2` is not required for the current Video Studio path and may be removed when disk cleanup is performed; preserve only evidence/configuration that is useful historically before deleting large weights.
+`Z:\AI\WanAnimate2` is not part of the current H3 quality ladder. Do not delete it solely to simplify the narrative before the Video Studio engine decision is closed; it may still be useful as retained comparison infrastructure if H3 fails.
 
-`PowerPaint`, `LaMaInpaint` and `SDXLInpaint` have no active role in the Video Studio MVP and should not be expanded further. Delete only after confirming there is no unrelated personal use for those local folders.
+Repository history remains intact as evidence.
 
-Repository history is not mass-deleted. Old tools/docs remain historical evidence unless they obstruct active development.
+## Immediate next action
 
-## Current gate
+Run the controlled H3 quality benchmark, starting with the high-resolution Turbo4 baseline and Base20 under identical conditions. Review the actual MP4s before deciding whether Base50 is justified.
 
-**VIDEO-STUDIO-MVP-01**
-
-Goal: make the validated H3 configuration usable without manual ComfyUI work.
-
-PASS requires:
-
-1. one-command local launcher;
-2. localhost form for text/scenario/appearance/framing/preset;
-3. automatic profile injection;
-4. automatic script splitting for longer text;
-5. serial H3 generation;
-6. automatic final MP4 assembly;
-7. local run manifest/evidence;
-8. no manual node-graph editing during normal operation.
-
-Implementation has been committed under `tools/video-studio/`. The next operational step is running `start_video_studio.ps1 -PreflightOnly`, then generating the first end-to-end video through the new interface.
-
-## Next quality gate
-
-After MVP execution is confirmed, run one controlled A/B on identical identity/voice/text/scene/seed:
-
-- validated `production` Turbo4;
-- Base20 `quality`;
-- Base50 `max` only if Base20 suggests a meaningful improvement.
-
-Judge:
-
-- facial identity;
-- temporal stability;
-- voice/lip synchronization;
-- naturalness of autonomous gesture;
-- hands;
-- scene compliance;
-- visual detail;
-- elapsed time.
-
-Do not replace H3 or install another avatar model before this finite comparison unless a concrete blocker appears.
+Do **not** call any result production-ready until the user explicitly approves the visual quality.
