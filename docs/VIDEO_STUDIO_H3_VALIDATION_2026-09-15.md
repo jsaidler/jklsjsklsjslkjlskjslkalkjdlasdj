@@ -1,36 +1,50 @@
-# MiniMax H3 — personal text-to-video validation
+# MiniMax H3 — personal text-to-video functional validation
 
 Date: **2026-09-15**  
 Hardware: **Windows 11 / RTX 3060 12 GB / 48 GB RAM**  
-Status: **PASS / PRODUCTION HYPOTHESIS VALIDATED**
+Status: **FUNCTIONAL PASS / PRODUCTION QUALITY NOT APPROVED**
 
-This document records the pivot from the former game-motion use of MiniMax H3 to the current personal short-video use.
+Canonical project state: `docs/PROJECT_STATE.md`.  
+Active production-quality gate: `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`.
 
-## Goal
+## Scope of this document
 
-Prove locally that the installed H3 stack can generate a new video of the user from text without requiring a new recorded performance for each output.
+This record proves the architecture required by the Local Video Studio. It does **not** certify publication/production visual quality.
 
-Required properties:
+The earlier wording `PASS / PRODUCTION HYPOTHESIS VALIDATED` was too broad and is retired. The user explicitly rejected the claim that the generated result had production quality after reviewing the videos.
+
+Canonical classification:
+
+**FUNCTIONAL / ARCHITECTURAL PASS — PRODUCTION QUALITY FAIL / OPEN GATE.**
+
+## Functional goal
+
+Prove locally that the installed H3 stack can generate a new video of the user from persistent identity/voice references without requiring a new recorded performance for each output.
+
+Required functional properties:
 
 1. preserve recognizable identity;
 2. produce a convincing version of the user's voice saying new text;
-3. synchronize mouth motion to the new speech;
+3. synchronize mouth motion to the new speech sufficiently to validate the mechanism;
 4. generate body motion without a driving video;
-5. place the same person in a scenario different from the source-reference room.
+5. place the same person in a scenario different from the source-reference room;
+6. execute locally on the RTX 3060.
+
+These are architectural requirements, not the complete production acceptance criteria.
 
 ## Source material
 
-A new vertical source recording was supplied for the spike:
+A vertical source recording was supplied:
 
 - `IA_TEST.mp4` — 9:16 source recording;
 - `IA_TEST.WAV` — matching clean voice recording.
 
-A short reference segment was prepared as:
+Prepared references:
 
-- `joao_ref_video.mp4` — ~12 s visual reference, normalized to 24 fps for H3;
-- `joao_ref_voice.wav` — matching voice reference.
+- `joao_ref_video.mp4` — short visual reference normalized to 24 fps;
+- `joao_ref_voice.wav` — voice reference.
 
-Later tests extracted identity stills, culminating in cropped identity references:
+Identity stills culminated in:
 
 - `joao_id_face.png`;
 - `joao_id_shoulders.png`;
@@ -38,22 +52,22 @@ Later tests extracted identity stills, culminating in cropped identity reference
 
 ## Test 1 — video identity/motion + voice
 
-Output supplied back for review:
+Output:
 
 `MiniMax_H3_00001_.mp4`
 
-Observed output was approximately 480×864, 24 fps, 124 frames (~5.17 s), using the fast 4-step path.
+Approximate result: 480×864, 24 fps, 124 frames (~5.17 s), fast 4-step path.
 
-Result:
+Functional result:
 
-- identity: strong pass;
-- temporal face stability: pass;
+- identity: strong pass for the spike;
+- temporal face stability: sufficient for the spike;
 - voice: **user explicitly judged it good**;
-- lip sync: pass candidate;
-- hands/body: acceptable for the test;
+- lip sync: useful functional pass candidate;
+- hands/body: sufficient only to continue experimentation;
 - independence from source performance: **not proven**.
 
-The generated performance inherited substantial posture/gesture trajectory from the reference video. This proved H3 could generate the user but not yet that recording a movement reference was unnecessary.
+The generated performance inherited substantial posture/gesture trajectory from the reference video. Therefore this test did not solve the recording-free goal.
 
 ## Test 2 — three full-frame identity stills + voice, no driving video
 
@@ -61,16 +75,16 @@ Output:
 
 `MiniMax_H3_00002_.mp4`
 
-Observed output was approximately 768×1376, 24 fps, ~6.58 s.
+Approximate result: 768×1376, 24 fps, ~6.58 s.
 
-Result:
+Functional result:
 
-- identity: strong pass;
+- recognizable identity: pass;
 - voice: pass, already user-approved;
 - autonomous body motion without driving video: **pass**;
 - requested new scene: **fail**.
 
-H3 generated new gestures but strongly reconstructed the room visible in the three full-frame identity references. Conclusion: the scene in an identity photograph carries substantial reference authority unless explicitly removed from the input representation.
+H3 generated new gestures but strongly reconstructed the room visible in the three full-frame identity references. Conclusion: source background carries strong reference authority.
 
 ## Test 3 — cropped identity stills + voice, no driving video + new scenario
 
@@ -78,49 +92,73 @@ Output:
 
 `MiniMax_H3_00003_.mp4`
 
-Observed output was approximately 768×1376, 24 fps, ~6.58 s.
+Approximate result: 768×1376, 24 fps, ~6.58 s.
 
-The references were changed to crops that preserve identity/anatomy evidence while drastically reducing background evidence. The prompt also explicitly declared those pictures to be identity-only references and rejected visual continuity with their source room.
+Cropped references reduced background authority and the prompt explicitly defined them as identity-only.
 
-Result:
+Functional result:
 
 - recognizable identity: **PASS**;
-- identity stability through shot: **PASS**;
+- sufficient identity stability to validate the approach: **PASS**;
 - user-approved voice identity: **PASS**;
 - new dialogue: **PASS**;
-- autonomous blinking/head/body/hand motion: **PASS**;
+- autonomous body motion: **PASS**;
 - no driving video: **PASS**;
 - scenario different from source room: **PASS**;
 - local RTX 3060 execution: **PASS**.
 
-## Canonical conclusion
+Production visual-quality result:
 
-The working production relation is proven:
+**FAIL / NOT APPROVED.**
+
+The result still exhibits visible AI-generation defects. Discussion already identified generic presenter-like gesture language and problematic hand/pose behavior; the complete visual defect set must be judged against the canonical quality checklist rather than inferred away from the functional successes.
+
+## Functional conclusion
+
+The following relation is technically proven:
 
 ```text
-3 cropped identity images
-+ one voice reference
+cropped identity images
++ voice reference
 + new written dialogue
 + target scenario
 + optional appearance/framing
 --------------------------------
-= new local talking video of the user
+= new local talking video of the user without a driving performance video
 ```
 
-No per-video movement recording is required for the normal use case.
+This proves feasibility of the workflow only.
 
-## Quality interpretation
+It does **not** prove that the current H3/Turbo4 output is ready to publish.
 
-The pass does **not** claim perfect realism or that the current preset is the global optimum. Residuals include occasional generic "AI presenter" hand language and the need for controlled quality comparisons.
+## Engine interpretation
 
-It does establish that MiniMax H3 is fit to become the main engine of the Local Video Studio rather than remaining only a game-motion research model.
+MiniMax H3 remains the first engine candidate because it satisfies the required local architecture and voice/identity mechanism. It is not yet the final production engine.
 
-## Production decision
+The next decision must come from a controlled quality ladder:
 
-- promote MiniMax H3 Ref2VA to active Video Studio engine;
-- make cropped identity references + standalone voice the default profile;
-- keep driving video out of normal authoring;
-- make new-scene separation a hard prompt/input contract;
-- use the successful 4-step high-resolution path as the first production preset;
-- expose Base20/Base50 only as controlled quality comparisons until they demonstrate a material improvement for this specific use;
-- stop requiring the user to operate ComfyUI graphs manually.
+1. Turbo4 high-resolution baseline;
+2. Base20 under identical conditions;
+3. Base50 if warranted;
+4. stronger canonical identity references if sampling alone does not solve the defects;
+5. only then evaluate a different local video/avatar engine if H3 remains visually inadequate.
+
+## Retained rules
+
+- cropped identity references are preferable to full-frame room references for scene independence;
+- standalone voice reference remains valid;
+- no driving video is required for the normal recording-free hypothesis;
+- direct ComfyUI graph operation should not be part of normal end-user use;
+- visible human review controls the production verdict.
+
+## Retired claims
+
+Do not repeat any of the following until the quality gate actually passes:
+
+- `production validated`;
+- `production preset` for Turbo4;
+- `production-ready`;
+- `the visual problem is only calibration`;
+- `the remaining work is merely UI/productization`.
+
+The current bottleneck is **visual generation quality**.
