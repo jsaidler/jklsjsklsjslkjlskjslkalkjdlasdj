@@ -39,14 +39,21 @@ Game-only AI roots classified for deletion:
 - `Z:\AI\QwenImageEditSpike`
 - `Z:\AI\Flux2RefControlSpike`
 
-Protected video/reusable roots:
+Video/reusable roots that remain active or potentially reusable:
 
 - `Z:\AI\WanAnimate2`
-- `Z:\AI\MiniMaxH3`
 - `Z:\AI\QwenImageEdit`
 - `Z:\AI\Flux2Klein`
 - `Z:\AI\FluxKontext`
 - `Z:\AI\VideoStudioRuns`
+- `Z:\AI\WanGP`
+
+`Z:\AI\MiniMaxH3` is no longer storage-protected as a renderer payload. H3 remains historically documented and its benchmark evidence must be preserved, but its two large model weights are approved for deletion because H3 failed the production-quality gate and is paused as a final renderer:
+
+- `minimax_h3_ref2va_pruned_int8_convrot.safetensors`
+- `qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors`
+
+Use `tools/video-studio/cleanup_retired_h3_payload.ps1`; it deletes only those exact filenames after a dry-run.
 
 Old game material remains recoverable from Git history; Git history is not rewritten.
 
@@ -62,7 +69,7 @@ Old game material remains recoverable from Git history; Git history is not rewri
 
 **H3 LOCAL: FUNCTIONAL PASS / PRODUCTION VISUAL QUALITY FAIL / PAUSED AS FINAL RENDERER.**
 
-H3 proved the architecture but failed the user's production-quality bar, especially effective detail/resolution, anatomy/hands, texture stability, and generic presenter-like visual behavior. Do not resume H3 Base50 / SeedVR2 as the main strategy without new evidence.
+H3 proved the architecture but failed the user's production-quality bar, especially effective detail/resolution, anatomy/hands, texture stability, and generic presenter-like visual behavior. Do not resume H3 Base50 / SeedVR2 as the main strategy without new evidence. The heavy H3 model weights are therefore dispensable; preserve documentation and benchmark outputs rather than the payload itself.
 
 ## Wan S2V result — COMPLETED / BASELINE PRESERVED
 
@@ -131,6 +138,17 @@ Why this route:
 - Tencent explicitly points to WanGP/Wan2GP for a ~10 GB VRAM route;
 - the local machine has 12 GB VRAM and Windows 11, so WanGP is the practical implementation path.
 
+WanGP runtime bootstrap completed successfully on 2026-09-15:
+
+- Python 3.11.14;
+- Torch 2.10.0+cu130;
+- CUDA 13.0 available;
+- RTX 3060 detected;
+- WanGP local footprint: **7.4 GB**;
+- free space after runtime install: **31.52 GB**.
+
+The model payload download is on HOLD until additional disk space is freed.
+
 Candidate main checkpoint:
 
 - `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` (~13.4 GB).
@@ -194,10 +212,11 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-Run:
+Free disk space by retiring the two large H3-only weights, without deleting H3 documentation or benchmark evidence.
 
-`tools/video-studio/preflight_hunyuan_avatar.ps1`
-
-This checks disk, Windows/runtime prerequisites, exact benchmark assets, any existing WanGP installation, and any Hunyuan payload already present before downloading anything.
+1. dry-run `tools/video-studio/cleanup_retired_h3_payload.ps1`;
+2. if the exact two expected H3 weights are found, run it with `-Execute`;
+3. confirm `HUNYUAN PAYLOAD GATE: PASS`;
+4. only then prepare the minimal Hunyuan Avatar INT8 payload download.
 
 Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
