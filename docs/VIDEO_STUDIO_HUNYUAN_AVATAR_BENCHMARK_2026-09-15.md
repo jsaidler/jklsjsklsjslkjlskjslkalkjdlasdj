@@ -1,7 +1,7 @@
 # Local Video Studio — HunyuanVideo-Avatar direct comparison
 
-Date: **2026-09-15**  
-Status: **PAYLOAD PREPARED / RUNNER CLI COMPAT PATCHED / DRY-RUN PENDING / DIRECT RENDER PENDING / WAN 20-STEP A/B PAUSED**
+Date: **2026-09-16**  
+Status: **PAYLOAD PREPARED / DRY-RUN PASS / DIRECT RENDER READY / WAN 20-STEP A/B PAUSED**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -53,7 +53,7 @@ Important correction retained: **Hunyuan Avatar uses the custom Hunyuan VAE**, n
 
 Canonical preparation classification:
 
-**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DIRECT RENDER GATE PENDING.**
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DRY-RUN PASS / DIRECT RENDER READY.**
 
 ## Direct comparison inputs — LOCKED
 
@@ -131,7 +131,32 @@ Patch applied in repository commit `7d77ce33c0d21b5259b8d21a2f8b95caf521197c`:
 - retained `skip_steps_cache_type=""` in the submitted task settings;
 - manifest now records TeaCache as disabled through task settings rather than as a nonexistent CLI switch.
 
-Before spending GPU time, the patched runner must complete one `-DryRun` so any further API/schema drift is caught before generation.
+## Compatibility dry-run — PASS
+
+The patched runner completed a zero-inference dry-run on 2026-09-16.
+
+Evidence root:
+
+`Z:\AI\VideoStudioRuns\hunyuan-avatar-gates\20260916_003617`
+
+Validated directly against the installed WanGP runtime:
+
+- WanGP v13.02 initialized successfully;
+- profile 4 + SDPA initialized successfully;
+- Hunyuan Avatar model discovery: **PASS**;
+- model type: `hunyuan_avatar`;
+- payload availability: `available`;
+- reference mode: `KI`;
+- audio mode: `A`;
+- runtime default frames: **129**;
+- runtime default steps: **30**;
+- runtime default CFG: **7.5**;
+- runtime default flow shift: **5**;
+- dry-run result: **PASS — no generation submitted**.
+
+The runtime also downloaded its own FFmpeg 9.0.1 essentials package during initialization. This was runtime setup activity, not model generation.
+
+This closes the API/schema compatibility gate. There is no remaining reason to spend another preparation pass before the first renderer inference.
 
 ## First direct gate — LOCKED
 
@@ -212,12 +237,6 @@ Do not keep changing models without completing this controlled comparison.
 
 ## Immediate action
 
-Preparation is complete and the CLI compatibility bug has been patched. **Do not rerun the payload download.**
+Preparation and compatibility validation are complete. **Do not rerun payload preparation or the dry-run.**
 
-Next:
-
-1. pull `main`;
-2. execute `run_hunyuan_avatar_benchmark.ps1 -DryRun`;
-3. only if the dry-run passes, execute exactly one full direct Hunyuan benchmark with the same runner and locked settings.
-
-No Hunyuan renderer result has been produced yet.
+Next: pull `main` and execute exactly one full direct Hunyuan Avatar benchmark with the locked settings. No Hunyuan renderer result has been produced yet.
