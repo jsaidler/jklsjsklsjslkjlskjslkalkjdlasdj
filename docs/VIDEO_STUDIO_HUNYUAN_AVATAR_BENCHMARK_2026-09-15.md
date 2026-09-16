@@ -1,7 +1,7 @@
 # Local Video Studio — HunyuanVideo-Avatar direct comparison
 
 Date: **2026-09-15**  
-Status: **PAYLOAD PREPARED / DIRECT RENDER GATE NEXT / WAN 20-STEP A/B PAUSED**
+Status: **PAYLOAD PREPARED / PROGRAMMATIC RUNNER READY / DIRECT RENDER PENDING / WAN 20-STEP A/B PAUSED**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -29,9 +29,7 @@ Runtime bootstrap validated on 2026-09-15:
 - RTX 3060 detected;
 - WanGP local footprint: **7.4 GB**.
 
-## Disk and preparation state
-
-The earlier free-space blocker was resolved by retiring approved H3-only payloads. The Hunyuan preparation was then completed successfully.
+## Payload preparation — PASS
 
 Successful preparation run:
 
@@ -41,13 +39,7 @@ Successful preparation run:
 - reused files: **0**;
 - free space on `Z:` after payload: **40.63 GB**.
 
-Canonical preparation classification:
-
-**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DIRECT RENDER GATE PENDING.**
-
-## Validated payload
-
-The successful preparer validation reported:
+Validated critical payload:
 
 - `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — **12.486 GB** — PASS;
 - `llava-llama-3-8b/llava-llama-3-8b-v1_1_vlm_quanto_int8.safetensors` — **8.785 GB** — PASS;
@@ -57,12 +49,11 @@ The successful preparer validation reported:
 - `hunyuan_video_custom_VAE_fp32.safetensors` — **0.918 GB** — PASS;
 - `hunyuan_video_custom_VAE_config.json` — PASS.
 
-The current WanGP Hunyuan handler also requires tokenizer/config and supporting dependency assets under `ckpts/`; the preparer downloaded the full required set rather than the full Tencent repository.
+Important correction retained: **Hunyuan Avatar uses the custom Hunyuan VAE**, not only the standard Hunyuan VAE.
 
-Important correction retained: **Hunyuan Avatar uses the custom Hunyuan VAE**, not only the standard Hunyuan VAE:
+Canonical preparation classification:
 
-- `hunyuan_video_custom_VAE_fp32.safetensors`;
-- `hunyuan_video_custom_VAE_config.json`.
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DIRECT RENDER GATE PENDING.**
 
 ## Direct comparison inputs — LOCKED
 
@@ -71,35 +62,111 @@ Reuse exactly the Wan benchmark source assets:
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`
 
-The preparer pins copies under:
+Pinned WanGP copies:
 
 - `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_ref.png`
 - `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_test_4p5s.wav`
 
 Do not introduce CosyVoice yet. Do not change João's identity reference between engines. Do not upscale, face-retouch or otherwise post-process the first Hunyuan render in a way that hides renderer defects.
 
-## Hunyuan timing/shape facts to preserve
+## WanGP programmatic interface verification — PASS
 
-The previously inspected WanGP Hunyuan Avatar handler indicated:
+The current upstream WanGP interface was re-verified before creating the runner. The supported automation path is **not browser/Gradio automation** and does not require reverse-engineering an internal callback.
 
+WanGP now exposes `shared/api.py` with the supported single-task flow:
+
+- `from shared.api import init`;
+- `session = init(...)`;
+- `session.list_model_metadata(...)` for model discovery;
+- `session.get_default_settings(model_type)`;
+- `session.get_model_schema(model_type)`;
+- `session.get_model_availability(model_type)`;
+- `session.submit_task(settings)`;
+- `job.result()` for the structured result.
+
+WanGP also supports `wgp.py --process settings.json`, but the Python API is preferable here because the benchmark runner can inspect the **installed runtime's** current model definition/defaults before submitting an expensive render.
+
+The current WanGP settings contract confirms:
+
+- reference image: `image_refs`;
+- Hunyuan Avatar reference mode: `video_prompt_type="KI"`;
+- primary speech audio: `audio_guide`;
+- audio mode: `audio_prompt_type="A"`;
+- output shape: `resolution`;
+- frames: `video_length`;
+- sampling: `num_inference_steps`, `guidance_scale`, `flow_shift`, `seed`.
+
+The Hunyuan handler currently declares:
+
+- architecture/base model type `hunyuan_avatar`;
 - **25 fps**;
-- default **129-frame** segment;
-- reference-image + audio conditioning;
-- guidance scale 7.5;
+- `any_audio_prompt=True` and `returns_audio=True`;
+- one image reference required;
+- reference role `KI` (“Start Image”);
+- default **129 frames**;
+- guidance **7.5**;
+- flow shift **5**;
+- background removal off;
+- 128-frame internal segment processing even if a shorter output is requested.
+
+The common WanGP quality default remains **30 inference steps** for this model because the Avatar handler does not override `num_inference_steps`.
+
+## First direct gate — LOCKED
+
+Repository runner:
+
+- `tools/video-studio/run_hunyuan_avatar_benchmark.ps1`
+- `tools/video-studio/run_hunyuan_avatar_benchmark.py`
+
+The first production-oriented gate is intentionally **720x1280 portrait**, not the lower-pixel Wan test resolution. The question is whether Hunyuan can deliver a publishable local result at its intended 720p class, not whether two engines produce identical pixel counts.
+
+Locked first-run settings:
+
+- Hunyuan Video Avatar 720p 13B;
+- INT8 transformer/text encoder payload already prepared;
+- 720x1280 portrait;
+- 129 frames;
+- native 25 fps;
+- 30 steps;
+- CFG 7.5;
 - flow shift 5;
-- one 128-frame processing segment even when a shorter output is requested.
+- seed 0;
+- WanGP profile 4;
+- SDPA attention for compatibility and to avoid an attention-backend quality confound;
+- TeaCache disabled;
+- no temporal/spatial upscaling;
+- no film grain;
+- no audio post-processing;
+- same 4.5 s real speech audio and same identity reference as Wan.
 
-A 129-frame segment at 25 fps is about **5.16 s**, close enough to the Wan ~4.8 s gate for direct visual comparison.
+The runner first checks the local payload and `shared/api.py`, initializes WanGP, discovers the Avatar model by metadata, reads the installed defaults/schema/availability, validates that the installed runtime still exposes an image-reference mode containing `I` and an audio mode containing `A`, and only then submits generation.
 
-Before the direct runner hardcodes these values, its programmatic WanGP entrypoint and current argument/schema path must be verified against the installed/upstream runtime. Do not invent a CLI or browser-automation layer when a supported programmatic path exists.
+Evidence root:
 
-## First Hunyuan gate
+`Z:\AI\VideoStudioRuns\hunyuan-avatar-gates\<timestamp>\`
 
-The first render should answer only:
+Expected evidence includes:
+
+- `settings.json`;
+- `model_search.json`;
+- `model_metadata.json`;
+- `model_defaults.json`;
+- `model_schema.json`;
+- `model_availability.json`;
+- `runner.log`;
+- `result.json` after inference;
+- `manifest.json`;
+- the generated video plus a stable benchmark copy.
+
+The runner has a 180-minute watchdog by default and requests WanGP cancellation if that ceiling is reached. A timeout is a practicality failure for this local route, not an invitation to keep waiting blindly.
+
+## Quality gate
+
+The first render answers only:
 
 > Is HunyuanVideo-Avatar materially closer to publishable João video than the completed Wan 10-step render?
 
-Use the same quality criteria:
+Evaluate:
 
 1. effective detail/resolution;
 2. identity stability;
@@ -114,40 +181,15 @@ Use the same quality criteria:
 
 ## Decision after Hunyuan render
 
-- **If Hunyuan clearly beats Wan 10-step:** make Hunyuan the active renderer candidate and optimize/integrate it.
-- **If Hunyuan is roughly tied:** compare runtime and native resolution headroom before choosing.
-- **If Hunyuan is worse:** return immediately to Wan and run the proper 20-step FP8 A/B.
+- **If Hunyuan clearly beats Wan 10-step:** promote Hunyuan and then integrate CosyVoice.
+- **If Hunyuan is roughly tied:** compare runtime and resolution headroom before choosing.
+- **If Hunyuan is worse:** stop Hunyuan tuning and return immediately to the controlled Wan 20-step FP8 A/B.
+- **If Hunyuan OOMs or exceeds the runtime ceiling:** treat local practicality as failed and evaluate hosted/rented-GPU execution before destructive quality compromises.
 
-Do not keep changing models without completing this controlled direct comparison.
-
-## Payload preparer
-
-Repository files:
-
-- `tools/video-studio/prepare_hunyuan_avatar_benchmark.ps1`
-- `tools/video-studio/prepare_hunyuan_avatar_benchmark.py`
-
-The preparer:
-
-- uses WanGP's own Python environment;
-- downloads directly into `Z:\AI\WanGP\ckpts`;
-- redirects global Hugging Face/Xet caches to `%LOCALAPPDATA%\VideoStudio\huggingface` so `Z:` is not consumed by duplicate cache payloads;
-- reuses already-present files when available;
-- validates the critical payload;
-- can optionally SHA-256-check the largest pinned files;
-- pins the benchmark image/audio;
-- writes `Z:\AI\WanGP\hunyuan_avatar_benchmark_prepare_manifest.json`.
+Do not keep changing models without completing this controlled comparison.
 
 ## Immediate action
 
-Preparation is complete. **Do not rerun the payload download.**
+Preparation and runner construction are complete. **Do not rerun the payload download.**
 
-Next:
-
-1. verify the current WanGP programmatic/headless generation entrypoint and exact Hunyuan Avatar job schema against upstream/runtime code;
-2. add a repository-backed direct benchmark runner;
-3. execute exactly one Avatar render with the pinned reference image and 4.5 s real speech audio;
-4. preserve output, parameters, logs and elapsed time;
-5. compare the result directly with the completed Wan 10-step baseline.
-
-No Hunyuan renderer result has been produced yet; only runtime and payload preparation have passed.
+Next: pull `main` and execute exactly one direct benchmark through `run_hunyuan_avatar_benchmark.ps1`. No Hunyuan renderer result has been produced yet.
