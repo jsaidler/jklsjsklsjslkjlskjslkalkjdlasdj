@@ -127,7 +127,11 @@ If Hunyuan is worse, return directly to Wan and run the controlled 20-step FP8 t
 
 ## Active renderer benchmark — HunyuanVideo-Avatar
 
-Next candidate:
+Current classification:
+
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DIRECT RENDER GATE PENDING.**
+
+Candidate:
 
 **Hunyuan Video Avatar 720p 13B via DeepBeepMeep WanGP, quantized INT8 path.**
 
@@ -146,23 +150,31 @@ WanGP runtime bootstrap completed successfully on 2026-09-15:
 - RTX 3060 detected;
 - WanGP local footprint: **7.4 GB**.
 
-Hunyuan payload disk gate now passes:
+### Payload preparation — PASS
 
-- free space on `Z:`: **65.66 GB** after H3 payload cleanup.
+The payload preparation completed successfully on 2026-09-15.
 
-Candidate main checkpoint:
+Validated critical payload:
 
-- `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` (~13.4 GB).
+- `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — **12.486 GB**;
+- `llava-llama-3-8b/llava-llama-3-8b-v1_1_vlm_quanto_int8.safetensors` — **8.785 GB**;
+- `clip_vit_large_patch14/model.safetensors` — **1.593 GB**;
+- `whisper-tiny/model.safetensors` — **0.141 GB**;
+- `det_align/detface.pt` — **0.174 GB**;
+- `hunyuan_video_custom_VAE_fp32.safetensors` — **0.918 GB**;
+- `hunyuan_video_custom_VAE_config.json`.
 
-INT8 text encoder:
+Preparation result:
 
-- `llava-llama-3-8b/llava-llama-3-8b-v1_1_vlm_quanto_int8.safetensors` (~9.43 GB).
+- downloaded: **26 files**;
+- reused: **0 files**;
+- free space on `Z:` after payload: **40.63 GB**;
+- manifest: `Z:\AI\WanGP\hunyuan_avatar_benchmark_prepare_manifest.json`;
+- report: `D:\GOOGLE DRIVE\DEV\Roguelite\tools\video-studio\reports\hunyuan_avatar_prepare_20260915_234228.txt`.
 
-WanGP's current Hunyuan handler also requires CLIP-L, Whisper Tiny, face alignment, tokenizer/config assets and VAE payloads.
+Important correction retained: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`**.
 
-Important correction: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`**. The current generic Hunyuan dependency definition also requests the standard VAE pair and the generic INT8 map, so the preparer mirrors that set to prevent additional downloads when the renderer starts.
-
-Do not download the full Tencent repository.
+No Hunyuan renderer output has been produced yet. Runtime and payload preparation have passed; generation remains pending.
 
 ## Direct comparison inputs — LOCKED
 
@@ -171,9 +183,14 @@ Reuse the exact same assets used for Wan:
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`
 
-No CosyVoice yet.
+Pinned WanGP copies:
 
-WanGP's Hunyuan Avatar handler uses 25 fps and a default 129-frame segment, about 5.16 s, which is close enough to the Wan ~4.8 s gate for a useful direct visual comparison.
+- `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_ref.png`
+- `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_test_4p5s.wav`
+
+No CosyVoice yet. No upscale or face retouching before the renderer quality verdict.
+
+Previously inspected WanGP Hunyuan Avatar handling indicates 25 fps and a default 129-frame segment (~5.16 s). Before the direct runner hardcodes the generation job, the current programmatic/headless WanGP entrypoint and argument/schema path must be verified against upstream/runtime code.
 
 ## Hunyuan decision rule
 
@@ -212,13 +229,14 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-Prepare the Hunyuan Avatar payload with the now-present repository-backed scripts:
+Do **not** rerun Hunyuan payload preparation.
 
-- `tools/video-studio/prepare_hunyuan_avatar_benchmark.ps1`
-- `tools/video-studio/prepare_hunyuan_avatar_benchmark.py`
+Next:
 
-Run the PowerShell wrapper with `-Download`. It downloads into `Z:\AI\WanGP\ckpts`, redirects Hugging Face/Xet global caches to `%LOCALAPPDATA%\VideoStudio\huggingface`, pins the benchmark image/audio, validates critical files, and writes a preparation manifest.
-
-After payload preparation passes, run one Hunyuan Avatar benchmark using the same image and 4.5 s speech audio used for Wan.
+1. verify WanGP's current programmatic/headless generation entrypoint and exact Hunyuan Avatar job schema from upstream/runtime code;
+2. add a repository-backed direct Hunyuan benchmark runner;
+3. execute exactly one render using the pinned image and 4.5 s real speech audio;
+4. preserve the raw renderer output, job parameters, logs and elapsed time;
+5. compare directly against the completed Wan 10-step baseline.
 
 Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
