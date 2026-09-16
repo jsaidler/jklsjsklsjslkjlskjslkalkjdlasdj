@@ -1,7 +1,7 @@
 # Local Video Studio — HunyuanVideo-Avatar direct comparison
 
 Date: **2026-09-15**  
-Status: **ACTIVE NEXT BENCHMARK / WAN 20-STEP A/B PAUSED**
+Status: **ACTIVE NEXT BENCHMARK / PAYLOAD PREPARATION ACTIVE / WAN 20-STEP A/B PAUSED**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -11,26 +11,31 @@ After the first Wan2.2-S2V render, do **not** spend another ~1 hour on the 20-st
 
 The next comparison target is **HunyuanVideo-Avatar** using the same João reference image and the same recorded 4.5 s speech audio.
 
-Reason:
-
-- Wan 10-step already showed a useful structural improvement over H3 but still has a large production-quality gap;
-- measured Wan runtime was **1713.29 s = 28.55 min** for the 10-step 480x832 test;
-- a 20-step Wan repeat is expected to cost roughly twice that;
-- HunyuanVideo-Avatar is purpose-built for audio-driven human avatar video and is therefore the more informative next benchmark.
-
 The Wan 20-step path is **paused, not rejected**. If Hunyuan is worse, return to Wan and run the proper 20-step quality baseline.
 
 ## Runtime strategy
 
-Do not use Tencent's original native low-memory path directly on this Windows 11 / RTX 3060 12 GB machine as the first implementation.
-
-Tencent's repository states that the original single-GPU path needs at least about 24 GB VRAM for its documented 704x768x129f case and is tested on Linux. The same repository explicitly points to **WanGP / Wan2GP** for a 10 GB VRAM path.
-
-Therefore the practical route is:
+Use:
 
 **DeepBeepMeep WanGP -> Hunyuan Video Avatar 720p 13B -> quantized INT8 payload**.
 
-WanGP supports Windows/RTX 30-series and exposes API/settings paths, so final Video Studio integration does not require manual ComfyUI graph operation.
+WanGP is the practical implementation route for Windows 11 + RTX 3060 12 GB.
+
+Runtime bootstrap validated on 2026-09-15:
+
+- Python 3.11.14;
+- Torch 2.10.0+cu130;
+- CUDA 13.0 available;
+- RTX 3060 detected;
+- WanGP local footprint: **7.4 GB**.
+
+## Disk state
+
+After retiring the two large H3-only weights:
+
+- recovered approximately **34.14 GB**;
+- free space on `Z:`: **65.66 GB**;
+- Hunyuan payload gate: **PASS**.
 
 ## Candidate payload
 
@@ -38,16 +43,20 @@ Primary checkpoint:
 
 - `hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — about **13.4 GB**.
 
-Core dependencies used by the WanGP Hunyuan handler include approximately:
+INT8 text encoder:
 
-- LLaVA/VLM INT8 text encoder — about **9.43 GB**;
-- Hunyuan VAE — about **0.99 GB**;
-- CLIP ViT-L/14 — about **1.71 GB**;
-- Whisper Tiny — about **0.15 GB**;
-- face alignment / tokenizer / configs — comparatively small;
-- WanGP Python environment and caches — additional several GB.
+- `llava-llama-3-8b/llava-llama-3-8b-v1_1_vlm_quanto_int8.safetensors` — about **9.43 GB**.
 
-Treat **35 GB free** as a conservative preparation reserve. Do not download the full 80+ GB Tencent repository.
+The current Wan2GP Hunyuan handler also requires the CLIP-L, Whisper Tiny, face-alignment, tokenizer/config assets and Hunyuan VAE files under `ckpts/`.
+
+Important correction: **Hunyuan Avatar uses the custom Hunyuan VAE**, not only the standard Hunyuan VAE:
+
+- `hunyuan_video_custom_VAE_fp32.safetensors`;
+- `hunyuan_video_custom_VAE_config.json`.
+
+Wan2GP's current generic Hunyuan dependency definition also requests the standard VAE pair and the generic INT8 map, so the preparer mirrors that dependency set to prevent surprise downloads at render time.
+
+Do not download the full Tencent repository.
 
 ## Direct comparison inputs
 
@@ -57,6 +66,11 @@ Reuse exactly:
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`
 
 Do not introduce CosyVoice yet. Do not change João's identity reference between engines.
+
+The preparer pins copies under:
+
+- `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_ref.png`
+- `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_test_4p5s.wav`
 
 ## Hunyuan timing/shape facts
 
@@ -88,7 +102,7 @@ Use the same quality criteria:
 7. naturalness of body performance;
 8. AV sync;
 9. runtime practicality;
-10. overall publishability without manual frame repair.
+10. overall publishability without manual repair.
 
 ## Decision after Hunyuan render
 
@@ -96,6 +110,35 @@ Use the same quality criteria:
 - **If Hunyuan is roughly tied:** compare runtime and native resolution headroom before choosing.
 - **If Hunyuan is worse:** return immediately to Wan and run the proper 20-step FP8 A/B.
 
+## Payload preparer
+
+Repository files:
+
+- `tools/video-studio/prepare_hunyuan_avatar_benchmark.ps1`
+- `tools/video-studio/prepare_hunyuan_avatar_benchmark.py`
+
+The preparer:
+
+- uses WanGP's own Python environment;
+- downloads directly into `Z:\AI\WanGP\ckpts`;
+- redirects global Hugging Face/Xet caches to `%LOCALAPPDATA%\VideoStudio\huggingface` so `Z:` is not consumed by duplicate cache payloads;
+- reuses already-present files;
+- validates the critical payload;
+- can optionally SHA-256-check the largest pinned files;
+- writes `Z:\AI\WanGP\hunyuan_avatar_benchmark_prepare_manifest.json`.
+
 ## Immediate action
 
-Run `tools/video-studio/preflight_hunyuan_avatar.ps1` before any new model download. It checks disk, runtime prerequisites, benchmark assets and any Hunyuan/WanGP payload already present.
+Run:
+
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+
+git pull --ff-only origin main
+
+powershell -ExecutionPolicy Bypass -File `
+'.\tools\video-studio\prepare_hunyuan_avatar_benchmark.ps1' `
+-Download
+```
+
+If preparation passes, build/run one Hunyuan Avatar benchmark using the pinned image and 4.5 s speech audio.
