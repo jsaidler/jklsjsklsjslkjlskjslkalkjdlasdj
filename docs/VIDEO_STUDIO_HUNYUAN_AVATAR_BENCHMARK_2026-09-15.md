@@ -1,7 +1,7 @@
 # Local Video Studio — HunyuanVideo-Avatar direct comparison
 
 Date: **2026-09-15**  
-Status: **PAYLOAD PREPARED / PROGRAMMATIC RUNNER READY / DIRECT RENDER PENDING / WAN 20-STEP A/B PAUSED**
+Status: **PAYLOAD PREPARED / RUNNER CLI COMPAT PATCHED / DRY-RUN PENDING / DIRECT RENDER PENDING / WAN 20-STEP A/B PAUSED**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
@@ -73,7 +73,7 @@ Do not introduce CosyVoice yet. Do not change João's identity reference between
 
 The current upstream WanGP interface was re-verified before creating the runner. The supported automation path is **not browser/Gradio automation** and does not require reverse-engineering an internal callback.
 
-WanGP now exposes `shared/api.py` with the supported single-task flow:
+WanGP exposes `shared/api.py` with the supported single-task flow:
 
 - `from shared.api import init`;
 - `session = init(...)`;
@@ -94,7 +94,8 @@ The current WanGP settings contract confirms:
 - audio mode: `audio_prompt_type="A"`;
 - output shape: `resolution`;
 - frames: `video_length`;
-- sampling: `num_inference_steps`, `guidance_scale`, `flow_shift`, `seed`.
+- sampling: `num_inference_steps`, `guidance_scale`, `flow_shift`, `seed`;
+- acceleration cache: `skip_steps_cache_type`, with empty string disabling TeaCache/MagCache.
 
 The Hunyuan handler currently declares:
 
@@ -110,6 +111,27 @@ The Hunyuan handler currently declares:
 - 128-frame internal segment processing even if a shorter output is requested.
 
 The common WanGP quality default remains **30 inference steps** for this model because the Avatar handler does not override `num_inference_steps`.
+
+## First runner attempt — STOPPED BEFORE INFERENCE
+
+On 2026-09-16 the first execution reached WanGP initialization and stopped immediately with:
+
+```text
+wgp.py: error: unrecognized arguments: --teacache 0
+```
+
+This is a **runner/CLI compatibility error, not a Hunyuan renderer failure**. No model inference was submitted and no Hunyuan quality verdict exists yet.
+
+Cause: the runner incorrectly passed `--teacache 0` as a WanGP startup CLI option. The installed/current WanGP startup parser does not expose that flag. TeaCache belongs to task settings through `skip_steps_cache_type`; an empty string disables step-skipping cache.
+
+Patch applied in repository commit `7d77ce33c0d21b5259b8d21a2f8b95caf521197c`:
+
+- removed `--teacache 0` from `shared.api.init(..., cli_args=...)`;
+- retained `--profile 4` and `--attention sdpa` as supported startup flags;
+- retained `skip_steps_cache_type=""` in the submitted task settings;
+- manifest now records TeaCache as disabled through task settings rather than as a nonexistent CLI switch.
+
+Before spending GPU time, the patched runner must complete one `-DryRun` so any further API/schema drift is caught before generation.
 
 ## First direct gate — LOCKED
 
@@ -133,7 +155,7 @@ Locked first-run settings:
 - seed 0;
 - WanGP profile 4;
 - SDPA attention for compatibility and to avoid an attention-backend quality confound;
-- TeaCache disabled;
+- TeaCache disabled through `skip_steps_cache_type=""`;
 - no temporal/spatial upscaling;
 - no film grain;
 - no audio post-processing;
@@ -190,6 +212,12 @@ Do not keep changing models without completing this controlled comparison.
 
 ## Immediate action
 
-Preparation and runner construction are complete. **Do not rerun the payload download.**
+Preparation is complete and the CLI compatibility bug has been patched. **Do not rerun the payload download.**
 
-Next: pull `main` and execute exactly one direct benchmark through `run_hunyuan_avatar_benchmark.ps1`. No Hunyuan renderer result has been produced yet.
+Next:
+
+1. pull `main`;
+2. execute `run_hunyuan_avatar_benchmark.ps1 -DryRun`;
+3. only if the dry-run passes, execute exactly one full direct Hunyuan benchmark with the same runner and locked settings.
+
+No Hunyuan renderer result has been produced yet.
