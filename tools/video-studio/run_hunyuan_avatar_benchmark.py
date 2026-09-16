@@ -160,11 +160,11 @@ def main() -> int:
     try:
         from shared.api import init  # type: ignore
 
-        log("Initializing WanGP Python API with profile 4, SDPA and TeaCache disabled...")
+        log("Initializing WanGP Python API with profile 4 and SDPA; TeaCache is disabled in task settings...")
         session = init(
             root=root,
             output_dir=run_dir,
-            cli_args=["--profile", "4", "--attention", "sdpa", "--teacache", "0", "--verbose", "2"],
+            cli_args=["--profile", "4", "--attention", "sdpa", "--verbose", "2"],
             console_output=True,
             console_isatty=True,
         )
@@ -278,7 +278,7 @@ def main() -> int:
             "flow_shift": DEFAULT_FLOW_SHIFT,
             "attention": "sdpa",
             "profile": 4,
-            "teacache": 0,
+            "teacache": "disabled_by_skip_steps_cache_type",
             "postprocessing": False,
             "availability": availability,
         }
