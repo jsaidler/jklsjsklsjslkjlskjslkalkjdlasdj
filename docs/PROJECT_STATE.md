@@ -129,7 +129,7 @@ If Hunyuan is worse, return directly to Wan and run the controlled 20-step FP8 t
 
 Current classification:
 
-**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / RUNNER CLI COMPAT PATCHED / DRY-RUN PENDING / DIRECT RENDER PENDING.**
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DRY-RUN PASS / DIRECT RENDER READY.**
 
 Candidate:
 
@@ -165,7 +165,7 @@ Preparation result:
 
 Important correction retained: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`.**
 
-### Programmatic execution path — VERIFIED WITH CLI COMPATIBILITY FIX
+### Programmatic execution path — VERIFIED
 
 Current upstream WanGP provides a supported Python API at `shared/api.py`. The benchmark uses `session.submit_task(settings)` rather than Gradio/browser automation or guessed internal callbacks.
 
@@ -188,7 +188,7 @@ Repository runner:
 
 The runner dynamically discovers the installed Avatar model, reads local defaults/schema/availability and refuses to submit if the installed runtime no longer exposes the required image/audio modes.
 
-### First execution attempt — NO INFERENCE SUBMITTED
+### Initial runner compatibility error — FIXED / NO INFERENCE SUBMITTED
 
 At the first direct execution on 2026-09-16, WanGP initialization failed immediately with:
 
@@ -205,7 +205,33 @@ Correction applied:
 - TeaCache remains disabled correctly at task level through `skip_steps_cache_type=""`;
 - patch commit: `7d77ce33c0d21b5259b8d21a2f8b95caf521197c`.
 
-Because the failure occurred before task submission, **no Hunyuan GPU inference time or visual result exists yet**.
+Because the failure occurred before task submission, **no Hunyuan GPU inference time or visual result was produced by that attempt**.
+
+### Compatibility dry-run — PASS
+
+The patched runner completed a zero-inference compatibility gate on 2026-09-16.
+
+Evidence:
+
+`Z:\AI\VideoStudioRuns\hunyuan-avatar-gates\20260916_003617`
+
+Observed runtime state:
+
+- WanGP v13.02 initialized;
+- model discovery: PASS;
+- model type: `hunyuan_avatar`;
+- availability: `available`;
+- reference mode: `KI`;
+- audio mode: `A`;
+- runtime default frames: 129;
+- runtime default steps: 30;
+- runtime default CFG: 7.5;
+- runtime default flow shift: 5;
+- dry-run: **PASS, no generation submitted**.
+
+WanGP downloaded an FFmpeg 9.0.1 essentials package during initialization; this was a runtime dependency setup action, not renderer inference.
+
+The API/schema compatibility gate is now closed. Do not rerun preparation or another dry-run unless the WanGP runtime changes.
 
 ### Direct benchmark settings — LOCKED
 
@@ -283,12 +309,8 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 ## Immediate next action
 
-Do **not** rerun Hunyuan payload preparation.
+Do **not** rerun Hunyuan payload preparation or the dry-run.
 
-Pull `main` and run one zero-inference compatibility check:
-
-`tools/video-studio/run_hunyuan_avatar_benchmark.ps1 -DryRun`
-
-Only if that passes should the same runner be executed without `-DryRun` for the first direct Hunyuan render.
+Pull `main` and execute exactly one full direct Hunyuan Avatar benchmark with `tools/video-studio/run_hunyuan_avatar_benchmark.ps1`, using the locked 720x1280 / 129-frame / 30-step / seed 0 settings. Then inspect the generated video against the completed Wan 10-step baseline and update the canonical verdict.
 
 Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
