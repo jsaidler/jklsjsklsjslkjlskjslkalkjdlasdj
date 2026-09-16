@@ -1,6 +1,6 @@
 # Local Video Studio — Current Project State
 
-Status date: **2026-09-15**
+Status date: **2026-09-16**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are the source of truth.
 
@@ -129,7 +129,7 @@ If Hunyuan is worse, return directly to Wan and run the controlled 20-step FP8 t
 
 Current classification:
 
-**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / PROGRAMMATIC RUNNER READY / DIRECT RENDER PENDING.**
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / RUNNER CLI COMPAT PATCHED / DRY-RUN PENDING / DIRECT RENDER PENDING.**
 
 Candidate:
 
@@ -165,9 +165,9 @@ Preparation result:
 
 Important correction retained: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`.**
 
-### Programmatic execution path — VERIFIED
+### Programmatic execution path — VERIFIED WITH CLI COMPATIBILITY FIX
 
-Current upstream WanGP provides a supported Python API at `shared/api.py`. The benchmark therefore uses `session.submit_task(settings)` rather than Gradio/browser automation or guessed internal callbacks.
+Current upstream WanGP provides a supported Python API at `shared/api.py`. The benchmark uses `session.submit_task(settings)` rather than Gradio/browser automation or guessed internal callbacks.
 
 Verified settings contract for Hunyuan Avatar:
 
@@ -178,7 +178,8 @@ Verified settings contract for Hunyuan Avatar:
 - CFG 7.5;
 - flow shift 5;
 - common default 30 inference steps;
-- background removal off.
+- background removal off;
+- `skip_steps_cache_type=""` disables step-skipping cache such as TeaCache/MagCache.
 
 Repository runner:
 
@@ -186,6 +187,25 @@ Repository runner:
 - `tools/video-studio/run_hunyuan_avatar_benchmark.py`
 
 The runner dynamically discovers the installed Avatar model, reads local defaults/schema/availability and refuses to submit if the installed runtime no longer exposes the required image/audio modes.
+
+### First execution attempt — NO INFERENCE SUBMITTED
+
+At the first direct execution on 2026-09-16, WanGP initialization failed immediately with:
+
+```text
+wgp.py: error: unrecognized arguments: --teacache 0
+```
+
+This was a runner compatibility bug, not a renderer/model failure. The runner had incorrectly treated TeaCache as a WanGP startup CLI switch.
+
+Correction applied:
+
+- removed startup `--teacache 0`;
+- retained supported startup `--profile 4` and `--attention sdpa`;
+- TeaCache remains disabled correctly at task level through `skip_steps_cache_type=""`;
+- patch commit: `7d77ce33c0d21b5259b8d21a2f8b95caf521197c`.
+
+Because the failure occurred before task submission, **no Hunyuan GPU inference time or visual result exists yet**.
 
 ### Direct benchmark settings — LOCKED
 
@@ -198,7 +218,7 @@ The runner dynamically discovers the installed Avatar model, reads local default
 - seed 0;
 - WanGP profile 4;
 - SDPA attention;
-- TeaCache off;
+- TeaCache off through `skip_steps_cache_type=""`;
 - no CosyVoice;
 - no spatial/temporal upscale;
 - no face retouch;
@@ -265,6 +285,10 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 Do **not** rerun Hunyuan payload preparation.
 
-Pull `main` and execute exactly one direct Hunyuan Avatar benchmark with `tools/video-studio/run_hunyuan_avatar_benchmark.ps1`. Then inspect the resulting video against the completed Wan 10-step baseline and update the canonical verdict.
+Pull `main` and run one zero-inference compatibility check:
+
+`tools/video-studio/run_hunyuan_avatar_benchmark.ps1 -DryRun`
+
+Only if that passes should the same runner be executed without `-DryRun` for the first direct Hunyuan render.
 
 Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
