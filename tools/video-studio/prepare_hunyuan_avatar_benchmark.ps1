@@ -22,8 +22,7 @@ if (-not (Test-Path -LiteralPath $WanPython -PathType Leaf)) {
     throw "WanGP Python missing: $WanPython"
 }
 
-# Keep Hugging Face caches away from Z:. With local_dir downloads, only small metadata
-# should be created beside ckpts; global/cache traffic is redirected to C:.
+# Keep global Hugging Face/Xet cache traffic away from Z:.
 $CacheRoot = Join-Path $env:LOCALAPPDATA 'VideoStudio\huggingface'
 New-Item -ItemType Directory -Force -Path $CacheRoot | Out-Null
 $env:HF_HOME = $CacheRoot
@@ -54,11 +53,27 @@ try {
     Write-Host ('HF cache root: ' + $CacheRoot)
     Write-Host ''
 
-    & $WanPython @Args 2>&1 | Tee-Object -FilePath $Report
+    # Do not merge native stderr into the PowerShell pipeline. Windows PowerShell 5.1
+    # can promote ordinary native stderr/progress output into NativeCommandError when
+    # ErrorActionPreference is Stop.
+    & $WanPython @Args
     $ExitCode = $LASTEXITCODE
     if ($ExitCode -ne 0) {
-        throw "Hunyuan Avatar preparation failed with exit code $ExitCode. Report: $Report"
+        throw "Hunyuan Avatar preparation failed with exit code $ExitCode."
     }
+
+    $Manifest = Join-Path $WanGpRoot 'hunyuan_avatar_benchmark_prepare_manifest.json'
+    $ReportLines = @(
+        'HUNYUAN-AVATAR-PREPARE-01',
+        ('Completed: ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')),
+        ('WanGP root: ' + $WanGpRoot),
+        ('Manifest: ' + $Manifest)
+    )
+    if (Test-Path -LiteralPath $Manifest -PathType Leaf) {
+        $ReportLines += ''
+        $ReportLines += (Get-Content -LiteralPath $Manifest -Raw)
+    }
+    Set-Content -LiteralPath $Report -Value $ReportLines -Encoding UTF8
 }
 finally {
     Pop-Location
