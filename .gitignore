@@ -11,6 +11,7 @@ tools/sprite-animation/poses/walk/poses.json
 # Local Video Studio
 tools/video-studio/config.json
 tools/video-studio/runs/
+tools/video-studio/reports/
 tools/video-studio/*.log
 
 # Python
