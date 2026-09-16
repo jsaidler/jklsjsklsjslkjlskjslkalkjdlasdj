@@ -3,9 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
-import sys
 import time
 from pathlib import Path
 
@@ -15,7 +13,8 @@ REPO_ID = "DeepBeepMeep/HunyuanVideo"
 MODEL_FILE = "hunyuan_video_avatar_720_quanto_bf16_int8.safetensors"
 TEXT_ENCODER_FILE = "llava-llama-3-8b/llava-llama-3-8b-v1_1_vlm_quanto_int8.safetensors"
 
-# This list follows the current Wan2GP Hunyuan handler dependency layout.
+# Mirrors the current Wan2GP Hunyuan dependency layout, plus the selected
+# Avatar transformer and selected INT8 text encoder.
 FILES = [
     MODEL_FILE,
     TEXT_ENCODER_FILE,
@@ -45,7 +44,6 @@ FILES = [
     "hunyuan_video_VAE_config.json",
 ]
 
-# Public Hugging Face pointer SHA-256 values for the largest/most critical files we can pin.
 EXPECTED_SHA256 = {
     MODEL_FILE: "cfaa6328f7a86d371cfa8e1ddea67685eac99d1fe26ef5d80bab4afd8927d5cf",
     TEXT_ENCODER_FILE: "378c1a2fe0b45ff39b3a5ab33437559a260e0439291cbf572b8540454205ccd7",
@@ -66,8 +64,7 @@ def sha256_file(path: Path, chunk_size: int = 16 * 1024 * 1024) -> str:
 
 
 def free_gb(path: Path) -> float:
-    usage = shutil.disk_usage(path)
-    return usage.free / (1024 ** 3)
+    return shutil.disk_usage(path).free / (1024 ** 3)
 
 
 def size_gb(path: Path) -> float:
@@ -101,11 +98,11 @@ def main() -> int:
     audio_dst = benchmark_dir / "joao_hunyuan_avatar_test_4p5s.wav"
     manifest_path = root / "hunyuan_avatar_benchmark_prepare_manifest.json"
 
-    print("HUNYUAN-AVATAR-PREPARE-01")
-    print("=========================")
-    print(f"WanGP root: {root}")
-    print(f"Download enabled: {args.download}")
-    print()
+    print("HUNYUAN-AVATAR-PREPARE-01", flush=True)
+    print("=========================", flush=True)
+    print(f"WanGP root: {root}", flush=True)
+    print(f"Download enabled: {args.download}", flush=True)
+    print(flush=True)
 
     wan_python = root / "env_uv" / "Scripts" / "python.exe"
     if not root.is_dir():
@@ -120,25 +117,25 @@ def main() -> int:
     ckpts.mkdir(parents=True, exist_ok=True)
     benchmark_dir.mkdir(parents=True, exist_ok=True)
 
-    print("DISK SPACE")
-    print("==========")
+    print("DISK SPACE", flush=True)
+    print("==========", flush=True)
     before_free = free_gb(root)
-    print(f"Free space before payload: {before_free:.2f} GB")
+    print(f"Free space before payload: {before_free:.2f} GB", flush=True)
     if args.download and before_free < 30.0:
         raise SystemExit("Less than 30 GB free. Refusing Hunyuan payload download.")
-    print("Payload reserve gate: PASS")
-    print()
+    print("Payload reserve gate: PASS", flush=True)
+    print(flush=True)
 
-    print("BENCHMARK INPUTS")
-    print("================")
+    print("BENCHMARK INPUTS", flush=True)
+    print("================", flush=True)
     shutil.copy2(ref_src, ref_dst)
     shutil.copy2(audio_src, audio_dst)
-    print(f"Reference image: {ref_dst}")
-    print(f"Speech audio: {audio_dst}")
-    print()
+    print(f"Reference image: {ref_dst}", flush=True)
+    print(f"Speech audio: {audio_dst}", flush=True)
+    print(flush=True)
 
-    print("PAYLOAD")
-    print("=======")
+    print("PAYLOAD", flush=True)
+    print("=======", flush=True)
     downloaded: list[str] = []
     reused: list[str] = []
     missing: list[str] = []
@@ -148,30 +145,29 @@ def main() -> int:
         dst = ckpts / Path(rel)
         if dst.is_file() and dst.stat().st_size > 0:
             reused.append(rel)
-            print(f"REUSE     {rel}  ({size_gb(dst):.3f} GB)")
+            print(f"REUSE     {rel}  ({size_gb(dst):.3f} GB)", flush=True)
             continue
 
         if not args.download:
             missing.append(rel)
-            print(f"MISSING   {rel}")
+            print(f"MISSING   {rel}", flush=True)
             continue
 
         dst.parent.mkdir(parents=True, exist_ok=True)
-        print(f"DOWNLOAD  {rel}")
+        print(f"DOWNLOAD  {rel}", flush=True)
         resolved = hf_hub_download(
             repo_id=REPO_ID,
             filename=rel,
             local_dir=str(ckpts),
-            local_dir_use_symlinks=False,
         )
         resolved_path = Path(resolved)
         if not resolved_path.is_file() or resolved_path.stat().st_size <= 0:
             raise RuntimeError(f"Download did not produce a valid file: {rel}")
         downloaded.append(rel)
 
-    print()
-    print("VALIDATION")
-    print("==========")
+    print(flush=True)
+    print("VALIDATION", flush=True)
+    print("==========", flush=True)
     critical = [
         MODEL_FILE,
         TEXT_ENCODER_FILE,
@@ -184,16 +180,16 @@ def main() -> int:
     for rel in critical:
         path = ckpts / Path(rel)
         if path.is_file() and path.stat().st_size > 0:
-            print(f"PASS      {rel}  ({size_gb(path):.3f} GB)")
+            print(f"PASS      {rel}  ({size_gb(path):.3f} GB)", flush=True)
         else:
-            print(f"FAIL      {rel}")
+            print(f"FAIL      {rel}", flush=True)
             missing.append(rel)
 
     sha_results: dict[str, dict[str, str | bool]] = {}
     if args.verify_large_sha:
-        print()
-        print("SHA256")
-        print("======")
+        print(flush=True)
+        print("SHA256", flush=True)
+        print("======", flush=True)
         for rel, expected in EXPECTED_SHA256.items():
             path = ckpts / Path(rel)
             if not path.is_file():
@@ -201,7 +197,7 @@ def main() -> int:
             actual = sha256_file(path)
             ok = actual.lower() == expected.lower()
             sha_results[rel] = {"expected": expected, "actual": actual, "ok": ok}
-            print(("PASS" if ok else "FAIL") + f"  {rel}")
+            print(("PASS" if ok else "FAIL") + f"  {rel}", flush=True)
             if not ok:
                 raise RuntimeError(f"SHA256 mismatch: {rel}")
 
@@ -227,23 +223,23 @@ def main() -> int:
     }
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
-    print()
-    print("MANIFEST")
-    print("========")
-    print(manifest_path)
-    print()
-    print("RESULT")
-    print("======")
+    print(flush=True)
+    print("MANIFEST", flush=True)
+    print("========", flush=True)
+    print(manifest_path, flush=True)
+    print(flush=True)
+    print("RESULT", flush=True)
+    print("======", flush=True)
     if missing:
-        print("HUNYUAN AVATAR BENCHMARK ASSETS NOT COMPLETE")
-        print("Run again with -Download.")
+        print("HUNYUAN AVATAR BENCHMARK ASSETS NOT COMPLETE", flush=True)
+        print("Run again with -Download.", flush=True)
         return 2
 
-    print("HUNYUAN AVATAR BENCHMARK ASSETS PREPARED")
-    print(f"Downloaded: {len(downloaded)} files")
-    print(f"Reused: {len(reused)} files")
-    print(f"Free Z after payload: {after_free:.2f} GB")
-    print("Next: run one direct Avatar benchmark with the same image and 4.5 s speech audio.")
+    print("HUNYUAN AVATAR BENCHMARK ASSETS PREPARED", flush=True)
+    print(f"Downloaded: {len(downloaded)} files", flush=True)
+    print(f"Reused: {len(reused)} files", flush=True)
+    print(f"Free Z after payload: {after_free:.2f} GB", flush=True)
+    print("Next: run one direct Avatar benchmark with the same image and 4.5 s speech audio.", flush=True)
     return 0
 
 
