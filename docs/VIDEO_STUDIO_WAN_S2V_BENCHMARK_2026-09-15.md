@@ -1,15 +1,17 @@
 # Local Video Studio — Wan2.2 S2V benchmark
 
-Date: **2026-09-15**  
-Status: **FIRST RENDER COMPLETE / STRUCTURALLY PROMISING / WAN 20-STEP A/B PAUSED FOR HUNYUAN COMPARISON**
+Date: **2026-09-16**  
+Status: **FIRST RENDER COMPLETE / STRUCTURALLY PROMISING / WAN 20-STEP A/B RESUMED AFTER HUNYUAN LOCAL PRACTICALITY FAIL**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
 ## Decision
 
-Wan2.2-S2V remains a viable renderer candidate, but the next GPU-heavy action is no longer the 20-step Wan repeat. The user chose to compare **HunyuanVideo-Avatar first** because the completed Wan render still has a large production-quality gap and a proper 20-step repeat is expected to cost close to an hour.
+Wan2.2-S2V remains the strongest validated local renderer candidate.
 
-The Wan 20-step path is **paused, not rejected**. If Hunyuan is worse, return to Wan immediately and run the proper 20-step FP8 baseline.
+The 20-step repeat had been paused while HunyuanVideo-Avatar was tested first. Hunyuan's local 720p quality path timed out after approximately three hours while still at `0/30` denoising steps on the RTX 3060 12 GB. That branch is now classified as a **local practicality failure**, not a visual-quality result.
+
+Therefore the controlled Wan 20-step FP8 test is **resumed and is the next GPU-heavy local action**.
 
 CosyVoice remains deferred until a renderer clears the visual-quality gate.
 
@@ -41,11 +43,11 @@ Prepared benchmark assets:
 
 ## First generated result — REVIEWED 2026-09-15
 
-The first uploaded viewing copy was generated with:
+The first uploaded viewing copy used:
 
-- diffusion: Wan2.2 S2V 14B FP8 scaled;
-- reused UMT5 FP16;
-- reused Wan2.1 VAE BF16;
+- Wan2.2 S2V 14B FP8 scaled;
+- UMT5 FP16;
+- Wan2.1 VAE BF16;
 - wav2vec2 large English FP16;
 - 480x832 vertical;
 - 77-frame single chunk at 16 fps;
@@ -58,74 +60,96 @@ The first uploaded viewing copy was generated with:
 - no CosyVoice;
 - no upscaler.
 
-Measured inference time from the run manifest:
+Measured inference time:
 
-- `elapsed_seconds`: **1713.2926 s**;
-- equivalent: **28.55 min** for the 10-step 480x832 generation.
+- **1713.2926 s = 28.55 min**.
 
-The original viewing MP4 was 480x832, 16 fps, 4.5 s, 72 encoded video frames because the old runner used FFmpeg `-shortest` against 4.5 s audio. The generated evidence folder contains all 77 lossless PNG frames. Runner v2 pads audio to the full generated-frame duration and no longer truncates the video.
+The original viewing MP4 contained only 72 frames because the old FFmpeg mux used `-shortest` against the 4.5 s audio. The evidence folder contains all 77 generated PNG frames. Runner v2 pads audio and preserves the complete generated sequence.
 
 ### Visual verdict
 
-**WAN S2V FIRST RESULT: STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL.**
+**WAN S2V 10-STEP FP8: STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL.**
 
 Positive findings relative to H3:
 
-- face remains broadly coherent through the shot after the opening transient;
-- body topology and shoulders are stable;
-- hand behavior is materially better with no catastrophic finger collapse in the reviewed sequence;
-- gestures are asymmetric and more conversational rather than repetitive mirrored presenter motion;
-- background geometry is stable;
-- clothing is stable;
-- camera/framing are stable.
+- stable body topology and shoulders;
+- materially better hand behavior;
+- asymmetric, more natural conversational gestures;
+- stable background, clothing and framing;
+- broadly coherent face after the opening transient.
 
 Remaining blockers:
 
-- 480x832 effective detail is not sufficient for the user's production standard;
-- first frames show a visible transient before stabilizing;
-- subtle eyeglass geometry/reflection drift remains;
-- beard, hairline and facial texture show temporal crawl/drift;
-- mouth/teeth/jaw remain soft and synthetic in some positions;
-- moving hands lose finger detail through motion blur/generative softness;
-- skin still has diffusion-style smoothing/temporal texture behavior;
-- overall output is not publishable yet.
+- insufficient effective detail at 480x832;
+- opening transient;
+- eyeglass geometry/reflection drift;
+- beard/hairline/facial texture crawl;
+- mouth/teeth/jaw softness;
+- moving-hand detail loss;
+- diffusion-style skin smoothing/temporal instability;
+- overall result not yet publishable.
 
-AV sync requires playback review and is not promoted to PASS from static/sequential frame inspection alone.
+AV sync was not promoted to PASS from frame inspection alone.
 
-## Sampling correction
-
-The earlier repository state incorrectly described 10 steps as the documented non-Lightning quality path. That interpretation is retired.
+## Sampling correction — LOCKED
 
 Current ComfyUI documentation for Wan2.2-S2V states:
 
-- with 4-step Lightning LoRA: 4 steps / CFG 1;
-- without Lightning LoRA: **20 steps / CFG 6**;
-- the Lightning LoRA reduces generation time but also reduces dynamics/quality;
+- 4-step Lightning path: 4 steps / CFG 1;
+- non-Lightning quality path: **20 steps / CFG 6**;
+- Lightning reduces generation time but also reduces dynamics/quality;
 - when quality is insufficient, use the original 20-step workflow.
 
 Reference: `https://docs.comfy.org/tutorials/video/wan/wan2-2-s2v`
 
-Therefore the first 10-step render was under-sampled relative to the documented non-Lightning quality baseline.
+Therefore the completed 10-step render is under-sampled relative to the documented non-Lightning quality baseline.
 
-Runner v2 exposes `-Steps` and defaults to 20, but **do not run it yet**. At the measured 28.55 min for 10 steps, a 20-step repeat is expected to be approximately 55–60 min on this machine.
+Runner v2 exposes `-Steps` and defaults to 20.
+
+Based on the measured 28.55 min 10-step run, the 20-step run is expected to take roughly **55–60 minutes**, though scaling is not guaranteed perfectly linear.
+
+## Hunyuan comparison result
+
+The Hunyuan branch did not produce a visual comparison.
+
+At 720x1280 / 129 frames / 30 steps / profile 4 / SDPA, WanGP repeatedly shuttled Hunyuan transformer blocks between RAM and VRAM. The watchdog cancelled the run at 180 minutes while progress still showed `0/30` steps completed.
+
+Canonical Hunyuan classification:
+
+**HUNYUAN AVATAR LOCAL 720P: FUNCTIONAL RUNTIME PASS / NO VISUAL VERDICT / PRACTICALITY FAIL ON RTX 3060 12 GB.**
+
+This is sufficient to end the Hunyuan local branch without reducing its quality target merely to force an output.
+
+Procedure and evidence: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
 
 ## Resolution headroom
 
-Wan2.2 S2V officially supports 480P and 720P. Native 720p remains available if a later 20-step gate proves worthwhile.
+Wan2.2 S2V officially supports 480P and 720P.
 
-Do not launch 720p before comparing HunyuanVideo-Avatar.
+Do **not** jump to 720p yet. First determine whether the corrected 20-step sampling meaningfully improves face/beard, mouth, glasses, temporal texture and moving-hand definition at the already measured 480x832 gate.
 
 ## Current benchmark order
 
-1. keep the completed Wan 10-step result as the direct baseline;
-2. benchmark **HunyuanVideo-Avatar** with the same João identity image and the same recorded speech audio;
-3. if Hunyuan clearly beats Wan, promote Hunyuan and stop spending time on Wan sampling escalation;
-4. if Hunyuan is tied or worse, return to Wan and run the controlled 20-step FP8 A/B;
-5. only after renderer quality passes, add CosyVoice;
-6. keep EchoMimicV3-Flash as lower-compute fallback.
+1. keep the completed Wan 10-step result as baseline;
+2. run exactly one **Wan 20-step FP8** repeat with the same seed/input/settings except step count;
+3. compare the 20-step result directly with the 10-step evidence;
+4. if improvement is small, stop local Wan escalation and evaluate high-VRAM/cloud renderer execution rather than spending on 720p/upscale;
+5. if improvement is large, then investigate native Wan 720p feasibility on RTX 3060 before changing the runner;
+6. only after renderer quality passes, integrate CosyVoice.
 
-Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
+## 20-step decision threshold
 
-## H3 status
+The 20-step result must improve **clearly**, not marginally, in:
 
-MiniMax H3 remains preserved as functional evidence/baseline. It is not the active renderer optimization target.
+- facial detail and beard stability;
+- mouth/teeth/jaw behavior;
+- eyeglass stability;
+- temporal skin/hair texture;
+- moving-hand/finger definition;
+- overall publishability.
+
+If the difference is small, local Wan is technically stronger than H3 but not efficient enough for the intended one-minute multi-shot production workflow.
+
+## Immediate action
+
+Run the existing benchmark runner with the original seed and **20 steps**. Do not enable `-LowVram` unless an actual OOM occurs.
