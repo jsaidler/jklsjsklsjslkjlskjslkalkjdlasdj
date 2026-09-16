@@ -69,7 +69,7 @@ Old game material remains recoverable from Git history; Git history is not rewri
 
 **H3 LOCAL: FUNCTIONAL PASS / PRODUCTION VISUAL QUALITY FAIL / PAUSED AS FINAL RENDERER.**
 
-H3 proved the architecture but failed the user's production-quality bar, especially effective detail/resolution, anatomy/hands, texture stability, and generic presenter-like visual behavior. Do not resume H3 Base50 / SeedVR2 as the main strategy without new evidence.
+H3 proved the architecture but failed the production-quality bar, especially effective detail/resolution, anatomy/hands, texture stability, and generic presenter-like visual behavior. Do not resume H3 Base50 / SeedVR2 as the main strategy without new evidence.
 
 ## Wan S2V result — COMPLETED / BASELINE PRESERVED
 
@@ -119,7 +119,7 @@ The first viewing MP4 contained 72 frames because the old FFmpeg mux used `-shor
 
 Current ComfyUI documentation states that the non-Lightning Wan2.2-S2V quality path is **20 steps / CFG 6**. The completed 10-step render is therefore under-sampled relative to the documented quality baseline.
 
-However, a 20-step repeat is expected to cost roughly **55–60 min** on this RTX 3060 based on the measured 28.55 min 10-step run.
+A 20-step repeat is expected to cost roughly **55–60 min** on this RTX 3060 based on the measured 28.55 min 10-step run.
 
 **Decision: PAUSE the Wan 20-step A/B until HunyuanVideo-Avatar is tested.**
 
@@ -129,18 +129,11 @@ If Hunyuan is worse, return directly to Wan and run the controlled 20-step FP8 t
 
 Current classification:
 
-**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / DIRECT RENDER GATE PENDING.**
+**HUNYUAN AVATAR: RUNTIME PASS / PAYLOAD PREPARED / PROGRAMMATIC RUNNER READY / DIRECT RENDER PENDING.**
 
 Candidate:
 
 **Hunyuan Video Avatar 720p 13B via DeepBeepMeep WanGP, quantized INT8 path.**
-
-Why this route:
-
-- HunyuanVideo-Avatar is specialized for reference-image + speech-driven human video;
-- Tencent's original single-GPU path is not the practical Windows/12 GB route;
-- WanGP is specifically designed to make these models usable on lower-VRAM GPUs;
-- the local machine has 12 GB VRAM and Windows 11.
 
 WanGP runtime bootstrap completed successfully on 2026-09-15:
 
@@ -151,8 +144,6 @@ WanGP runtime bootstrap completed successfully on 2026-09-15:
 - WanGP local footprint: **7.4 GB**.
 
 ### Payload preparation — PASS
-
-The payload preparation completed successfully on 2026-09-15.
 
 Validated critical payload:
 
@@ -172,13 +163,60 @@ Preparation result:
 - manifest: `Z:\AI\WanGP\hunyuan_avatar_benchmark_prepare_manifest.json`;
 - report: `D:\GOOGLE DRIVE\DEV\Roguelite\tools\video-studio\reports\hunyuan_avatar_prepare_20260915_234228.txt`.
 
-Important correction retained: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`**.
+Important correction retained: **Hunyuan Avatar uses `hunyuan_video_custom_VAE_fp32.safetensors` + `hunyuan_video_custom_VAE_config.json`.**
 
-No Hunyuan renderer output has been produced yet. Runtime and payload preparation have passed; generation remains pending.
+### Programmatic execution path — VERIFIED
+
+Current upstream WanGP provides a supported Python API at `shared/api.py`. The benchmark therefore uses `session.submit_task(settings)` rather than Gradio/browser automation or guessed internal callbacks.
+
+Verified settings contract for Hunyuan Avatar:
+
+- `image_refs` with model-exposed `video_prompt_type="KI"` for the single reference image;
+- `audio_guide` with `audio_prompt_type="A"` for speech conditioning;
+- 25 fps model metadata;
+- default 129 frames;
+- CFG 7.5;
+- flow shift 5;
+- common default 30 inference steps;
+- background removal off.
+
+Repository runner:
+
+- `tools/video-studio/run_hunyuan_avatar_benchmark.ps1`
+- `tools/video-studio/run_hunyuan_avatar_benchmark.py`
+
+The runner dynamically discovers the installed Avatar model, reads local defaults/schema/availability and refuses to submit if the installed runtime no longer exposes the required image/audio modes.
+
+### Direct benchmark settings — LOCKED
+
+- same pinned reference image and real 4.5 s speech audio used for Wan;
+- 720x1280 portrait;
+- 129 frames at native 25 fps (~5.16 s);
+- 30 steps;
+- CFG 7.5;
+- flow shift 5;
+- seed 0;
+- WanGP profile 4;
+- SDPA attention;
+- TeaCache off;
+- no CosyVoice;
+- no spatial/temporal upscale;
+- no face retouch;
+- no film grain or audio post-processing.
+
+The first Hunyuan run is intentionally 720p-class rather than matching Wan's lower 480x832 pixel count. The product question is whether this local engine can produce a publishable result at its intended quality level. Runtime is part of the verdict.
+
+Evidence root:
+
+`Z:\AI\VideoStudioRuns\hunyuan-avatar-gates\<timestamp>\`
+
+The runner preserves settings, model metadata/defaults/schema/availability, log, result, manifest and final video. Default watchdog ceiling is **180 minutes**; reaching it is a local-practicality failure.
+
+No Hunyuan renderer output has been produced yet.
 
 ## Direct comparison inputs — LOCKED
 
-Reuse the exact same assets used for Wan:
+Source assets:
 
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`
@@ -188,13 +226,9 @@ Pinned WanGP copies:
 - `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_ref.png`
 - `Z:\AI\WanGP\inputs\video_studio\hunyuan_avatar_benchmark\joao_hunyuan_avatar_test_4p5s.wav`
 
-No CosyVoice yet. No upscale or face retouching before the renderer quality verdict.
-
-Previously inspected WanGP Hunyuan Avatar handling indicates 25 fps and a default 129-frame segment (~5.16 s). Before the direct runner hardcodes the generation job, the current programmatic/headless WanGP entrypoint and argument/schema path must be verified against upstream/runtime code.
-
 ## Hunyuan decision rule
 
-Use the same quality criteria as Wan/H3:
+Evaluate the same production criteria as Wan/H3:
 
 1. effective detail/resolution;
 2. identity stability;
@@ -209,10 +243,10 @@ Use the same quality criteria as Wan/H3:
 
 After one Hunyuan render:
 
-- if Hunyuan clearly beats Wan 10-step, promote Hunyuan;
+- if Hunyuan clearly beats Wan 10-step, promote Hunyuan and move to CosyVoice integration;
 - if tied, compare runtime and resolution headroom;
 - if worse, stop Hunyuan tuning and return to Wan 20-step;
-- do not keep changing models without completing this direct gate.
+- if it OOMs or exceeds the runtime ceiling, treat the local route as impractical and evaluate hosted/rented-GPU execution before degrading quality.
 
 ## Video Studio implementation direction
 
@@ -231,12 +265,6 @@ Do not resume one-minute workflow/UI polish until a single short shot is genuine
 
 Do **not** rerun Hunyuan payload preparation.
 
-Next:
-
-1. verify WanGP's current programmatic/headless generation entrypoint and exact Hunyuan Avatar job schema from upstream/runtime code;
-2. add a repository-backed direct Hunyuan benchmark runner;
-3. execute exactly one render using the pinned image and 4.5 s real speech audio;
-4. preserve the raw renderer output, job parameters, logs and elapsed time;
-5. compare directly against the completed Wan 10-step baseline.
+Pull `main` and execute exactly one direct Hunyuan Avatar benchmark with `tools/video-studio/run_hunyuan_avatar_benchmark.ps1`. Then inspect the resulting video against the completed Wan 10-step baseline and update the canonical verdict.
 
 Canonical Hunyuan procedure: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
