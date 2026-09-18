@@ -39,12 +39,14 @@ The decision recorded on 2026-09-15 remains the correct direction: use a persona
 
 The first production benchmark is now **HeyGen Digital Twin / Avatar V**.
 
-Current HeyGen documentation confirms that Avatar V is available and is specifically designed to learn a real person's gestures, expressions, mannerisms and motion from a short video reference, then reuse that learned motion identity with new scripts and different looks/scenes.
+Current HeyGen documentation confirms that Avatar V is specifically designed to learn a real person's gestures, expressions, mannerisms and motion from reference video, then reuse that learned motion identity with new scripts and different looks/scenes.
 
 Official references:
 
 - `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
 - `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
+- `https://help.heygen.com/en/articles/15544929/avatar-voice-faq-troubleshooting-best-practices-and-credits`
+- `https://help.heygen.com/en/articles/8389138/digital-twin-video-avatar-filming-tips`
 - `https://www.heygen.com/avatars/avatar-v`
 
 Fallback if Avatar V cannot be used on the account: **Avatar IV Digital Twin**. Second external comparison only if needed: **Kling Avatar 2.0 Pro**.
@@ -53,9 +55,27 @@ Fallback if Avatar V cannot be used on the account: **Avatar IV Digital Twin**. 
 
 Existing João footage is not merely an identity source. It is the behavioral-reference material.
 
-For the Avatar V benchmark, use an uninterrupted natural speaking segment from the existing source footage, with visible normal João expressions and gestures. Prefer the original source footage rather than the 12.6 s derivative if the derivative is below the Avatar V 15 s motion-reference target.
+The original `IA_TEST.mp4` is approximately 38 seconds and is long enough to supply the first Avatar V behavioral gate. The previous 12.6-second derivative is too short for the explicit ~15-second Avatar V motion-reference target and should not be padded or looped.
 
-Do not record new material unless the existing footage is rejected technically or is demonstrably unrepresentative of João's normal behavior.
+Current product guidance distinguishes two useful inputs:
+
+- **full clean footage** can remain the canonical Digital Twin/profile source and longer footage can improve expression/emotional range;
+- **about 15 seconds of representative motion reference** is the critical Avatar V behavioral input.
+
+Use an uninterrupted natural speaking segment with visible normal João expressions and gestures. Do not record new material unless the existing footage is rejected technically or is demonstrably unrepresentative of João's normal behavior.
+
+Repository preparation tool:
+
+`tools/video-studio/prepare_avatar_v_reference.ps1`
+
+It creates:
+
+- a full high-quality H.264/AAC canonical copy of the source;
+- three uninterrupted 15-second motion-reference candidates from early/middle/late regions;
+- SHA-256 hashes and technical manifest;
+- persistent behavioral-profile files under `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\`.
+
+Selection rule: choose the candidate that most closely resembles João's normal delivery, **not** the clip with the biggest gestures merely because it is more energetic.
 
 ## Wan2.2-S2V — DIAGNOSTIC BASELINE, NOT PRODUCT ROUTE
 
@@ -127,10 +147,12 @@ new text + scene + wardrobe/framing
 
 ## Immediate next action — LOCKED
 
-1. Stop local renderer escalation.
-2. Use João's existing footage to create the first **Avatar V Digital Twin / motion identity**.
-3. Generate a short benchmark with a **new Portuguese script not present in the training/reference clip** so generalization is actually tested.
-4. Judge visual identity and behavioral identity separately.
-5. Only after that benchmark passes, integrate the chosen avatar backend into `tools/video-studio/` and then add the final voice-clone/TTS stage.
+1. Pull current `main`.
+2. Run `tools/video-studio/prepare_avatar_v_reference.ps1` against the existing `IA_TEST.mp4`.
+3. Review candidate A/B/C once and select the 15-second clip that most closely resembles João's normal delivery.
+4. Create the first **Avatar V Digital Twin / motion identity** in HeyGen using the existing footage and complete the required live consent step.
+5. Generate exactly one short benchmark with a **new Portuguese script not present in the behavioral reference** and with no custom motion prompt.
+6. Judge visual identity and behavioral identity separately.
+7. Only after that benchmark passes, integrate Avatar V into `tools/video-studio/` and then finalize the voice-clone/TTS stage.
 
 The purpose of the next benchmark is not to prove that an avatar can speak. It is to prove that a new performance still feels recognizably like João.
