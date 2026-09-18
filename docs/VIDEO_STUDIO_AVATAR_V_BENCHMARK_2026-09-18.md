@@ -1,7 +1,7 @@
 # Local Video Studio — HeyGen Avatar V behavioral-identity benchmark
 
 Date: **2026-09-18**  
-Status: **NEXT PRODUCTION BENCHMARK / THREE BEHAVIORAL SOURCES STAGED / SOURCE INVENTORY NEXT / NO RESULT YET**
+Status: **NEXT PRODUCTION BENCHMARK / THREE SOURCES INVENTORIED / CONTACT-SHEET BUG FIXED / SOURCE ROLE REVIEW NEXT / NO AVATAR RESULT YET**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -29,42 +29,66 @@ Official references:
 
 Do not collapse all HeyGen inputs into a single arbitrary 15-second clip.
 
-Current HeyGen guidance exposes two related but distinct requirements:
+Current HeyGen guidance exposes two related but distinct footage roles:
 
 1. **Digital Twin / Video Look source footage** — current filming guidance recommends at least **2 minutes of uninterrupted speech** for a strong Digital Twin; adding a Video Look requires **2+ minutes** of footage with the person's face visible.
 2. **Avatar V motion reference** — Avatar V guidance emphasizes about **15 seconds** of representative motion/reference footage as the critical motion-style input.
 
-These are not interchangeable preparation steps. The project must first determine which of João's existing source videos are suitable for the base Digital Twin/Video Look role and which provide the best motion identity. Only then should any 15-second motion segment be selected.
+These are not interchangeable preparation steps. The project must first determine which of João's existing source videos are suitable for the base Digital Twin/Video Look role and which provide the best motion identity. Only then should any short motion segment be selected if the provider requires one.
 
-## Existing source library — CURRENT STATE
+## Existing source library — INVENTORIED 2026-09-18
 
-João has now placed **three good candidate source videos** under:
+Source folder:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
-Preserve these originals exactly as supplied. Do not trim, recompress, concatenate or choose a winner automatically.
+Technical inventory completed successfully for three originals:
 
-Repository inventory tool:
+| Source | Duration | Resolution | Digital Twin >=2 min | Avatar V >=15 s |
+|---|---:|---:|---|---|
+| `SIENA_BRUTO.mp4` | 113.3 s | 1080x1920 | NO | YES |
+| `VID_20260819_124008056.mp4` | 282.6 s | 1920x1080 | YES | YES |
+| `VID_20260911_140124885.mp4` | 300.4 s | 3840x2160 | YES | YES |
 
-`tools/video-studio/inventory_avatar_v_sources.ps1`
+Interpretation:
 
-The tool:
+- `VID_20260819_124008056.mp4` and `VID_20260911_140124885.mp4` both clear the current long-footage duration gate for the base Digital Twin/Video Look role.
+- `VID_20260911_140124885.mp4` has the strongest technical resolution at 4K, but resolution alone does **not** make it the behavioral winner; framing, uninterrupted speech, natural mannerisms, visible gestures, gaze, lighting and cuts still need review.
+- `SIENA_BRUTO.mp4` is below the current 2-minute base-source gate, but remains valid behavioral/motion-reference material because it is well over 15 seconds.
+- Preserve all three originals exactly as supplied.
 
-- scans all three originals;
-- records duration, resolution, fps, codecs, audio presence, file size and SHA-256;
-- marks whether each source meets the current **2-minute Digital Twin/Video Look** duration gate;
-- marks whether each source meets the **15-second Avatar V motion-reference** duration gate;
-- creates a 12-frame contact sheet for each video for fast visual inspection;
-- writes `avatar_v_source_inventory.json` under the persistent profile review folder;
-- does **not** trim or select any source.
+Inventory manifest:
 
-The older `prepare_avatar_v_reference.ps1` single-source auto-trimming flow is deprecated and blocked because it would prematurely reduce a multi-video behavioral library to one arbitrary source.
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\avatar_v_source_inventory.json`
+
+Inventory report from this run:
+
+`tools/video-studio/reports/avatar_v_source_inventory_20260918_170453.txt`
+
+## Contact-sheet failure — DIAGNOSED / FIXED
+
+The first inventory run successfully probed all three videos and wrote the manifest, but contact-sheet generation failed for each source with FFmpeg errors such as:
+
+```text
+Error opening input file -vf.
+```
+
+Cause: the PowerShell helper used a parameter named `$Input`, which conflicts with PowerShell's automatic `$input` variable (case-insensitive). The FFmpeg `-i` argument therefore received no file path and consumed `-vf` as the supposed input filename.
+
+Patch applied to `tools/video-studio/inventory_avatar_v_sources.ps1`:
+
+- renamed the helper parameters to `SourcePath` and `DestinationPath`;
+- builds FFmpeg arguments as an explicit array;
+- contact-sheet failure is now fatal instead of silently producing an empty manifest field;
+- technical inventory logic is unchanged.
+
+The original inventory values above remain valid. Rerun the patched inventory only to regenerate the three contact sheets and refresh the manifest with their paths.
 
 ## Source review policy — LOCKED
 
-Source selection is based on representativeness, not maximum motion.
+Source selection is based on representativeness, not maximum motion or maximum resolution.
 
-The strongest source should show as much as possible of:
+The strongest base source should show as much as possible of:
 
 - João speaking naturally and continuously;
 - normal facial-expression range;
@@ -76,21 +100,20 @@ The strongest source should show as much as possible of:
 - no disruptive cuts inside the useful section;
 - clean enough speech audio for provider ingestion.
 
-Do not choose a source merely because it has the biggest gestures or highest energy. The desired target is **recognizable João behavior**, not theatrical expressiveness.
+Do not choose a source merely because it is 4K, longer, more energetic or contains larger gestures. The target is **recognizable João behavior**.
 
-## Creation strategy after inventory
+## Creation strategy after visual review
 
-After technical inventory and visual review:
+After contact sheets are available and the actual videos are behaviorally reviewed:
 
-1. assign the best qualifying long source to the **Digital Twin / Video Look** role when the current HeyGen UI accepts it;
-2. retain the other videos as behavioral evidence and alternate motion candidates;
-3. choose a representative Avatar V motion reference only after seeing the actual source coverage and current account UI;
-4. complete the required live consent recording;
-5. generate one short video with a **new Portuguese script not spoken in the reference material**;
-6. use no custom motion prompt for the first gate;
-7. judge visual identity and behavioral identity separately.
-
-If none of the three existing videos satisfies the base Digital Twin technical requirements, only then decide whether a new recording is necessary. Do not assume that before inventory.
+1. assign the strongest qualifying long source to the **Digital Twin / Video Look** role;
+2. retain the other long source as alternate behavioral/profile evidence rather than discarding it;
+3. retain `SIENA_BRUTO.mp4` as valid motion-reference material even though it is below two minutes;
+4. choose a representative Avatar V motion reference only when the current provider UI actually requires/accepts it;
+5. complete the required live consent recording;
+6. generate one short video with a **new Portuguese script not spoken in the reference material**;
+7. use no custom motion prompt for the first gate;
+8. judge visual identity and behavioral identity separately.
 
 ## First script policy
 
@@ -128,4 +151,9 @@ Record provider/model, avatar/profile ID, original source filenames and SHA-256,
 
 ## Immediate action
 
-Run `tools/video-studio/inventory_avatar_v_sources.ps1` against the three originals already placed in the persistent source folder. Review the resulting technical report and contact sheets before trimming or uploading anything. Do not return to Wan/H3/Hunyuan tuning before this personal-avatar route is tested.
+1. Pull the contact-sheet fix.
+2. Rerun `tools/video-studio/inventory_avatar_v_sources.ps1`; no source is modified.
+3. Confirm that all three contact-sheet JPGs are generated under `review\contact_sheets`.
+4. Review framing/coverage from the sheets and behavioral suitability from the original videos.
+5. Assign the base Digital Twin source between the two >=2-minute candidates only after that review.
+6. Do not trim, upload or return to Wan/H3/Hunyuan before source roles are settled.
