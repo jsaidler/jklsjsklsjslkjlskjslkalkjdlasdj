@@ -1,7 +1,7 @@
 # Local Video Studio — HeyGen Avatar V behavioral-identity benchmark
 
 Date: **2026-09-18**  
-Status: **NEXT PRODUCTION BENCHMARK / THREE SOURCES INVENTORIED / CONTACT SHEETS READY / SOURCE ROLE REVIEW NEXT / NO AVATAR RESULT YET**
+Status: **NEXT PRODUCTION BENCHMARK / SOURCE ROLES ASSIGNED / PRIMARY HEYGEN PREP NEXT / NO AVATAR RESULT YET**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -34,7 +34,7 @@ Current HeyGen guidance exposes two related but distinct footage roles:
 1. **Digital Twin / Video Look source footage** — current filming guidance recommends at least **2 minutes of uninterrupted speech** for a strong Digital Twin; adding a Video Look requires **2+ minutes** of footage with the person's face visible.
 2. **Avatar V motion reference** — Avatar V guidance emphasizes about **15 seconds** of representative motion/reference footage as the critical motion-style input.
 
-These are not interchangeable preparation steps. The project must first determine which of João's existing source videos are suitable for the base Digital Twin/Video Look role and which provide the best motion identity. Only then should any short motion segment be selected if the provider requires one.
+These are not interchangeable preparation steps. The project first inventories and reviews the full originals, then assigns source roles. Only then is a short motion segment selected if the provider UI requires one.
 
 ## Existing source library — INVENTORY PASS 2026-09-18
 
@@ -50,13 +50,6 @@ Technical inventory passed for all three originals:
 | `VID_20260819_124008056.mp4` | 282.574 s | 1920x1080 | 30.030 | H.264 + AAC | YES | YES |
 | `VID_20260911_140124885.mp4` | 300.352 s | 3840x2160 | 30.009 | HEVC + AAC | YES | YES |
 
-Interpretation:
-
-- `VID_20260819_124008056.mp4` and `VID_20260911_140124885.mp4` both clear the current long-footage duration gate for the base Digital Twin / Video Look role.
-- `VID_20260911_140124885.mp4` has the strongest technical resolution at 4K, but resolution alone does **not** make it the behavioral winner.
-- `SIENA_BRUTO.mp4` is below the current 2-minute base-source gate, but remains valid behavioral/motion-reference material because it is well over 15 seconds.
-- Preserve all three originals exactly as supplied.
-
 Inventory manifest:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\avatar_v_source_inventory.json`
@@ -65,15 +58,83 @@ Successful inventory report:
 
 `tools/video-studio/reports/avatar_v_source_inventory_20260918_170817.txt`
 
-Contact sheets were successfully generated for all three sources:
+Contact sheets were successfully generated for all three sources.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\contact_sheets\SIENA_BRUTO_contact.jpg`
+## Contact-sheet review — SOURCE ROLES ASSIGNED
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\contact_sheets\VID_20260819_124008056_contact.jpg`
+Visual review of the three uploaded contact sheets gives a clear source hierarchy.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\contact_sheets\VID_20260911_140124885_contact.jpg`
+### Primary base source — `VID_20260911_140124885.mp4`
 
-The earlier contact-sheet generation bug is closed. The patched inventory run produced valid metadata and all three JPG review assets.
+Selected as the **primary Digital Twin / Video Look candidate**.
+
+Reasons:
+
+- stable seated upper-body framing;
+- both hands repeatedly visible;
+- broad but natural facial-expression range;
+- useful head-angle variation without obvious profile extremes;
+- direct enough camera engagement across the sampled timeline;
+- consistent scene and camera position;
+- no foreground props repeatedly covering the face;
+- body language is visible, not reduced to a talking head;
+- longest qualifying source and technically strongest capture at 4K.
+
+Known caution from the contact sheet: the bright window creates backlight/highlight pressure, so the actual video must still be judged for exposure stability. This does not outweigh the behavioral coverage advantage.
+
+### Secondary facial/close-up source — `VID_20260819_124008056.mp4`
+
+Retain as **supplemental facial/microexpression material**, not the primary behavioral source.
+
+Reasons:
+
+- face is large and clear;
+- eyeglasses, beard and mouth behavior are easy to inspect;
+- however the selfie-like crop contains little upper-body and hand language;
+- outdoor illumination/background are less controlled;
+- it is weaker for learning full upper-body behavioral identity.
+
+### Alternate motion/look source — `SIENA_BRUTO.mp4`
+
+Retain as **alternate motion/reference/look material**, not the base Digital Twin source.
+
+Reasons:
+
+- useful seated upper-body coverage and a different wardrobe/look;
+- some natural hand and posture information is present;
+- several sampled moments include photographic objects/cards/camera components moving close to the lens or obscuring face/body regions;
+- current HeyGen troubleshooting specifically warns that moving objects and items that leave/re-enter frame can increase duplication/glitch risk;
+- duration is also below the current >=2-minute base-source recommendation.
+
+## Provider-safe preparation — NEXT
+
+The selected primary source is 4K HEVC. Preserve the original unchanged, but prepare a provider-safe full-duration derivative before upload:
+
+- 1920x1080;
+- H.264;
+- AAC;
+- full continuous duration;
+- no trimming;
+- no splicing;
+- no looping;
+- no stabilization;
+- no retiming;
+- no interpolation;
+- no content edits.
+
+Repository script:
+
+`tools/video-studio/prepare_heygen_digital_twin_primary.ps1`
+
+Default source:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
+
+Prepared output:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\prepared\joao_heygen_digital_twin_primary_1080p_h264.mp4`
+
+This conversion is conservative: current HeyGen guidance recommends 1080p as the standard quality target, MP4 is recommended, and provider error guidance explicitly says over-large or unsupported footage should be re-exported/downscaled if ingestion fails. The original 4K HEVC remains authoritative and untouched.
 
 ## Source review policy — LOCKED
 
@@ -91,18 +152,14 @@ The strongest base source should show as much as possible of:
 - no disruptive cuts inside the useful section;
 - clean enough speech audio for provider ingestion.
 
-Contact sheets are only a framing/coverage aid. They cannot determine speech rhythm, timing, gesture language or whether the performance genuinely feels like João. That judgment requires watching the original videos.
+The contact sheets establish framing/coverage and justify the primary-source assignment. Final behavioral quality still depends on the actual generated Avatar V result; contact sheets do not by themselves prove cadence or motion identity.
 
-Do not choose a source merely because it is 4K, longer, more energetic or contains larger gestures. The target is **recognizable João behavior**.
+## Creation strategy
 
-## Creation strategy after source-role review
-
-After contact-sheet review and actual behavioral review of the originals:
-
-1. assign the strongest qualifying long source to the **Digital Twin / Video Look** role;
-2. retain the other long source as alternate behavioral/profile evidence rather than discarding it;
-3. retain `SIENA_BRUTO.mp4` as valid motion-reference material even though it is below two minutes;
-4. choose a representative Avatar V motion reference only when the current provider UI actually requires/accepts it;
+1. prepare the selected primary source as a 1080p H.264/AAC full-duration upload derivative;
+2. create the Digital Twin / Video Look from that full continuous source;
+3. retain both other originals as supplemental behavioral evidence and alternate motion/look material;
+4. if the current Avatar V UI requests a short motion reference, choose it from the existing behavioral library rather than inventing new motion;
 5. complete the required live consent recording;
 6. generate one short video with a **new Portuguese script not spoken in the reference material**;
 7. use no custom motion prompt for the first gate;
@@ -144,8 +201,10 @@ Record provider/model, avatar/profile ID, original source filenames and SHA-256,
 
 ## Immediate action
 
-1. Review the three contact sheets for framing and visible gesture/body coverage.
-2. Review the two long originals and `SIENA_BRUTO.mp4` for actual behavioral representativeness.
-3. Select the base Digital Twin source only after that review.
-4. Do not trim or upload anything before source roles are settled.
-5. Do not return to Wan/H3/Hunyuan before the personal-avatar route is tested.
+1. Pull current `main`.
+2. Run `tools/video-studio/prepare_heygen_digital_twin_primary.ps1`.
+3. Upload the resulting full-duration 1080p H.264/AAC file as the first Digital Twin / Video Look source.
+4. Complete HeyGen's required live consent step.
+5. Generate exactly one short Avatar V benchmark with new Portuguese text and no custom motion prompt.
+6. Review that output before spending credits on additional looks or motion references.
+7. Do not return to Wan/H3/Hunyuan before this personal-avatar route is tested.
