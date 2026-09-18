@@ -1,155 +1,122 @@
 # Local Video Studio — Wan2.2 S2V benchmark
 
-Date: **2026-09-16**  
-Status: **FIRST RENDER COMPLETE / STRUCTURALLY PROMISING / WAN 20-STEP A/B RESUMED AFTER HUNYUAN LOCAL PRACTICALITY FAIL**
+Date: **2026-09-18**  
+Status: **20-STEP REVIEWED / VISUAL IDENTITY STRONG / BEHAVIORAL IDENTITY NOT TESTED / LOCAL ESCALATION STOPPED**
 
 Canonical state: `docs/PROJECT_STATE.md`.
 
-## Decision
+## Scope correction
 
-Wan2.2-S2V remains the strongest validated local renderer candidate.
+Wan2.2-S2V was tested with a static image reference plus speech audio. It did **not** receive João's behavioral reference video.
 
-The 20-step repeat had been paused while HunyuanVideo-Avatar was tested first. Hunyuan's local 720p quality path timed out after approximately three hours while still at `0/30` denoising steps on the RTX 3060 12 GB. That branch is now classified as a **local practicality failure**, not a visual-quality result.
+Therefore this benchmark can evaluate visual identity, anatomy, temporal image quality, lipsync and local runtime, but it cannot answer the project's core behavioral question:
 
-Therefore the controlled Wan 20-step FP8 test is **resumed and is the next GPU-heavy local action**.
+> does the generated person move, react and express himself like João?
 
-CosyVoice remains deferred until a renderer clears the visual-quality gate.
+Any generic presenter motion produced by Wan is invented by the model rather than a failed preservation of supplied João behavior.
 
-## Preparation — COMPLETED 2026-09-15 17:55
+## Preparation
 
-Machine/runtime checks passed:
+Validated local environment:
 
 - NVIDIA RTX 3060 12 GB;
 - 47.7 GB system RAM;
 - FFmpeg available;
-- native `WanSoundImageToVideo`, `AudioEncoderLoader`, and `AudioEncoderEncode` support present.
+- native `WanSoundImageToVideo`, `AudioEncoderLoader`, and `AudioEncoderEncode` support.
 
-Downloaded and SHA-256 verified:
+Payload:
 
-- `Z:\AI\WanAnimate2\models\diffusion_models\wan2.2_s2v_14B_fp8_scaled.safetensors` (~16.4 GB);
-- `Z:\AI\WanAnimate2\models\audio_encoders\wav2vec2_large_english_fp16.safetensors` (~631 MB).
+- `wan2.2_s2v_14B_fp8_scaled.safetensors`;
+- `wav2vec2_large_english_fp16.safetensors`;
+- reused UMT5 FP16;
+- reused Wan2.1 VAE BF16.
 
-Reused:
-
-- `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors`;
-- `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors`.
-
-Prepared benchmark assets:
+Benchmark assets:
 
 - `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_ref.png`;
-- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`;
-- pinned official template: `Z:\AI\WanAnimate2\video_wan2_2_14B_s2v_official_pinned.json`;
-- preparation manifest: `Z:\AI\WanAnimate2\wan_s2v_benchmark_prepare_manifest.json`.
+- `Z:\AI\WanAnimate2\input\video_studio\wan_s2v_benchmark\joao_wan_s2v_test_4p5s.wav`.
 
-## First generated result — REVIEWED 2026-09-15
+## 10-step baseline
 
-The first uploaded viewing copy used:
+Settings:
 
 - Wan2.2 S2V 14B FP8 scaled;
-- UMT5 FP16;
-- Wan2.1 VAE BF16;
-- wav2vec2 large English FP16;
-- 480x832 vertical;
-- 77-frame single chunk at 16 fps;
-- **10 steps**;
+- 480x832;
+- 77 generated frames at 16 fps;
+- 10 steps;
 - CFG 6;
 - `uni_pc` / `simple`;
-- ModelSamplingSD3 shift 8;
+- shift 8;
 - seed 0;
-- real recorded speech audio;
+- real João speech audio;
 - no CosyVoice;
 - no upscaler.
 
-Measured inference time:
+Measured runtime:
 
 - **1713.2926 s = 28.55 min**.
 
-The original viewing MP4 contained only 72 frames because the old FFmpeg mux used `-shortest` against the 4.5 s audio. The evidence folder contains all 77 generated PNG frames. Runner v2 pads audio and preserves the complete generated sequence.
+Verdict:
 
-### Visual verdict
+**STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL.**
 
-**WAN S2V 10-STEP FP8: STRUCTURALLY PROMISING / PRODUCTION QUALITY FAIL.**
-
-Positive findings relative to H3:
+Positive findings:
 
 - stable body topology and shoulders;
-- materially better hand behavior;
-- asymmetric, more natural conversational gestures;
-- stable background, clothing and framing;
-- broadly coherent face after the opening transient.
+- materially better hands than H3;
+- broadly coherent face after opening transient;
+- stable background, clothing and framing.
 
-Remaining blockers:
+Blockers included insufficient detail, eyeglass drift, beard/hair texture crawl, mouth/teeth/jaw softness and moving-hand detail loss.
 
-- insufficient effective detail at 480x832;
-- opening transient;
-- eyeglass geometry/reflection drift;
-- beard/hairline/facial texture crawl;
-- mouth/teeth/jaw softness;
-- moving-hand detail loss;
-- diffusion-style skin smoothing/temporal instability;
-- overall result not yet publishable.
+## 20-step corrected quality baseline — REVIEWED
 
-AV sync was not promoted to PASS from frame inspection alone.
+The non-Lightning documented quality path is 20 steps / CFG 6, so a controlled repeat was run using the same reference/audio/seed and existing 480x832 setup.
 
-## Sampling correction — LOCKED
+Human verdict from João on 2026-09-18:
 
-Current ComfyUI documentation for Wan2.2-S2V states:
+> visually, it is me; but it did not preserve my expressions and movements — in that respect it is another person.
 
-- 4-step Lightning path: 4 steps / CFG 1;
-- non-Lightning quality path: **20 steps / CFG 6**;
-- Lightning reduces generation time but also reduces dynamics/quality;
-- when quality is insufficient, use the original 20-step workflow.
+Additional description: the performance felt **caricatured**.
 
-Reference: `https://docs.comfy.org/tutorials/video/wan/wan2-2-s2v`
+Interpretation:
 
-Therefore the completed 10-step render is under-sampled relative to the documented non-Lightning quality baseline.
+- **visual identity:** strong enough to count as pass/near-pass for this stage;
+- **behavioral identity:** **not tested**, because no behavioral video was supplied to the S2V path;
+- **production result:** fail for the actual product, because generic invented performance is unacceptable even when the face looks correct.
 
-Runner v2 exposes `-Steps` and defaults to 20.
+Canonical classification:
 
-Based on the measured 28.55 min 10-step run, the 20-step run is expected to take roughly **55–60 minutes**, though scaling is not guaranteed perfectly linear.
+**WAN S2V 20-STEP FP8: VISUAL IDENTITY PASS/NEAR-PASS / BEHAVIORAL IDENTITY NOT TESTED / PRODUCTION FAIL FOR PROJECT REQUIREMENTS.**
 
-## Hunyuan comparison result
+## Why prompt tuning is not the next step
 
-The Hunyuan branch did not produce a visual comparison.
+The current failure is not merely that Wan's gestures are too energetic. The project requirement is not `natural generic behavior`; it is `João's behavior`.
 
-At 720x1280 / 129 frames / 30 steps / profile 4 / SDPA, WanGP repeatedly shuttled Hunyuan transformer blocks between RAM and VRAM. The watchdog cancelled the run at 180 minutes while progress still showed `0/30` steps completed.
+Prompt phrases such as `subtle movement`, `restrained gestures` or `no exaggerated expression` may change generic acting style but do not provide the missing personal motion information.
 
-Canonical Hunyuan classification:
+Therefore do not spend another long run on:
 
-**HUNYUAN AVATAR LOCAL 720P: FUNCTIONAL RUNTIME PASS / NO VISUAL VERDICT / PRACTICALITY FAIL ON RTX 3060 12 GB.**
+- 720p;
+- more steps;
+- sampler changes;
+- prompt-only personality correction;
+- arbitrary motion suppression.
 
-This is sufficient to end the Hunyuan local branch without reducing its quality target merely to force an output.
+Those would improve or restrain an invented performance rather than test the intended personal-avatar architecture.
 
-Procedure and evidence: `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`.
+## Relation to original project plan
 
-## Resolution headroom
+`docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md` already selected the correct strategy before this local detour:
 
-Wan2.2 S2V officially supports 480P and 720P.
+> use a renderer designed specifically for personal avatars and train/condition it from João's actual footage.
 
-Do **not** jump to 720p yet. First determine whether the corrected 20-step sampling meaningfully improves face/beard, mouth, glasses, temporal texture and moving-hand definition at the already measured 480x832 gate.
+The Wan result strengthens that decision: image likeness alone is insufficient.
 
-## Current benchmark order
+## Next action
 
-1. keep the completed Wan 10-step result as baseline;
-2. run exactly one **Wan 20-step FP8** repeat with the same seed/input/settings except step count;
-3. compare the 20-step result directly with the 10-step evidence;
-4. if improvement is small, stop local Wan escalation and evaluate high-VRAM/cloud renderer execution rather than spending on 720p/upscale;
-5. if improvement is large, then investigate native Wan 720p feasibility on RTX 3060 before changing the runner;
-6. only after renderer quality passes, integrate CosyVoice.
+Stop local Wan escalation and benchmark a personal avatar that explicitly learns motion identity from video.
 
-## 20-step decision threshold
+Current first choice: **HeyGen Avatar V / Digital Twin** using existing João footage, followed by a new-script test that is not present in the reference video.
 
-The 20-step result must improve **clearly**, not marginally, in:
-
-- facial detail and beard stability;
-- mouth/teeth/jaw behavior;
-- eyeglass stability;
-- temporal skin/hair texture;
-- moving-hand/finger definition;
-- overall publishability.
-
-If the difference is small, local Wan is technically stronger than H3 but not efficient enough for the intended one-minute multi-shot production workflow.
-
-## Immediate action
-
-Run the existing benchmark runner with the original seed and **20 steps**. Do not enable `-LowVram` unless an actual OOM occurs.
+Wan remains valuable as a local rendering baseline and possible future component, but it is not the active production route unless a future implementation can consume João's behavioral identity directly.
