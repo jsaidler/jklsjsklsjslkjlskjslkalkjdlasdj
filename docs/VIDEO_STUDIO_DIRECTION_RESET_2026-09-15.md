@@ -1,132 +1,143 @@
 # Video Studio — direction reset after local H3 quality ceiling
 
 Date: **2026-09-15**  
-Status: **CANONICAL DECISION RECORD**
+Reaffirmed: **2026-09-18**  
+Status: **CANONICAL DECISION RECORD / REAFFIRMED AFTER WAN 20-STEP REVIEW**
 
-## Trigger
+## Core decision
 
-The user reviewed the local MiniMax H3 outputs and identified persistent low effective visual resolution. The proposed next step — slower local inference plus temporal upscaling — was judged likely to consume hours while still missing the expected production standard.
+The product requirement is not merely to create a convincing person who looks like João. It is:
 
-That diagnosis changes the project direction.
+> generate publishable videos from new text in which the person looks like João, sounds like João and retains João's recognizable expressions, gestures, posture and delivery rhythm, without recording each new performance.
 
-## What was wrong with the previous path
+The renderer must therefore be a personal-avatar system trained/conditioned from João's real footage, or an equivalent system that explicitly carries forward behavioral identity.
 
-The project had started optimizing the renderer that happened to be installed rather than selecting the renderer that best fits the actual product requirement.
+## Why static-image avatar generation is insufficient
 
-The actual requirement is not "make H3 work locally." It is:
+A static image plus audio can preserve appearance and produce plausible human motion, but it does not tell the system how João actually moves.
 
-> generate convincing publishable videos of the user from text, with chosen scenarios, without recording each new performance.
+The project must distinguish:
 
-A general-purpose local 768p-class video model on an RTX 3060 12 GB is a poor place to impose a local-only constraint when the output already fails the visible quality bar.
+- visual identity;
+- voice identity;
+- behavioral identity.
 
-## MiniMax H3 conclusion
+`Natural motion` is not enough. Generic presenter choreography is a failure even if it is anatomically plausible.
 
-Local H3 remains technically valuable. It proved:
+## H3 conclusion
 
-- still-reference identity conditioning;
-- standalone voice conditioning;
-- useful Portuguese speech and lip sync;
-- autonomous gestures without a driving video;
-- scene separation after identity-reference cropping.
-
-But it is not approved as the final renderer because:
-
-- spatial detail looks substantially softer than expected from the nominal frame dimensions;
-- slower Base sampling did not obviously solve the main complaint;
-- official H3 2K relies on Regenerate-2K, which is not currently available as the normal open/local stage;
-- adding a heavy conventional upscaler would increase runtime without evidence that it restores the missing generative detail;
-- hands, gesture language and other temporal artifacts also remain open.
+MiniMax H3 proved identity and audio conditioning but failed production visual quality and produced generic autonomous gestures.
 
 Classification:
 
 **FUNCTIONAL PASS / FINAL-RENDER PRODUCTION FAIL.**
 
+## Wan 20-step reaffirmation
+
+Wan2.2-S2V later produced a result that João judged visually close enough to himself, but the expressions and movements felt like another person and the performance was caricatured.
+
+This does **not** prove that Wan failed to preserve João's behavioral identity, because the Wan S2V test only received a static image plus audio. João's behavioral video never entered that pipeline.
+
+The Wan result therefore confirms the architectural requirement rather than overturning it:
+
+**appearance alone is not sufficient.**
+
 ## Hardware reality
 
-The RTX 3060 12 GB remains excellent project infrastructure but is not a rational hard ceiling for state-of-the-art photorealistic avatar rendering in 2026.
+The RTX 3060 12 GB is useful project infrastructure but is not a rational hard ceiling for the final personal-avatar renderer.
 
-Relevant open alternatives illustrate the mismatch:
+HunyuanVideo-Avatar confirmed the local limitation: the 720p / 129-frame / 30-step path timed out after nearly three hours at `0/30` because of heavy offload.
 
-- LongCat-Video-Avatar 1.5 targets much larger GPU memory in reference deployments even with INT8/8-step inference;
-- HunyuanVideo-Avatar has low-memory community paths but remains slow and 720p-class;
-- InfiniteTalk provides long audio-driven generation but does not automatically solve the final-resolution/time problem on this hardware.
+Do not keep changing local diffusion models when the next question is about behavioral identity.
 
-Therefore model-hopping among large local diffusion avatars is not the immediate plan.
+## Production renderer strategy
 
-## New production hypothesis
+Use a renderer designed specifically for personal avatars and train/condition it from João's actual footage.
 
-Use a renderer designed specifically for personal avatars and train/condition it from the user's actual footage.
+### First benchmark — LOCKED
 
-First benchmark:
+**HeyGen Avatar V / Digital Twin.**
 
-- **HeyGen Digital Twin / Avatar V** if available to the account;
-- otherwise **Avatar IV Digital Twin**.
+As of 2026-09-18 HeyGen officially documents Avatar V as a personal-avatar model that learns a real human's specific motion, gestures, expressions and mannerisms from short video footage and can then reuse that motion identity with new scripts and different looks.
 
-Why this fits the requirement better:
+Official references:
 
-- built from a real reference video of the person;
-- learns body language, expression and delivery style;
-- supports script-driven generation without new recording;
-- full-body behavior is supported;
-- high-resolution output and API integration are production features rather than afterthoughts.
+- `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
+- `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
+- `https://www.heygen.com/avatars/avatar-v`
 
-Second benchmark if needed:
+Current product guidance uses roughly a **15-second motion recording** for Avatar V. The benchmark should therefore use an uninterrupted segment from João's existing footage that actually represents his normal expressions and gestural language.
 
-- **Kling Avatar 2.0 Pro**, especially for shots driven from a deliberately prepared scene-specific avatar image plus audio/action prompt.
+Do not record new footage merely because it is convenient. Reuse the existing supplied material first unless it is rejected technically or does not contain representative behavior.
+
+### Fallbacks
+
+- Avatar IV Digital Twin if Avatar V is unavailable on the account;
+- Kling Avatar 2.0 Pro only as a second external comparison if the first route fails the quality gate.
+
+## Benchmark design — LOCKED
+
+The first personal-avatar benchmark must use:
+
+1. a real João motion/reference video from the existing footage;
+2. a new Portuguese script not spoken in that motion-reference clip;
+3. a look that keeps identity evaluation easy;
+4. no deliberate theatrical prompt or exaggerated emotion;
+5. separate human verdicts for visual identity and behavioral identity.
+
+The key question is:
+
+> When speaking completely new words, does the generated person still move and react recognizably like João?
+
+If the answer is no, the avatar route fails even if rendering quality is excellent.
 
 ## Arbitrary-scenario architecture
 
-Do not require one model to solve identity, set design, wardrobe, speech and motion simultaneously.
+Do not require one model to solve identity, set design, wardrobe, speech and behavior simultaneously.
 
 Preferred pipeline:
 
 ```text
-text + scene + wardrobe
+persistent profile
+  João visual identity
+  João behavioral video identity
+  João voice identity
         |
-        +--> high-quality still/look generation with identity preserved
+new text + scene + wardrobe
         |
-voice/script
-        |
-        +--> avatar renderer specialized in motion/lip sync
-        |
+        +--> scene/look preparation when needed
+        +--> voice stage
+        +--> personal-avatar renderer
         v
 short production shot
 ```
 
-A longer video can use several scene-specific looks and short shots.
-
-This is expected to be more controllable than asking one local diffusion-video model to invent everything in one pass.
-
-## Cost/time principle
-
-A short hosted benchmark is preferred over hours of local inference when it can answer the production-quality question for roughly the cost of a single coffee.
-
-Optimize cost only after the quality threshold is demonstrated.
+A longer video can use several scene-specific looks and short shots while retaining the same behavioral identity.
 
 ## Development consequence
 
-`tools/video-studio/` remains useful, but its renderer must become pluggable.
+`tools/video-studio/` remains useful, but the renderer is pluggable.
 
 Required interface direction:
 
 ```text
 RendererAdapter
   prepare_profile()
+  prepare_motion_identity()
   submit_shot()
   poll()
   fetch_output()
   report_cost_and_metadata()
 ```
 
-Keep H3 as a local research adapter. Add a production adapter only after actual visual approval.
-
 ## Stop conditions
 
-Until the hosted benchmark is reviewed:
+Until the Avatar V benchmark is reviewed:
 
-- do not run Base50 merely because it exists;
-- do not install SeedVR2 as the presumed solution;
-- do not download another massive local avatar model;
-- do not resume one-minute UI/product polish.
+- do not resume Wan 720p or prompt-only acting experiments;
+- do not run more H3 quality ladders;
+- do not rerun local Hunyuan at reduced quality merely to get an output;
+- do not resume one-minute UI/product polish;
+- do not integrate final TTS/CosyVoice as though renderer selection were complete.
 
-The next investment must buy information about **production quality**, not merely more computation.
+The next investment must answer the behavioral-identity question directly.
