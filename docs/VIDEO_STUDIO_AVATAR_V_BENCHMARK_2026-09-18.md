@@ -1,139 +1,69 @@
-# Local Video Studio — HeyGen Avatar V behavioral-identity benchmark
+# Local Video Studio — HeyGen Avatar V branch
 
 Date: **2026-09-18**  
-Status: **PRIMARY DIGITAL TWIN SOURCE PREPARED / HEYGEN CREATION NEXT / NO AVATAR RESULT YET**
+Status: **RETIRED / INVALID PROJECT ROUTE / HISTORICAL ONLY**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
+Canonical execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`.
 
-## Purpose
+## Why this branch is retired
 
-This benchmark tests the requirement that previous static-image + audio renderers did not test:
+HeyGen Avatar V / Digital Twin is an external commercial hosted service. The project constraints require local/self-hosted execution and no paid generation/service dependency.
 
-> Can a generated video use completely new words while preserving João's recognizable expressions, gestures, head movement, posture and delivery rhythm from his real footage?
+Therefore:
 
-The benchmark is primarily a **behavioral-identity test**.
+- do not upload João's source footage to HeyGen;
+- do not create a HeyGen Digital Twin;
+- do not buy credits or subscriptions;
+- do not use Avatar V as a production benchmark or fallback.
 
-## Why Avatar V / Digital Twin
+The earlier recommendation to make HeyGen the next renderer benchmark was a project-state error and is superseded.
 
-Current HeyGen documentation separates appearance, voice and motion. A Digital Twin is trained from real footage and Avatar V is specifically intended to reuse a person's own gestures, expressions and mannerisms rather than generalized presenter motion.
+## What remains useful from this branch
 
-Official references:
+The source-library work remains valid because it was done locally and did not depend on HeyGen.
 
-- `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
-- `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
-- `https://help.heygen.com/en/articles/8389138-digital-twin-video-avatar-filming-tips`
-- `https://help.heygen.com/en/articles/9964694-avatar-looks-explained`
-- consent: `https://help.heygen.com/en/articles/12092609-recording-your-consent-video`
+### Original behavioral sources
 
-## Current product distinction — LOCKED
+- `SIENA_BRUTO.mp4` — 113.313 s, 1080x1920, H.264 + AAC;
+- `VID_20260819_124008056.mp4` — 282.574 s, 1920x1080, H.264 + AAC;
+- `VID_20260911_140124885.mp4` — 300.352 s, 3840x2160, HEVC + AAC.
 
-Do not collapse all HeyGen inputs into a single arbitrary 15-second clip.
+### Local source-role review
 
-Current HeyGen guidance exposes two related but distinct footage roles:
+- `VID_20260911_140124885.mp4` — strongest upper-body behavioral source;
+- `VID_20260819_124008056.mp4` — strongest close facial/microexpression source;
+- `SIENA_BRUTO.mp4` — alternate motion/look source with useful gesture coverage and foreground-object occlusions.
 
-1. **Digital Twin / Video Look source footage** — current filming guidance recommends at least **2 minutes of uninterrupted speech** for a strong Digital Twin; adding a Video Look requires **2+ minutes** of footage with the person's face visible.
-2. **Avatar V motion reference** — Avatar V guidance emphasizes about **15 seconds** of representative motion/reference footage as the critical motion-style input.
+### Local derivative
 
-These are not interchangeable preparation steps.
-
-## Existing source library — INVENTORY PASS 2026-09-18
-
-Source folder:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
-
-Technical inventory passed for all three originals:
-
-| Source | Duration | Resolution | FPS | Codec | Digital Twin >=2 min | Avatar V >=15 s |
-|---|---:|---:|---:|---|---|---|
-| `SIENA_BRUTO.mp4` | 113.313 s | 1080x1920 | 29.970 | H.264 + AAC | NO | YES |
-| `VID_20260819_124008056.mp4` | 282.574 s | 1920x1080 | 30.030 | H.264 + AAC | YES | YES |
-| `VID_20260911_140124885.mp4` | 300.352 s | 3840x2160 | 30.009 | HEVC + AAC | YES | YES |
-
-Contact-sheet review established the source hierarchy:
-
-### Primary base source — `VID_20260911_140124885.mp4`
-
-Selected as the **primary Digital Twin / Video Look source** because it gives the strongest combined coverage of face, torso, hands, posture, head movement and normal conversational gesture language while keeping a stable camera and scene.
-
-### Secondary facial source — `VID_20260819_124008056.mp4`
-
-Retained as supplemental facial/microexpression material. The face is large and clear but the framing is too tight to carry the full body-language role.
-
-### Alternate motion/look source — `SIENA_BRUTO.mp4`
-
-Retained as alternate behavioral/motion/look material. It has useful torso/gesture coverage but repeated object handling and occasional foreground occlusion make it weaker as the base source.
-
-## Provider-safe preparation — COMPLETE 2026-09-18
-
-Repository script:
-
-`tools/video-studio/prepare_heygen_digital_twin_primary.ps1`
-
-The user confirmed the preparation completed successfully.
-
-Prepared full-duration upload derivative:
+The file:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\prepared\joao_heygen_digital_twin_primary_1080p_h264.mp4`
 
-Preparation policy:
+was prepared locally before the external-route error was caught. It is simply a full-duration 1080p H.264/AAC derivative of the strongest behavioral source. It may be retained for local experiments; its filename is historical only.
 
-- source behavior remains continuous;
-- full roughly five-minute performance retained;
-- H.264 video + AAC audio;
-- 1920x1080 provider-safe MP4;
-- no cutting, splicing, looping, retiming, stabilization, interpolation or behavioral editing.
+The `avatar_v` directory name is likewise historical. Do not infer permission to use Avatar V from the path name.
 
-The original 4K HEVC source remains authoritative and must be preserved.
+## Preserved technical lesson
 
-## HeyGen creation flow — NEXT
+The behavioral-identity diagnosis remains correct:
 
-Current HeyGen guidance says:
+> a model that receives only a still image plus audio does not know João's characteristic expressions, gestures, head timing, posture or delivery rhythm.
 
-1. Open HeyGen and go to `Avatars`.
-2. Choose `New Avatar` / `Create New Avatar`.
-3. Choose `Clone a Real Person`.
-4. Import the prepared upload derivative above.
-5. Complete the required consent step with João himself reading the consent text shown by HeyGen.
-6. Submit the Digital Twin and wait for processing.
+The correct next renderer must use real João video as behavioral conditioning or learned personal motion identity.
 
-Do **not** record new behavioral footage for this first creation. The purpose is to test the existing representative source library.
+## Replacement benchmark requirement
 
-## First Avatar V benchmark after creation
+The replacement benchmark must be local/self-hosted and zero-cost by default.
 
-Once the Digital Twin is ready:
+It must test:
 
-- use the trained video-based look;
-- keep the first scene visually close to the source look;
-- use a short **new Portuguese script not spoken in the source footage**;
-- do not add a custom motion prompt for the first gate;
-- if Advanced Settings exposes a motion-reference selector, use a representative João source rather than a theatrical clip;
-- judge behavior separately from voice quality.
+1. real video-conditioned personal identity;
+2. new Portuguese speech/audio not copied from the source performance;
+3. visual identity;
+4. behavioral identity;
+5. practical runtime on Windows 11 / RTX 3060 12 GB / 48 GB RAM;
+6. no hosted-service dependency.
 
-Suggested script:
-
-> Hoje eu estava pensando numa coisa simples: quando uma ferramenta começa a exigir mais atenção do que o próprio trabalho, talvez seja hora de rever o caminho e escolher outra solução.
-
-## Pass criteria
-
-The benchmark passes only if both are true:
-
-1. **Visual identity:** the person remains convincingly João.
-2. **Behavioral identity:** João recognizes his own mannerisms in the new performance rather than a generic avatar/presenter performance.
-
-Behavioral checks include facial-expression range, eyebrow/eye behavior, head timing, hand/arm gesture language, posture, idle behavior, pauses/emphasis and absence of caricatured or repetitive presenter choreography.
-
-## Failure interpretation
-
-- **Looks right, moves wrong:** behavioral-identity fail; do not paper over with prompt tuning.
-- **Moves right, looks wrong:** visual/look pipeline problem; the motion model may still be useful.
-- **Both wrong:** reject this Avatar V/Digital Twin route.
-- **Both right:** promote it to production-renderer integration and proceed to look/scene flexibility plus final voice-stage integration.
-
-## Evidence to retain
-
-Record provider/model, avatar/profile ID, original source filenames and SHA-256, assigned source roles, selected motion-reference source/time range or provider asset ID, selected look, test script, voice source, generation duration, credit/cost usage, final MP4 and João's separate visual/behavioral verdicts.
-
-## Immediate action
-
-Create the Digital Twin in HeyGen with `joao_heygen_digital_twin_primary_1080p_h264.mp4`, complete the required live consent step and wait for avatar processing. Do not return to Wan/H3/Hunyuan before this personal-avatar route is tested.
+No further work should be done on the HeyGen branch.
