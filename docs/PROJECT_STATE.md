@@ -35,51 +35,50 @@ Target program length: up to approximately one minute, eventually assembled from
 
 ## Canonical production strategy — RESTORED / LOCKED
 
-The decision recorded on 2026-09-15 remains the correct direction: use a personal-avatar system that is trained/conditioned from João's actual footage, rather than a static-image + audio renderer that invents its own body language.
+Use a personal-avatar system trained/conditioned from João's actual footage rather than a static-image + audio renderer that invents body language.
 
-The first production benchmark is now **HeyGen Digital Twin / Avatar V**.
+The first production benchmark is **HeyGen Digital Twin / Avatar V**.
 
-Current HeyGen documentation confirms that Avatar V is specifically designed to learn a real person's gestures, expressions, mannerisms and motion from reference video, then reuse that learned motion identity with new scripts and different looks/scenes.
+Current official product guidance separates two relevant footage roles:
+
+- **Digital Twin / Video Look source:** current HeyGen filming guidance recommends at least **2 minutes of uninterrupted speech** for a strong Digital Twin; Video Looks require **2+ minutes** of footage.
+- **Avatar V motion reference:** Avatar V guidance emphasizes about **15 seconds** of representative motion/reference footage.
+
+Do not prematurely reduce João's source library to one arbitrary 15-second clip. First inventory the available originals, then assign roles.
 
 Official references:
 
 - `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
 - `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
-- `https://help.heygen.com/en/articles/15544929/avatar-voice-faq-troubleshooting-best-practices-and-credits`
-- `https://help.heygen.com/en/articles/8389138/digital-twin-video-avatar-filming-tips`
-- `https://www.heygen.com/avatars/avatar-v`
+- `https://help.heygen.com/en/articles/8389138-digital-twin-video-avatar-filming-tips`
+- `https://help.heygen.com/en/articles/9964694-avatar-looks-explained`
+- `https://help.heygen.com/en/articles/12092609-recording-your-consent-video`
 
 Fallback if Avatar V cannot be used on the account: **Avatar IV Digital Twin**. Second external comparison only if needed: **Kling Avatar 2.0 Pro**.
 
-## Existing user footage — PURPOSE
+## Behavioral source library — CURRENT STATE
 
-Existing João footage is not merely an identity source. It is the behavioral-reference material.
+João has placed **three good candidate original videos** under:
 
-The original `IA_TEST.mp4` is approximately 38 seconds and is long enough to supply the first Avatar V behavioral gate. The previous 12.6-second derivative is too short for the explicit ~15-second Avatar V motion-reference target and should not be padded or looped.
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
-Current product guidance distinguishes two useful inputs:
+These originals are the behavioral library. Preserve them as-is.
 
-- **full clean footage** can remain the canonical Digital Twin/profile source and longer footage can improve expression/emotional range;
-- **about 15 seconds of representative motion reference** is the critical Avatar V behavioral input.
+Repository inventory tool:
 
-Use an uninterrupted natural speaking segment with visible normal João expressions and gestures. Do not record new material unless the existing footage is rejected technically or is demonstrably unrepresentative of João's normal behavior.
+`tools/video-studio/inventory_avatar_v_sources.ps1`
 
-Repository preparation tool:
+It records duration, resolution, fps, codecs, audio presence, size and SHA-256 for every source, marks the current 2-minute Digital Twin/Video Look gate and 15-second Avatar V motion-reference gate, creates 12-frame contact sheets and writes:
 
-`tools/video-studio/prepare_avatar_v_reference.ps1`
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\avatar_v_source_inventory.json`
 
-It creates:
+The earlier `prepare_avatar_v_reference.ps1` single-source auto-trimming flow is **deprecated and blocked**. It would throw away useful behavioral coverage before the three-source library is reviewed.
 
-- a full high-quality H.264/AAC canonical copy of the source;
-- three uninterrupted 15-second motion-reference candidates from early/middle/late regions;
-- SHA-256 hashes and technical manifest;
-- persistent behavioral-profile files under `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\`.
-
-Selection rule: choose the candidate that most closely resembles João's normal delivery, **not** the clip with the biggest gestures merely because it is more energetic.
+Source selection rule: choose footage that represents João's normal delivery, not footage merely because it contains the largest gestures or highest energy.
 
 ## Wan2.2-S2V — DIAGNOSTIC BASELINE, NOT PRODUCT ROUTE
 
-Wan2.2-S2V proved useful local rendering facts but did **not** test the project's behavioral-identity requirement because it was fed a static image plus audio, not João's behavior video.
+Wan2.2-S2V proved useful local rendering facts but did **not** test behavioral identity because it was fed a static image plus audio.
 
 10-step baseline:
 
@@ -93,8 +92,8 @@ Wan2.2-S2V proved useful local rendering facts but did **not** test the project'
 20-step result, reviewed by João on 2026-09-18:
 
 - visual likeness improved enough that João described it as essentially himself visually;
-- performance remained wrong: expressions and movements felt like another person and the result was caricatured;
-- this is **not evidence that Wan failed to preserve supplied behavioral identity**, because behavioral footage was never supplied to the Wan S2V test.
+- expressions and movements still felt like another person and the result was caricatured;
+- this is **not evidence that Wan failed to preserve supplied behavioral identity**, because behavioral footage was never supplied to that test.
 
 Canonical classification:
 
@@ -133,7 +132,7 @@ Generic presenter choreography, exaggerated expressions, plausible-but-uncharact
 ```text
 persistent João profile
     +-- visual identity/look references
-    +-- behavioral motion reference/video
+    +-- behavioral source library / motion reference
     +-- voice reference
 
 new text + scene + wardrobe/framing
@@ -148,11 +147,12 @@ new text + scene + wardrobe/framing
 ## Immediate next action — LOCKED
 
 1. Pull current `main`.
-2. Run `tools/video-studio/prepare_avatar_v_reference.ps1` against the existing `IA_TEST.mp4`.
-3. Review candidate A/B/C once and select the 15-second clip that most closely resembles João's normal delivery.
-4. Create the first **Avatar V Digital Twin / motion identity** in HeyGen using the existing footage and complete the required live consent step.
-5. Generate exactly one short benchmark with a **new Portuguese script not present in the behavioral reference** and with no custom motion prompt.
-6. Judge visual identity and behavioral identity separately.
-7. Only after that benchmark passes, integrate Avatar V into `tools/video-studio/` and then finalize the voice-clone/TTS stage.
+2. Run `tools/video-studio/inventory_avatar_v_sources.ps1` against the three originals already staged under the persistent source folder.
+3. Use the report to identify which sources satisfy the current 2-minute Digital Twin/Video Look gate and the 15-second Avatar V motion-reference gate.
+4. Review the generated contact sheets before trimming or uploading anything.
+5. Assign one or more source roles only after that review.
+6. Create the first Avatar V/Digital Twin in HeyGen, complete the required live consent step and generate exactly one short benchmark with new Portuguese text and no custom motion prompt.
+7. Judge visual identity and behavioral identity separately.
+8. Only after that benchmark passes, integrate the chosen avatar backend into `tools/video-studio/` and finalize the voice-clone/TTS stage.
 
 The purpose of the next benchmark is not to prove that an avatar can speak. It is to prove that a new performance still feels recognizably like João.
