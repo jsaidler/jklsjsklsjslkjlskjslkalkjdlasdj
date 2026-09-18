@@ -56,7 +56,7 @@ Official references:
 
 Fallback if Avatar V cannot be used on the account: **Avatar IV Digital Twin**. Second external comparison only if needed: **Kling Avatar 2.0 Pro**.
 
-## Behavioral source library — INVENTORIED 2026-09-18
+## Behavioral source library — INVENTORY PASS 2026-09-18
 
 Source folder:
 
@@ -64,40 +64,33 @@ Source folder:
 
 Three original candidate videos are staged and must remain unchanged.
 
-Technical inventory completed successfully:
+Final technical inventory:
 
-- `SIENA_BRUTO.mp4` — **113.3 s**, **1080x1920**, below current 2-minute base Digital Twin gate, valid >=15 s motion-reference material;
-- `VID_20260819_124008056.mp4` — **282.6 s**, **1920x1080**, qualifies for current >=2-minute base Digital Twin gate and >=15 s motion reference;
-- `VID_20260911_140124885.mp4` — **300.4 s**, **3840x2160**, qualifies for current >=2-minute base Digital Twin gate and >=15 s motion reference.
+- `SIENA_BRUTO.mp4` — **113.313 s**, **1080x1920**, **29.970 fps**, H.264 + AAC, **274.93 MB**; below current 2-minute base Digital Twin gate; valid >=15 s Avatar V motion-reference material;
+- `VID_20260819_124008056.mp4` — **282.574 s**, **1920x1080**, **30.030 fps**, H.264 + AAC, **682.14 MB**; qualifies for current >=2-minute base Digital Twin gate and >=15 s motion reference;
+- `VID_20260911_140124885.mp4` — **300.352 s**, **3840x2160**, **30.009 fps**, HEVC + AAC, **1262.04 MB**; qualifies for current >=2-minute base Digital Twin gate and >=15 s motion reference.
 
-Manifest:
+Inventory manifest:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\avatar_v_source_inventory.json`
 
-Report from the first inventory run:
+Successful rerun report:
 
-`tools/video-studio/reports/avatar_v_source_inventory_20260918_170453.txt`
+`tools/video-studio/reports/avatar_v_source_inventory_20260918_170817.txt`
+
+Contact sheets were successfully generated for all three sources under:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\contact_sheets\`
+
+Files:
+
+- `SIENA_BRUTO_contact.jpg`
+- `VID_20260819_124008056_contact.jpg`
+- `VID_20260911_140124885_contact.jpg`
 
 Important: the 4K source is technically strongest in resolution but is **not automatically the behavioral winner**. Base-source selection must consider natural João delivery, framing, uninterrupted speech, gesture visibility, gaze, lighting, cuts and audio.
 
-## Inventory contact-sheet bug — FIXED
-
-The first inventory run produced valid technical metadata but failed to create contact sheets. FFmpeg reported:
-
-```text
-Error opening input file -vf.
-```
-
-Cause: PowerShell helper parameter `$Input` collided with the automatic `$input` variable, so FFmpeg received no path after `-i`.
-
-Repository patch:
-
-- `tools/video-studio/inventory_avatar_v_sources.ps1`
-- helper now uses `SourcePath` / `DestinationPath`;
-- FFmpeg arguments are passed as an explicit array;
-- contact-sheet generation failure now stops the inventory instead of silently leaving an empty field.
-
-Rerun the patched inventory only to generate the three contact sheets and refresh manifest paths. The already reported durations/resolutions remain valid.
+The first contact-sheet bug is closed. The patched inventory uses explicit FFmpeg argument arrays and treats contact-sheet failure as fatal.
 
 The older `prepare_avatar_v_reference.ps1` single-source auto-trimming flow remains **deprecated and blocked**. It would throw away useful behavioral coverage before the source library is reviewed.
 
@@ -171,13 +164,11 @@ new text + scene + wardrobe/framing
 
 ## Immediate next action — LOCKED
 
-1. Pull current `main` containing the contact-sheet fix.
-2. Rerun `tools/video-studio/inventory_avatar_v_sources.ps1`; it does not modify the source videos.
-3. Confirm that three JPG contact sheets are created under `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\review\contact_sheets\`.
-4. Use those sheets for framing/coverage review and the original videos for behavioral review.
-5. Choose the base Digital Twin source between the two >=2-minute candidates only after that review; retain all three originals as behavioral material.
-6. Create the first Avatar V/Digital Twin in HeyGen, complete the required live consent step and generate exactly one short benchmark with new Portuguese text and no custom motion prompt.
-7. Judge visual identity and behavioral identity separately.
-8. Only after that benchmark passes, integrate the chosen avatar backend into `tools/video-studio/` and finalize the voice-clone/TTS stage.
+1. Review the three generated contact sheets for framing, continuity and visible body/gesture coverage.
+2. Review the original videos for actual behavioral representativeness; contact sheets alone cannot judge speech rhythm or mannerisms.
+3. Choose the base Digital Twin source between `VID_20260819_124008056.mp4` and `VID_20260911_140124885.mp4` only after that review; keep `SIENA_BRUTO.mp4` as additional behavioral/motion-reference material.
+4. Create the first Avatar V/Digital Twin in HeyGen, complete the required live consent step and generate exactly one short benchmark with new Portuguese text and no custom motion prompt.
+5. Judge visual identity and behavioral identity separately.
+6. Only after that benchmark passes, integrate the chosen avatar backend into `tools/video-studio/` and finalize the voice-clone/TTS stage.
 
 The purpose of the next benchmark is not to prove that an avatar can speak. It is to prove that a new performance still feels recognizably like João.
