@@ -1,7 +1,7 @@
 # Local Video Studio — HeyGen Avatar V behavioral-identity benchmark
 
 Date: **2026-09-18**  
-Status: **NEXT PRODUCTION BENCHMARK / REFERENCE PREPARATION SCRIPT READY / NO RESULT YET**
+Status: **NEXT PRODUCTION BENCHMARK / THREE BEHAVIORAL SOURCES STAGED / SOURCE INVENTORY NEXT / NO RESULT YET**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
@@ -11,149 +11,121 @@ This benchmark tests the requirement that previous static-image + audio renderer
 
 > Can a generated video use completely new words while preserving João's recognizable expressions, gestures, head movement, posture and delivery rhythm from his real footage?
 
-The benchmark is not primarily a lipsync or resolution test. It is a **behavioral-identity test**.
+The benchmark is primarily a **behavioral-identity test**.
 
-## Why Avatar V
+## Why Avatar V / Digital Twin
 
-Current HeyGen documentation describes Avatar V as a personal-avatar model trained from the user's own footage so it can learn that person's specific gestures, expressions, mannerisms, cadence and motion rather than applying generalized motion.
+Current HeyGen documentation separates appearance, voice and motion. The Digital Twin is trained from real footage and Avatar V is specifically intended to reuse a person's own gestures, expressions and mannerisms rather than generalized presenter motion.
 
 Official references:
 
 - `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
 - `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
-- `https://help.heygen.com/en/articles/15544929-avatar-voice-faq-troubleshooting-best-practices-and-credits`
 - `https://help.heygen.com/en/articles/8389138-digital-twin-video-avatar-filming-tips`
-- `https://www.heygen.com/avatars/avatar-v`
-- consent requirements: `https://help.heygen.com/en/articles/12092609-recording-your-consent-video`
+- `https://help.heygen.com/en/articles/9964694-avatar-looks-explained`
+- consent: `https://help.heygen.com/en/articles/12092609-recording-your-consent-video`
 
-Important current-product distinction:
+## Current product distinction — LOCKED
 
-- Avatar V specifically emphasizes a **15-second motion/reference recording** as the critical behavioral input;
-- broader Digital Twin guidance also says longer clean footage can improve facial-expression/emotional range;
-- therefore the existing ~38-second João source remains valuable as the canonical source, while a representative 15-second uninterrupted segment should be selected for the first Avatar V motion-reference gate.
+Do not collapse all HeyGen inputs into a single arbitrary 15-second clip.
 
-## Input policy — LOCKED
+Current HeyGen guidance exposes two related but distinct requirements:
 
-Use João's **existing real footage first**. Do not record replacement behavioral footage unless the existing source is rejected technically or the selected segment does not represent João's normal mannerisms.
+1. **Digital Twin / Video Look source footage** — current filming guidance recommends at least **2 minutes of uninterrupted speech** for a strong Digital Twin; adding a Video Look requires **2+ minutes** of footage with the person's face visible.
+2. **Avatar V motion reference** — Avatar V guidance emphasizes about **15 seconds** of representative motion/reference footage as the critical motion-style input.
 
-Preferred motion-reference characteristics:
+These are not interchangeable preparation steps. The project must first determine which of João's existing source videos are suitable for the base Digital Twin/Video Look role and which provide the best motion identity. Only then should any 15-second motion segment be selected.
 
-- uninterrupted natural speaking;
-- about 15 seconds for the first Avatar V motion-reference gate;
-- face clearly visible;
-- upper body and normal hand gestures visible where possible;
-- normal João delivery, not deliberately exaggerated performance;
-- speech audio present;
-- no edits/splices inside the selected motion reference.
+## Existing source library — CURRENT STATE
 
-The source footage may be longer. Do not pad or loop a short derivative. Select a genuine uninterrupted 15-second segment from the original footage.
+João has now placed **three good candidate source videos** under:
 
-## Reference preparation — REPOSITORY AUTOMATION
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
-Repository script:
+Preserve these originals exactly as supplied. Do not trim, recompress, concatenate or choose a winner automatically.
 
-`tools/video-studio/prepare_avatar_v_reference.ps1`
+Repository inventory tool:
 
-Purpose:
+`tools/video-studio/inventory_avatar_v_sources.ps1`
 
-1. locate the existing `IA_TEST.mp4` when it is in the known Video Studio roots, or accept an explicit `-SourceVideo` path;
-2. verify that the source contains video + speech audio and is at least 15 seconds long;
-3. preserve the full uninterrupted source as a high-quality H.264/AAC canonical upload-safe copy;
-4. create three **15-second uninterrupted candidate motion references** from early, middle and late regions of the source;
-5. record SHA-256, timing and technical metadata in `avatar_v_reference_manifest.json`;
-6. place the persistent behavioral profile under:
+The tool:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\`
+- scans all three originals;
+- records duration, resolution, fps, codecs, audio presence, file size and SHA-256;
+- marks whether each source meets the current **2-minute Digital Twin/Video Look** duration gate;
+- marks whether each source meets the **15-second Avatar V motion-reference** duration gate;
+- creates a 12-frame contact sheet for each video for fast visual inspection;
+- writes `avatar_v_source_inventory.json` under the persistent profile review folder;
+- does **not** trim or select any source.
 
-Selection rule:
+The older `prepare_avatar_v_reference.ps1` single-source auto-trimming flow is deprecated and blocked because it would prematurely reduce a multi-video behavioral library to one arbitrary source.
 
-> Choose the candidate that most closely resembles João's **normal** speaking behavior. Do not choose a clip merely because it has the largest gestures or highest energy.
+## Source review policy — LOCKED
 
-This rule is intentional. HeyGen recommends expressive reference footage because flat footage can become robotic, but the project's previous Wan output was already rejected for caricatured/foreign performance. The benchmark therefore needs recognizable João behavior, not maximum motion intensity.
+Source selection is based on representativeness, not maximum motion.
 
-## Creation flow
+The strongest source should show as much as possible of:
 
-1. Prepare the source/candidate files with the repository script.
-2. Watch candidate A/B/C once and select the clip that feels most representative of normal João delivery.
-3. In HeyGen, choose `Avatars` -> `Clone a Real Person`.
-4. Upload the selected existing João footage / motion-reference material as the Digital Twin source according to the current UI.
-5. Complete the platform-required consent video with the displayed consent text. This must be recorded by João; do not reuse AI-generated material for consent.
-6. Create the Digital Twin.
-7. Keep the first test look simple and easy to judge; do not introduce a complex new scene before behavioral identity is proven.
-8. In the Avatar V/Advanced Settings motion-reference control, select the representative João video reference.
-9. Generate one short video from a **new Portuguese script not spoken in the reference footage**.
-10. Do not add a custom motion prompt for the first gate. Avatar V prioritizes audio/reference/image behavior, and prompt-driven choreography would confound the behavioral-identity test.
+- João speaking naturally and continuously;
+- normal facial-expression range;
+- characteristic head timing;
+- typical hand/arm gestures;
+- normal posture and idle behavior;
+- direct enough gaze for reliable avatar training;
+- stable lighting/focus;
+- no disruptive cuts inside the useful section;
+- clean enough speech audio for provider ingestion.
+
+Do not choose a source merely because it has the biggest gestures or highest energy. The desired target is **recognizable João behavior**, not theatrical expressiveness.
+
+## Creation strategy after inventory
+
+After technical inventory and visual review:
+
+1. assign the best qualifying long source to the **Digital Twin / Video Look** role when the current HeyGen UI accepts it;
+2. retain the other videos as behavioral evidence and alternate motion candidates;
+3. choose a representative Avatar V motion reference only after seeing the actual source coverage and current account UI;
+4. complete the required live consent recording;
+5. generate one short video with a **new Portuguese script not spoken in the reference material**;
+6. use no custom motion prompt for the first gate;
+7. judge visual identity and behavioral identity separately.
+
+If none of the three existing videos satisfies the base Digital Twin technical requirements, only then decide whether a new recording is necessary. Do not assume that before inventory.
 
 ## First script policy
 
-The test text must be semantically ordinary and must not instruct the avatar to act, gesture, smile, be serious or perform an emotion. Motion should come from the learned personal model rather than theatrical prompting.
+The test text must be ordinary and should not instruct the avatar to act, smile, be serious, gesture or perform an emotion. The behavior should come from the learned personal motion identity.
 
 Suggested first benchmark text:
 
 > Hoje eu estava pensando numa coisa simples: quando uma ferramenta começa a exigir mais atenção do que o próprio trabalho, talvez seja hora de rever o caminho e escolher outra solução.
 
-If this exact text is found in any reference footage, replace it with another neutral sentence before generation.
+If this text appears in any reference source, replace it before generation.
 
 ## Voice for first benchmark
 
-The first benchmark may use HeyGen's standalone voice clone created from João's material if available. Voice quality is recorded separately and must not obscure the behavioral verdict.
-
-Do not delay the motion-identity benchmark solely to integrate CosyVoice. The goal of this stage is to determine whether Avatar V preserves João's behavior on new text.
-
-## First-look policy
-
-For the first behavioral benchmark:
-
-- use a look close enough to the real footage that visual identity remains easy to judge;
-- avoid a dramatic wardrobe change;
-- avoid a complex generated set;
-- avoid strong camera-angle changes;
-- keep gaze/framing close to the behavioral reference.
-
-Only after behavioral identity passes should the project test Avatar V's appearance flexibility across different looks/scenes.
+The first benchmark may use HeyGen's standalone voice clone if convenient, but voice is scored separately. Do not delay the behavioral-identity gate solely to integrate CosyVoice.
 
 ## Pass criteria
 
-The benchmark is a pass only if both are true:
+The benchmark passes only if both are true:
 
 1. **Visual identity:** the person remains convincingly João.
 2. **Behavioral identity:** João recognizes his own mannerisms in the new performance rather than a generic avatar/presenter performance.
 
-Behavioral checks:
-
-- facial-expression range resembles João;
-- eyebrow/eye behavior is characteristic rather than stock animation;
-- head movement timing feels familiar;
-- hand/arm gesture language feels familiar;
-- posture and idle behavior feel familiar;
-- pauses and emphasis produce a plausible João response;
-- performance is not caricatured or theatrically exaggerated;
-- no generic mirrored/repetitive presenter choreography.
+Behavioral checks include facial-expression range, eyebrow/eye behavior, head timing, hand/arm gesture language, posture, idle behavior, pauses/emphasis and absence of caricatured or repetitive presenter choreography.
 
 ## Failure interpretation
 
 - **Looks right, moves wrong:** behavioral-identity fail; do not paper over with prompt tuning.
-- **Moves right, looks wrong:** visual/look pipeline problem; Avatar V motion model may still be useful.
-- **Both wrong:** reject Avatar V for the current project route.
-- **Both right:** promote Avatar V to production-renderer integration and proceed to look/scene flexibility plus final voice-stage integration.
+- **Moves right, looks wrong:** visual/look pipeline problem; the motion model may still be useful.
+- **Both wrong:** reject this Avatar V/Digital Twin route.
+- **Both right:** promote it to production-renderer integration and proceed to look/scene flexibility plus final voice-stage integration.
 
 ## Evidence to retain
 
-Record:
-
-- provider/model: HeyGen Avatar V;
-- avatar/profile ID where available;
-- original source filename + SHA-256;
-- selected 15-second motion-reference candidate + SHA-256 + source time range;
-- motion-reference provider asset ID where available;
-- selected look ID/source;
-- test script;
-- voice source/ID;
-- generation duration;
-- credit/cost usage if visible;
-- final MP4;
-- user's human verdict for visual identity and behavioral identity separately.
+Record provider/model, avatar/profile ID, original source filenames and SHA-256, assigned source roles, selected motion-reference source/time range or provider asset ID, selected look, test script, voice source, generation duration, credit/cost usage, final MP4 and João's separate visual/behavioral verdicts.
 
 ## Immediate action
 
-Run `tools/video-studio/prepare_avatar_v_reference.ps1`, review the three 15-second candidates, choose the one that most resembles normal João behavior, and then use it to create the first Avatar V Digital Twin / motion-reference benchmark. Do not return to Wan/H3/Hunyuan tuning before this result is reviewed.
+Run `tools/video-studio/inventory_avatar_v_sources.ps1` against the three originals already placed in the persistent source folder. Review the resulting technical report and contact sheets before trimming or uploading anything. Do not return to Wan/H3/Hunyuan tuning before this personal-avatar route is tested.
