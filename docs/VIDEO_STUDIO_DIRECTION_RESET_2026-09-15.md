@@ -1,8 +1,8 @@
 # Video Studio — direction reset after local H3 quality ceiling
 
 Date: **2026-09-15**  
-Reaffirmed: **2026-09-18**  
-Status: **CANONICAL DECISION RECORD / REAFFIRMED AFTER WAN 20-STEP REVIEW**
+Corrected: **2026-09-18**  
+Status: **CANONICAL DECISION RECORD / LOCAL-ONLY CORRECTION**
 
 ## Core decision
 
@@ -10,7 +10,20 @@ The product requirement is not merely to create a convincing person who looks li
 
 > generate publishable videos from new text in which the person looks like João, sounds like João and retains João's recognizable expressions, gestures, posture and delivery rhythm, without recording each new performance.
 
-The renderer must therefore be a personal-avatar system trained/conditioned from João's real footage, or an equivalent system that explicitly carries forward behavioral identity.
+The renderer must therefore be a personal-avatar/personalization system trained or conditioned from João's real footage, or an equivalent local system that explicitly carries forward behavioral identity.
+
+## Execution constraint — LOCKED
+
+The project does not use external hosted generation/training platforms or paid generation services.
+
+- local/self-hosted execution only for avatar/profile construction, generation, training/fine-tuning and voice cloning;
+- no SaaS/cloud inference API;
+- no paid credits/subscriptions/hosted avatar tools;
+- no paid local software/model/license unless João explicitly changes the rule before any cost;
+- personal video/voice/identity material stays local;
+- the web may be used to research and download freely usable local code/model weights.
+
+Canonical policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`.
 
 ## Why static-image avatar generation is insufficient
 
@@ -38,85 +51,77 @@ Wan2.2-S2V later produced a result that João judged visually close enough to hi
 
 This does **not** prove that Wan failed to preserve João's behavioral identity, because the Wan S2V test only received a static image plus audio. João's behavioral video never entered that pipeline.
 
-The Wan result therefore confirms the architectural requirement rather than overturning it:
+The Wan result therefore confirms the architectural requirement:
 
 **appearance alone is not sufficient.**
 
 ## Hardware reality
 
-The RTX 3060 12 GB is useful project infrastructure but is not a rational hard ceiling for the final personal-avatar renderer.
+The RTX 3060 12 GB is the fixed local GPU available to the project. The solution must be designed around it rather than escaping to a hosted renderer.
 
-HunyuanVideo-Avatar confirmed the local limitation: the 720p / 129-frame / 30-step path timed out after nearly three hours at `0/30` because of heavy offload.
+HunyuanVideo-Avatar showed one current local limit: the 720p / 129-frame / 30-step WanGP path timed out after nearly three hours at `0/30` because of heavy offload.
 
-Do not keep changing local diffusion models when the next question is about behavioral identity.
+That rules out that specific quality path on this machine; it does not relax the local-only requirement.
 
 ## Production renderer strategy
 
-Use a renderer designed specifically for personal avatars and train/condition it from João's actual footage.
+Research and select a **local/self-hosted video-conditioned personalization route** that uses João's actual footage as behavioral identity.
 
-### First benchmark — LOCKED
+Required capabilities:
 
-**HeyGen Avatar V / Digital Twin.**
+1. real João video reference(s), not only a still image;
+2. visual-identity preservation;
+3. behavioral/motion identity preservation or learning;
+4. new speech/audio input producing a new performance;
+5. no fixed replay of one driving clip as the final product model;
+6. zero paid-service dependency;
+7. practical enough to run on Windows 11 / RTX 3060 12 GB / 48 GB RAM, including controlled CPU/RAM offload if needed.
 
-As of 2026-09-18 HeyGen officially documents Avatar V as a personal-avatar model that learns a real human's specific motion, gestures, expressions and mannerisms from short video footage and can then reuse that motion identity with new scripts and different looks.
+The former HeyGen Avatar V / Digital Twin proposal is **retired** because it violates this execution constraint. It must not be used as a benchmark or fallback.
 
-Official references:
+## Behavioral source library
 
-- `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
-- `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
-- `https://www.heygen.com/avatars/avatar-v`
+The three supplied originals remain valuable and local:
 
-Current product guidance uses roughly a **15-second motion recording** for Avatar V. The benchmark should therefore use an uninterrupted segment from João's existing footage that actually represents his normal expressions and gestural language.
+- `VID_20260911_140124885.mp4` — strongest upper-body behavioral coverage;
+- `VID_20260819_124008056.mp4` — close facial/microexpression coverage;
+- `SIENA_BRUTO.mp4` — alternate motion/look coverage.
 
-Do not record new footage merely because it is convenient. Reuse the existing supplied material first unless it is rejected technically or does not contain representative behavior.
-
-### Fallbacks
-
-- Avatar IV Digital Twin if Avatar V is unavailable on the account;
-- Kling Avatar 2.0 Pro only as a second external comparison if the first route fails the quality gate.
+They should be used to condition/train/evaluate the selected local route rather than uploaded to a hosted avatar provider.
 
 ## Benchmark design — LOCKED
 
-The first personal-avatar benchmark must use:
+The first local behavioral benchmark must use:
 
-1. a real João motion/reference video from the existing footage;
-2. a new Portuguese script not spoken in that motion-reference clip;
-3. a look that keeps identity evaluation easy;
-4. no deliberate theatrical prompt or exaggerated emotion;
-5. separate human verdicts for visual identity and behavioral identity.
+1. one or more real João source videos as the personal behavior reference/training material;
+2. a new Portuguese script/audio not spoken in the source section used for validation;
+3. no prompt-only attempt to describe João's gestures in words as a substitute for video conditioning;
+4. separate human verdicts for visual identity and behavioral identity.
 
-The key question is:
+The key question remains:
 
 > When speaking completely new words, does the generated person still move and react recognizably like João?
 
-If the answer is no, the avatar route fails even if rendering quality is excellent.
-
 ## Arbitrary-scenario architecture
 
-Do not require one model to solve identity, set design, wardrobe, speech and behavior simultaneously.
-
-Preferred pipeline:
-
 ```text
-persistent profile
+persistent local profile
   João visual identity
   João behavioral video identity
   João voice identity
         |
 new text + scene + wardrobe
         |
-        +--> scene/look preparation when needed
-        +--> voice stage
-        +--> personal-avatar renderer
+        +--> local scene/look preparation when needed
+        +--> local voice stage
+        +--> local video-conditioned personal-avatar renderer
         v
 short production shot
 ```
 
-A longer video can use several scene-specific looks and short shots while retaining the same behavioral identity.
-
 ## Development consequence
 
-`tools/video-studio/` remains useful, but the renderer is pluggable.
+`tools/video-studio/` remains useful and renderer-pluggable, but every production adapter must be local/self-hosted.
 
 Required interface direction:
 
@@ -127,17 +132,18 @@ RendererAdapter
   submit_shot()
   poll()
   fetch_output()
-  report_cost_and_metadata()
+  report_metadata()
 ```
 
 ## Stop conditions
 
-Until the Avatar V benchmark is reviewed:
+Until a genuine local behavioral-conditioning candidate is selected:
 
-- do not resume Wan 720p or prompt-only acting experiments;
-- do not run more H3 quality ladders;
-- do not rerun local Hunyuan at reduced quality merely to get an output;
+- do not use HeyGen, Kling or another hosted avatar service;
+- do not buy credits/subscriptions;
+- do not resume Wan prompt-only acting experiments as a substitute for behavior reference;
+- do not rerun local Hunyuan at reduced quality merely to get any output;
 - do not resume one-minute UI/product polish;
-- do not integrate final TTS/CosyVoice as though renderer selection were complete.
+- do not integrate final TTS as though renderer selection were complete.
 
-The next investment must answer the behavioral-identity question directly.
+The next investment is research/engineering time on the correct **local video-conditioned problem**, not money or external-service dependence.
