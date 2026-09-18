@@ -69,18 +69,29 @@ function Safe-BaseName([string]$Name) {
 
 function Make-ContactSheet {
     param(
-        [string]$Input,
+        [string]$SourcePath,
         [double]$Duration,
-        [string]$Output
+        [string]$DestinationPath
     )
-    if ($Duration -le 0) { return $false }
+    if ($Duration -le 0) { throw "Cannot create contact sheet for zero-duration video: $SourcePath" }
     $sampleFps = 12.0 / $Duration
-    if ($sampleFps -le 0) { return $false }
+    if ($sampleFps -le 0) { throw "Invalid contact-sheet sample rate for: $SourcePath" }
     $fpsText = $sampleFps.ToString('0.########', [Globalization.CultureInfo]::InvariantCulture)
     $filter = "fps=$fpsText,scale=320:-2,tile=4x3:padding=4:margin=4"
-    & $ffmpeg -hide_banner -loglevel error -y -i "$Input" -vf $filter -frames:v 1 -q:v 2 "$Output"
-    if ($LASTEXITCODE -ne 0) { return $false }
-    return (Test-Path -LiteralPath $Output -PathType Leaf)
+    $ffArgs = @(
+        '-hide_banner','-loglevel','error','-y',
+        '-i', $SourcePath,
+        '-vf', $filter,
+        '-frames:v','1',
+        '-q:v','2',
+        $DestinationPath
+    )
+    & $ffmpeg @ffArgs
+    if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed creating contact sheet for: $SourcePath" }
+    if (-not (Test-Path -LiteralPath $DestinationPath -PathType Leaf)) {
+        throw "ffmpeg returned success but contact sheet was not created: $DestinationPath"
+    }
+    return $true
 }
 
 $Items = @()
@@ -107,7 +118,7 @@ foreach ($file in $Files) {
     $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
     $base = Safe-BaseName $file.Name
     $sheet = Join-Path $ContactRoot ($base + '_contact.jpg')
-    $sheetOk = Make-ContactSheet -Input $file.FullName -Duration $duration -Output $sheet
+    $sheetOk = Make-ContactSheet -SourcePath $file.FullName -Duration $duration -DestinationPath $sheet
 
     $hasAudio = $null -ne $a
     $motionReady = ($duration -ge 15.0 -and $hasAudio)
