@@ -1,14 +1,13 @@
 # Local Video Studio — canonical architecture
 
-Status date: **2026-09-15**  
-Status: **ACTIVE ORCHESTRATION PROTOTYPE / WAN S2V BENCHMARK ACTIVE**
+Status date: **2026-09-18**  
+Status: **ACTIVE ORCHESTRATION PROTOTYPE / PERSONAL-AVATAR BENCHMARK NEXT**
 
-Canonical cross-chat state: `docs/PROJECT_STATE.md`.  
-Wan benchmark: `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`.
+Canonical cross-chat state: `docs/PROJECT_STATE.md`.
 
 ## Objective
 
-Create short realistic videos of the user without requiring a new camera recording for each publication.
+Create short realistic videos of João without requiring a new camera recording for each publication.
 
 Normal input:
 
@@ -16,204 +15,158 @@ Normal input:
 
 Persistent profile input:
 
-`identity references/video + voice reference`
+`visual identity references + behavioral video reference(s) + voice reference`
 
 Target output:
 
-`high-quality vertical MP4 with preserved identity, convincing voice, natural lip-synced performance and the requested scene`
+`high-quality vertical MP4 that looks like João, sounds like João and moves/expresses itself like João`
 
-Target program duration is up to approximately one minute.
+Target program duration is up to approximately one minute, eventually assembled from short shots.
+
+## Non-negotiable identity model
+
+The profile has three distinct identity channels:
+
+1. **visual identity** — appearance;
+2. **voice identity** — voice/tone/accent;
+3. **behavioral identity** — expressions, gestures, head motion, posture and delivery rhythm learned from João's actual footage.
+
+A renderer that receives only a static image plus audio may be useful as a visual benchmark, but it cannot satisfy the product requirement if it invents generic body language.
+
+The project must not confuse `natural motion` with `João's motion`.
 
 ## Architecture rule
 
 The product is an **orchestrator**, not a wrapper around one specific model.
 
-The H3 experiment showed that one monolithic model can prove the concept while still missing the production-quality bar. The architecture is therefore explicitly modular:
-
 ```text
 Local Video Studio UI
         |
         v
-profile + script + scene + appearance + framing
+persistent João profile
+  visual identity/look references
+  behavioral motion/reference video
+  voice reference
+        |
+new script + scene + appearance + framing
         |
         +-- voice stage
-        |      +-- CosyVoice candidate
+        |      +-- final candidate still open; CosyVoice remains a local option
         |
-        +-- optional scene/look still preparation
+        +-- optional scene/look preparation
         |      +-- Qwen / FLUX / future image backend
         |
-        +-- render adapter
-        |      +-- Wan2.2-S2V active benchmark
-        |      +-- H3 research baseline
-        |      +-- HunyuanVideo-Avatar comparison
-        |      +-- EchoMimicV3-Flash fallback
+        +-- personal-avatar render adapter
+        |      +-- HeyGen Avatar V / Digital Twin — next production benchmark
+        |      +-- Avatar IV Digital Twin — fallback
+        |      +-- Wan2.2-S2V — local visual/structural baseline only
+        |      +-- H3 — historical research baseline
+        |      +-- HunyuanVideo-Avatar local — practicality fail on 12 GB
         |
-        +-- evidence / timing / model manifest
+        +-- evidence / timing / metadata
         +-- final assembly / captions
         v
 final MP4
 ```
 
-## H3 status
+## Canonical production route
 
-MiniMax H3 Ref2VA remains preserved because it proved:
+The direction recorded in `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md` is restored and locked:
 
-- identity reference conditioning;
-- good voice behavior;
-- useful lip sync;
-- autonomous movement without driving video;
-- scene separation using cropped identity references.
+> use a personal-avatar renderer trained/conditioned from João's actual footage.
 
-It failed the user's production visual-quality standard, especially effective spatial detail/resolution and visible synthetic artifacts.
+The immediate benchmark is **HeyGen Avatar V / Digital Twin**.
 
-H3 is therefore:
+Current official HeyGen material states that Avatar V learns a person's specific gestures, expressions and mannerisms from short reference video footage and can then generate new scripts while retaining that learned motion identity. This directly matches the missing requirement exposed by the Wan test.
 
-**research/fallback baseline — not the active renderer optimization target.**
+References:
 
-Base50 and heavy local upscaling are not automatic next steps.
+- `https://help.heygen.com/en/articles/14602974-avatar-v-is-now-available-on-heygen`
+- `https://help.heygen.com/en/articles/14602997-how-to-get-the-best-results-with-avatar-v-in-heygen`
+- `https://www.heygen.com/avatars/avatar-v`
 
-## Active renderer benchmark — Wan2.2-S2V-14B
+## Existing footage
 
-The project has returned to the original pre-H3 plan: separate speech/voice generation from speech-driven video generation.
+Existing João video footage is behavioral training/reference material, not merely a source from which to crop stills.
 
-Why Wan S2V is the next test:
+For the first Avatar V benchmark:
 
-- it is specifically audio-driven video rather than a general reference-video system;
-- it supports static-image + audio input;
-- text prompt remains available for performance/scene direction;
-- it supports full/half-body use;
-- official native ComfyUI workflow exists locally in the installed template package;
-- it can later receive audio generated by CosyVoice.
+- use one uninterrupted segment with normal João delivery;
+- keep face, upper body and characteristic gestures visible;
+- preserve speaking audio in the reference footage;
+- prefer a segment of at least about 15 seconds for Avatar V;
+- do not fabricate a new performance reference unless existing footage is technically rejected or behaviorally unrepresentative.
 
-First benchmark deliberately uses **real João audio**, not CosyVoice. This isolates the renderer before adding another dependency.
+The benchmark script must be **new text not spoken in the reference footage**. Otherwise the test cannot prove that the model learned a reusable behavioral identity rather than merely reproducing familiar motion.
 
-## Wan preflight result
+## Wan2.2-S2V result and scope
 
-Current `Z:\AI\WanAnimate2` installation is Animate-oriented.
+Wan S2V was tested with static visual reference + speech audio.
 
-Present:
+That test remains useful for:
 
-- `wan_animate_2_bf16.safetensors`;
-- `umt5_xxl_fp16.safetensors`;
-- `clip_vision_h.safetensors`;
-- `Wan2_1_VAE_bf16.safetensors`.
+- visual likeness;
+- anatomy stability;
+- texture stability;
+- lipsync;
+- local runtime practicality.
 
-Missing for S2V:
+It does **not** validate behavioral identity because João's reference video was not used as motion conditioning.
 
-- `wan2.2_s2v_14B_fp8_scaled.safetensors` or BF16 equivalent;
-- `wav2vec2_large_english_fp16.safetensors`;
-- CosyVoice components.
+The reviewed 20-step result on 2026-09-18 was visually close enough to João, but expressions and movements felt like another person and were described as caricatured.
 
-For the 12 GB RTX 3060, use the **FP8 S2V checkpoint** first.
+Therefore:
 
-## Download-minimization policy
+**Wan S2V is not the next product route. Do not spend more time on 720p, prompt-based acting control or extra sampling before the personal-avatar benchmark.**
 
-Do not download the full stock workflow model set by default.
+## HunyuanVideo-Avatar local result
 
-Initial S2V benchmark:
+The local 720p / 129-frame / 30-step WanGP test timed out after about three hours at `0/30` because the RTX 3060 12 GB required severe block offload.
 
-- download S2V FP8 (~16.4 GB);
-- download wav2vec2 audio encoder (~631 MB);
-- reuse existing UMT5 FP16 first;
-- reuse existing Wan2.1 VAE BF16 first;
-- only fetch stock FP8 UMT5 / standard VAE if loader compatibility actually fails.
+Classification:
 
-## First quality benchmark
+**runtime functional / local quality path impractical / no visual verdict.**
 
-Use a single native chunk where possible:
+## Scene/look strategy
 
-- 77 frames;
-- 16 fps;
-- about 4.81 seconds;
-- one high-quality upper-body still of João;
-- one real João speech segment around 4–5 seconds;
-- concise natural-performance prompt;
-- no extension chain;
-- no upscaler;
-- no CosyVoice yet.
+Do not require one model to solve identity, behavior, wardrobe, scene and voice simultaneously.
 
-This benchmark is intended to answer whether Wan S2V is materially better than H3 in:
+Preferred route after the personal avatar passes:
 
-- real image detail;
-- face/glasses/beard/mouth stability;
-- hands/shoulders/body movement;
-- skin/clothing texture;
-- temporal stability;
-- lip sync;
-- runtime practicality on the RTX 3060.
+1. persistent behavioral identity comes from the trained/video-conditioned avatar;
+2. visual look can come from a selected/generated scene-specific look;
+3. voice comes from the voice stage;
+4. avatar renderer creates the performance;
+5. multiple validated shots are assembled automatically.
 
-## Voice stage
-
-CosyVoice remains the intended local candidate for text-to-speech / voice cloning.
-
-It is **stage 2**, not stage 1.
-
-If the Wan S2V visual benchmark passes, the next chain becomes:
-
-```text
-written Portuguese text
-        |
-        v
-CosyVoice -> João speech WAV
-        |
-        v
-Wan2.2-S2V + João scene reference
-        |
-        v
-video shot
-```
-
-## Scene strategy
-
-For arbitrary scenarios, do not rely on Wan S2V to invent a completely new high-quality environment from a bare identity crop if image preparation can do it better.
-
-Preferred strategy when needed:
-
-1. create a high-quality still/look of João in the target setting;
-2. feed that still plus speech audio into Wan S2V;
-3. generate multiple validated short shots;
-4. assemble them automatically.
-
-This separates **scene/image quality** from **speech-driven motion quality**.
-
-## Persistent profile
-
-Current profile assets remain useful:
-
-- `joao_id_face.png`;
-- `joao_id_shoulders.png`;
-- `joao_id_upperbody.png`;
-- `joao_ref_voice.wav`.
-
-For future refinement, build a broader canonical identity set from the user's existing videos rather than relying indefinitely on three crops from one clip.
+This preserves behavior while allowing wardrobe and environment changes.
 
 ## Existing implementation
 
-`tools/video-studio/` already provides:
-
-- localhost UI;
-- dialogue/scenario/appearance/framing inputs;
-- profile management;
-- shot splitting;
-- serial jobs;
-- FFmpeg assembly;
-- manifests and evidence.
+`tools/video-studio/` already provides orchestration infrastructure such as profile handling, shot splitting, serial jobs, FFmpeg assembly, manifests and evidence.
 
 Refactor target:
 
-- define explicit voice-stage and render-stage adapters;
-- keep H3 as one research adapter;
-- add Wan S2V as the active benchmark renderer;
-- add CosyVoice only after renderer quality passes;
-- record per-engine model, runtime, timing and output metadata.
+```text
+RendererAdapter
+  prepare_profile()
+  prepare_motion_identity()
+  submit_shot()
+  poll()
+  fetch_output()
+  report_cost_and_metadata()
+```
 
-## Development order
+The profile schema must make behavioral video explicit rather than optional/implicit.
 
-1. finish Wan S2V runtime preparation with minimal downloads;
-2. generate one short real-audio benchmark;
-3. compare against H3 at full resolution and in motion;
-4. if Wan passes, integrate CosyVoice;
-5. then test scene/look still preparation;
-6. only after a short-shot production pass, resume one-minute multi-shot automation.
+## Development order — LOCKED
 
-Do not optimize a renderer that already misses the quality bar.
+1. create/test João's Avatar V Digital Twin using existing footage;
+2. generate a short new-script benchmark;
+3. approve/reject **behavioral identity** separately from visual identity;
+4. only if it passes, integrate Avatar V as a renderer adapter;
+5. then finalize the voice/TTS stage;
+6. then validate scene/look swaps without losing motion identity;
+7. only after a short-shot production pass, resume one-minute multi-shot automation.
+
+Do not return to generic local renderer tuning until the personal-avatar route has been tested.
