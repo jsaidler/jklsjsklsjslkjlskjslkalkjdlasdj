@@ -7,37 +7,49 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 ## Read first
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/VIDEO_STUDIO_AVATAR_V_BENCHMARK_2026-09-18.md`
+2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
 4. `docs/VIDEO_STUDIO.md`
 5. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
 6. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
 7. `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`
 8. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
+9. `docs/VIDEO_STUDIO_AVATAR_V_BENCHMARK_2026-09-18.md` — historical/retired external branch only
 
 ## Living-document invariant — LOCKED
 
 Every state-changing action updates the relevant thematic docs and this file. Changed decisions replace stale locks rather than coexisting ambiguously.
 
+## Execution policy — LOCKED
+
+The Video Studio is **local/self-hosted and zero-cost by default**.
+
+Hard constraints:
+
+- no external hosted generation/training/avatar platform;
+- no SaaS/cloud inference API;
+- no credit-based or subscription generation service;
+- no paid tool/model/license unless João explicitly changes this rule in advance;
+- do not upload João's personal video/voice/identity material to a third-party avatar/generation provider;
+- internet use is allowed for research, documentation and downloading freely usable local code/model weights.
+
+Canonical policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`.
+
+The HeyGen Digital Twin / Avatar V route is therefore **retired as invalid for this project**. No upload or paid provider use is authorized.
+
 ## Active objective — LOCKED
 
-Build a tool that lets João write dialogue, choose a scenario and optionally specify appearance/framing, then generate a realistic video of himself speaking the new text without recording a new performance.
+Build a local tool that lets João write dialogue, choose a scenario and optionally specify appearance/framing, then generate a realistic video of himself speaking the new text without recording a new performance.
 
 A production pass requires three separate identities to remain João:
 
 1. **visual identity** — face, body, glasses, beard, hair and overall appearance;
-2. **voice identity** — cadence/timbre/accent after the later TTS/voice-clone stage;
+2. **voice identity** — cadence/timbre/accent after the later local TTS/voice-clone stage;
 3. **behavioral identity** — characteristic facial expressions, head movement, gesture language, posture and delivery rhythm learned from João's actual video footage.
 
 **Behavioral identity is a hard requirement. Generic plausible motion is not acceptable.**
 
 Target program length: up to approximately one minute, eventually assembled from short shots.
-
-## Canonical production strategy — LOCKED
-
-Use a personal-avatar system trained/conditioned from João's actual footage rather than a static-image + audio renderer that invents body language.
-
-The first production benchmark is **HeyGen Digital Twin / Avatar V**.
 
 ## Behavioral source library — INVENTORY + VISUAL REVIEW PASS
 
@@ -47,45 +59,25 @@ Protected originals:
 - `VID_20260819_124008056.mp4` — 282.574 s, 1920x1080, H.264 + AAC;
 - `VID_20260911_140124885.mp4` — 300.352 s, 3840x2160, HEVC + AAC.
 
-Canonical source roles:
+Source-role review remains useful locally:
 
-- **Primary Digital Twin / Video Look source:** `VID_20260911_140124885.mp4`
-- **Secondary facial/microexpression source:** `VID_20260819_124008056.mp4`
-- **Alternate motion/look source:** `SIENA_BRUTO.mp4`
+- `VID_20260911_140124885.mp4` — strongest primary upper-body behavioral source;
+- `VID_20260819_124008056.mp4` — strongest close facial/microexpression source;
+- `SIENA_BRUTO.mp4` — alternate motion/look source with useful gesture coverage but foreground-object occlusions.
 
-Why the primary won: strongest combined face + torso + hands + posture + natural conversational gesture coverage under a stable camera/scene.
-
-## Provider-safe primary preparation — COMPLETE 2026-09-18
-
-Repository script:
-
-`tools/video-studio/prepare_heygen_digital_twin_primary.ps1`
-
-The user confirmed successful completion.
-
-Prepared upload file:
+The locally prepared derivative:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\prepared\joao_heygen_digital_twin_primary_1080p_h264.mp4`
 
-Preparation constraints:
+was created successfully before the external-route mistake was caught. It remains only a generic local 1080p H.264 copy; the filename is historical and does not authorize HeyGen use.
 
-- full duration retained;
-- continuous source;
-- 1920x1080 H.264 + AAC MP4;
-- no trimming/splicing/looping;
-- no stabilization;
-- no retiming/interpolation;
-- no behavioral/content edits.
-
-The 4K HEVC original remains authoritative and protected.
-
-## Wan2.2-S2V — DIAGNOSTIC BASELINE, NOT PRODUCT ROUTE
+## Wan2.2-S2V — DIAGNOSTIC BASELINE
 
 20-step result:
 
 **VISUAL IDENTITY PASS/NEAR-PASS / BEHAVIORAL IDENTITY NOT TESTED / PRODUCTION FAIL FOR THE ACTUAL PRODUCT.**
 
-Do not spend more local time on Wan prompt tuning, 720p or extra steps before the personal-avatar route is tested.
+Reason: the test used static image + audio and therefore gave the model no João behavioral reference. Do not treat generic prompt-based acting as a substitute for behavioral conditioning.
 
 ## HunyuanVideo-Avatar — LOCAL PRACTICALITY FAIL
 
@@ -109,29 +101,31 @@ Generic presenter choreography, exaggerated expressions, plausible-but-uncharact
 
 ## Current implementation direction
 
-`tools/video-studio/` remains the orchestration layer and must stay backend-pluggable:
+`tools/video-studio/` remains the orchestration layer and must stay backend-pluggable, but every active backend must be local/self-hosted:
 
 ```text
 persistent João profile
     +-- visual identity/look references
-    +-- behavioral source library / motion reference
+    +-- behavioral source library / video conditioning
     +-- voice reference
 
 new text + scene + wardrobe/framing
         |
-        +--> voice stage
-        +--> look/scene stage when needed
-        +--> personal-avatar renderer
+        +--> local voice stage
+        +--> local look/scene stage when needed
+        +--> local video-conditioned personal-avatar renderer
         +--> evidence/timing/metadata
         +--> final assembly
 ```
 
 ## Immediate next action — LOCKED
 
-1. Open HeyGen and create a new avatar with `Avatars` -> `New Avatar` / `Create New Avatar` -> `Clone a Real Person`.
-2. Upload `joao_heygen_digital_twin_primary_1080p_h264.mp4` as the avatar footage.
-3. Complete the required live consent step with João himself reading the on-screen consent text.
-4. Submit the Digital Twin and wait for provider processing.
-5. Once ready, generate exactly one short Avatar V benchmark with new Portuguese text and **no custom motion prompt**.
-6. Judge visual identity and behavioral identity separately before spending credits on additional looks or motion references.
-7. Only after that benchmark passes, integrate HeyGen as a renderer adapter and finalize the voice-clone/TTS stage.
+Research and select a **local/self-hosted, zero-cost video-conditioned personalization route** that can consume João's real footage as behavioral identity and generate a new performance for new speech/audio.
+
+Required before any new heavy run:
+
+1. identify candidate models/pipelines that genuinely use reference video or learned personal motion identity;
+2. reject static-image + audio systems that merely invent behavior;
+3. verify license, local availability, Windows/RTX 3060 12 GB feasibility, model sizes and expected runtime before downloading anything;
+4. prefer reuse of already installed local infrastructure/models where possible;
+5. do not use external paid services as a shortcut.
