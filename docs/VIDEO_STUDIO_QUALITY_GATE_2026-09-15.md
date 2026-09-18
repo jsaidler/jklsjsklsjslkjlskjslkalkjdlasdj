@@ -1,166 +1,120 @@
-# Local Video Studio — production visual-quality gate
+# Local Video Studio — production quality gate
 
 Date: **2026-09-15**  
+Updated: **2026-09-18**  
 Status: **ACTIVE / PRODUCTION QUALITY NOT APPROVED**
 
 Canonical project state: `docs/PROJECT_STATE.md`.
 
 ## Why this gate exists
 
-The first MiniMax H3 tests proved the architecture required by the project: identity can come from still references, voice can come from a persistent audio reference, body motion can be generated without a driving video, and the requested scene can differ from the source-reference room.
+A technically functional avatar is not enough. The finished result must satisfy both **render quality** and **personal identity quality**.
 
-That is a functional success, not a production-quality verdict.
+The project now explicitly separates three identities:
 
-The generated clips still contain visual behavior that is not acceptable to promote as finished production. The user explicitly rejected the previous claim that the tested Turbo4 path was production validated.
+1. visual identity;
+2. voice identity;
+3. behavioral identity.
 
-Canonical classification of the existing tests:
+Behavioral identity means João's characteristic facial expressions, head movement, gesture language, posture and delivery rhythm learned from his real footage.
 
-**FUNCTIONAL / ARCHITECTURAL PASS — PRODUCTION QUALITY FAIL / OPEN GATE.**
-
-## Known/open visual concerns
-
-Already identified in discussion:
-
-- generic "AI presenter" hand/arm language;
-- hand/pose behavior that can become overly symmetric or synthetic.
-
-The actual MP4s must also be reviewed for every criterion below. This document does not invent a pass for defects that have not yet been resolved.
+A clip that looks like João but moves like a generic presenter is a production failure.
 
 ## Hard acceptance checklist
 
-A production candidate must be acceptable at normal viewing size and under full-resolution frame inspection for all of the following:
+A production candidate must be acceptable at normal viewing size and under full-resolution inspection for all of the following:
 
-1. **Identity** — facial geometry remains recognizably the same person across the full clip.
-2. **Eyes / glasses** — no eye drift, double rims, warped lenses, disappearing temples, or frame-to-frame geometry changes that call attention to themselves.
-3. **Hair / beard** — no crawling edges, shape changes, texture boiling, or identity-changing hairline/beard behavior.
-4. **Mouth / teeth / jaw** — lip sync is natural and the mouth does not become rubbery, over-articulated, melted, or structurally inconsistent.
-5. **Hands / fingers / wrists** — no conspicuous anatomy errors, fused fingers, implausible wrists, impossible contact, or unstable finger count/shape.
-6. **Arms / shoulders / body topology** — no attachment drift, body-part reconfiguration, or unnatural symmetry.
-7. **Performance** — gestures feel human and context-appropriate rather than repetitive, mirrored, generic presenter choreography.
-8. **Skin / texture** — no distracting waxy diffusion surface, crawling pore/detail texture, or temporal sharpening/softening pulses.
-9. **Clothing** — garment topology, seams, collar, sleeves and material remain coherent through motion.
-10. **Scene geometry** — background objects, straight lines and surfaces do not melt, breathe, bend or transform without cause.
-11. **Lighting** — face/body/background illumination stays physically coherent rather than flickering or changing direction arbitrarily.
-12. **Camera / composition** — framing is stable and follows the requested shot without unexplained zooming/reframing.
-13. **Voice / AV sync** — the user's voice identity remains convincing and synchronization does not visibly slip.
-14. **Overall release standard** — the clip can be published without manual frame-by-frame repair.
+1. **Visual identity** — facial/body geometry remains recognizably João across the full clip.
+2. **Eyes / glasses** — no eye drift, warped rims/lenses, disappearing temples or distracting geometry changes.
+3. **Hair / beard** — no crawling edges, shape changes, texture boiling or identity-changing hairline/beard behavior.
+4. **Mouth / teeth / jaw** — lipsync is natural; the mouth is not rubbery, over-articulated, melted or structurally inconsistent.
+5. **Hands / fingers / wrists** — no conspicuous anatomy errors, fused fingers, implausible wrists or unstable hand topology.
+6. **Arms / shoulders / body topology** — no attachment drift, body-part reconfiguration or unnatural symmetry.
+7. **Behavioral identity** — expressions, gesture timing, head movement, posture and delivery rhythm feel recognizably like João, not merely human/plausible.
+8. **No generic presenter performance** — no repetitive, mirrored, theatrical, caricatured or stock-avatar choreography that João would not naturally use.
+9. **Skin / texture** — no distracting waxy surface, crawling detail or temporal sharpening/softening pulses.
+10. **Clothing** — garment topology, seams, collar, sleeves and material remain coherent through motion.
+11. **Scene geometry** — background objects, lines and surfaces do not melt, breathe or transform without cause.
+12. **Lighting** — face/body/background illumination remains physically coherent.
+13. **Camera / composition** — framing follows the requested shot without unexplained zooming/reframing.
+14. **Voice identity / AV sync** — when the final voice stage is present, voice identity remains convincing and synchronization does not visibly slip.
+15. **Generalization** — a personal-avatar system must preserve João identity on a **new script not present in the behavioral reference video**.
+16. **Overall release standard** — publishable without manual frame-by-frame repair.
 
-A conspicuous failure in any major category means **production fail**, regardless of whether identity and voice technically work.
+A conspicuous failure in any major category means **production fail**.
 
-## Controlled H3 quality ladder
+## Important benchmark rule
 
-Do not change multiple variables at once.
+Do not claim behavioral-identity failure or success unless the candidate actually received João's behavioral video/reference in a way intended to condition or train motion identity.
 
-Fixed across comparisons:
+Static-image + audio benchmarks such as the completed Wan S2V tests are useful for visual rendering quality but are **not behavioral-identity tests**.
 
-- `joao_id_face.png`;
-- `joao_id_shoulders.png`;
-- `joao_id_upperbody.png`;
-- `joao_ref_voice.wav`;
-- dialogue;
-- scenario;
-- appearance;
-- framing;
-- seed;
-- 768-class vertical canvas;
-- 24 fps;
-- same H3 Ref2VA checkpoint and Qwen3-VL/audio/video VAEs.
+## Evidence from completed branches
 
-### Q0 — Turbo4 baseline
+### H3
 
-Purpose: reproduce the fast functional baseline under the same benchmark prompt.
+Functional architecture pass, production visual quality fail. Generic autonomous gesture language remains unacceptable.
 
-- Ref2V Turbo LoRA 1.0;
-- 4 steps;
-- `res_multistep`;
-- `simple`;
-- `ref_image_size=max`.
+### Wan2.2-S2V 10-step
 
-Status before benchmark: **functionally proven, production quality not accepted**.
+Structurally promising but visual-quality fail.
 
-### Q1 — Base20
+### Wan2.2-S2V 20-step
 
-Purpose: determine whether removing Turbo and increasing denoising work materially improves temporal/detail quality.
+João's review on 2026-09-18:
 
-- no Turbo LoRA;
-- 20 steps;
-- `res_multistep`;
-- `beta`;
-- `ref_image_size=max`.
+- visually, the generated person was essentially João;
+- expressions and movements did not feel like João;
+- the performance felt caricatured.
 
-Decision:
+Because the Wan path used static image + audio and **did not receive behavioral footage**, classify this as:
 
-- if clearly worse/equivalent, do not assume Base50 will rescue every defect; inspect the type of failure;
-- if materially better but still short of production, proceed to Q2.
+**visual identity strong / behavioral identity not tested / production fail for the actual product.**
 
-### Q2 — Base50
+Do not try to repair personal mannerisms through prompt wording alone.
 
-Purpose: test the highest already-established H3 sampling regime before blaming the model family.
+### HunyuanVideo-Avatar local
 
-- no Turbo LoRA;
-- 50 steps;
-- `res_multistep`;
-- `beta`;
-- `ref_image_size=max`.
+Runtime/payload passed, but 720p quality path timed out after nearly three hours at `0/30` on RTX 3060 12 GB. No visual verdict. Local practicality fail.
 
-This can be extremely slow on the RTX 3060. It is justified only as a controlled quality test, not as an automatic default.
+## Current production benchmark — Avatar V
 
-## If sampling is not enough
+The next gate must explicitly test reusable behavioral identity learned from João's actual footage.
 
-If Base20/Base50 leave the same structural defects, the next experiment is the **identity-reference pack**, not random prompt churn.
+Use HeyGen Avatar V / Digital Twin first because current product documentation states that it learns specific gestures, expressions and mannerisms from short real-human video footage.
 
-Candidate improvements:
+The benchmark must:
 
-1. create a higher-quality neutral-background canonical identity set;
-2. use several genuinely different face/head angles rather than three crops from one short recording;
-3. include a clean upper-body reference with hands either absent or anatomically unambiguous;
-4. retain strict identity-only authority and no source-room authority;
-5. compare `ref_image_size=max` with the best sampler path;
-6. test whether an image-preparation stage through Qwen/FLUX produces a cleaner identity pack without changing the person's identity.
+- use existing João footage as motion/behavior reference;
+- use a new Portuguese script not present in that footage;
+- avoid exaggerated emotional direction;
+- preserve an easy-to-judge look/framing;
+- collect a separate human verdict for visual identity and behavioral identity.
 
-Only one reference-pack variable should change per comparison.
+## Required human verdict
 
-## When to consider another video engine
+The benchmark passes only if the reviewer can answer **yes** to both:
 
-A second engine becomes justified when H3 has been tested with:
+> Does this look like João?
 
-- Base20;
-- Base50 where warranted;
-- the strongest reasonable identity-reference pack;
-- a controlled prompt;
-- the same objective acceptance checklist;
+> Does this move and react like João?
 
-and still exhibits production-blocking visual defects.
-
-At that point, compare candidates on the same task rather than switching because a model is newer or larger.
-
-## Current development priority
-
-The Local Video Studio interface/orchestrator remains useful, but feature development is subordinate to this gate.
-
-Do not prioritize:
-
-- one-minute multi-shot polish;
-- subtitle features;
-- B-roll automation;
-- interface cosmetics;
-- additional scene controls;
-
-until a single short shot can pass the production visual-quality standard.
+A yes to only the first question is not enough.
 
 ## Required evidence per quality run
 
-Store:
+Store where technically possible:
 
-- exact preset and model paths;
-- exact prompt;
-- identity/voice reference hashes;
-- seed;
-- frame count / fps / dimensions;
-- elapsed time;
-- MP4 SHA-256;
-- full-resolution MP4;
+- renderer/model/version;
+- source behavioral-reference video identity/hash or provider asset ID;
+- look/identity reference identity/hash or provider asset ID;
+- script;
+- voice source/model;
+- generation settings;
+- duration/dimensions;
+- elapsed time and cost;
+- final MP4;
 - human verdict per acceptance category;
 - explicit final classification: `PASS`, `FAIL`, or `INCONCLUSIVE`.
 
-No automatic metric may override visible human defects.
+No automatic metric may override visible human defects or the user's judgment of his own behavioral identity.
