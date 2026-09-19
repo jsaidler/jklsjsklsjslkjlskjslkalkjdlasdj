@@ -108,89 +108,147 @@ body-support median weight: 0.519182
 
 Classification: **SECONDARY SOURCE CURATED PASS**.
 
-## Third source — SIENA_BRUTO FULL POSE PASS
+## Third source — SIENA PROFILE / INVENTORY PASS
 
-Source:
+`SIENA_BRUTO.mp4`
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
+Validated short gate: **C6 = 75.2–80.2 s**, PASS for torso/posture/head/coarse-arm motion. Hands were visibly unstable near the lower frame boundary and are not promoted to retrieval.
 
-Selected/validated short gate: **C6 = 75.2–80.2 s**.
-
-Short-gate visual classification remains:
-
-**PASS for torso / posture / head / coarse arm motion. Hands remain pending per-unit full-inventory evidence because finger landmarks are unstable near the lower frame boundary.**
-
-Full pose result:
+Full pose:
 
 ```text
 duration: 113.313208 s
-coded: 1080x1920
-display: 1080x1920
-rotation: 0
-analysis: 540x960
+geometry: 1080x1920 display / rotation 0 / analysis 540x960
 frames: 680 @ 6 fps
-last timestamp: 113.166667 s
-detector fallback: 0/680 = 0.0
+detector fallback: 0/680
 mean keypoint score: 0.6698323212
 provider: CPUExecutionProvider
-elapsed: 1047.040972 s
-wall throughput: 0.649449 fps
 ```
 
-Classification: **SIENA FULL POSE TRACK PASS**.
+Behavior profile / inventory:
 
-All 133 keypoints are preserved. This result does **not** promote SIENA to a hand source; that decision remains per-unit and evidence-based.
+```text
+status: complete
+motion units: 49
+coverage: 0.0 -> 113.313 s
+pose snapshots valid: 49/49
+head activity: 48/49
+body activity: 49/49
+left hand activity: 49/49
+right hand activity: 49/49
+combined hand activity: 49/49
+speech classes: mixed=39, speech=10
+unit duration min/median/max: 0.800/2.200/3.800 s
+```
 
-Provisional semantic-suspect spans from the verified SIENA candidate sheet remain review-only:
+The activity counters above do **not** establish hand suitability. The reviewed visual sheet remains authoritative for the source role.
 
-- ~5–10 s: inserted still-image/graphic overlays;
-- ~19–24 s: held print/book/photo interaction and hand occlusion;
-- ~47–52 s: lens/camera foreground interaction/occlusion.
+### SIENA reviewed semantic exclusions — LOCKED
 
-Exact exclusion boundaries must be derived from the generated SIENA behavior profile/inventory, not from the coarse sampler alone.
+Full inventory review established exact motion-unit-aligned exclusions:
 
-### Progress-output policy — LOCKED
+```text
+4.6–10.3 s    u0003-u0004   graphic/still-image overlay + subject occlusion
+18.7–24.7 s   u0009-u0010   held print/photo/book + prop interaction + hand occlusion
+43.7–55.7 s   u0021-u0025   lens/camera foreground interaction + major occlusion
+67.9–74.0 s   u0031-u0033   purple held card + face/body occlusion
+```
 
-Long DWPose passes must emit visible progress. `extract_dwpose_track.py` now reports initialization and frequent heartbeat/progress instead of leaving the terminal silent for long intervals.
+Result expected from role-aware curation:
+
+```text
+49 total units
+12 global hard excluded
+37 semantically clean units
+```
+
+SIENA retrieval role policy — LOCKED:
+
+- `head`: enabled on clean units, continuous coarse-head pose quality;
+- `posture`: enabled on clean units, continuous body pose quality;
+- `coarse_arm`: enabled on clean units, continuous body pose quality; motion speed remains a matching feature rather than a reliability multiplier;
+- `left_hand`, `right_hand`, `both_hands`: retrieval disabled;
+- `generic_whole_upper`: retrieval disabled.
+
+Versioned:
+
+- `tools/video-studio/behavior_source_annotations_tertiary.json`;
+- `tools/video-studio/curate_tertiary_behavior_source.py`;
+- `tools/video-studio/run_behavior_tertiary_curation.ps1`.
+
+## Unified João motion library — IMPLEMENTED / LOCAL BUILD NEXT
+
+Versioned builder:
+
+`tools/video-studio/build_unified_behavior_library.py`
+
+Output schema:
+
+`joao-motion-library/v1`
+
+The library preserves source file, source role, unit ID, timestamps, source video/pose-track references, speech/prosody, transition metrics, motion/activity descriptors, pose boundary snapshots, role-specific quality weights and role priority tiers.
+
+Locked source-role priorities:
+
+```text
+face:       secondary only, tier 0
+head:       secondary tier 0 -> primary tier 1 -> SIENA tier 2
+posture:    primary tier 0 -> SIENA tier 1 -> secondary body-support tier 2
+coarse_arm: primary tier 0 -> SIENA tier 1
+hands:      primary only
+generic whole-upper: primary only
+```
+
+The library does not flatten source-specific quality into one generic score. Semantic exclusions are applied before library construction.
+
+One-shot local runner:
+
+`tools/video-studio/run_behavior_finalize_library.ps1`
+
+It:
+
+1. materializes reviewed SIENA role-aware curation;
+2. verifies expected `49 / 12 / 37` SIENA state;
+3. joins the three curated sources into `joao-motion-library/v1`;
+4. validates that required retrieval roles have at least one candidate.
+
+No DWPose and no Wan-Animate-2 are invoked.
 
 ## Immediate next action
 
-Build and inspect the SIENA profile/inventory from the already-complete pose track:
+Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_profile_inventory.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_finalize_library.ps1'
 ```
 
-This runs **no DWPose and no Wan-Animate-2**. It:
-
-1. builds `behavior-profile/v1`;
-2. validates structure;
-3. analyzes per-unit/group reliability;
-4. renders `inventory_review_sheet.jpg` for semantic/quality review.
-
-Expected artifacts include:
+Expected unified artifact:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\manifest.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\motion_units.csv
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\profile_inspection.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\inventory_analysis.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\inventory_units.csv
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\inventory_review_sheet.jpg
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\joao_motion_library_v1.json
 ```
 
-Paste the complete terminal output and upload the inventory review sheet before SIENA semantic exclusions/curation.
+Paste the complete terminal output before first behavioral-driver synthesis.
 
-## Downstream
+## Behavioral-driver synthesis policy — NEXT GATE
 
-1. inspect SIENA profile/inventory;
-2. determine exact overlay/object/occlusion exclusion intervals;
-3. role-aware SIENA curation; enable hands only where per-unit evidence supports them;
-4. build unified source-preserving multi-source library;
-5. synthesize a new 4–5 s multi-source behavioral driver;
-6. only then invoke installed Wan-Animate-2.
+The first 4–5 s driver must be genuinely multi-source rather than a concat of arbitrary RGB clips:
+
+- face/microexpression: secondary source;
+- hands: primary source;
+- posture/coarse arm: primary + SIENA diversity;
+- source IDs/timestamps remain preserved;
+- semantic-excluded units are unavailable;
+- continuity and prosody compatibility are explicit retrieval features;
+- the first driver is validated in pose/behavior space before any Wan-Animate-2 render.
+
+Do not invoke Wan-Animate-2 until the unified library and first synthesized driver both pass their local QA gates.
+
+## Progress-output policy — LOCKED
+
+Long local passes must emit visible progress. `extract_dwpose_track.py` reports initialization and frequent heartbeats; do not leave long-running terminal tasks silent.
 
 ## Quality gate — LOCKED
 
