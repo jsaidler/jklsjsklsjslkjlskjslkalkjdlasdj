@@ -18,9 +18,28 @@ GitHub living documents are the canonical source of truth.
 
 New text/audio must yield a new performance that looks, sounds and chiefly **moves/reacts like João**. Generic presenter motion is failure.
 
-## Curated sources — PASS
+## Canonical architecture
+
+```text
+multiple real João behavior videos
+    -> pose + motion + prosody
+    -> per-source behavior-profile/v1
+    -> optional facial-behavior-profile/v1
+    -> semantic + role-aware curation
+    -> joao-motion-library/v1
+
+new speech/audio
+    -> prosodic target windows
+    -> role-specific retrieval + continuity + diversity
+    -> multi-source behavioral pose driver
+    -> numeric + visual QA
+    -> only then installed Wan-Animate-2
+```
+
+## Curated source state — PASS
 
 ### Primary — `VID_20260911_140124885.mp4`
+
 Role: torso / hands / gesture / primary posture.
 
 ```text
@@ -35,6 +54,7 @@ Role: torso / hands / gesture / primary posture.
 Locked exclusion: **24.1–37.5 s / u0012–u0016** for held object, hand occlusion and prop interaction.
 
 ### Secondary — `VID_20260819_124008056.mp4`
+
 Role: face / head / microexpression; body support only.
 
 ```text
@@ -49,15 +69,20 @@ hands retrieval disabled
 generic whole-upper disabled
 accepted facial geometry 1576/1695 = 0.929794
 face/head median quality 0.913145
+body-support median quality 0.519182
 ```
 
+Facial sidecar uses landmarks 23–90, eye-line normalization, roll removal, inter-eye scale and source-relative 3×IQR geometry QA.
+
 ### SIENA — `SIENA_BRUTO.mp4`
+
 Role: alternate posture / head / coarse-arm vocabulary.
 
 ```text
 113.313208 s
 680 pose frames @ 6 fps
 0 fallback
+mean keypoint score 0.6698323212
 49 behavior units
 12 hard excluded
 37 semantically clean
@@ -74,7 +99,7 @@ Locked exclusions:
 67.9–74.0 s   u0031-u0033   held purple card + face/body occlusion
 ```
 
-SIENA `head/posture/coarse_arm` reliability weights are saturated at `1.0 / 1.0 / 1.0` q10/median/q90 and therefore do not rank its clean units meaningfully. Retrieval within SIENA is differentiated by motion/prosody/transition/duration.
+SIENA `head/posture/coarse_arm` reliability weights are saturated at `1.0 / 1.0 / 1.0` q10/median/q90 and therefore do not rank its 37 clean units meaningfully. Retrieval within SIENA is differentiated by motion/prosody/transition/duration.
 
 ## Unified source-preserving library — PASS
 
@@ -88,88 +113,125 @@ primary   118
 secondary 116
 tertiary   37
 
-face                  116 secondary only
-head                  271
-posture               271
-coarse_arm            155 primary + tertiary
-left/right/both_hands 118 each, primary only
-generic_whole_upper   118 primary only
-body_support          271
+face                   116 secondary only
+head                   271
+posture                271
+coarse_arm             155 primary + tertiary
+left/right/both_hands  118 each, primary only
+generic_whole_upper    118 primary only
+body_support           271
 ```
 
 Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
 
-## First multi-source behavioral pose driver v1 — FAIL
+## First pose driver v1 — FAIL
 
-Neutral QA synthesis only, no target audio:
+Neutral 4.5 s / 24 fps / 108 frames.
+
+Numeric v2 QA of the v1 compositor established:
+
+```text
+confidence-qualified OOB:
+  coarse_head  0.0000
+  face         0.0000
+  upper_body   0.1771
+  left_hand    0.4171
+  right_hand   0.4409
+
+transition q90 / normal q90:
+  body_head    6.1729x
+  face         3.1519x
+  left_hand    3.0979x
+  right_hand   1.5199x
+```
+
+Visual preview confirmed the failure: around the source change the body reconfigured too quickly and hands were repeatedly lost below frame. Root hand-to-wrist attachment itself remained exact.
+
+Classification: **COMPOSITOR v1 FAIL / library remains valid**.
+
+## Pose driver v2 — MAJOR IMPROVEMENT / STILL NOT PASS
+
+Observed neutral synthesis:
 
 ```text
 duration 4.5 s
-fps 24
-frames 108
-base order primary -> tertiary
-planner boundary continuity 0.528554
+24 fps
+108 frames
+base source order primary -> tertiary
+overlap 1.875–2.625 s = 0.750 s
+base continuity 0.615637
+face pair continuity 0.937309
+hand pair continuity 0.783131
+predicted hand in-frame ratio 0.707143
 ```
 
-Numeric QA v2:
+Selected windows:
 
 ```text
-confidence-qualified OOB total = 0.161972
-coarse_head OOB = 0.000000
-face OOB        = 0.000000
-upper_body OOB  = 0.177083
-left_hand OOB   = 0.417108
-right_hand OOB  = 0.440917
+window 0
+  base  primary:VID_20260911_140124885_u0027
+  hands primary:VID_20260911_140124885_u0107
+  face  secondary:VID_20260819_124008056_u0026
 
-transition q90 / non-transition q90:
-body_head  6.1729x
-face       3.1519x
-left_hand  3.0979x
-right_hand 1.5199x
+window 1
+  base  tertiary:SIENA_BRUTO_u0035
+  hands primary:VID_20260911_140124885_u0108
+  face  secondary:VID_20260819_124008056_u0009
 ```
 
-Visual inspection of `behavioral_driver_pose_preview.mp4` confirms the numeric failure:
-
-- around the `primary -> SIENA` source change the skeleton drops/reconfigures too quickly instead of flowing into a natural posture change;
-- the visible failure is concentrated roughly across `2.29–2.50 s` under the v1 0.25 s transition;
-- after the transition, arms/hands fall through the lower frame boundary and much of the manual gesture disappears;
-- face/head remain comparatively stable, consistent with `0%` confidence-qualified OOB for those groups.
-
-Interpretation: **v1 fails because of compositor/retrieval continuity + framing, not because the curated source library failed.** Wan-Animate-2 remains blocked.
-
-## Behavioral pose compositor v2 — IMPLEMENTED / LOCAL RUN NEXT
-
-New synthesizer:
-
-`tools/video-studio/synthesize_behavioral_pose_driver_v2.py`
-
-New overlap-aware QA:
-
-`tools/video-studio/inspect_behavioral_pose_driver_overlap.py`
-
-One-shot runner:
-
-`tools/video-studio/run_behavior_first_pose_driver_v2_and_qa.ps1`
-
-v2 changes are evidence-driven from the v1 failure:
-
-1. **base retrieval** samples top primary/SIENA candidates and gives much stronger weight to source-relative pose continuity;
-2. **base framing** considers upper-body in-frame coverage plus safe wrist room before a unit is selected;
-3. **hands are selected jointly with the chosen base**, using predicted retargeted in-frame coverage instead of independent retrieval;
-4. **face donor pairs** are selected with normalized facial-shape continuity between windows;
-5. **hand donor pairs** are selected with both normalized hand-shape continuity and predicted post-retarget framing;
-6. source change uses a **0.75 s symmetric overlap** with quintic easing rather than the v1 incremental 0.25 s copy/blend;
-7. v1 artifacts remain untouched under `first_driver`; v2 writes to `first_driver_v2`.
-
-Default v2 timing for a 4.5 s gate:
+Numeric QA:
 
 ```text
-segment duration: 2.625 s
-overlap: 1.875 -> 2.625 s
-blend duration: 0.75 s
+OOB confidence-qualified:
+  coarse_head 0.000000
+  upper_body  0.063657
+  lower body  0.034221
+  face        0.000000
+  left hand   0.218695
+  right hand  0.277337
+
+transition q90 / normal q90:
+  body_head   0.7920x
+  face        2.4043x
+  left_hand   0.2085x
+  right_hand  0.8727x
 ```
 
-No DWPose or Wan-Animate-2 is invoked by the v2 runner.
+Visual QA of `first_driver_v2\behavioral_driver_pose_preview.mp4` confirms:
+
+- the body transition is now smooth enough to eliminate the v1 “skeleton swap” failure;
+- face/coarse head remain in frame;
+- hands still scrape/leave the lower frame too often in the second segment;
+- face motion still accelerates across the overlap, matching the 2.40× transition ratio.
+
+Therefore **v2 is not a full PASS**. Wan-Animate-2 remains blocked.
+
+## Camera framing is not behavioral identity — LOCKED
+
+Absolute source-camera translation/scale must not be treated as João behavior. Relative pose, gesture, head motion, hand shape/motion and facial deformation are behavioral; source framing is acquisition geometry.
+
+A behavioral driver may therefore apply one global similarity transform to the whole synthesized performance to normalize camera framing, provided it preserves all relative motion/geometry and does not introduce dynamic camera motion.
+
+## Pose driver v3 — IMPLEMENTED / NEXT QA
+
+Versioned:
+
+- `tools/video-studio/synthesize_behavioral_pose_driver_v3.py`
+- `tools/video-studio/run_behavior_first_pose_driver_v3_and_qa.ps1`
+
+v3 retains the same three-source library and overlap compositor but changes retrieval and framing:
+
+1. **base + hands are selected jointly** rather than sequentially;
+2. retargeted hand in-frame ratio is a retrieval constraint, attempted at floors `0.90 -> 0.86 -> 0.82 -> 0.78 -> 0.74`;
+3. multiple high-quality primary/SIENA base pairs are considered so the base can change if a visually good body unit cannot support in-frame hands;
+4. hand-pair scoring now includes retrieval, predicted framing, hand-shape continuity and forward source-time adjacency;
+5. face-pair selection favors forward/adjacent secondary units and scores facial shape + velocity continuity, not static shape alone;
+6. after composition, one **constant** robust similarity transform normalizes the full 4.5 s driver into the target canvas; it never changes frame-to-frame and therefore adds no synthetic camera motion;
+7. the canonical transform has a minimum scale of `0.82`, so framing problems cannot be hidden by shrinking the figure arbitrarily.
+
+Output directory:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3`
 
 ## Immediate next action
 
@@ -178,19 +240,20 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_v2_and_qa.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_v3_and_qa.ps1'
 ```
 
-Expected artifacts:
+This performs v3 synthesis and overlap-aware numeric QA only. No DWPose and no Wan.
 
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\driver_plan.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\behavioral_driver_coco133.jsonl
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\behavioral_driver_pose_preview.mp4
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\driver_qa.json
-```
+Then upload:
 
-Paste the complete terminal output and upload the v2 preview. Do not invoke Wan-Animate-2 until v2 numeric + visual QA pass.
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\behavioral_driver_pose_preview.mp4`
+
+PASS intent for this gate is evidence-based rather than a newly invented magic number: hand OOB must fall materially below v2, face transition acceleration must fall materially below `2.40x`, body transition must remain at least as stable as v2, and the preview must read as one continuous performance rather than stitched source motion.
+
+## Progress-output policy — LOCKED
+
+Long local passes must emit visible progress. Do not leave long-running terminal tasks silent.
 
 ## Final quality criterion
 
