@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **LOCAL DWPOSE FOUND / WANGP RUNTIME PROBE NEXT**
+Status: **DWPose CPU SMOKE PASS / VISUAL POSE GATE NEXT**
 
 ## Continuation prompt
 
@@ -14,9 +14,9 @@ Antes de alterar qualquer estado, leia:
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
 5. este arquivo;
-6. `tools/video-studio/probe_wangp_dwpose_runtime.ps1`
-7. `tools/video-studio/extract_dwpose_track.py`
-8. `tools/video-studio/run_behavior_pose_smoke.ps1`
+6. `tools/video-studio/extract_dwpose_track.py`
+7. `tools/video-studio/render_pose_overlay.py`
+8. `tools/video-studio/run_behavior_pose_visual_gate.ps1`
 9. `tools/video-studio/extract_behavior_profile.py`
 10. `tools/video-studio/behavior_profile_schema_v1.json`
 
@@ -27,11 +27,11 @@ Não reconstruir decisões pela memória quando os documentos disserem algo dife
 - 100% local/self-hosted;
 - zero custo de serviço;
 - nenhum vídeo/voz/identidade do João enviado a terceiros;
-- nada de HeyGen/Kling/SaaS/API paga/créditos/assinaturas;
+- nada de SaaS/API paga/créditos/assinaturas;
 - não baixar outro renderer grande;
 - não retomar Wan S2V, H3 ou Hunyuan como próxima etapa;
-- MuseTalk/LatentSync e final TTS continuam deferidos;
-- não instalar outro Python nem outro DWPose enquanto a reutilização local ainda está sendo validada.
+- MuseTalk/LatentSync/TTS final continuam deferidos;
+- não instalar outro Python, outro DWPose ou dependências CUDA antes de evidência de necessidade.
 
 ## Objetivo
 
@@ -41,7 +41,7 @@ Novo texto/áudio deve gerar performance nova que:
 2. soe como João;
 3. principalmente, mova-se e reaja como João.
 
-Movimento genérico/natural não basta.
+Movimento genérico não basta.
 
 ## Arquitetura
 
@@ -61,85 +61,96 @@ novo driving video
     -> lip-sync local posteriormente se necessário
 ```
 
-## Fonte primária atual
+## Fonte primária
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
 
-300.4 s / 3840x2160 HEVC + áudio.
+300.352 s / 3840x2160 HEVC + áudio.
 
-## Estado resolvido em 2026-09-19
+## Estado validado em 2026-09-19
 
-### Windows launcher
+### DWPose local
 
-```text
-py -3.11: NOT RESOLVED
-```
-
-O launcher do Windows não possui Python 3.11 registrado. Isso **não** implica instalar Python.
-
-Já existe histórico de runtime WanGP isolado validado em:
-
-`Z:\AI\WanGP\env_uv\Scripts\python.exe`
-
-O projeto já o usou como Python 3.11.14 / Torch 2.10.0+cu130 / CUDA 13.0.
-
-### DWPose local — encontrado
+Reuse confirmado:
 
 ```text
+Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
 Z:\AI\WanGP\preprocessing\dwpose
-Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx   ~128.2 MB
-Z:\AI\WanGP\ckpts\pose\yolox_l.onnx           ~206.7 MB
+Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
+Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-Portanto:
+Não baixar outro pose stack.
 
-**NÃO BAIXAR DWPose-L, ControlNet Aux ou outro pose stack.**
+### Runtime probe
 
-## Tooling novo já versionado
+Inferência real de um frame passou e produziu `coco_wholebody_133` sem detector fallback.
 
-### `probe_wangp_dwpose_runtime.ps1`
+ONNX Runtime anunciou CUDA/TensorRT/CPU, mas a tentativa CUDA emitiu erro por dependência ausente `cublasLt64_13.dll`. Portanto:
 
-Valida o `env_uv`, imports, providers ONNX e uma inferência real detector + 133 keypoints em um frame da fonte primária. Sem download/instalação/model mutation.
+- DWPose funcional: **PASS**;
+- CUDA ORT efetivo: **FAIL / não validado**;
+- não instalar CUDA agora; CPU continua suficiente para o gate.
 
-### `extract_dwpose_track.py`
+### Smoke CPU
 
-Extrai track normalizado `coco_wholebody_133` em JSONL usando o WanGP existente. Full pass eventual: 6 fps, análise 960 px no lado maior, provider auto CUDA->CPU.
+Trecho 30–35 s, 6 fps, 960x540, CPU:
 
-### `run_behavior_pose_smoke.ps1`
+```text
+frames: 30
+detector_fallback_frames: 0
+detector_fallback_ratio: 0.0
+mean_keypoint_score: 0.13263878929229625
+elapsed_s: 26.750566244125366
+frames_per_second_wall: 1.1214715877869776
+```
 
-Smoke de ~5 s / 4 fps, pose somente. Produz track + summary com provider, fallback ratio, confiança e throughput.
+Track existente:
 
-### `extract_behavior_profile.py`
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s.jsonl`
 
-Combina pose real + motion/prosody local e produz `manifest.json` + `motion_units.csv`. Só `status=complete` passa o gate. `incomplete_pose` é diagnóstico apenas.
+O score médio isolado não é critério suficiente para aprovar qualidade anatômica.
 
-## Próxima ação exata
+## Visual gate — PRÓXIMA AÇÃO EXATA
 
-Rodar somente o runtime probe:
+Foi versionado:
+
+- `tools/video-studio/render_pose_overlay.py`;
+- `tools/video-studio/run_behavior_pose_visual_gate.ps1`.
+
+Eles não rodam DWPose novamente. Apenas desenham o track já extraído sobre os frames correspondentes e geram:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s_overlay.mp4`
+
+Rodar:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\probe_wangp_dwpose_runtime.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_visual_gate.ps1'
 ```
 
-Não rodar o smoke automaticamente se o probe falhar. Corrigir o runtime existente primeiro.
+Depois abrir o MP4 e verificar:
 
-Se o probe passar:
+- torso/braços sobre a anatomia correta;
+- mãos ligadas aos pulsos corretos;
+- landmarks de dedos plausíveis;
+- face acompanhando o rosto;
+- ausência de saltos, swaps esquerda/direita e tracking do fundo.
 
-1. executar `run_behavior_pose_smoke.ps1`;
-2. verificar 133 keypoints, provider, fallback ratio, confiança e throughput;
-3. gerar full pose track a 6 fps;
-4. gerar behavior profile `status=complete`;
-5. inspecionar inventário;
-6. montar novo driving video de 4–5 s com várias motion units;
-7. só então executar Wan-Animate-2.
+**Não executar o full 300 s antes desse gate visual passar.**
 
-## Qualidade
+## Depois do visual PASS
 
-Gate humano:
+1. gerar full pose track da fonte primária a 6 fps;
+2. gerar behavior profile com `status=complete`;
+3. inspecionar `manifest.json` + `motion_units.csv`;
+4. compor novo driving video de 4–5 s usando várias motion units;
+5. só então executar Wan-Animate-2.
+
+## Qualidade final
 
 > “isso não apenas parece João; isso se move e reage como João.”
 
