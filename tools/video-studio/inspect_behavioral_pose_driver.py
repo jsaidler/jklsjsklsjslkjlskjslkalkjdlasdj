@@ -3,6 +3,12 @@
 
 No model inference. Reports continuity and geometry diagnostics without inventing a
 pass/fail threshold. The visual preview remains authoritative for the first gate.
+
+v2 diagnostics distinguish:
+- all finite coordinates vs confidence-qualified coordinates for out-of-bounds QA;
+- OOB by semantic keypoint group;
+- the exact boundary step (which is intentionally zero under the current compositor);
+- the full post-boundary blend window, which is the meaningful continuity gate.
 """
 from __future__ import annotations
 
@@ -15,6 +21,14 @@ from pathlib import Path
 CONF = 0.20
 GROUPS = {
     "body_head": list(range(0, 13)),
+    "face": list(range(23, 91)),
+    "left_hand": list(range(91, 112)),
+    "right_hand": list(range(112, 133)),
+}
+OOB_GROUPS = {
+    "coarse_head": list(range(0, 5)),
+    "upper_body": list(range(5, 13)),
+    "lower_body_foot": list(range(13, 23)),
     "face": list(range(23, 91)),
     "left_hand": list(range(91, 112)),
     "right_hand": list(range(112, 133)),
@@ -45,7 +59,13 @@ def percentile(values, q):
 
 
 def quantiles(values):
-    return {"q10": percentile(values, .10), "median": percentile(values, .50), "q90": percentile(values, .90), "max": max(values) if values else None}
+    vals = [float(v) for v in values if finite(v)]
+    return {
+        "q10": percentile(vals, .10),
+        "median": percentile(vals, .50),
+        "q90": percentile(vals, .90),
+        "max": max(vals) if vals else None,
+    }
 
 
 def load_track(path: Path):
@@ -116,11 +136,37 @@ def intereye_scale(kp):
     return math.hypot(eb[0]-ea[0], eb[1]-ea[1])
 
 
+def point_is_oob(p):
+    x, y, _ = p
+    return finite(x) and finite(y) and (float(x) < 0.0 or float(x) > 1.0 or float(y) < 0.0 or float(y) > 1.0)
+
+
+def oob_stats(frames, ids=None, confident_only=False):
+    oob = 0
+    considered = 0
+    for rec in frames:
+        kp = rec["keypoints"]
+        iterable = ids if ids is not None else range(len(kp))
+        for i in iterable:
+            p = kp[i]
+            x, y, c = p
+            if not (finite(x) and finite(y)):
+                continue
+            if confident_only and (not finite(c) or float(c) < CONF):
+                continue
+            considered += 1
+            if point_is_oob(p):
+                oob += 1
+    return {"count": oob, "considered": considered, "ratio": (oob/considered if considered else 0.0)}
+
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--track",type=Path,required=True)
     ap.add_argument("--plan",type=Path,required=True)
     ap.add_argument("--output",type=Path,required=True)
+    ap.add_argument("--blend-window-s",type=float,default=0.25,
+                    help="Post-boundary blend duration used by the current compositor")
     args=ap.parse_args()
     if not args.track.is_file(): raise SystemExit(f"Missing track: {args.track}")
     if not args.plan.is_file(): raise SystemExit(f"Missing plan: {args.plan}")
@@ -128,38 +174,55 @@ def main():
     plan=json.loads(args.plan.read_text(encoding="utf-8-sig"))
     fps=float(plan.get("fps") or 0.0)
     if fps <= 0: raise SystemExit("Plan has invalid fps")
+    if args.blend_window_s <= 0: raise SystemExit("--blend-window-s must be > 0")
 
     times=[float(r["t"]) for r in frames]
     boundary_times=[float(w["target_start_s"]) for w in (plan.get("windows") or [])[1:]]
     boundary_pairs=set()
+    transition_pairs=set()
     for bt in boundary_times:
         idx=min(range(1,len(times)), key=lambda i: abs(times[i]-bt))
         boundary_pairs.add(idx)  # pair idx-1 -> idx
+        # The compositor explicitly copies the previous pose at the first frame of the
+        # new window, so the exact boundary step is expected to be zero. The meaningful
+        # continuity diagnostic is the set of following pairwise steps during the blend.
+        for i in range(idx, len(times)):
+            if times[i] <= bt + args.blend_window_s + 1e-9:
+                transition_pairs.add(i)
+            else:
+                break
 
     jumps={name:[] for name in GROUPS}
     boundary_jumps={name:[] for name in GROUPS}
+    transition_jumps={name:[] for name in GROUPS}
     normal_jumps={name:[] for name in GROUPS}
+    step_rows=[]
     for i in range(1,len(frames)):
         a,b=frames[i-1]["keypoints"],frames[i]["keypoints"]
+        row={"pair_end_t": times[i], "is_exact_boundary": i in boundary_pairs, "is_transition_window": i in transition_pairs, "groups":{}}
         for name,ids in GROUPS.items():
             v=group_jump(a,b,ids)
+            row["groups"][name]=v
             if v is None: continue
             jumps[name].append(v)
-            if i in boundary_pairs: boundary_jumps[name].append(v)
-            else: normal_jumps[name].append(v)
+            if i in boundary_pairs:
+                boundary_jumps[name].append(v)
+            if i in transition_pairs:
+                transition_jumps[name].append(v)
+            else:
+                normal_jumps[name].append(v)
+        step_rows.append(row)
 
-    oob=0; finite_xy=0
+    all_finite_oob=oob_stats(frames, confident_only=False)
+    confident_oob=oob_stats(frames, confident_only=True)
+    oob_by_group={name:oob_stats(frames, ids=ids, confident_only=True) for name,ids in OOB_GROUPS.items()}
+
     shoulder=[]
     limb={name:[] for name in LIMBS}
     eye_to_shoulder=[]
     wrist_root_left=[]; wrist_root_right=[]
     for rec in frames:
         kp=rec["keypoints"]
-        for x,y,c in kp:
-            if finite(x) and finite(y):
-                finite_xy += 1
-                if float(x) < 0.0 or float(x) > 1.0 or float(y) < 0.0 or float(y) > 1.0:
-                    oob += 1
         sw=shoulder_width(kp)
         if sw is not None and sw > 1e-8:
             shoulder.append(sw)
@@ -176,30 +239,38 @@ def main():
     continuity={}
     for name in GROUPS:
         nq=quantiles(normal_jumps[name])
+        tq=quantiles(transition_jumps[name])
         bvals=boundary_jumps[name]
-        ratios=[]
         q90=nq.get("q90")
-        if q90 is not None and q90 > 1e-12:
-            ratios=[v/q90 for v in bvals]
+        tmax=tq.get("max")
+        tq90=tq.get("q90")
         continuity[name]={
             "all_step_jump_norm_by_shoulder": quantiles(jumps[name]),
-            "nonboundary_step_jump_norm_by_shoulder": nq,
-            "boundary_jumps_norm_by_shoulder": bvals,
-            "boundary_to_nonboundary_q90_ratio": ratios,
+            "nontransition_step_jump_norm_by_shoulder": nq,
+            "exact_boundary_jumps_norm_by_shoulder": bvals,
+            "transition_window_step_jump_norm_by_shoulder": tq,
+            "transition_max_to_nontransition_q90_ratio": (tmax/q90 if tmax is not None and q90 and q90>1e-12 else None),
+            "transition_q90_to_nontransition_q90_ratio": (tq90/q90 if tq90 is not None and q90 and q90>1e-12 else None),
         }
 
     result={
-        "schema":"behavioral-pose-driver-qa/v1",
+        "schema":"behavioral-pose-driver-qa/v2",
         "track":str(args.track.resolve()),
         "plan":str(args.plan.resolve()),
         "frames":len(frames),
         "fps":fps,
         "duration_s":float(plan.get("duration_s") or 0.0),
         "boundary_times_s":boundary_times,
+        "blend_window_s":args.blend_window_s,
         "base_source_order":plan.get("base_source_order"),
         "planner_boundary_continuity":plan.get("base_boundary_continuity"),
-        "coordinate_out_of_bounds": {"count":oob,"finite_xy":finite_xy,"ratio":(oob/finite_xy if finite_xy else 0.0)},
+        "coordinate_out_of_bounds": {
+            "all_finite_points": all_finite_oob,
+            "confidence_qualified_points": confident_oob,
+            "confidence_qualified_by_group": oob_by_group,
+        },
         "continuity":continuity,
+        "transition_pair_end_times_s":[times[i] for i in sorted(transition_pairs)],
         "geometry": {
             "shoulder_width_image_norm":quantiles(shoulder),
             "limb_length_over_shoulder":{name:quantiles(vals) for name,vals in limb.items()},
@@ -207,20 +278,27 @@ def main():
             "left_hand_root_to_body_wrist_over_shoulder":quantiles(wrist_root_left),
             "right_hand_root_to_body_wrist_over_shoulder":quantiles(wrist_root_right),
         },
-        "note":"No automatic pass/fail threshold is applied. Compare boundary jumps with the driver's own non-boundary distribution and inspect the preview visually."
+        "step_rows":step_rows,
+        "note":"No automatic pass/fail threshold is applied. Exact boundary jump is expected to be zero under the current 0.25 s blend; inspect the full transition window and visual preview. Confidence-qualified OOB is more meaningful than all-finite OOB because low-confidence off-frame landmarks may have finite coordinates."
     }
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding="utf-8")
 
-    print("BEHAVIORAL POSE DRIVER NUMERIC QA")
-    print("=================================")
+    print("BEHAVIORAL POSE DRIVER NUMERIC QA v2")
+    print("====================================")
     print(f"Frames: {len(frames)} / fps={fps} / duration={result['duration_s']} s")
     print(f"Base source order: {result['base_source_order']}")
     print(f"Planner boundary continuity: {result['planner_boundary_continuity']}")
-    print(f"Coordinate out-of-bounds: {oob}/{finite_xy} ({result['coordinate_out_of_bounds']['ratio']:.6f})")
+    print(f"Blend window: {args.blend_window_s} s")
+    print(f"OOB all finite: {all_finite_oob['count']}/{all_finite_oob['considered']} ({all_finite_oob['ratio']:.6f})")
+    print(f"OOB confidence-qualified: {confident_oob['count']}/{confident_oob['considered']} ({confident_oob['ratio']:.6f})")
+    print("Confidence-qualified OOB by group:")
+    for name,s in oob_by_group.items():
+        print(f"  {name}: {s['count']}/{s['considered']} ({s['ratio']:.6f})")
+    print("Transition-window continuity:")
     for name in GROUPS:
-        c=continuity[name]; nq=c['nonboundary_step_jump_norm_by_shoulder']; bj=c['boundary_jumps_norm_by_shoulder']; br=c['boundary_to_nonboundary_q90_ratio']
-        print(f"{name}: nonboundary jump q10/median/q90/max={nq['q10']}/{nq['median']}/{nq['q90']}/{nq['max']} boundary={bj} boundary/q90={br}")
+        c=continuity[name]; nq=c['nontransition_step_jump_norm_by_shoulder']; tq=c['transition_window_step_jump_norm_by_shoulder']; bj=c['exact_boundary_jumps_norm_by_shoulder']
+        print(f"  {name}: nontransition q90={nq['q90']} transition q90/max={tq['q90']}/{tq['max']} exact_boundary={bj} transition_q90/non_q90={c['transition_q90_to_nontransition_q90_ratio']} transition_max/non_q90={c['transition_max_to_nontransition_q90_ratio']}")
     print("Limb length / shoulder quantiles:")
     for name,q in result['geometry']['limb_length_over_shoulder'].items():
         print(f"  {name}: {q['q10']}/{q['median']}/{q['q90']}/{q['max']}")
