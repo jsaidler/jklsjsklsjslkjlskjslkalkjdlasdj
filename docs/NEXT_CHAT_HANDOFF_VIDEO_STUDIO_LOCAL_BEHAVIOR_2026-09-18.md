@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **CORRECTED C3 VISUAL POSE GATE PASS / FULL PRIMARY POSE EXTRACTION NEXT**
+Status: **FULL PRIMARY POSE TRACK PASS / PRIMARY BEHAVIOR PROFILE BUILD NEXT**
 
 ## Continue from canonical state
 
@@ -14,9 +14,9 @@ Read first:
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
 5. this file;
-6. `tools/video-studio/extract_dwpose_track.py`;
-7. `tools/video-studio/extract_behavior_profile.py`;
-8. `tools/video-studio/run_behavior_pose_full.ps1`.
+6. `tools/video-studio/extract_behavior_profile.py`;
+7. `tools/video-studio/inspect_behavior_profile.py`;
+8. `tools/video-studio/run_behavior_profile_primary.ps1`.
 
 GitHub living docs are source of truth. Do not reconstruct state from memory when docs differ.
 
@@ -35,6 +35,18 @@ GitHub living docs are source of truth. Do not reconstruct state from memory whe
 
 New text/audio must eventually produce a new performance that looks, sounds and chiefly **moves/reacts like João**. Generic presenter motion is failure.
 
+## Multi-source requirement — LOCKED
+
+The final behavior library must **not** use only one video.
+
+Canonical sources:
+
+- `VID_20260911_140124885.mp4` — torso/hands/posture/gesture primary;
+- `VID_20260819_124008056.mp4` — head/face/microexpression source;
+- `SIENA_BRUTO.mp4` — additional gesture/posture source with object/occlusion exclusions.
+
+The first source is being completed first only to validate the full pipeline. After its profile passes, process the other two and unify all motion units while preserving source/timestamps.
+
 ## Validated local pose stack
 
 ```text
@@ -46,74 +58,93 @@ Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 
 DWPose functional runtime: PASS.
 
-CUDA ONNX Runtime: not validated; missing `cublasLt64_13.dll` was reported. CPU is the validated path. Do not install CUDA components yet.
+CUDA ONNX Runtime remains unvalidated because `cublasLt64_13.dll` is absent. CPU is the validated path; do not install CUDA dependencies yet.
 
-## Critical preprocessing correction
+## Orientation corrections
 
-The primary source is coded `3840x2160` but displayed as portrait via stream rotation metadata. Earlier extraction calculated analysis geometry from coded dimensions while FFmpeg autorotated, distorting portrait content to `960x540` before DWPose.
+Primary video is coded 3840x2160 but displayed portrait with 90° stream rotation.
 
-`extract_dwpose_track.py` now reads rotation metadata and derives analysis size from **display dimensions**. The corrected primary-source pose analysis is portrait, approximately `540x960`.
+Pose extraction is now display-orientation aware:
 
-## Visual pose gate result
+- display: 2160x3840;
+- DWPose analysis: 540x960.
 
-Clean gate interval: **C3 = 88.7–93.7 s**.
+Behavior-profile motion analysis is also now display-orientation aware. It preserves aspect ratio at 128 px long side, so the primary portrait source uses **72x128**, not 128x72.
 
-Corrected portrait overlay was uploaded and inspected frame-by-frame.
+## Visual pose gate — PASS
 
-PASS evidence:
+Clean gate C3 = 88.7–93.7 s passed after orientation correction:
 
-- face landmarks remain on face;
-- shoulders/elbows/wrists/hips remain anatomically aligned;
-- both hands follow the moving hands through the gesture sequence;
+- face aligned;
+- upper-body anatomy aligned;
+- both hands tracked through gestures;
 - no subject switch;
 - no gross left/right swap or upper-body temporal jump.
 
-Distracting lines toward the lower frame are low-confidence/off-frame lower-body/foot landmarks shown by the QA renderer. They do not invalidate behavior-profile v1.
+Behavior metrics ignore points below confidence 0.20.
 
-Important: QA overlay displayed points at score >= 0.05; `extract_behavior_profile.py` uses `CONF = 0.20`. v1 activity groups are head 0–4, body 5–12, left hand 91–111, right hand 112–132. Low-confidence points are ignored.
+## Full primary pose track — PASS
 
-Classification:
+Completed result:
 
-**C3 corrected upper-body visual pose gate: PASS.**
+```text
+source_duration_s: 300.352
+coded: 3840x2160
+display: 2160x3840
+rotation_degrees: 90
+sample_fps: 6.0
+analysis: 540x960
+frames: 1801
+last_timestamp_s: 300.0
+detector_fallback_frames: 0
+detector_fallback_ratio: 0.0
+mean_keypoint_score: 0.7549247491487903
+provider: CPUExecutionProvider
+elapsed_s: 2780.1648166179657
+frames_per_second_wall: 0.6478033205926593
+```
+
+Track:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`
+
+Classification: **FULL PRIMARY POSE TRACK PASS.**
 
 ## Next exact action
 
-Run full primary pose extraction only:
+Run the versioned primary profile builder:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_full.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_profile_primary.ps1'
 ```
 
-Expected output track:
+It:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`
+1. uses the existing full `pose_coco133.jsonl`;
+2. computes display-orientation-aware motion energy;
+3. computes local RMS/prosody descriptors;
+4. segments motion units;
+5. writes `manifest.json` + `motion_units.csv`;
+6. runs `inspect_behavior_profile.py` immediately;
+7. writes `profile_inspection.json`.
 
-Summary:
+Required profile status: **`complete`**.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl.summary.json`
+Do not synthesize a driving performance if structural inspection fails.
 
-After completion, inspect/paste:
+## After primary-profile PASS
 
-- frames;
-- display + analysis dimensions;
-- ONNX provider;
-- detector fallback count/ratio;
-- mean keypoint score.
-
-Do not build the profile automatically if full extraction reports anomalies.
-
-## After full-track review
-
-1. run `extract_behavior_profile.py` with the full pose track;
-2. require `status=complete`;
-3. inspect `manifest.json` + `motion_units.csv`;
-4. reject/down-weight object-occluded or low-quality spans;
-5. synthesize a new 4–5 s behavioral driver from multiple João motion units;
-6. only then invoke installed Wan-Animate-2.
+1. inspect the actual motion-unit inventory and quality distributions;
+2. mark/exclude/down-weight object-occluded or unusable spans;
+3. process `VID_20260819_124008056.mp4` through the same pipeline;
+4. process `SIENA_BRUTO.mp4` through the same pipeline with exclusions;
+5. build unified multi-source João motion-unit library;
+6. synthesize a new 4–5 s performance from multiple units/sources;
+7. only then invoke installed Wan-Animate-2.
 
 ## Final human quality gate
 
