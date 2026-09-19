@@ -4,22 +4,6 @@ Status date: **2026-09-19**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are the source of truth.
 
-## Read first
-
-1. `docs/PROJECT_STATE.md`
-2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
-3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
-4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
-5. `docs/NEXT_CHAT_HANDOFF_VIDEO_STUDIO_LOCAL_BEHAVIOR_2026-09-18.md`
-6. `tools/video-studio/extract_dwpose_track.py`
-7. `tools/video-studio/render_pose_overlay.py`
-8. `tools/video-studio/run_behavior_pose_visual_gate.ps1`
-9. `tools/video-studio/extract_behavior_profile.py`
-
-## Living-document invariant — LOCKED
-
-Every state-changing action updates the relevant thematic docs and this file. Changed decisions replace stale locks rather than coexisting ambiguously.
-
 ## Execution policy — LOCKED
 
 The Video Studio is **100% local/self-hosted and zero-cost by default**.
@@ -86,10 +70,10 @@ Do not invoke Wan-Animate-2 until a complete, inspected behavior profile exists.
 
 Present locally in WanGP:
 
+- runtime: `Z:\AI\WanGP\env_uv\Scripts\python.exe` — Python 3.11.14;
 - code: `Z:\AI\WanGP\preprocessing\dwpose`;
 - detector: `Z:\AI\WanGP\ckpts\pose\yolox_l.onnx` — ~206.7 MB;
-- whole-body model: `Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx` — ~128.2 MB;
-- isolated runtime: `Z:\AI\WanGP\env_uv\Scripts\python.exe` — Python 3.11.14.
+- whole-body model: `Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx` — ~128.2 MB.
 
 No DWPose download and no new Python are justified.
 
@@ -105,11 +89,11 @@ Confirmed:
 - DWPose returns `coco_wholebody_133`;
 - one real source frame completed with no detector fallback.
 
-Important CUDA result:
+CUDA caveat:
 
-- ONNX Runtime advertises `TensorrtExecutionProvider`, `CUDAExecutionProvider`, `CPUExecutionProvider`;
-- loading `onnxruntime_providers_cuda.dll` emitted a missing dependency error for `cublasLt64_13.dll` and CUDA/cuDNN prerequisites;
-- therefore the probe's reported `CUDAExecutionProvider` must **not** be treated as proof that CUDA inference actually executed.
+- ONNX Runtime advertises TensorRT/CUDA/CPU;
+- CUDA provider load emitted missing `cublasLt64_13.dll` plus CUDA/cuDNN dependency warnings;
+- therefore requested `CUDAExecutionProvider` is not proof of actual CUDA execution.
 
 Classification:
 
@@ -118,20 +102,15 @@ Classification:
 
 Do not install CUDA components yet. CPU is sufficient to continue the quality gate.
 
-## CPU pose smoke — PASS
+## CPU pose smoke — TECHNICAL PASS
 
-A 5 s smoke was generated from 30.0–35.0 s of the primary source at 6 fps / analysis 960x540 using `CPUExecutionProvider`.
-
-Observed summary:
+5 s smoke from 30.0–35.0 s, 6 fps, 960x540, `CPUExecutionProvider`:
 
 ```text
-schema: coco_wholebody_133
 frames: 30
-last_timestamp_s: 34.833333
 detector_fallback_frames: 0
 detector_fallback_ratio: 0.0
 mean_keypoint_score: 0.13263878929229625
-onnx_provider: CPUExecutionProvider
 elapsed_s: 26.750566244125366
 frames_per_second_wall: 1.1214715877869776
 ```
@@ -139,46 +118,55 @@ frames_per_second_wall: 1.1214715877869776
 Interpretation:
 
 - temporal extraction/count: PASS;
-- detector continuity over the smoke: PASS;
+- detector continuity: PASS;
 - no fallback frames: PASS;
-- the aggregate mean score is recorded but is **not** used as a standalone quality threshold.
+- aggregate score is recorded but is not a standalone quality threshold.
 
-## Visual pose gate — NEXT / BLOCKING FULL PASS
+## First visual gate — REJECTED AS SAMPLE, NOT AS DWPose
 
-Numeric summaries cannot prove anatomical correctness, hand consistency or absence of keypoint jumps. Before processing the full 300 s source, visually inspect the already-generated smoke track.
+The overlay for 30–35 s was rendered and inspected. João is holding a large object through most of the window. The object heavily occludes both hands and crosses the torso region.
+
+Observed overlay consequence:
+
+- hands/fingers are partly hidden;
+- several inferred limbs/landmarks traverse the held object;
+- the sample cannot fairly establish hand, wrist or torso anatomical quality.
+
+Classification:
+
+**30–35 s VISUAL GATE SAMPLE: REJECTED DUE TO OBJECT OCCLUSION.**
+
+This is **not** a DWPose failure. Do not use this interval as evidence for or against pose quality.
+
+## Clean-window candidate sampler — NEXT
 
 Versioned tools:
 
-- `tools/video-studio/render_pose_overlay.py`;
-- `tools/video-studio/run_behavior_pose_visual_gate.ps1`.
+- `tools/video-studio/sample_behavior_gate_candidates.py`;
+- `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`.
 
-The visual gate renders an MP4 overlay from the existing JSONL. It does **not** rerun DWPose and does not call Wan-Animate-2.
-
-Default input:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s.jsonl`
+They do not run DWPose or Wan. They inspect the source only and build a contact sheet with 8 candidate 5-second windows. Each candidate row shows start/middle/end so object occlusion and framing can be rejected before spending inference time.
 
 Default output:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s_overlay.mp4`
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\gate_candidates\candidate_contact_sheet.jpg`
 
-Human gate for this step:
+After a clean candidate is selected:
 
-- torso/arms follow the correct anatomy;
-- left/right hands remain attached to the correct wrists;
-- fingers/hand landmarks are plausible enough for behavioral descriptors;
-- face landmarks remain on the face;
-- no obvious frame-to-frame jumps, mirrored swaps or tracking of background objects.
+1. rerun a 5 s CPU DWPose smoke on that interval;
+2. render its pose overlay;
+3. inspect torso/arms, wrists/hands/fingers, face, left/right consistency and temporal jumps;
+4. only a visual PASS authorizes the full 300 s pose extraction.
 
-Only after this visual gate passes is the full 6 fps pose extraction authorized.
-
-## Behavior-profile implementation — ACTIVE
+## Behavior-profile tooling — ACTIVE
 
 - `behavior_profile_schema_v1.json` — schema `behavior-profile/v1`;
 - `extract_behavior_profile.py` — motion/prosody segmentation and profile builder;
 - `extract_dwpose_track.py` — normalized COCO WholeBody 133 extractor;
 - `render_pose_overlay.py` — visual QA overlay;
-- `run_behavior_pose_visual_gate.ps1` — visual gate runner.
+- `run_behavior_pose_visual_gate.ps1` — overlay runner;
+- `sample_behavior_gate_candidates.py` — clean interval sampler;
+- `run_behavior_gate_candidate_sampler.ps1` — sampler runner.
 
 A pose-less run remains `status=incomplete_pose` and never passes the production gate.
 
@@ -192,15 +180,6 @@ Only if real space pressure appears, first retired cleanup candidate remains:
 
 Do not delete it reflexively; the active route currently needs no large download.
 
-## Historical renderer evidence
-
-- Wan2.2-S2V 20-step: visual identity pass/near-pass, behavioral identity not tested, production fail for current objective;
-- H3: functional pass, production visual/behavior fail;
-- Hunyuan Avatar local 720p: functional runtime but severe offload/practicality fail;
-- HeyGen/Avatar V: retired because hosted service violates project policy.
-
-Do not reopen these branches without new technical evidence.
-
 ## Quality gate — LOCKED
 
 > this does not merely look like João; it moves and reacts like João.
@@ -208,12 +187,14 @@ Do not reopen these branches without new technical evidence.
 ## Immediate next action
 
 1. pull `main`;
-2. run `tools/video-studio/run_behavior_pose_visual_gate.ps1`;
-3. open `pose_smoke_5s_overlay.mp4` and inspect body, hands, face and temporal stability;
-4. if visual gate PASS, generate the full primary-source pose track at 6 fps;
-5. feed the full track to `extract_behavior_profile.py` and require `status=complete`;
-6. inspect `manifest.json` + `motion_units.csv`;
-7. compose a new 4–5 s performance from multiple motion units;
-8. only then invoke installed Wan-Animate-2.
+2. run `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`;
+3. upload `candidate_contact_sheet.jpg`;
+4. select a clean 5-second interval with free/visible hands and unobstructed torso;
+5. rerun CPU pose smoke only on that interval;
+6. render and inspect the new pose overlay;
+7. only after visual PASS, generate the full 6 fps primary-source pose track;
+8. build `status=complete` behavior profile and inspect `manifest.json` + `motion_units.csv`;
+9. compose a new 4–5 s performance from multiple motion units;
+10. only then invoke installed Wan-Animate-2.
 
 Do not install/download another renderer, pose stack, lip-sync package, Python or CUDA dependency at this stage.
