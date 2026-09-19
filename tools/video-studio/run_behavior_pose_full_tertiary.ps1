@@ -1,6 +1,7 @@
 param(
     [double]$Fps = 6.0,
     [int]$LongSide = 960,
+    [int]$ProgressEvery = 10,
     [string]$Provider = 'cpu',
     [string]$WanGpRoot = 'Z:\AI\WanGP',
     [string]$Source = 'Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4'
@@ -32,6 +33,7 @@ Write-Host ('Source: ' + $Source)
 Write-Host ('FPS: ' + $Fps)
 Write-Host ('Long side: ' + $LongSide)
 Write-Host ('Provider: ' + $Provider)
+Write-Host ('Progress heartbeat: every ' + $ProgressEvery + ' frames')
 Write-Host ('Track: ' + $Track)
 Write-Host ''
 Write-Host 'This runs DWPose only. It does not run Wan-Animate-2.'
@@ -46,7 +48,8 @@ $Args = @(
     '--output', $Track,
     '--fps', $Fps,
     '--long-side', $LongSide,
-    '--provider', $Provider
+    '--provider', $Provider,
+    '--progress-every', $ProgressEvery
 )
 
 $Saved = $ErrorActionPreference
