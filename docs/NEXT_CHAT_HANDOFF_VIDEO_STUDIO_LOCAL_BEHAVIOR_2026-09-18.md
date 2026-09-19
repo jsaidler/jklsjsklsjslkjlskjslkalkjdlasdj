@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY INVENTORY REVIEW PASS WITH CURATION / PRIMARY CURATION NEXT**
+Status: **PRIMARY SOURCE CURATED PASS / SECONDARY GATE CANDIDATE SELECTION NEXT**
 
 Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the source of truth.
 
@@ -11,9 +11,8 @@ Read first:
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
-5. `tools/video-studio/behavior_source_annotations_primary.json`;
-6. `tools/video-studio/curate_behavior_inventory.py`;
-7. `tools/video-studio/run_behavior_primary_curation.ps1`.
+5. `tools/video-studio/run_behavior_secondary_gate_candidates.ps1`;
+6. `tools/video-studio/sample_behavior_gate_candidates.py`.
 
 ## Hard constraints
 
@@ -32,15 +31,17 @@ New text/audio must yield a new performance that looks, sounds and chiefly **mov
 
 ## Multi-source requirement — LOCKED
 
-Final behavior library must use all canonical sources, not only the first:
+Final behavior library must use all canonical sources:
 
-- `VID_20260911_140124885.mp4` — primary torso/hands/posture/gesture;
+- `VID_20260911_140124885.mp4` — torso/hands/posture/gesture primary;
 - `VID_20260819_124008056.mp4` — head/face/microexpression;
 - `SIENA_BRUTO.mp4` — additional gesture/posture with exclusions.
 
-## Primary pipeline — PASS
+## Primary source — CURATED PASS
 
-Primary corrected pose path:
+Primary corrected pose/profile path passed.
+
+Full pose:
 
 ```text
 540x960 @ 6 fps
@@ -50,7 +51,7 @@ mean keypoint score 0.7549247491487903
 CPUExecutionProvider
 ```
 
-Primary behavior profile:
+Behavior profile:
 
 ```text
 status complete
@@ -60,77 +61,70 @@ status complete
 all 123 units have head/body/left-hand/right-hand activity
 ```
 
-## Primary inventory review — PASS WITH CURATION
+Inventory review established strong overall upper-body coverage and continuous group-quality weighting rather than binary rejection by relative coverage.
 
-Inventory artifacts were uploaded and inspected.
+Manual hard exclusion:
 
-Distribution:
+**24.1–37.5 s = `u0012`–`u0016`** due held-object/prop interaction and hand occlusion.
 
-```text
-upper-pose coverage q10: 0.9352380952
-median: 1.0
-q90: 1.0
-hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
-body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
-```
-
-Important interpretation:
-
-- `low_relative_pose_coverage` is a diagnostic tag, **not** an automatic reject condition;
-- `u0038` is tagged low-relative-coverage but belongs to the already visually passed C3 interval, proving that vigorous/edge-of-frame gestures can legitimately reduce one-hand coverage;
-- group coverage is therefore retained as a continuous retrieval reliability signal.
-
-### Hard exclusion
-
-Manual visual evidence establishes one nonportable object/prop interaction interval:
-
-**24.1–37.5 s = `u0012`–`u0016`.**
-
-Reasons: held object, hand occlusion, prop-specific motion. These five units are excluded from generic João behavior retrieval.
-
-Canonical annotation:
-
-`tools/video-studio/behavior_source_annotations_primary.json`
-
-### Continuous quality weights
-
-Eligible units keep continuous weights based on confident-keypoint ratio × frame presence for head, body, left hand and right hand. No arbitrary new binary cutoff is introduced.
-
-Expected primary curation result:
+Primary curation completed:
 
 ```text
-123 total
-5 hard excluded
-118 eligible
+Units total: 123
+Eligible: 118
+Hard excluded: 5
+Manual exclusion: 24.1-37.5 s / held_object,hand_occlusion,prop_interaction
 ```
 
-## Next exact action
-
-Run:
-
-```powershell
-cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
-git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_primary_curation.ps1'
-```
-
-Outputs:
+Curated artifacts:
 
 ```text
 Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_inventory.json
 Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_motion_units.csv
 ```
 
-After confirming 118 eligible / 5 excluded, proceed to a short visual pose gate for `VID_20260819_124008056.mp4`; do not blindly launch its full extraction first.
+Classification: **PRIMARY SOURCE CURATED PASS**.
 
-## Downstream
+## Secondary source — NEXT
 
-1. curate primary inventory;
-2. validate/process second canonical source;
-3. validate/process `SIENA_BRUTO.mp4` with source-specific exclusions;
-4. build unified source-preserving library;
-5. synthesize a new 4–5 s multi-source behavioral driver;
-6. only then invoke installed Wan-Animate-2.
+Source:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260819_124008056.mp4`
+
+Role: **facial/head/microexpression source**.
+
+Do not launch full pose extraction yet.
+
+First select a clean 5-second candidate with visible face, useful head/expression variation, minimal occlusion and stable framing.
+
+Versioned sampler:
+
+`tools/video-studio/run_behavior_secondary_gate_candidates.ps1`
+
+Run:
+
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+git pull --ff-only origin main
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_gate_candidates.ps1'
+```
+
+Expected contact sheet:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\gate_candidates\candidate_contact_sheet.jpg`
+
+Upload that JPG. Choose the best face/head interval before running DWPose on only those 5 seconds.
+
+## After secondary visual gate selection
+
+1. run DWPose on the selected 5 seconds only;
+2. render/inspect the COCO WholeBody overlay, paying special attention to face/head landmarks and upper-body continuity;
+3. only if visual gate passes, run full 6 fps secondary pose extraction;
+4. build/inspect/curate its behavior profile;
+5. then process `SIENA_BRUTO.mp4` with source-specific exclusions;
+6. build unified multi-source João library;
+7. synthesize a new 4–5 s multi-source behavioral driver;
+8. only then invoke installed Wan-Animate-2.
 
 Final quality gate:
 
