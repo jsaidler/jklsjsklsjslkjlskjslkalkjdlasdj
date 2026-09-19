@@ -2,7 +2,8 @@
 
 Date: **2026-09-18**  
 Run timestamp: **2026-09-18 23:45:16**  
-Status: **PASS FOR INSTALLED WAN-ANIMATE-2 REUSE / POSE TOOLING GAP / BUILD BEHAVIOR PROFILE NEXT**
+Follow-up: **2026-09-19 strict tooling probe partially completed**  
+Status: **PASS FOR INSTALLED WAN-ANIMATE-2 REUSE / PYTHON 3.11 NOT RESOLVED / POSE SEARCH MUST BE RERUN**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Technical route: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`  
@@ -44,17 +45,26 @@ The preflight therefore closes the question of whether another large renderer mu
 - Z: free space: **22.32 GB**.
 - Z: used space: **424.80 GB**.
 
-### Python resolution warning
+### Python resolution warning — SUPERSEDED BY STRICT FOLLOW-UP
 
-The preflight printed:
+The original preflight printed:
 
 ```text
 Python 3.11: PASS / C:\Python314\python.exe / 3.14.3
 ```
 
-This is internally inconsistent: the label says Python 3.11 while the resolved executable/version is Python **3.14.3**. Do **not** silently treat Python 3.11 as validated. Before adding Python-dependent pose/prosody tooling, resolve the intended interpreter explicitly and record the result.
+That line was internally inconsistent and is no longer authoritative.
 
-This is a tooling-resolution warning, not a blocker for the already-installed ComfyUI/Wan payload itself.
+The strict follow-up inspector on 2026-09-19 reached:
+
+```text
+py launcher: c:\windows\py.exe
+py -3.11: NOT RESOLVED
+```
+
+Therefore **Python 3.11 is not currently registered/resolvable through the Windows launcher**. Do not install or reinstall Python from this fact alone. The corrected inspector still needs to inventory Python executables bundled in existing local AI runtimes before an interpreter is selected for pose tooling.
+
+The first strict-inspector run then hit a Windows PowerShell 5.1 collection-binder defect (`Argument types do not match`) before completing the targeted pose scan. That was a script defect, not evidence that pose tooling is absent. `inspect_local_behavior_tooling.ps1` was corrected at commit `c5f6000bc8caf0f3739e1323f7b870abe93c9315` to use `.ToArray()` for generic lists and to capture legacy launcher inventory without treating stderr as fatal.
 
 ## Behavioral source library — PASS
 
@@ -84,13 +94,15 @@ Large transformer SHA-256 verification was intentionally skipped. Use `-VerifyLa
 
 Neither absence invalidates the installed Animate-2 model/code pass.
 
-## Pose / behavior tooling — GAP
+## Pose / behavior tooling — GAP NOT YET GLOBALLY RESOLVED
 
-No DWPose whole-body model was found **under the Wan root**.
+No DWPose whole-body model was found **under the Wan root** by the original preflight.
 
-Important scope limitation: this preflight did not perform an expensive full `Z:\AI` crawl for pose models. Therefore the correct next action is to check likely existing local roots before downloading anything.
+Important scope limitation: this did not perform an expensive full `Z:\AI` crawl for pose models. The first strict targeted scan aborted because of the now-fixed PowerShell list-return bug. Therefore **pose tooling is still unresolved globally**.
 
-If no reusable whole-body pose model exists anywhere locally, a DWPose-L-class component is a small dependency on the order of **~350 MB**, not a new renderer. It may be considered later only after exact file, source, license, destination and disk impact are enumerated.
+The correct next action is to rerun the corrected `tools/video-studio/inspect_local_behavior_tooling.ps1`. Only if that bounded search finds no reusable whole-body/hand pose tooling should a new small dependency be considered.
+
+If no reusable whole-body pose model exists anywhere locally, a DWPose-class component may be considered as a small support dependency, not as a renderer, only after exact file, official source, license, destination and disk impact are enumerated.
 
 Do not download it merely because the Wan-root scan was negative.
 
@@ -138,15 +150,16 @@ The next development task is **not renderer selection**. Renderer reuse has pass
 
 ## Immediate next action — LOCKED
 
-Build the first **behavior-profile / motion-unit extractor** in `tools/video-studio/`.
+Continue the first **behavior-profile / motion-unit extractor** gate.
 
-Before implementation depends on pose inference:
+Current exact order:
 
-1. resolve the Python-version inconsistency explicitly;
-2. perform a targeted no-download search for reusable DWPose/whole-body pose weights/tooling in existing local AI roots;
-3. if absent, enumerate the smallest local pose dependency required, but do not download another large renderer;
-4. design the profile schema so every motion unit records source video, time range, RGB clip reference, start/end pose, head/hand/body activity, motion energy and speech/prosody features;
-5. use `VID_20260911_140124885.mp4` as the primary upper-body source first;
-6. keep `VID_20260819_124008056.mp4` for facial/microexpression evidence and `SIENA_BRUTO.mp4` as alternate gesture material with object-occluded spans excluded where needed.
+1. pull `main` and rerun corrected `tools/video-studio/inspect_local_behavior_tooling.ps1`;
+2. inventory bundled local Python interpreters and reusable whole-body/hand pose tooling;
+3. do not install Python 3.11 merely because `py -3.11` is unresolved;
+4. if a usable local pose stack exists, connect it to the normalized JSONL pose-track contract already accepted by `extract_behavior_profile.py`;
+5. only if no suitable pose tooling exists, enumerate the smallest required local dependency before downloading anything;
+6. run the extractor on `VID_20260911_140124885.mp4` with real pose data;
+7. inspect `manifest.json` and `motion_units.csv` before any Wan render.
 
-The next gate is a locally generated behavior profile and inspectable motion-unit inventory. Do not run another multi-hour diffusion benchmark before that profile exists.
+The next gate remains a locally generated behavior profile and inspectable motion-unit inventory. Do not run another multi-hour diffusion benchmark before that profile exists.
