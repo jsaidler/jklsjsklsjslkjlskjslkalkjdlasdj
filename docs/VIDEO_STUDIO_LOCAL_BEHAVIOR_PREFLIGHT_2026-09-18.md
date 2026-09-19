@@ -1,27 +1,19 @@
 # Local Video Studio — local behavior route preflight
 
 Date: **2026-09-18**  
-Run timestamp: **2026-09-18 23:45:16**  
-Follow-up: **2026-09-19 strict tooling probe partially completed**  
-Status: **PASS FOR INSTALLED WAN-ANIMATE-2 REUSE / PYTHON 3.11 NOT RESOLVED / POSE SEARCH MUST BE RERUN**
+Original run: **2026-09-18 23:45:16**  
+Strict tooling follow-up completed: **2026-09-19 00:40:53**  
+Status: **WAN-ANIMATE-2 REUSE PASS / LOCAL DWPOSE PAYLOAD REUSE PASS / WANGP DWPOSE RUNTIME PROBE NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Technical route: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`  
 Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 
-## Purpose
+## Original no-download preflight
 
-This preflight was intentionally **read-only** with respect to models and runtime. It performed no download, no installation, no deletion and no model mutation.
+The original preflight was read-only. It performed no download, installation, deletion or model mutation.
 
-Repository tool:
-
-`tools/video-studio/preflight_local_behavior_route.ps1`
-
-Local report:
-
-`D:\GOOGLE DRIVE\DEV\Roguelite\tools\video-studio\reports\local_behavior_route_preflight_20260918_234516.txt`
-
-## Result summary
+Result:
 
 ```text
 BEHAVIOR SOURCES: PASS
@@ -31,135 +23,131 @@ POSE TOOLING: NOT FOUND UNDER WAN ROOT
 NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
 ```
 
-The preflight therefore closes the question of whether another large renderer must be downloaded before continuing: **no**. The installed Wan-Animate-2 payload and native code are present and should be reused.
+That result proved only that DWPose was not under `Z:\AI\WanAnimate2`; it never proved global absence.
 
-## System snapshot
+System snapshot at that run:
 
-- OS context: Windows 11 project runtime.
-- GPU: **NVIDIA GeForce RTX 3060 12 GB**.
-- NVIDIA driver: **595.95**.
-- VRAM reported: **12288 MB total / 11579 MB free** at preflight time.
-- `ffmpeg`: present.
-- `ffprobe`: present.
-- `nvidia-smi`: present.
-- Z: free space: **22.32 GB**.
-- Z: used space: **424.80 GB**.
+- Windows 11;
+- RTX 3060 12 GB;
+- NVIDIA driver 595.95;
+- ffmpeg/ffprobe/nvidia-smi present;
+- Z: free **22.32 GB**;
+- Z: used **424.80 GB**.
 
-### Python resolution warning — SUPERSEDED BY STRICT FOLLOW-UP
+## Behavioral sources — PASS
 
-The original preflight printed:
+- `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 + audio;
+- `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080 H.264 + audio;
+- `VID_20260911_140124885.mp4` — 300.4 s, 3840x2160 HEVC + audio.
+
+Primary behavior-profile source:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
+
+## Wan-Animate-2 reuse — PASS
+
+Present locally:
+
+- `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — 30.538 GiB;
+- `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — 10.586 GiB;
+- `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — 0.236 GiB;
+- `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
+
+No new large renderer is justified.
+
+## Python resolution — CORRECTED
+
+The original preflight incorrectly emitted:
 
 ```text
 Python 3.11: PASS / C:\Python314\python.exe / 3.14.3
 ```
 
-That line was internally inconsistent and is no longer authoritative.
-
-The strict follow-up inspector on 2026-09-19 reached:
+The strict follow-up established:
 
 ```text
 py launcher: c:\windows\py.exe
 py -3.11: NOT RESOLVED
 ```
 
-Therefore **Python 3.11 is not currently registered/resolvable through the Windows launcher**. Do not install or reinstall Python from this fact alone. The corrected inspector still needs to inventory Python executables bundled in existing local AI runtimes before an interpreter is selected for pose tooling.
+The Windows launcher currently registers Python 3.7 and `C:\Python314\python.exe`; it does not register Python 3.11.
 
-The first strict-inspector run then hit a Windows PowerShell 5.1 collection-binder defect (`Argument types do not match`) before completing the targeted pose scan. That was a script defect, not evidence that pose tooling is absent. `inspect_local_behavior_tooling.ps1` was corrected at commit `c5f6000bc8caf0f3739e1323f7b870abe93c9315` to use `.ToArray()` for generic lists and to capture legacy launcher inventory without treating stderr as fatal.
+This does **not** justify installing another Python. The project already has historical evidence of an isolated WanGP runtime at:
 
-## Behavioral source library — PASS
+`Z:\AI\WanGP\env_uv\Scripts\python.exe`
 
-All three protected originals are present and readable with audio:
+That environment was previously validated as Python 3.11.14 with Torch 2.10.0+cu130 / CUDA 13.0 during the Hunyuan branch. Existing project runners already use that exact interpreter path.
 
-- `SIENA_BRUTO.mp4` — **113.3 s**, **1080x1920**, H.264, audio present;
-- `VID_20260819_124008056.mp4` — **282.6 s**, **1920x1080**, H.264, audio present;
-- `VID_20260911_140124885.mp4` — **300.4 s**, **3840x2160**, HEVC, audio present.
+Therefore the next action is to validate/reuse that isolated environment, not reinstall Python.
 
-The generic full-duration 1080p local derivative is also present at about **1.48 GB**. Its HeyGen-oriented filename is historical only; it remains a local file and no external upload is authorized.
+## Pose tooling targeted search — REUSE PASS
 
-## Wan-Animate-2 reuse audit — PASS
+The corrected bounded inspector completed on 2026-09-19 00:40:53 and found:
 
-Installed components:
+```text
+DIR  Z:\AI\WanGP\preprocessing\dwpose
+FILE Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx  ~128.2 MB
+FILE Z:\AI\WanGP\ckpts\pose\yolox_l.onnx          ~206.7 MB
+POSE TOOLING RESULT: REUSE CANDIDATES FOUND = 3
+```
 
-- transformer: `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — **30.538 GiB**;
-- UMT5 text encoder: `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — **10.586 GiB**;
-- VAE: `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — **0.236 GiB**;
-- native Animate-2 code: `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
+Classification:
 
-Large transformer SHA-256 verification was intentionally skipped. Use `-VerifyLargeSha` only if integrity verification becomes necessary; do not hash 30.5 GiB as routine work.
+**LOCAL DWPOSE PAYLOAD REUSE: PASS.**
 
-### Native/custom-node state
+No DWPose download is required. Do not download DWPose-L, ControlNet Aux or another pose package for this gate.
 
-- `comfyui_controlnet_aux`: not found under Wan root;
-- KJNodes: not found under Wan root.
+The WanGP implementation uses the existing YOLOX person detector plus DWPose whole-body ONNX model. The behavior adapter will consume original COCO WholeBody 133 coordinates before WanGP's display-oriented remapping.
 
-Neither absence invalidates the installed Animate-2 model/code pass.
+## Runtime validation still required
 
-## Pose / behavior tooling — GAP NOT YET GLOBALLY RESOLVED
+Payload presence is not equivalent to runtime validation. The project now has:
 
-No DWPose whole-body model was found **under the Wan root** by the original preflight.
+`tools/video-studio/probe_wangp_dwpose_runtime.ps1`
 
-Important scope limitation: this did not perform an expensive full `Z:\AI` crawl for pose models. The first strict targeted scan aborted because of the now-fixed PowerShell list-return bug. Therefore **pose tooling is still unresolved globally**.
+This probe is local/read-only with respect to installed tooling. It checks:
 
-The correct next action is to rerun the corrected `tools/video-studio/inspect_local_behavior_tooling.ps1`. Only if that bounded search finds no reusable whole-body/hand pose tooling should a new small dependency be considered.
+- `Z:\AI\WanGP\env_uv\Scripts\python.exe` exists and runs;
+- `cv2`, NumPy and ONNX Runtime import successfully;
+- available ONNX providers;
+- both existing ONNX sessions can be created;
+- one actual frame from the primary source produces person detection and a 133-keypoint whole-body result.
 
-If no reusable whole-body pose model exists anywhere locally, a DWPose-class component may be considered as a small support dependency, not as a renderer, only after exact file, official source, license, destination and disk impact are enumerated.
+It performs no download, installation or model mutation.
 
-Do not download it merely because the Wan-root scan was negative.
+If that passes, the next step is the short pose-only runner:
+
+`tools/video-studio/run_behavior_pose_smoke.ps1`
+
+Only after that smoke is credible should the full pose track be generated.
 
 ## Deferred components — unchanged
 
-- Motion Mirror: not installed; expected fallback only.
-- MuseTalk: not installed; lip-sync remains deferred.
-- LatentSync: not installed; lip-sync remains deferred.
-
-Do not install these before the body/head behavioral gate.
+- Motion Mirror: fallback only;
+- MuseTalk: deferred;
+- LatentSync: deferred;
+- final TTS/voice-clone integration: deferred.
 
 ## Reclaimable retired payload
 
-The retired Hunyuan transformer is still present:
+Still present and not part of the active route:
 
-`Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors`
+`Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — 12.486 GiB.
 
-Size: **12.486 GiB**.
+Do not delete it reflexively. The active behavior-profile route currently requires no large download.
 
-It is not part of the active route. With only **22.32 GB** free on Z:, this is the first obvious reclaimable large payload if later storage pressure requires cleanup. The preflight did not delete it.
-
-## Canonical interpretation
-
-The active route is now:
+## Current exact gate
 
 ```text
-three João behavioral videos
-        |
-        +--> build local behavior profile / motion-unit library
-        |      +-- pose descriptors
-        |      +-- prosody descriptors
-        |      +-- source RGB clip references
-        |
-new local speech audio
-        |
-        +--> retrieve/sequence João motion units
-        +--> synthesize new João driving performance
-        |
-installed Wan-Animate-2
-        |
-local lip-sync later, only if needed
+existing WanGP Python + existing YOLOX/DWPose
+    -> one-frame runtime probe
+    -> 5 s pose smoke
+    -> full 6 fps normalized COCO WholeBody 133 pose track
+    -> extract_behavior_profile.py
+    -> status=complete manifest + motion_units.csv
+    -> human/technical inspection
+    -> new 4–5 s multi-unit behavioral driver
+    -> installed Wan-Animate-2
 ```
 
-The next development task is **not renderer selection**. Renderer reuse has passed.
-
-## Immediate next action — LOCKED
-
-Continue the first **behavior-profile / motion-unit extractor** gate.
-
-Current exact order:
-
-1. pull `main` and rerun corrected `tools/video-studio/inspect_local_behavior_tooling.ps1`;
-2. inventory bundled local Python interpreters and reusable whole-body/hand pose tooling;
-3. do not install Python 3.11 merely because `py -3.11` is unresolved;
-4. if a usable local pose stack exists, connect it to the normalized JSONL pose-track contract already accepted by `extract_behavior_profile.py`;
-5. only if no suitable pose tooling exists, enumerate the smallest required local dependency before downloading anything;
-6. run the extractor on `VID_20260911_140124885.mp4` with real pose data;
-7. inspect `manifest.json` and `motion_units.csv` before any Wan render.
-
-The next gate remains a locally generated behavior profile and inspectable motion-unit inventory. Do not run another multi-hour diffusion benchmark before that profile exists.
+Do not run Wan-Animate-2 before the complete profile is inspected. Do not install/download another pose/runtime stack unless new evidence shows the existing WanGP stack cannot be reused.
