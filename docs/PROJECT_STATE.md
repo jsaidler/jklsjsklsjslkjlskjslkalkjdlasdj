@@ -49,7 +49,7 @@ A single source video is not the final library.
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
 - `VID_20260911_140124885.mp4` — 300.352 s — primary torso/hands/posture/gesture source;
-- `VID_20260819_124008056.mp4` — 282.6 s — facial/head/microexpression source;
+- `VID_20260819_124008056.mp4` — 282.574 s — facial/head/microexpression source;
 - `SIENA_BRUTO.mp4` — 113.3 s — additional gesture/posture source with object/occlusion exclusions.
 
 ## Local pose stack — PASS
@@ -111,7 +111,37 @@ Observed facial result:
 
 The large white whole-body/hand skeleton lines crossing the face are QA-overlay clutter from partially off-frame body/hand points. They do **not** invalidate the facial landmarks themselves.
 
-Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS**.
+### Secondary gate geometry — CONFIRMED CORRECT
+
+The second source has the **same encoded-landscape + rotation-metadata condition** as the primary source, but the orientation fix is active and correct.
+
+Observed gate summary:
+
+```text
+source_duration_s: 282.574
+coded_width: 1920
+coded_height: 1080
+display_width: 1080
+display_height: 1920
+rotation_degrees: 90
+analysis_width: 540
+analysis_height: 960
+frames: 30
+sample_fps: 6.0
+detector_fallback_frames: 0
+detector_fallback_ratio: 0.0
+mean_keypoint_score: 0.5554170230711649
+onnx_provider: CPUExecutionProvider
+```
+
+Interpretation:
+
+- no portrait-to-landscape squashing is present;
+- the old 960x540 deformation bug is not active;
+- the lower global mean keypoint score versus the primary source does not invalidate this source because the intended role is face/head, the visual facial gate passed, and partially off-frame hands/body depress the whole-body average;
+- geometry is safe for a full secondary pose pass.
+
+Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS / ORIENTATION CONFIRMED**.
 
 ## Important profile-design finding — FACIAL DESCRIPTORS REQUIRED
 
