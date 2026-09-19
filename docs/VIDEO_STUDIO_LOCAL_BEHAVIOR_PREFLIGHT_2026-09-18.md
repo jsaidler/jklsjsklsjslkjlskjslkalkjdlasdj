@@ -2,7 +2,7 @@
 
 Date: **2026-09-18**  
 Strict follow-up/current state: **2026-09-19**  
-Status: **WAN-ANIMATE-2 REUSE PASS / LOCAL DWPOSE REUSE PASS / CORRECTED C3 VISUAL POSE GATE PASS / FULL PRIMARY POSE EXTRACTION NEXT**
+Status: **WAN-ANIMATE-2 REUSE PASS / LOCAL DWPOSE REUSE PASS / CORRECTED C3 VISUAL PASS / FULL PRIMARY POSE PASS / PRIMARY PROFILE NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Technical route: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`  
@@ -12,21 +12,25 @@ Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 
 Fully local/self-hosted and zero-service-cost. João identity media stays local. No new large renderer, DWPose package, Python environment or CUDA repair is justified at this gate.
 
-## Behavioral sources — PASS
+## Behavioral sources
 
-Primary source:
+Primary source currently validated end-to-end through pose:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
 
 - duration: 300.352 s;
 - coded geometry: 3840x2160;
-- portrait display orientation comes from stream rotation metadata.
+- display geometry: 2160x3840;
+- rotation: 90°.
 
-Other canonical sources remain available for later facial/alternate behavior enrichment.
+Final behavior library remains multi-source and must later include:
+
+- `VID_20260819_124008056.mp4`;
+- `SIENA_BRUTO.mp4` with quality exclusions.
 
 ## Wan-Animate-2 reuse — PASS
 
-Installed locally and reserved for after behavior-profile validation. No new renderer is justified.
+Installed locally and reserved for after behavior-profile/library validation. No new renderer is justified.
 
 ## WanGP / DWPose reuse — PASS
 
@@ -43,66 +47,70 @@ No alternate pose stack download is required.
 
 ## Runtime probe — FUNCTIONAL PASS
 
-Detector + whole-body inference returned `coco_wholebody_133` on a real source frame with no detector fallback.
+Detector + whole-body inference returned `coco_wholebody_133` on a real source frame.
 
-CUDA ONNX Runtime remains **not validated** because provider loading reported missing `cublasLt64_13.dll` / CUDA-cuDNN dependencies. CPU is the validated path. Do not install CUDA dependencies yet.
+CUDA ONNX Runtime remains **not validated** because provider loading reported missing `cublasLt64_13.dll` / CUDA-cuDNN dependencies. CPU is the validated path.
 
-## Preprocessing defect discovered and fixed
+## Orientation preprocessing — FIXED
 
-Early pose runs used coded 3840x2160 dimensions to choose analysis geometry while FFmpeg autorotated the video to portrait. That distorted the displayed portrait frame into 960x540 before DWPose.
+Pose extraction now derives geometry from display dimensions rather than coded dimensions. Correct primary DWPose analysis: **540x960**.
 
-`extract_dwpose_track.py` now reads rotation metadata, separates coded and display dimensions, and computes the analysis size from display geometry. The primary source now analyzes at portrait geometry (approximately 540x960 for long side 960).
+Behavior-profile motion energy was also corrected to preserve display aspect ratio. Primary portrait motion analysis will use **72x128** at 128 px long side instead of the old distorted 128x72.
 
-Classification: **display-orientation preprocessing FIXED**.
+## Corrected visual validation — PASS
 
-## Visual validation — PASS after correction
+Canonical clean interval: **C3 = 88.7–93.7 s**.
 
-The first 30–35 s sample was rejected because a held object occluded hands/torso. A clean interval was then selected:
+After orientation correction:
 
-**C3 = 88.7–93.7 s.**
-
-After the orientation correction, the uploaded 30-frame / 6 fps / 540x960 C3 overlay was inspected.
-
-Profile-relevant upper-body result:
-
-- face/head alignment stable;
+- face/head stable;
 - shoulders/elbows/wrists/hips aligned;
-- both moving hands followed plausibly;
+- both hands track active gestures;
 - no subject switch;
 - no gross left/right swap;
-- no upper-body temporal jump that invalidates behavior descriptors.
+- no invalidating upper-body temporal jump.
 
-The QA overlay used a display threshold of 0.05 and therefore shows distracting low-confidence/off-frame lower-body and foot lines. `extract_behavior_profile.py` uses `CONF = 0.20` and only behaviorally relevant upper-body groups for v1 activity:
+Behavior-profile v1 ignores pose points below confidence 0.20.
 
-- head 0–4;
-- body 5–12;
-- left hand 91–111;
-- right hand 112–132.
+## Full primary pose extraction — PASS
 
-Classification: **CORRECTED C3 UPPER-BODY VISUAL POSE GATE PASS**.
+Completed result:
 
-## Full extraction — NEXT
+```text
+frames: 1801
+last_timestamp_s: 300.0
+sample_fps: 6.0
+analysis: 540x960
+detector_fallback_frames: 0
+detector_fallback_ratio: 0.0
+mean_keypoint_score: 0.7549247491487903
+provider: CPUExecutionProvider
+```
+
+Combined with the clean visual gate, this authorizes primary behavior-profile construction.
+
+## Primary behavior profile — NEXT
 
 Versioned runner:
 
-`tools/video-studio/run_behavior_pose_full.ps1`
+`tools/video-studio/run_behavior_profile_primary.ps1`
 
-It runs only DWPose on the full primary source using:
+It builds:
 
-- 6 fps;
-- long side 960;
-- portrait-aware analysis geometry;
-- CPU provider;
-- output `pose_coco133.jsonl` + `.summary.json` in the primary profile directory.
+- `manifest.json`;
+- `motion_units.csv`;
+- `profile_inspection.json`.
 
-Review full-track summary before building the behavior profile.
+`inspect_behavior_profile.py` checks structural completeness, continuous source coverage, CSV/manifest unit agreement, valid 133-point pose snapshots and availability of head/body/hand activity.
+
+Required status: **`complete`**.
 
 ## Deferred components
 
 - CUDA ONNX repair: deferred unless CPU becomes a real blocker;
 - MuseTalk / LatentSync: deferred;
 - final TTS / voice clone: deferred;
-- Wan-Animate-2: blocked until complete behavior profile is inspected.
+- Wan-Animate-2: blocked until multi-source behavior inventory/synthesis is validated.
 
 ## Current exact gate
 
@@ -110,10 +118,12 @@ Review full-track summary before building the behavior profile.
 local WanGP + DWPose reuse PASS
     -> runtime PASS
     -> orientation fix PASS
-    -> corrected C3 upper-body visual pose gate PASS
-    -> FULL 6 fps primary pose track NEXT
-    -> behavior profile status=complete
-    -> motion-unit quality/occlusion filtering
+    -> corrected C3 visual pose gate PASS
+    -> full primary pose track PASS
+    -> PRIMARY behavior profile status=complete NEXT
+    -> quality/occlusion annotation
+    -> process remaining two behavior sources
+    -> unified multi-source João motion library
     -> new multi-unit behavioral driver
     -> installed Wan-Animate-2
 ```
