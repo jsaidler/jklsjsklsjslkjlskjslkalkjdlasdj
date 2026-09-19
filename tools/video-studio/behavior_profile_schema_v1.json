@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local-video-studio.invalid/schemas/behavior-profile-v1.json",
+  "title": "Local Video Studio behavior profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "subject_id", "generated_at_utc", "status", "source", "analysis", "motion_units"],
+  "properties": {
+    "schema_version": {"const": "behavior-profile/v1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "subject_id": {"type": "string", "minLength": 1},
+    "generated_at_utc": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["complete", "incomplete_pose"]},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "file", "duration_s", "width", "height", "video_codec", "has_audio"],
+      "properties": {
+        "path": {"type": "string"},
+        "file": {"type": "string"},
+        "duration_s": {"type": "number", "exclusiveMinimum": 0},
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "video_codec": {"type": "string"},
+        "has_audio": {"type": "boolean"}
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["motion_backend", "prosody_backend", "pose_backend", "motion_sample_fps", "audio_window_ms", "cut_policy"],
+      "properties": {
+        "motion_backend": {"type": "string"},
+        "prosody_backend": {"type": "string"},
+        "pose_backend": {"type": ["string", "null"]},
+        "motion_sample_fps": {"type": "number", "exclusiveMinimum": 0},
+        "audio_window_ms": {"type": "integer", "minimum": 10},
+        "cut_policy": {"type": "object"}
+      }
+    },
+    "motion_units": {"type": "array", "items": {"$ref": "#/$defs/motionUnit"}}
+  },
+  "$defs": {
+    "poseSnapshot": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["schema", "timestamp_s", "keypoints"],
+      "properties": {
+        "schema": {"type": "string"},
+        "timestamp_s": {"type": "number", "minimum": 0},
+        "keypoints": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {"type": ["number", "null"]},
+              {"type": ["number", "null"]},
+              {"type": ["number", "null"]}
+            ]
+          }
+        }
+      }
+    },
+    "activity": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["mean_speed_norm_s", "peak_speed_norm_s", "net_displacement_norm"],
+      "properties": {
+        "mean_speed_norm_s": {"type": "number", "minimum": 0},
+        "peak_speed_norm_s": {"type": "number", "minimum": 0},
+        "net_displacement_norm": {"type": "number", "minimum": 0}
+      }
+    },
+    "motionUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source_file", "start_s", "end_s", "duration_s", "rgb_span", "pose_start", "pose_end", "head_motion", "hand_activity", "body_activity", "motion_energy", "speech", "prosody", "transition"],
+      "properties": {
+        "id": {"type": "string"},
+        "source_file": {"type": "string"},
+        "start_s": {"type": "number", "minimum": 0},
+        "end_s": {"type": "number", "exclusiveMinimum": 0},
+        "duration_s": {"type": "number", "exclusiveMinimum": 0},
+        "rgb_span": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_path", "start_s", "end_s"],
+          "properties": {
+            "source_path": {"type": "string"},
+            "start_s": {"type": "number", "minimum": 0},
+            "end_s": {"type": "number", "exclusiveMinimum": 0}
+          }
+        },
+        "pose_start": {"$ref": "#/$defs/poseSnapshot"},
+        "pose_end": {"$ref": "#/$defs/poseSnapshot"},
+        "head_motion": {"$ref": "#/$defs/activity"},
+        "hand_activity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "right", "combined"],
+          "properties": {
+            "left": {"$ref": "#/$defs/activity"},
+            "right": {"$ref": "#/$defs/activity"},
+            "combined": {"$ref": "#/$defs/activity"}
+          }
+        },
+        "body_activity": {"$ref": "#/$defs/activity"},
+        "motion_energy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mean", "peak", "entry", "exit"],
+          "properties": {
+            "mean": {"type": "number", "minimum": 0},
+            "peak": {"type": "number", "minimum": 0},
+            "entry": {"type": "number", "minimum": 0},
+            "exit": {"type": "number", "minimum": 0}
+          }
+        },
+        "speech": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["class", "speech_ratio", "pause_before_s", "pause_after_s"],
+          "properties": {
+            "class": {"enum": ["speech", "mixed", "pause"]},
+            "speech_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+            "pause_before_s": {"type": "number", "minimum": 0},
+            "pause_after_s": {"type": "number", "minimum": 0}
+          }
+        },
+        "prosody": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rms_db_mean", "rms_db_peak", "energy_norm_mean", "pitch_hz_mean"],
+          "properties": {
+            "rms_db_mean": {"type": ["number", "null"]},
+            "rms_db_peak": {"type": ["number", "null"]},
+            "energy_norm_mean": {"type": "number", "minimum": 0, "maximum": 1},
+            "pitch_hz_mean": {"type": ["number", "null"]}
+          }
+        },
+        "transition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entry_score", "exit_score", "boundary_reason"],
+          "properties": {
+            "entry_score": {"type": "number", "minimum": 0, "maximum": 1},
+            "exit_score": {"type": "number", "minimum": 0, "maximum": 1},
+            "boundary_reason": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}
