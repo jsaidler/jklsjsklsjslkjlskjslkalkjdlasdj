@@ -1,9 +1,9 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY FULL POSE PASS / FACIAL PROBE COVERAGE PASS / FACIAL QUALITY AUDIT NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY FULL POSE PASS / FACIAL QA PASS / SECONDARY PROFILE+FACIAL SIDECAR NEXT**
 
-Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the source of truth.
+Continue the Local Video Studio in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the canonical source of truth.
 
 Read first:
 
@@ -11,10 +11,9 @@ Read first:
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
-5. `tools/video-studio/facial_descriptors.py`;
-6. `tools/video-studio/audit_facial_track_quality.py`;
-7. `tools/video-studio/render_facial_quality_review.py`;
-8. `tools/video-studio/run_behavior_secondary_facial_quality_audit.ps1`.
+5. `tools/video-studio/build_facial_behavior_sidecar.py`;
+6. `tools/video-studio/inspect_facial_behavior_sidecar.py`;
+7. `tools/video-studio/run_behavior_secondary_profile_and_facial_sidecar.ps1`.
 
 ## Hard constraints
 
@@ -42,18 +41,15 @@ New text/audio must yield a new performance that looks, sounds and chiefly **mov
 
 ## Secondary source — FULL POSE PASS
 
-Source:
+`VID_20260819_124008056.mp4`
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260819_124008056.mp4`
+Role: head/face/microexpression.
 
-Role: face/head/microexpression.
-
-Validated C3 gate: **83.6–88.6 s**.
+Validated facial gate: C3 = **83.6–88.6 s**.
 
 Full pose:
 
 ```text
-source_duration_s: 282.574
 1695 frames @ 6 fps
 coded 1920x1080
 display 1080x1920
@@ -64,13 +60,9 @@ mean keypoint score 0.5453589803
 CPUExecutionProvider
 ```
 
-Classification: **SECONDARY FULL POSE TRACK PASS**.
+## Facial sidecar architecture — LOCKED
 
-## Facial representation — ADDITIVE SIDECAR
-
-Keep `behavior-profile/v1` unchanged.
-
-Use a separate aligned `facial-behavior-profile/v1` sidecar derived from face landmarks 23–90.
+Keep `behavior-profile/v1` unchanged. Add aligned `facial-behavior-profile/v1` using face landmarks 23–90.
 
 Normalization:
 
@@ -78,90 +70,79 @@ Normalization:
 - remove in-plane roll;
 - divide by inter-eye-center distance.
 
-Descriptor groups:
+Facial hard suspects are excluded only from the facial layer, never automatically from the underlying motion unit.
 
-- internal expression deformation;
-- brows;
-- eyes;
-- mouth;
-- mouth open/width;
-- eye open;
-- brow-eye distance;
-- face presence/confidence.
-
-## Facial probe result
-
-Full-track coverage is excellent:
+Continuous per-unit face weight:
 
 ```text
-1695 frames
-1677 normalized = 0.989381
-mean face-point presence = 0.988383
-mean landmark confidence = 0.910192
+face_quality_weight = accepted_frame_ratio * mean_face_point_presence * mean_landmark_confidence
 ```
 
-Validated C3 is coherent:
+## Facial quality audit — PASS
+
+Observed:
 
 ```text
-expression mean/peak = 0.122421 / 0.2463
-brows mean/peak = 0.085689 / 0.341491
-eyes mean/peak = 0.031661 / 0.040425
-mouth mean/peak = 0.169658 / 0.361598
-mouth_open range = 0.08113
-mouth_width range = 0.106278
-eye_open range = 0.01531
-brow_eye_distance range = 0.080742
+frames total: 1695
+normalized: 1677
+normalization failed: 18
+static hard suspects: 101
+temporal review suspects: 47
+accepted facial static geometry: 1576/1695 = 0.929794
 ```
 
-Full-track raw maxima contain pathological outliers:
+Filtered descriptor ranges:
 
 ```text
-expression peak 37.065123
-mouth peak 58.962267
-mouth_open range 1.62261
-eye_open range 4.18874
-brow_eye_distance range 3.146605
+expression mean/peak: 0.135848 / 0.712936
+mouth mean/peak: 0.188157 / 0.921541
+mouth_open mean/range: 0.023286 / 0.118971
+mouth_width mean/range: 0.886436 / 0.192813
+eye_open mean/range: 0.063497 / 0.038902
+brow_eye_distance mean/range: 0.162553 / 0.119461
 ```
 
-These are not plausible expression values. Do not reject the source: coverage/confidence are high and C3 passed visually. Instead quality-gate the small number of pathological frames before materializing facial units.
+The review JPG confirms that top hard suspects are predominantly face-off-frame / severe crop / lateral degenerate-normalization frames. The source remains valid.
 
-## Next exact action — facial quality audit
+Classification: **SECONDARY FACIAL FRAME QA PASS**.
+
+## Next exact action
 
 Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_facial_quality_audit.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_profile_and_facial_sidecar.ps1'
 ```
 
-Audit policy:
+This does **not** run DWPose and does not run Wan-Animate-2. It:
 
-- source-relative Tukey outer fences, 3×IQR;
-- normalization failures + static geometry outliers = hard suspects;
-- temporal expression jumps = review-only;
-- recompute filtered descriptor summary after hard suspects are removed;
-- render up to 24 suspect timestamps in one JPG.
+1. builds secondary `behavior-profile/v1` from the already existing pose track;
+2. structurally inspects it;
+3. builds aligned `facial-behavior-profile/v1` from accepted facial frames;
+4. inspects sidecar alignment and face-quality distributions.
 
 Expected outputs:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\facial_quality_audit.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\facial_quality_review_sheet.jpg
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\manifest.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\motion_units.csv
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\profile_inspection.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\facial_behavior_profile.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\facial_sidecar_inspection.json
 ```
 
-Paste the complete terminal output and upload the JPG.
+Paste the complete terminal output before any secondary curation.
 
-## After audit confirmation
+## After structural pass
 
-1. lock the facial frame-quality policy;
-2. build base secondary `behavior-profile/v1` using the full pose track;
-3. materialize aligned `facial-behavior-profile/v1` using only accepted facial frames plus reliability weights;
-4. inspect/curate secondary units with source role strongly favoring face/head;
-5. process `SIENA_BRUTO.mp4`;
-6. build unified source-preserving library;
-7. synthesize a new 4–5 s multi-source behavioral driver;
-8. only then invoke installed Wan-Animate-2.
+1. curate secondary units with strong source-role emphasis on face/head and continuous face quality;
+2. optionally derive facial sidecar for primary from existing 133-point track without rerunning DWPose;
+3. process `SIENA_BRUTO.mp4` with source-specific exclusions;
+4. build unified source-preserving library;
+5. synthesize a new 4–5 s multi-source behavioral driver;
+6. only then invoke installed Wan-Animate-2.
 
 Final quality gate:
 
