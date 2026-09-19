@@ -1,0 +1,29 @@
+{
+  "schema": "behavior-source-annotations/v1",
+  "source_file": "VID_20260819_124008056.mp4",
+  "source_role": "face_head_microexpression",
+  "manual_exclusions": [],
+  "retrieval_policy": {
+    "face": "enabled; use facial sidecar face_quality_weight; requires at least 2 accepted facial frames in the motion unit",
+    "head": "enabled; combine coarse head pose reliability with facial quality so off-frame/scenery/camera-pan spans do not masquerade as reusable head behavior",
+    "body_support": "enabled only as auxiliary anchoring; not a primary gesture source",
+    "left_hand": "disabled for retrieval from this source",
+    "right_hand": "disabled for retrieval from this source",
+    "both_hands": "disabled for retrieval from this source",
+    "generic_whole_upper": "disabled for retrieval from this source"
+  },
+  "quality_policy": {
+    "global_hard_exclusion": "manual semantic exclusions only; none confirmed at this stage",
+    "face_eligibility": "at least 2 accepted facial frames after facial-quality audit; this is a structural descriptor requirement, not an arbitrary confidence threshold",
+    "face_weight": "facial sidecar face_quality_weight",
+    "head_weight": "head_pose_quality * face_quality_weight",
+    "body_support_weight": "body_pose_quality * face_quality_weight",
+    "hands": "recorded diagnostically but retrieval weight forced to zero for this source role",
+    "facial_hard_suspects": "excluded from facial descriptors only; they do not hard-exclude the underlying base motion unit"
+  },
+  "notes": [
+    "This source is intentionally role-specific. Missing/off-frame hands are not a source failure.",
+    "Units with zero facial quality remain in the base behavior profile but are not eligible for face/head retrieval.",
+    "Camera/scenery spans are naturally suppressed for head retrieval because head weight is gated by facial quality."
+  ]
+}
