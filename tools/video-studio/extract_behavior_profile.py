@@ -18,10 +18,11 @@ from typing import Any, Sequence
 
 SOURCE = Path(r"Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4")
 OUT = Path(r"Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885")
-FPS, W, H = 6.0, 128, 72
+FPS, MOTION_LONG = 6.0, 128
 ARATE, A_MS = 16000, 50
 MIN_U, TARGET_U, MAX_U, STEP = .8, 2.2, 3.8, .1
 CONF = .20
+POSE_SCHEMA = "coco_wholebody_133"
 
 class Error(RuntimeError): pass
 
@@ -56,6 +57,16 @@ def norm(xs: Sequence[float]) -> list[float]:
 def exe_probe(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd,capture_output=True,text=True)
 
+def stream_rotation(v: dict[str,Any]) -> int:
+    rotation=None
+    for side in v.get("side_data_list") or []:
+        if "rotation" in side:
+            rotation=side.get("rotation"); break
+    if rotation is None: rotation=(v.get("tags") or {}).get("rotate")
+    try: value=int(round(float(rotation))) if rotation is not None else 0
+    except (TypeError,ValueError): value=0
+    return value % 360
+
 def probe(src: Path, ffprobe: str) -> dict[str,Any]:
     r = exe_probe([ffprobe,"-v","error","-show_streams","-show_format","-of","json",str(src)])
     if r.returncode: raise Error(r.stderr.strip())
@@ -63,8 +74,18 @@ def probe(src: Path, ffprobe: str) -> dict[str,Any]:
     aud=[s for s in j["streams"] if s.get("codec_type")=="audio"]
     if not vs: raise Error("No video stream.")
     v=vs[0]; d=j.get("format",{}).get("duration") or v.get("duration")
-    return {"path":str(src),"file":src.name,"duration_s":float(d),"width":int(v["width"]),
-            "height":int(v["height"]),"video_codec":str(v.get("codec_name","")),"has_audio":bool(aud)}
+    cw,ch=int(v["width"]),int(v["height"]); rot=stream_rotation(v)
+    dw,dh=(ch,cw) if rot in (90,270) else (cw,ch)
+    return {"path":str(src),"file":src.name,"duration_s":float(d),"width":dw,"height":dh,
+            "video_codec":str(v.get("codec_name","")),"has_audio":bool(aud),
+            "coded_width":cw,"coded_height":ch,"rotation_degrees":rot}
+
+def analysis_size(width: int, height: int, long_side: int) -> tuple[int,int]:
+    if width >= height:
+        w=long_side; h=max(2,int(round(height*long_side/width/2.0))*2)
+    else:
+        h=long_side; w=max(2,int(round(width*long_side/height/2.0))*2)
+    return w,h
 
 def readn(stream, n: int) -> bytes:
     chunks=[]; left=n
@@ -74,10 +95,10 @@ def readn(stream, n: int) -> bytes:
         chunks.append(b); left-=len(b)
     return b"".join(chunks)
 
-def motion(src: Path, ffmpeg: str) -> list[TV]:
-    fs=W*H
+def motion(src: Path, ffmpeg: str, w: int, h: int) -> list[TV]:
+    fs=w*h
     cmd=[ffmpeg,"-hide_banner","-loglevel","error","-i",str(src),"-an","-vf",
-         f"fps={FPS},scale={W}:{H}:flags=area,format=gray","-f","rawvideo","-pix_fmt","gray","pipe:1"]
+         f"fps={FPS},scale={w}:{h}:flags=area,format=gray","-f","rawvideo","-pix_fmt","gray","pipe:1"]
     p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE); assert p.stdout
     raw=[]; prev=None
     while True:
@@ -148,13 +169,17 @@ def boundaries(d: float, m: Sequence[TV], a: Sequence[TV], th: float) -> list[tu
 
 def load_pose(path: Path) -> list[PF]:
     out=[]
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
+    for line_no,line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(),1):
         if not line.strip(): continue
-        j=json.loads(line); pts=[]
-        for k in j["keypoints"]: pts.append(tuple(None if x is None else float(x) for x in k[:3]))
-        out.append(PF(float(j["t"]),str(j.get("schema") or "unknown"),tuple(pts)))
+        j=json.loads(line); schema=str(j.get("schema") or "unknown"); raw=j.get("keypoints")
+        if schema != POSE_SCHEMA: raise Error(f"Pose schema mismatch at line {line_no}: {schema}")
+        if not isinstance(raw,list) or len(raw)!=133: raise Error(f"Expected 133 keypoints at line {line_no}")
+        pts=[]
+        for k in raw: pts.append(tuple(None if x is None else float(x) for x in k[:3]))
+        out.append(PF(float(j["t"]),schema,tuple(pts)))
     if not out: raise Error(f"Empty pose track: {path}")
-    return sorted(out,key=lambda x:x.t)
+    out=sorted(out,key=lambda x:x.t)
+    return out
 
 def nearest_pose(fs: Sequence[PF], t: float) -> PF|None:
     return min(fs,key=lambda f:abs(f.t-t)) if fs else None
@@ -249,15 +274,22 @@ def main() -> int:
         raise Error("Pose track required for a complete profile; --allow-missing-pose is inspection-only.")
     meta=probe(src,ffprobe)
     if not meta["has_audio"]: raise Error("Canonical source must contain audio.")
-    print("motion...",flush=True); m=motion(src,ffmpeg)
+    mw,mh=analysis_size(meta["width"],meta["height"],MOTION_LONG)
+    print(f"motion... display={meta['width']}x{meta['height']} analysis={mw}x{mh} rotation={meta['rotation_degrees']}",flush=True)
+    m=motion(src,ffmpeg,mw,mh)
     print("prosody...",flush=True); a,adb=audio(src,ffmpeg)
     print("units...",flush=True); us=units(src,meta["duration_s"],m,a,adb,poses)
+    source_meta={k:meta[k] for k in ("path","file","duration_s","width","height","video_codec","has_audio")}
     profile={"schema_version":"behavior-profile/v1","profile_id":f"joao/{src.stem}","subject_id":"joao",
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),"status":"complete" if poses else "incomplete_pose",
-        "source":meta,"analysis":{"motion_backend":f"ffmpeg gray {W}x{H}@{FPS:g}fps + frame MAD",
+        "source":source_meta,"analysis":{"motion_backend":f"ffmpeg gray {mw}x{mh}@{FPS:g}fps + frame MAD",
         "prosody_backend":f"ffmpeg mono f32le {ARATE}Hz + {A_MS}ms RMS","pose_backend":pose_backend,
-        "motion_sample_fps":FPS,"audio_window_ms":A_MS,"speech_threshold":round(speech_threshold(a),6),
-        "pitch_available":False,"rms_db_note":"Windowed mono PCM dBFS; energy is normalized per source.",
+        "motion_sample_fps":FPS,"motion_analysis_width":mw,"motion_analysis_height":mh,
+        "coded_width":meta["coded_width"],"coded_height":meta["coded_height"],
+        "display_width":meta["width"],"display_height":meta["height"],"rotation_degrees":meta["rotation_degrees"],
+        "audio_window_ms":A_MS,"speech_threshold":round(speech_threshold(a),6),
+        "pitch_available":False,"pose_confidence_floor":CONF,
+        "rms_db_note":"Windowed mono PCM dBFS; energy is normalized per source.",
         "cut_policy":{"min_unit_s":MIN_U,"target_unit_s":TARGET_U,"max_unit_s":MAX_U,
                       "boundary_priority":"pause + low motion + target duration"}},"motion_units":us}
     out.mkdir(parents=True,exist_ok=True)
