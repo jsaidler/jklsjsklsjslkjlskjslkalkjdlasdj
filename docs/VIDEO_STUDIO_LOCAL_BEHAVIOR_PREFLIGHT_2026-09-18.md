@@ -1,162 +1,119 @@
 # Local Video Studio — local behavior route preflight
 
 Date: **2026-09-18**  
-Original run: **2026-09-18 23:45:16**  
-Strict tooling follow-up: **2026-09-19 00:40:53**  
-Runtime probe: **2026-09-19 01:41**  
-CPU smoke: **2026-09-19**  
-Status: **WAN-ANIMATE-2 REUSE PASS / LOCAL DWPOSE REUSE PASS / CPU POSE SMOKE PASS / VISUAL POSE GATE NEXT**
+Strict follow-up/current state: **2026-09-19**  
+Status: **WAN-ANIMATE-2 REUSE PASS / LOCAL DWPOSE REUSE PASS / CORRECTED C3 VISUAL POSE GATE PASS / FULL PRIMARY POSE EXTRACTION NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Technical route: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`  
 Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 
-## Locked execution constraints
+## Locked constraints
 
-This route remains fully local/self-hosted and zero-service-cost. No João identity media is sent to third parties. No new large renderer, DWPose package or Python environment is justified by current evidence.
+Fully local/self-hosted and zero-service-cost. João identity media stays local. No new large renderer, DWPose package, Python environment or CUDA repair is justified at this gate.
 
 ## Behavioral sources — PASS
 
-- `VID_20260911_140124885.mp4` — 300.352 s, 3840x2160 HEVC + audio — primary behavior source;
-- `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080 H.264 + audio;
-- `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 + audio.
-
-Primary:
+Primary source:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
 
+- duration: 300.352 s;
+- coded geometry: 3840x2160;
+- portrait display orientation comes from stream rotation metadata.
+
+Other canonical sources remain available for later facial/alternate behavior enrichment.
+
 ## Wan-Animate-2 reuse — PASS
 
-Present locally:
+Installed locally and reserved for after behavior-profile validation. No new renderer is justified.
 
-- `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — 30.538 GiB;
-- `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — 10.586 GiB;
-- `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — 0.236 GiB;
-- `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
+## WanGP / DWPose reuse — PASS
 
-No new renderer is justified. Wan-Animate-2 remains blocked until the complete behavior profile is inspected.
-
-## Python resolution — CORRECTED
-
-Windows `py -3.11` does not resolve a launcher-registered interpreter. This does not justify installing Python because the existing isolated WanGP runtime is present and now revalidated:
-
-`Z:\AI\WanGP\env_uv\Scripts\python.exe` — **Python 3.11.14**.
-
-## DWPose payload reuse — PASS
-
-Existing local assets:
+Validated local components:
 
 ```text
+Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
 Z:\AI\WanGP\preprocessing\dwpose
-Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx   ~128.2 MB
-Z:\AI\WanGP\ckpts\pose\yolox_l.onnx           ~206.7 MB
+Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
+Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-No DWPose-L, ControlNet Aux or alternate pose stack download is required.
+No alternate pose stack download is required.
 
-## Runtime probe — FUNCTIONAL PASS / CUDA ORT NOT VALIDATED
+## Runtime probe — FUNCTIONAL PASS
 
-The corrected runtime probe used the versioned `extract_dwpose_track.py` for a single real frame from the primary source.
+Detector + whole-body inference returned `coco_wholebody_133` on a real source frame with no detector fallback.
 
-Confirmed:
+CUDA ONNX Runtime remains **not validated** because provider loading reported missing `cublasLt64_13.dll` / CUDA-cuDNN dependencies. CPU is the validated path. Do not install CUDA dependencies yet.
 
-- WanGP Python runs;
-- OpenCV, NumPy, ONNX Runtime and WanGP DWPose imports work;
-- detector returns the subject;
-- output schema is `coco_wholebody_133`;
-- one frame completed with detector fallback ratio 0.0.
+## Preprocessing defect discovered and fixed
 
-CUDA caveat:
+Early pose runs used coded 3840x2160 dimensions to choose analysis geometry while FFmpeg autorotated the video to portrait. That distorted the displayed portrait frame into 960x540 before DWPose.
 
-ONNX Runtime reports available providers including CUDA, but attempts to initialize CUDA emitted an error because `onnxruntime_providers_cuda.dll` depends on missing `cublasLt64_13.dll`, together with CUDA 13/cuDNN requirements. Therefore the reported requested provider is not accepted as evidence of real CUDA execution.
+`extract_dwpose_track.py` now reads rotation metadata, separates coded and display dimensions, and computes the analysis size from display geometry. The primary source now analyzes at portrait geometry (approximately 540x960 for long side 960).
 
-Classification:
+Classification: **display-orientation preprocessing FIXED**.
 
-```text
-DWPose functional runtime: PASS
-DWPose ONNX CUDA acceleration: FAIL / NOT VALIDATED
-```
+## Visual validation — PASS after correction
 
-Do not install CUDA dependencies at this stage; CPU can carry the current quality gate.
+The first 30–35 s sample was rejected because a held object occluded hands/torso. A clean interval was then selected:
 
-## 5 s CPU pose smoke — PASS
+**C3 = 88.7–93.7 s.**
 
-Actual smoke parameters:
+After the orientation correction, the uploaded 30-frame / 6 fps / 540x960 C3 overlay was inspected.
 
-- source window: 30.0–35.0 s;
-- sample rate: 6 fps;
-- analysis size: 960x540;
-- provider: `CPUExecutionProvider`.
+Profile-relevant upper-body result:
 
-Result:
+- face/head alignment stable;
+- shoulders/elbows/wrists/hips aligned;
+- both moving hands followed plausibly;
+- no subject switch;
+- no gross left/right swap;
+- no upper-body temporal jump that invalidates behavior descriptors.
 
-```text
-frames: 30
-last_timestamp_s: 34.833333
-detector_fallback_frames: 0
-detector_fallback_ratio: 0.0
-mean_keypoint_score: 0.13263878929229625
-elapsed_s: 26.750566244125366
-frames_per_second_wall: 1.1214715877869776
-```
+The QA overlay used a display threshold of 0.05 and therefore shows distracting low-confidence/off-frame lower-body and foot lines. `extract_behavior_profile.py` uses `CONF = 0.20` and only behaviorally relevant upper-body groups for v1 activity:
 
-Track:
+- head 0–4;
+- body 5–12;
+- left hand 91–111;
+- right hand 112–132.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s.jsonl`
+Classification: **CORRECTED C3 UPPER-BODY VISUAL POSE GATE PASS**.
 
-The aggregate keypoint score is recorded but is not used as a standalone gate because it cannot establish anatomical correctness or temporal continuity.
+## Full extraction — NEXT
 
-## Visual pose validation — NEXT
+Versioned runner:
 
-Before any full 300 s pass, inspect the actual keypoints over the source frames.
+`tools/video-studio/run_behavior_pose_full.ps1`
 
-Versioned tooling:
+It runs only DWPose on the full primary source using:
 
-- `tools/video-studio/render_pose_overlay.py`;
-- `tools/video-studio/run_behavior_pose_visual_gate.ps1`.
+- 6 fps;
+- long side 960;
+- portrait-aware analysis geometry;
+- CPU provider;
+- output `pose_coco133.jsonl` + `.summary.json` in the primary profile directory.
 
-Expected output:
+Review full-track summary before building the behavior profile.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s_overlay.mp4`
+## Deferred components
 
-Acceptance is human/visual:
-
-- torso and limbs align with the subject;
-- hands remain attached to the correct wrists;
-- hand/finger landmarks are behaviorally usable;
-- face landmarks remain on the face;
-- no obvious left/right swaps, jumps or background tracking.
-
-Only after this visual inspection passes should the full 6 fps pose track be generated.
-
-## Deferred components — unchanged
-
-- Motion Mirror: fallback only;
+- CUDA ONNX repair: deferred unless CPU becomes a real blocker;
 - MuseTalk / LatentSync: deferred;
-- final TTS / voice-clone integration: deferred;
-- CUDA ONNX repair: deferred unless CPU becomes a practical blocker after quality is established.
-
-## Reclaimable retired payload
-
-Potential first cleanup candidate only if actual disk pressure appears:
-
-`Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — 12.486 GiB.
-
-Do not delete reflexively.
+- final TTS / voice clone: deferred;
+- Wan-Animate-2: blocked until complete behavior profile is inspected.
 
 ## Current exact gate
 
 ```text
-existing WanGP Python + existing YOLOX/DWPose
-    -> runtime functional PASS
-    -> 5 s CPU pose smoke PASS
-    -> visual pose overlay inspection NEXT
-    -> full 6 fps normalized COCO WholeBody 133 pose track
-    -> extract_behavior_profile.py
-    -> status=complete manifest + motion_units.csv
-    -> profile inspection
-    -> new 4–5 s multi-unit behavioral driver
+local WanGP + DWPose reuse PASS
+    -> runtime PASS
+    -> orientation fix PASS
+    -> corrected C3 upper-body visual pose gate PASS
+    -> FULL 6 fps primary pose track NEXT
+    -> behavior profile status=complete
+    -> motion-unit quality/occlusion filtering
+    -> new multi-unit behavioral driver
     -> installed Wan-Animate-2
 ```
-
-Do not run Wan-Animate-2 before the complete behavior profile is inspected.
