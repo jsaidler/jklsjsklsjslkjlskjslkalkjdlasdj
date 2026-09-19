@@ -11,13 +11,10 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
 5. `docs/NEXT_CHAT_HANDOFF_VIDEO_STUDIO_LOCAL_BEHAVIOR_2026-09-18.md`
-6. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
-7. `docs/VIDEO_STUDIO.md`
-8. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
-9. `tools/video-studio/inspect_local_behavior_tooling.ps1`
-10. `tools/video-studio/probe_wangp_dwpose_runtime.ps1`
-11. `tools/video-studio/extract_dwpose_track.py`
-12. `tools/video-studio/extract_behavior_profile.py`
+6. `tools/video-studio/extract_dwpose_track.py`
+7. `tools/video-studio/render_pose_overlay.py`
+8. `tools/video-studio/run_behavior_pose_visual_gate.ps1`
+9. `tools/video-studio/extract_behavior_profile.py`
 
 ## Living-document invariant — LOCKED
 
@@ -25,191 +22,198 @@ Every state-changing action updates the relevant thematic docs and this file. Ch
 
 ## Execution policy — LOCKED
 
-The Video Studio is **local/self-hosted and zero-cost by default**.
+The Video Studio is **100% local/self-hosted and zero-cost by default**.
 
 Hard constraints:
 
-- no external hosted generation/training/avatar platform;
-- no SaaS/cloud inference API;
-- no credit-based or subscription generation service;
-- no paid tool/model/license unless João explicitly changes this rule in advance;
-- do not upload João's personal video/voice/identity material to a third-party avatar/generation provider;
-- internet use is allowed only for research/documentation and download of freely usable local components;
-- do not download another large renderer before the active behavior gate passes.
-
-HeyGen/Avatar V is retired. Wan S2V, H3 and Hunyuan are historical diagnostic branches, not the next step. MuseTalk/LatentSync and CosyVoice remain deferred.
+- no hosted avatar/generation/training service;
+- no SaaS/cloud inference API, credits or subscriptions;
+- never upload João's video, voice or identity to third parties;
+- do not download another large renderer while the behavior route is active;
+- Wan S2V, H3, Hunyuan and HeyGen are historical/retired branches, not the next step;
+- MuseTalk/LatentSync/CosyVoice remain deferred until the body/head behavioral gate passes.
 
 ## Active objective — LOCKED
 
-Generate new videos from new text/audio in which the result:
+Generate new video from new text/audio in which the result:
 
 1. looks like João;
 2. sounds like João;
-3. **moves and reacts like João**.
+3. chiefly **moves and reacts like João**.
 
-Behavioral identity is a hard requirement. Generic plausible motion is a failure.
+Generic plausible presenter motion is a failure.
 
 ## Canonical architecture
 
 ```text
 João behavioral videos
-    -> local pose + prosody analysis
-    -> persistent library of João motion units
+    -> local pose + prosody
+    -> persistent motion-unit library from João's own footage
 
 new local speech/audio
-    -> prosody windows
-    -> motion-unit retrieval + sequencing
+    -> prosodic windows
+    -> retrieve/sequence compatible João motion units
     -> pose continuity + diversity
-    -> NEW driving performance composed from João's real movement vocabulary
+    -> NEW driving performance from João's real movement vocabulary
 
 new driving performance
     -> installed Wan-Animate-2
     -> local lip-sync later if needed
 ```
 
-A fixed source driving clip is not sufficient.
+A fixed driving clip is not sufficient.
 
-## Behavioral source library
+## Canonical behavior sources
 
-Canonical originals:
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
-- `VID_20260911_140124885.mp4` — 300.4 s, 3840x2160 HEVC + audio — **primary upper-body/gesture source**;
+- `VID_20260911_140124885.mp4` — 300.352 s, 3840x2160 HEVC + audio — **primary torso/hands/posture/gesture source**;
 - `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080 H.264 + audio — facial/microexpression source;
-- `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 + audio — alternate gesture/look source with problematic object-occluded spans excluded later.
-
-Primary source path:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
+- `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 + audio — alternate gesture/look source; object/occlusion spans excluded later.
 
 ## Installed Wan-Animate-2 — REUSE PASS
 
 Already present:
 
-- transformer: `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — 30.538 GiB;
-- text encoder: `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — 10.586 GiB;
-- VAE: `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — 0.236 GiB;
-- native code: `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
+- `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — 30.538 GiB;
+- `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — 10.586 GiB;
+- `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — 0.236 GiB;
+- `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
 
-Do not run it until a complete inspectable behavior profile exists.
+Do not invoke Wan-Animate-2 until a complete, inspected behavior profile exists.
 
-## Behavior-profile implementation — ACTIVE
+## Local DWPose reuse — PASS
 
-Versioned tooling:
-
-- `behavior_profile_schema_v1.json` — persistent `behavior-profile/v1` contract;
-- `extract_behavior_profile.py` — renderer-independent motion-unit segmentation/prosody/profile builder;
-- `inspect_local_behavior_tooling.ps1` — bounded no-download local inventory;
-- `probe_wangp_dwpose_runtime.ps1` — exact WanGP/DWPose runtime validation, including one real frame;
-- `extract_dwpose_track.py` — converts the primary source to normalized `coco_wholebody_133` JSONL using the existing WanGP DWPose stack;
-- `run_behavior_pose_smoke.ps1` — short pose-only smoke test; does not call Wan-Animate-2.
-
-`extract_behavior_profile.py` stores source/timestamps/RGB span, start/end pose, head/hand/body activity, motion energy, speech/pause descriptors, available prosody and transition quality. Runs without pose are explicitly `status=incomplete_pose` and do **not** pass the gate.
-
-## Machine-local tooling result — 2026-09-19 00:40
-
-The corrected bounded inspector completed.
-
-### Windows launcher
-
-```text
-py launcher: c:\windows\py.exe
-py -3.11: NOT RESOLVED
-```
-
-Registered launcher inventory showed Python 3.7 and `C:\Python314\python.exe`; there is no launcher-registered Python 3.11. Therefore the old preflight label claiming `Python 3.11 PASS / C:\Python314\python.exe / 3.14.3` is definitively invalid.
-
-**Do not install Python 3.11 from this fact.**
-
-### Existing WanGP runtime evidence
-
-The project already created and previously validated the isolated WanGP environment at:
-
-`Z:\AI\WanGP\env_uv\Scripts\python.exe`
-
-Historical validated runtime from the Hunyuan branch:
-
-- Python 3.11.14;
-- Torch 2.10.0+cu130;
-- CUDA 13.0;
-- WanGP v13.02.
-
-The existing Hunyuan runner already hardcodes this exact interpreter path. The current active branch must verify that environment still exists and can execute DWPose; it must not reinstall Python first.
-
-### Pose tooling — REUSE FOUND / NO DOWNLOAD REQUIRED
-
-Targeted local search found the complete WanGP DWPose assets:
+Present locally in WanGP:
 
 - code: `Z:\AI\WanGP\preprocessing\dwpose`;
-- whole-body model: `Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx` — 128.2 MB;
-- person detector: `Z:\AI\WanGP\ckpts\pose\yolox_l.onnx` — 206.7 MB.
+- detector: `Z:\AI\WanGP\ckpts\pose\yolox_l.onnx` — ~206.7 MB;
+- whole-body model: `Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx` — ~128.2 MB;
+- isolated runtime: `Z:\AI\WanGP\env_uv\Scripts\python.exe` — Python 3.11.14.
+
+No DWPose download and no new Python are justified.
+
+## Runtime probe — FUNCTIONAL PASS / CUDA ORT NOT VALIDATED
+
+Probe executed 2026-09-19 01:41.
+
+Confirmed:
+
+- WanGP Python 3.11.14 runs;
+- OpenCV / NumPy / ONNX Runtime / WanGP DWPose imports work;
+- YOLOX detects the subject;
+- DWPose returns `coco_wholebody_133`;
+- one real source frame completed with no detector fallback.
+
+Important CUDA result:
+
+- ONNX Runtime advertises `TensorrtExecutionProvider`, `CUDAExecutionProvider`, `CPUExecutionProvider`;
+- loading `onnxruntime_providers_cuda.dll` emitted a missing dependency error for `cublasLt64_13.dll` and CUDA/cuDNN prerequisites;
+- therefore the probe's reported `CUDAExecutionProvider` must **not** be treated as proof that CUDA inference actually executed.
 
 Classification:
 
-**POSE TOOLING PAYLOAD REUSE: PASS.**
+- **DWPose functional runtime: PASS**;
+- **DWPose ONNX CUDA acceleration: FAIL / not validated**.
 
-There is no justification to download DWPose-L or another pose package.
+Do not install CUDA components yet. CPU is sufficient to continue the quality gate.
 
-The upstream WanGP implementation uses OpenCV + NumPy + ONNX Runtime and its requirements include OpenCV and ONNX Runtime GPU. The new project adapter consumes the original COCO WholeBody 133 output rather than WanGP's display-oriented OpenPose remapping, preserving the standard groups used by the behavior schema:
+## CPU pose smoke — PASS
 
-- body: 0–16;
-- feet: 17–22;
-- face: 23–90;
-- left hand: 91–111;
-- right hand: 112–132.
+A 5 s smoke was generated from 30.0–35.0 s of the primary source at 6 fps / analysis 960x540 using `CPUExecutionProvider`.
 
-## Next runtime gate — LOCKED
+Observed summary:
 
-Before a full 300 s pose pass, run the targeted runtime probe:
+```text
+schema: coco_wholebody_133
+frames: 30
+last_timestamp_s: 34.833333
+detector_fallback_frames: 0
+detector_fallback_ratio: 0.0
+mean_keypoint_score: 0.13263878929229625
+onnx_provider: CPUExecutionProvider
+elapsed_s: 26.750566244125366
+frames_per_second_wall: 1.1214715877869776
+```
 
-`tools/video-studio/probe_wangp_dwpose_runtime.ps1`
+Interpretation:
 
-It validates:
+- temporal extraction/count: PASS;
+- detector continuity over the smoke: PASS;
+- no fallback frames: PASS;
+- the aggregate mean score is recorded but is **not** used as a standalone quality threshold.
 
-- `Z:\AI\WanGP\env_uv\Scripts\python.exe`;
-- `cv2`, NumPy and ONNX Runtime imports;
-- available ONNX providers;
-- both existing ONNX models;
-- actual detector + 133-keypoint inference on one frame from the primary source.
+## Visual pose gate — NEXT / BLOCKING FULL PASS
 
-No download/install/model mutation occurs.
+Numeric summaries cannot prove anatomical correctness, hand consistency or absence of keypoint jumps. Before processing the full 300 s source, visually inspect the already-generated smoke track.
 
-If this passes, run `run_behavior_pose_smoke.ps1` for a short ~5 s pose track. Only after the smoke result is credible should the full 6 fps pose track be generated for the complete source.
+Versioned tools:
+
+- `tools/video-studio/render_pose_overlay.py`;
+- `tools/video-studio/run_behavior_pose_visual_gate.ps1`.
+
+The visual gate renders an MP4 overlay from the existing JSONL. It does **not** rerun DWPose and does not call Wan-Animate-2.
+
+Default input:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s.jsonl`
+
+Default output:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s_overlay.mp4`
+
+Human gate for this step:
+
+- torso/arms follow the correct anatomy;
+- left/right hands remain attached to the correct wrists;
+- fingers/hand landmarks are plausible enough for behavioral descriptors;
+- face landmarks remain on the face;
+- no obvious frame-to-frame jumps, mirrored swaps or tracking of background objects.
+
+Only after this visual gate passes is the full 6 fps pose extraction authorized.
+
+## Behavior-profile implementation — ACTIVE
+
+- `behavior_profile_schema_v1.json` — schema `behavior-profile/v1`;
+- `extract_behavior_profile.py` — motion/prosody segmentation and profile builder;
+- `extract_dwpose_track.py` — normalized COCO WholeBody 133 extractor;
+- `render_pose_overlay.py` — visual QA overlay;
+- `run_behavior_pose_visual_gate.ps1` — visual gate runner.
+
+A pose-less run remains `status=incomplete_pose` and never passes the production gate.
 
 ## Disk pressure
 
-Last measured Z: free space: ~22.32 GB.
+Last measured Z: free ~22.32 GB.
 
-Retired first cleanup candidate if genuinely needed:
+Only if real space pressure appears, first retired cleanup candidate remains:
 
 `Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — 12.486 GiB.
 
-Do not delete it reflexively. The active DWPose route requires no large download and therefore does not currently justify cleanup.
+Do not delete it reflexively; the active route currently needs no large download.
 
 ## Historical renderer evidence
 
-- Wan2.2-S2V 20-step: visual identity strong, behavioral identity not tested, production fail for actual objective.
-- H3: functional pass, production visual/behavioral fail.
-- Hunyuan Avatar 720p local: functional runtime pass, no visual verdict, practicality fail on RTX 3060 12 GB.
-- HeyGen/Avatar V: retired because external hosted service violates policy.
+- Wan2.2-S2V 20-step: visual identity pass/near-pass, behavioral identity not tested, production fail for current objective;
+- H3: functional pass, production visual/behavior fail;
+- Hunyuan Avatar local 720p: functional runtime but severe offload/practicality fail;
+- HeyGen/Avatar V: retired because hosted service violates project policy.
 
 Do not reopen these branches without new technical evidence.
 
 ## Quality gate — LOCKED
-
-The human gate remains:
 
 > this does not merely look like João; it moves and reacts like João.
 
 ## Immediate next action
 
 1. pull `main`;
-2. run `probe_wangp_dwpose_runtime.ps1`;
-3. if PASS, run the short `run_behavior_pose_smoke.ps1`;
-4. inspect keypoint count, provider, detection/fallback rate and confidence;
-5. then generate the full 6 fps pose track for `VID_20260911_140124885.mp4`;
-6. feed that full track to `extract_behavior_profile.py` and require `status=complete`;
-7. inspect `manifest.json` + `motion_units.csv`;
-8. only after profile validation, compose a new 4–5 s performance from multiple units;
-9. only then run installed Wan-Animate-2.
+2. run `tools/video-studio/run_behavior_pose_visual_gate.ps1`;
+3. open `pose_smoke_5s_overlay.mp4` and inspect body, hands, face and temporal stability;
+4. if visual gate PASS, generate the full primary-source pose track at 6 fps;
+5. feed the full track to `extract_behavior_profile.py` and require `status=complete`;
+6. inspect `manifest.json` + `motion_units.csv`;
+7. compose a new 4–5 s performance from multiple motion units;
+8. only then invoke installed Wan-Animate-2.
 
-Do not download another renderer, DWPose package, lip-sync package or new Python environment at this stage.
+Do not install/download another renderer, pose stack, lip-sync package, Python or CUDA dependency at this stage.
