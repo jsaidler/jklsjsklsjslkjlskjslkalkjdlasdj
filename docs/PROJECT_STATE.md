@@ -196,6 +196,21 @@ Versioned runner:
 
 It only samples source frames. No DWPose and no Wan-Animate-2.
 
+### SIENA candidate-sheet integrity — LOCKED
+
+A previously uploaded contact sheet was rejected because it was visibly the **secondary 282 s video**, not `SIENA_BRUTO.mp4`: candidate timestamps extended to ~272 s, impossible for the canonical ~113.3 s SIENA source.
+
+This was not treated as a SIENA gate result.
+
+Sampler hardening now versioned:
+
+- every candidate sheet header prints `SOURCE: <filename>` and exact duration;
+- the manifest now contains `source_name` and `duration_s` explicitly;
+- the SIENA runner verifies `source_name == SIENA_BRUTO.mp4`;
+- the SIENA runner checks a generous 100–130 s integrity band around the canonical ~113.3 s duration, intended only to catch accidental reuse of the 282 s secondary source or another file.
+
+Classification remains: **SIENA NOT YET GATED**.
+
 ## Immediate next action
 
 Run:
@@ -206,11 +221,21 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_gate_candidates.ps1'
 ```
 
-Upload:
+The terminal must report:
+
+```text
+Manifest source: SIENA_BRUTO.mp4
+Manifest duration: ~113 s
+SIENA CANDIDATE SAMPLER: PASS
+```
+
+Upload exactly:
 
 ```text
 Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\gate_candidates\candidate_contact_sheet.jpg
 ```
+
+The JPG header itself must say `SOURCE: SIENA_BRUTO.mp4` and show the ~113 s duration.
 
 After visual selection, run only a short DWPose gate before any full SIENA extraction.
 
