@@ -39,7 +39,7 @@ new driving performance
     -> local lip-sync later if needed
 ```
 
-A single source video is never the final library, and different sources do **not** have interchangeable roles.
+A single source video is never the final library, and different sources do not have interchangeable roles.
 
 ## Canonical sources
 
@@ -47,7 +47,7 @@ A single source video is never the final library, and different sources do **not
 
 1. `VID_20260911_140124885.mp4` — 300.352 s — torso/hands/posture/gesture primary;
 2. `VID_20260819_124008056.mp4` — 282.574 s — head/face/microexpression;
-3. `SIENA_BRUTO.mp4` — 113.313 s — alternate gesture/posture with object/occlusion exclusions.
+3. `SIENA_BRUTO.mp4` — 113.313 s — alternate posture/arm/head vocabulary with explicit prop/occlusion handling.
 
 ## Local pose stack — PASS
 
@@ -62,79 +62,35 @@ Validated provider: `CPUExecutionProvider`. CUDA ORT remains intentionally unrep
 
 ## Primary source — CURATED PASS
 
+`VID_20260911_140124885.mp4`
+
 ```text
 full pose frames: 1801
 fallback: 0/1801
 mean keypoint score: 0.7549247491
 behavior-profile/v1: complete
 motion units: 123
+curated eligible: 118
+hard excluded: 5
 ```
 
-Manual generic-behavior exclusion:
+Manual generic-behavior exclusion: **24.1–37.5 s = `u0012`–`u0016`** for held object / hand occlusion / prop interaction.
 
-**24.1–37.5 s = `u0012`–`u0016`** due held object / hand occlusion / prop-specific interaction.
-
-Final primary curation:
-
-```text
-123 total
-118 eligible
-5 hard excluded
-```
-
-Role: torso/hands/posture/gesture. Group quality remains continuous rather than using one global rejection threshold.
-
-Artifacts:
-
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_inventory.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_motion_units.csv
-```
+Role: primary torso/hands/posture/gesture source.
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
 ## Secondary source — CURATED PASS
 
-Source: `VID_20260819_124008056.mp4`  
-Role: **face/head/microexpression**, with body only as auxiliary support.
+`VID_20260819_124008056.mp4`
 
-### Pose / profile / facial sidecar
+Role: **face/head/microexpression**, body support only.
 
 ```text
 full pose: 1695 frames @ 6 fps
-geometry: 1080x1920 display / rotation 90 / analysis 540x960
 fallback: 1/1695
-mean whole-body keypoint score: 0.5453589803
-behavior-profile/v1: complete
-base motion units: 119
-facial-behavior-profile/v1 units: 119
+base units: 119
 facial units usable with >=2 accepted frames: 116
-```
-
-Facial frame QA remains locked:
-
-- face landmarks 23–90;
-- eye-line midpoint normalization;
-- remove in-plane roll;
-- divide by inter-eye distance;
-- source-relative Tukey outer fences, 3×IQR;
-- normalization failures + static geometry outliers are facial-layer-only hard suspects;
-- temporal jumps are review-only.
-
-Observed facial quality:
-
-```text
-accepted facial geometry: 1576/1695 = 0.929794
-face weight q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
-```
-
-### Secondary role-aware curation — PASS
-
-Observed:
-
-```text
-units total: 119
-global hard excluded: 0
 face eligible: 116
 head eligible: 116
 body-support eligible: 116
@@ -142,87 +98,54 @@ hands retrieval: disabled
 generic whole-upper retrieval: disabled
 ```
 
-Role weights:
+Facial quality policy remains locked: landmarks 23–90, eye-line normalization, roll removal, inter-eye scale, source-relative 3×IQR static-geometry audit, temporal jumps review-only.
 
 ```text
-face q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
-head q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
-body_support q10/median/q90: 0.4351354 / 0.519182 / 0.5724356
-```
-
-Lowest face-quality units:
-
-```text
-u0003 weight=0.0 accepted=0.0 frames=0
-u0006 weight=0.0 accepted=0.0 frames=0
-u0007 weight=0.0 accepted=0.0 frames=0
-u0005 weight=0.276583 accepted=0.3125
-u0094 weight=0.432046 accepted=0.466667
-u0004 weight=0.440393 accepted=0.5
-```
-
-Interpretation:
-
-- sparse hands are expected and not a source failure;
-- zero-face units remain in the base profile but are ineligible for face/head retrieval;
-- no unit is globally deleted solely because the face is unavailable;
-- head quality equals face quality in the current curated result because coarse head pose is effectively saturated across the face-usable units; the discriminating factor is facial usability, so no artificial extra penalty is added.
-
-Artifacts:
-
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_inventory.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_motion_units.csv
+accepted facial geometry: 1576/1695 = 0.929794
+face/head median weight: 0.913145
+body-support median weight: 0.519182
 ```
 
 Classification: **SECONDARY SOURCE CURATED PASS**.
 
-## Third source — SIENA_BRUTO GATE SELECTED
+## Third source — SIENA_BRUTO VISUAL GATE PASS
 
-Source:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
-
-Verified contact sheet:
+Verified source:
 
 ```text
-SOURCE: SIENA_BRUTO.mp4
+SIENA_BRUTO.mp4
 duration: 113.313 s
-window: 5 s
-candidates: 8
 ```
 
-Role: alternate gesture/posture vocabulary with explicit prop/object/occlusion handling.
+Selected gate: **C6 = 75.2–80.2 s**, 30 frames at 6 fps.
 
-### Selected clean gate — C6
+The uploaded overlay was inspected across the interval.
 
-**75.2–80.2 s**.
+Observed:
 
-Why C6:
+- face/head tracking remains attached and stable;
+- shoulders, elbows and torso geometry are coherent throughout;
+- arm/posture motion is tracked smoothly enough for this source's alternate-posture role;
+- detector fallback shown in inspected frames is false;
+- hands are close to the lower frame boundary and finger landmarks are visibly unstable/spread in several frames.
 
-- no held object;
-- torso is visible and stable;
-- useful free arm/hand movement is present;
-- no graphic overlay crossing the subject;
-- stronger gesture/posture test than the more static C3/C5 windows.
+Classification:
 
-Versioned runner:
+**SIENA C6 VISUAL GATE PASS FOR TORSO / POSTURE / HEAD / COARSE ARM MOTION.**
 
-`tools/video-studio/run_behavior_tertiary_pose_gate.ps1`
+Do **not** promote SIENA to a hand source from this gate. Hand retrieval remains pending per-unit full-inventory quality review. The primary source remains the canonical hand/gesture source.
 
-It runs DWPose only on C6 at 6 fps with the validated CPU provider and renders an overlay. It does not run Wan-Animate-2.
+Provisional semantic-suspect spans from the verified candidate sheet remain review-only, not final exclusions:
 
-### Provisional semantic-suspect spans from the sampled sheet
+- ~5–10 s: inserted still-image/graphic overlays;
+- ~19–24 s: held print/book/photo interaction;
+- ~47–52 s: lens/camera foreground interaction/occlusion.
 
-These are **review markers only**, not final hard-exclusion boundaries:
+Exact exclusion boundaries must be derived after the full SIENA profile/inventory exists.
 
-- C1 / approximately 5–10 s: inserted still-image/graphic overlays obscure the subject;
-- C2 / approximately 19–24 s: held print/book/photo interaction and hand occlusion;
-- C4 / approximately 47–52 s: lens/camera prop interaction with major foreground occlusion.
+Versioned full-pose runner:
 
-Do not lock exact exclusion boundaries from the coarse contact sheet. Exact intervals must be derived from the full SIENA source/inventory after pose/profile generation.
-
-Classification: **SIENA CLEAN GATE SELECTED / SHORT POSE GATE NEXT**.
+`tools/video-studio/run_behavior_pose_full_tertiary.ps1`
 
 ## Immediate next action
 
@@ -231,30 +154,22 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_pose_gate.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_full_tertiary.ps1'
 ```
 
-Expected artifacts:
+This runs DWPose only. It does not run Wan-Animate-2. All 133 keypoints are preserved; role decisions are deferred to inventory/curation.
 
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_coco133.jsonl
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_coco133.jsonl.summary.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_overlay.mp4
-```
-
-Upload the overlay and paste the summary. Evaluate body/arms/hands/posture and geometry before any full SIENA extraction.
+Paste the final summary before building the SIENA behavior profile.
 
 ## Downstream
 
-1. validate SIENA C6 short pose gate;
-2. if gate passes, run full SIENA pose track;
-3. build behavior profile and inventory;
-4. define exact semantic exclusion intervals for overlays/objects/occlusions from the full source/inventory;
-5. curate SIENA as alternate gesture/posture source;
-6. preserve source IDs/timestamps/roles for every eligible unit;
-7. build unified source-preserving library;
-8. synthesize a new 4–5 s multi-source behavioral driver;
-9. only then invoke installed Wan-Animate-2.
+1. full SIENA pose track;
+2. build/inspect SIENA behavior profile and inventory;
+3. determine exact object/overlay/occlusion exclusions;
+4. role-aware SIENA curation, with hands enabled only where full-inventory evidence supports them;
+5. build unified source-preserving multi-source library;
+6. synthesize a new 4–5 s multi-source behavioral driver;
+7. only then invoke installed Wan-Animate-2.
 
 ## Quality gate — LOCKED
 
