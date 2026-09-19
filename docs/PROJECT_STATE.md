@@ -9,13 +9,15 @@ Purpose: canonical cross-chat operational handoff. GitHub living documents are t
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
-4. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
-5. `docs/VIDEO_STUDIO.md`
-6. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
-7. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
-8. `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`
-9. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
-10. `docs/VIDEO_STUDIO_AVATAR_V_BENCHMARK_2026-09-18.md` — historical/retired external branch only
+4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
+5. `docs/NEXT_CHAT_HANDOFF_VIDEO_STUDIO_LOCAL_BEHAVIOR_2026-09-18.md`
+6. `docs/VIDEO_STUDIO_DIRECTION_RESET_2026-09-15.md`
+7. `docs/VIDEO_STUDIO.md`
+8. `docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`
+9. `docs/VIDEO_STUDIO_WAN_S2V_BENCHMARK_2026-09-15.md`
+10. `docs/VIDEO_STUDIO_HUNYUAN_AVATAR_BENCHMARK_2026-09-15.md`
+11. `docs/VIDEO_STUDIO_H3_VALIDATION_2026-09-15.md`
+12. `docs/VIDEO_STUDIO_AVATAR_V_BENCHMARK_2026-09-18.md` — historical/retired external branch only
 
 ## Living-document invariant — LOCKED
 
@@ -52,13 +54,13 @@ A production pass requires three separate identities to remain João:
 
 Target program length: up to approximately one minute, eventually assembled from short shots.
 
-## Behavioral source library — INVENTORY + VISUAL REVIEW PASS
+## Behavioral source library — INVENTORY + VISUAL REVIEW + PREFLIGHT PASS
 
 Protected originals:
 
-- `SIENA_BRUTO.mp4` — 113.313 s, 1080x1920, H.264 + AAC;
-- `VID_20260819_124008056.mp4` — 282.574 s, 1920x1080, H.264 + AAC;
-- `VID_20260911_140124885.mp4` — 300.352 s, 3840x2160, HEVC + AAC.
+- `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920, H.264 + audio;
+- `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080, H.264 + audio;
+- `VID_20260911_140124885.mp4` — 300.4 s, 3840x2160, HEVC + audio.
 
 Local source roles:
 
@@ -70,13 +72,13 @@ The prepared 1080p H.264 derivative under the historical `avatar_v` path remains
 
 ## Local behavioral-route research — DECISION 2026-09-18
 
-A monolithic open model that exactly matches the goal exists in research form: TAVR takes reference video + target scene + target audio, but its official local implementation requires a Hopper-class GPU with at least **80 GB VRAM** and FlashAttention 3. It is therefore rejected for the RTX 3060 12 GB machine.
+TAVR is architecturally close to the desired `reference video + target scene + target audio` problem, but its official implementation requires Hopper-class CUDA with at least 80 GB VRAM and FlashAttention 3, so it is rejected for the RTX 3060 12 GB machine.
 
-Recent personalized gesture research such as PersonaGesture/PersonaGest closely matches the desired behavioral problem, but no dependable public implementation/checkpoint was found for immediate use.
+PersonaGesture/PersonaGest closely matches the desired personalized co-speech gesture problem but had no dependable public implementation/checkpoint for immediate use.
 
-ZeroEGGS is public and can generate speech-driven gestures in the style of example motion, but requires a 3D/BVH retargeting layer from João's videos. It remains an R&D fallback, not the first implementation.
+ZeroEGGS remains an actionable future R&D fallback but introduces a BVH/3D retargeting layer.
 
-MimicTalk and Style-Talking are useful personalized face/speaking-style branches, not complete upper-body gesture solutions.
+MimicTalk/Style-Talking are useful face/speaking-style branches, not complete upper-body solutions.
 
 Full research record: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`.
 
@@ -99,43 +101,66 @@ new local João speech audio
         |
         +--> installed Wan-Animate-2 renderer
         |
-        +--> local lip-sync finishing if needed
+        +--> local lip-sync finishing later, if needed
         v
 final video
 ```
 
-The driving performance is not one fixed source clip. It is newly assembled from João's actual recorded behavioral vocabulary. This deliberately avoids asking a generic model to invent João's gesture language.
+The driving performance is not one fixed source clip. It is newly assembled from João's actual recorded behavioral vocabulary. The first gate uses prosody + pose continuity; semantic transcript matching can be added later.
 
-Semantic transcript matching can be added later; the first gate uses prosody + pose continuity to test the core behavior-preservation hypothesis.
+## No-download local preflight — PASS 2026-09-18 23:45
 
-## Wan-Animate-2 — PRIORITY RENDERER REUSE
+Canonical result: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`.
 
-Current Wan-Animate-2 directly consumes a driving video and is designed to transfer the performer's movement and facial expression while preserving a reference character.
+Raw local report:
 
-The project already has a large `wan_animate_2_bf16.safetensors` payload under `Z:\AI\WanAnimate2` from earlier work.
+`tools/video-studio/reports/local_behavior_route_preflight_20260918_234516.txt`
 
-Therefore:
+Result:
 
-**DO NOT DOWNLOAD VACE/MOTION MIRROR OR ANOTHER LARGE RENDERER BEFORE AUDITING AND EXHAUSTING THE INSTALLED WAN-ANIMATE-2 ROUTE.**
+```text
+BEHAVIOR SOURCES: PASS
+WAN-ANIMATE-2 PAYLOAD: PASS
+WAN-ANIMATE-2 NATIVE CODE: PASS
+POSE TOOLING: NOT FOUND UNDER WAN ROOT
+NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
+```
 
-Motion Mirror/Wan2.1-VACE remains a fallback. Its 1.3B backend can fit roughly 8–9 GB VRAM on Windows, but requires about another 20 GB model cache and explicitly trades away identity fidelity. It is not the next download.
+### Installed Wan-Animate-2 — REUSE PASS
 
-## Lip-sync finishing — DEFERRED UNTIL BEHAVIOR GATE
+- transformer: `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — 30.538 GiB;
+- text encoder: `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — 10.586 GiB;
+- VAE: `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — 0.236 GiB;
+- native model code: `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
 
-Wan-Animate-2 will copy mouth/expression information from the synthesized driver, whose original mouth movement will not necessarily match the new audio.
+**No new large renderer download is justified.** VACE/Motion Mirror remains fallback only.
 
-A separate local lip-sync pass is therefore expected later.
+### Pose tooling gap
 
-Current candidates:
+No DWPose whole-body model was found **under `Z:\AI\WanAnimate2`**. The preflight did not prove global absence under all `Z:\AI` roots.
 
-- MuseTalk 1.5 — Windows-supported, MIT code/model-use terms, tested on low-VRAM GPUs;
-- LatentSync 1.5 — local audio-conditioned lip sync, about 8 GB minimum VRAM.
+Next chat must search likely existing local roots before downloading anything. If genuinely absent and needed, a small DWPose-class dependency may be considered only after exact file/source/license/size/destination are enumerated.
 
-Do not download these yet. First prove that the body/head behavioral driver survives Animate-2.
+### Python resolution warning
 
-## Voice stage
+The report printed:
 
-CosyVoice or another local voice-clone/TTS component remains separate and local. It will eventually supply the target audio analyzed by the behavior compiler and used by the lip-sync stage.
+`Python 3.11: PASS / C:\Python314\python.exe / 3.14.3`
+
+This is inconsistent. Do not consider Python 3.11 validated. Resolve the intended interpreter/venv explicitly before new Python-dependent pose/prosody tooling is installed or invoked.
+
+### Disk pressure
+
+At preflight time:
+
+- Z: free: **22.32 GB**;
+- Z: used: **424.80 GB**.
+
+Retired reclaimable payload still present:
+
+`Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — **12.486 GiB**.
+
+Do not delete it as part of the preflight; it is simply the first obvious reclaimable large payload if a later storage requirement justifies cleanup.
 
 ## Wan2.2-S2V — DIAGNOSTIC BASELINE
 
@@ -144,6 +169,8 @@ CosyVoice or another local voice-clone/TTS component remains separate and local.
 **VISUAL IDENTITY PASS/NEAR-PASS / BEHAVIORAL IDENTITY NOT TESTED / PRODUCTION FAIL FOR THE ACTUAL PRODUCT.**
 
 Reason: static image + audio gave the model no João behavior reference.
+
+Do not return to prompt-only acting refinement as a substitute for behavioral conditioning.
 
 ## HunyuanVideo-Avatar — LOCAL PRACTICALITY FAIL
 
@@ -157,6 +184,12 @@ Classification:
 
 **H3 LOCAL: FUNCTIONAL PASS / PRODUCTION VISUAL QUALITY FAIL / PAUSED AS FINAL RENDERER.**
 
+## Lip-sync and voice — DEFERRED
+
+MuseTalk/LatentSync remain deferred until body/head behavior survives the renderer gate.
+
+CosyVoice or another local voice-clone/TTS stage remains separate and deferred for final integration. Existing local speech audio may be used to engineer the behavior compiler first.
+
 ## Quality gate — LOCKED
 
 A production candidate must pass both visual quality and personal-performance quality. The human reviewer must be able to say:
@@ -167,19 +200,19 @@ Generic presenter choreography, exaggerated expressions, plausible-but-uncharact
 
 ## Immediate next action — LOCKED
 
-Run the no-download preflight:
+Build the first **behavior-profile / motion-unit extractor** under `tools/video-studio/`.
 
-`tools/video-studio/preflight_local_behavior_route.ps1`
+Required order:
 
-It must determine before any installation/download:
+1. resolve the Python interpreter inconsistency;
+2. perform a targeted no-download search for reusable whole-body pose tooling in existing local AI roots;
+3. define the persistent behavior-profile/motion-unit schema;
+4. implement extraction first for `VID_20260911_140124885.mp4`;
+5. every unit must record at minimum source file, time range, RGB clip reference, start/end pose, head/hand/body activity, motion energy and speech/prosody descriptors;
+6. generate an inspectable manifest/inventory before any diffusion render;
+7. only after the profile is validated, synthesize a new ~4–5 s driving performance from João motion units;
+8. then run the first short gate through the already-installed Wan-Animate-2.
 
-1. whether the existing `wan_animate_2_bf16.safetensors` payload is still present;
-2. whether the local ComfyUI runtime already contains native `model_animate2.py` support;
-3. whether DWPose/whole-body pose tooling is already reusable locally;
-4. whether the three behavioral originals are intact;
-5. current GPU/driver/Python/free-disk state;
-6. whether any retired Hunyuan payload remains reclaimable if later storage is required.
+Do not download another large renderer before this gate. Do not install lip-sync tooling before behavior passes.
 
-The preflight performs **no downloads, no installs and no deletions**.
-
-If Animate-2 payload + native runtime + behavioral source library pass, the next coding step is to build the local behavior-profile/motion-unit extractor. No new large renderer download is allowed before this gate.
+Next-chat handoff: `docs/NEXT_CHAT_HANDOFF_VIDEO_STUDIO_LOCAL_BEHAVIOR_2026-09-18.md`.
