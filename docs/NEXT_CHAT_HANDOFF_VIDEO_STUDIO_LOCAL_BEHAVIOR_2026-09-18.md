@@ -48,60 +48,45 @@ Role: torso/hands/posture/gesture.
 
 Role: face/head/microexpression; body support only.
 
-Base/facial state:
-
 ```text
 119 base units
-116 facial units usable with >=2 accepted frames
-accepted facial geometry = 1576/1695 = 0.929794
-```
-
-Role-aware curation result:
-
-```text
-units total: 119
-global hard excluded: 0
-face eligible: 116
-head eligible: 116
-body-support eligible: 116
-hands retrieval: disabled
-generic whole-upper retrieval: disabled
-```
-
-Weights:
-
-```text
-face q10/median/q90 = 0.7649534 / 0.913145 / 0.9241892
-head q10/median/q90 = 0.7649534 / 0.913145 / 0.9241892
-body_support q10/median/q90 = 0.4351354 / 0.519182 / 0.5724356
-```
-
-Zero-face units `u0003`, `u0006`, `u0007` remain in the base profile but are not face/head retrieval candidates. Do not globally delete them solely for facial unavailability.
-
-Artifacts:
-
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_inventory.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_motion_units.csv
+116 face eligible
+116 head eligible
+116 body-support eligible
+hands retrieval disabled
+generic whole-upper retrieval disabled
+face/head median weight = 0.913145
+body-support median weight = 0.519182
 ```
 
 Classification: **SECONDARY SOURCE CURATED PASS**.
 
 ## Third source — SIENA_BRUTO
 
-Source:
+Canonical source:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
+
+Expected duration: approximately **113.3 s**.
 
 Role: alternate gesture/posture vocabulary, with explicit held-object/prop/occlusion handling.
 
 Do not run full DWPose yet.
 
-First generate an 8-candidate contact sheet of 5-second windows. Select a clean gate with useful gesture/posture and free body/hands, while separately noting visible object/occlusion spans for later semantic exclusions.
+### Important rejected artifact
 
-Versioned runner:
+A contact sheet uploaded after the first SIENA sampler request was **not SIENA**. It visibly reused the secondary source: candidate timestamps extended to ~272 s and the image content matched `VID_20260819_124008056.mp4`.
 
-`tools/video-studio/run_behavior_tertiary_gate_candidates.ps1`
+Do not derive any SIENA gate decision from that sheet.
+
+### Sampler integrity hardening
+
+The sampler/runner now enforce source identity more visibly:
+
+- every generated contact sheet has a top header with `SOURCE: <filename>` and duration;
+- candidate manifest includes `source_name` and `duration_s`;
+- SIENA runner requires `source_name == SIENA_BRUTO.mp4`;
+- SIENA runner requires duration in the broad 100–130 s integrity band to catch accidental reuse of the 282 s secondary source or another file.
 
 ## Next exact action
 
@@ -113,18 +98,26 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_gate_candidates.ps1'
 ```
 
-This samples frames only. No DWPose and no Wan.
+The terminal must show:
 
-Upload:
+```text
+Manifest source: SIENA_BRUTO.mp4
+Manifest duration: ~113 s
+SIENA CANDIDATE SAMPLER: PASS
+```
+
+Upload exactly:
 
 ```text
 Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\gate_candidates\candidate_contact_sheet.jpg
 ```
 
-## After contact-sheet review
+Confirm visually that the JPG header says `SOURCE: SIENA_BRUTO.mp4` and shows the ~113 s duration before evaluating candidates.
+
+## After correct SIENA contact-sheet review
 
 1. choose clean SIENA 5 s gate;
-2. identify visible prop/object/occlusion intervals from the sampled material and later full inventory;
+2. identify visible prop/object/occlusion intervals;
 3. run short DWPose gate only;
 4. if visual gate passes, run full SIENA pose track;
 5. build/inspect/curate SIENA with source-specific semantic exclusions;
