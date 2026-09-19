@@ -108,6 +108,28 @@ final video
 
 The driving performance is not one fixed source clip. It is newly assembled from João's actual recorded behavioral vocabulary. The first gate uses prosody + pose continuity; semantic transcript matching can be added later.
 
+## Behavior-profile implementation — STARTED 2026-09-18
+
+The first implementation block now exists under `tools/video-studio/`:
+
+- `inspect_local_behavior_tooling.ps1` — read-only, bounded local inspection for the real Python interpreter and reusable pose tooling. It does **not** download, install, delete or perform a blind full-drive crawl;
+- `behavior_profile_schema_v1.json` — persistent `behavior-profile/v1` contract for source metadata, RGB spans, pose endpoints, head/hand/body activity, motion energy, speech/pause, available prosody and transition quality;
+- `extract_behavior_profile.py` — first renderer-independent extractor for the primary source `VID_20260911_140124885.mp4`.
+
+The extractor deliberately separates the low-dependency analysis layer from the pose backend:
+
+- visual motion energy: low-resolution grayscale frame-difference analysis through local FFmpeg;
+- prosody v1: local mono PCM RMS/dBFS, normalized energy and speech/pause segmentation;
+- cut policy: pauses + low motion have priority, with short motion-unit target duration;
+- outputs: inspectable `manifest.json` and `motion_units.csv`;
+- pose input: normalized JSONL pose track, currently backend-agnostic;
+- a run without pose is allowed only with the explicit diagnostic flag `--allow-missing-pose` and is marked `status=incomplete_pose`;
+- **`incomplete_pose` is not a behavior-gate pass and must never be treated as one.**
+
+This code does not run Wan-Animate-2 and does not install any new model.
+
+The next local execution must first run `inspect_local_behavior_tooling.ps1`. Python and global pose-tool availability remain **UNRESOLVED UNTIL THAT MACHINE-LOCAL REPORT EXISTS**.
+
 ## No-download local preflight — PASS 2026-09-18 23:45
 
 Canonical result: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`.
@@ -139,15 +161,21 @@ NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
 
 No DWPose whole-body model was found **under `Z:\AI\WanAnimate2`**. The preflight did not prove global absence under all `Z:\AI` roots.
 
-Next chat must search likely existing local roots before downloading anything. If genuinely absent and needed, a small DWPose-class dependency may be considered only after exact file/source/license/size/destination are enumerated.
+The new `inspect_local_behavior_tooling.ps1` performs the required targeted/no-download search over likely existing AI runtimes. Its result, not the older Wan-root-only scan, decides whether a small pose dependency is actually missing.
+
+If pose tooling is genuinely absent and a DWPose-class dependency is needed, exact file/source/license/size/destination must be enumerated before download.
 
 ### Python resolution warning
 
-The report printed:
+The older report printed:
 
 `Python 3.11: PASS / C:\Python314\python.exe / 3.14.3`
 
-This is inconsistent. Do not consider Python 3.11 validated. Resolve the intended interpreter/venv explicitly before new Python-dependent pose/prosody tooling is installed or invoked.
+This is inconsistent. Python 3.11 is **not validated** by that line.
+
+The new strict inspector checks `sys.version_info` from the executable actually resolved by `py -3.11`, inventories explicit local candidates and refuses to label a candidate as Python 3.11 unless the interpreter itself reports `3.11`.
+
+No Python installation/reinstallation has been authorized or performed.
 
 ### Disk pressure
 
@@ -160,7 +188,7 @@ Retired reclaimable payload still present:
 
 `Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — **12.486 GiB**.
 
-Do not delete it as part of the preflight; it is simply the first obvious reclaimable large payload if a later storage requirement justifies cleanup.
+Do not delete it reflexively; it remains only the first obvious reclaimable large payload if a later storage requirement justifies cleanup.
 
 ## Wan2.2-S2V — DIAGNOSTIC BASELINE
 
@@ -200,19 +228,20 @@ Generic presenter choreography, exaggerated expressions, plausible-but-uncharact
 
 ## Immediate next action — LOCKED
 
-Build the first **behavior-profile / motion-unit extractor** under `tools/video-studio/`.
+Continue the first **behavior-profile / motion-unit extractor** gate. Schema and base extractor now exist; the machine-local environment must be resolved before pose integration.
 
-Required order:
+Required order from this state:
 
-1. resolve the Python interpreter inconsistency;
-2. perform a targeted no-download search for reusable whole-body pose tooling in existing local AI roots;
-3. define the persistent behavior-profile/motion-unit schema;
-4. implement extraction first for `VID_20260911_140124885.mp4`;
-5. every unit must record at minimum source file, time range, RGB clip reference, start/end pose, head/hand/body activity, motion energy and speech/prosody descriptors;
-6. generate an inspectable manifest/inventory before any diffusion render;
-7. only after the profile is validated, synthesize a new ~4–5 s driving performance from João motion units;
-8. then run the first short gate through the already-installed Wan-Animate-2.
+1. run the versioned read-only `tools/video-studio/inspect_local_behavior_tooling.ps1` on the Windows machine;
+2. record the exact interpreter reached by `py -3.11` and any verified Python 3.11 candidate;
+3. reuse any whole-body/hand pose tooling found by the targeted local search;
+4. only if no suitable local pose tooling exists, enumerate the smallest required dependency before any download;
+5. connect the selected local pose backend to the normalized JSONL pose-track contract;
+6. run `extract_behavior_profile.py` against `VID_20260911_140124885.mp4` with real pose data;
+7. inspect `manifest.json` and `motion_units.csv`; only `status=complete` with credible pose/activity descriptors can pass this profile gate;
+8. after profile validation, synthesize a new ~4–5 s driving performance from several João motion units;
+9. only then run the short installed Wan-Animate-2 gate.
 
-Do not download another large renderer before this gate. Do not install lip-sync tooling before behavior passes.
+Do not download another large renderer. Do not install lip-sync tooling before behavior passes. Do not run Wan-Animate-2 yet.
 
 Next-chat handoff: `docs/NEXT_CHAT_HANDOFF_VIDEO_STUDIO_LOCAL_BEHAVIOR_2026-09-18.md`.
