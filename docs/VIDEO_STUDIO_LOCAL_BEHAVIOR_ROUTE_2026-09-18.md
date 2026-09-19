@@ -1,7 +1,7 @@
 # Local Video Studio — local behavioral-video route
 
 Date: **2026-09-18**  
-Status: **ACTIVE TECHNICAL DIRECTION / PREFLIGHT PASS / BEHAVIOR PROFILE NEXT**
+Status: **ACTIVE TECHNICAL DIRECTION / BEHAVIOR PROFILE IMPLEMENTATION STARTED**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`  
@@ -155,6 +155,78 @@ This is not a fixed replay. The useful property is that the gesture vocabulary c
 
 Semantic transcript retrieval can be added later; the first gate uses prosody + pose continuity.
 
+## Behavior-profile implementation — 2026-09-18
+
+The first implementation is now versioned in `tools/video-studio/`.
+
+### Strict local environment inspector
+
+`inspect_local_behavior_tooling.ps1`
+
+Purpose:
+
+- resolve what `py -3.11` actually executes by checking the interpreter's own `sys.version_info`;
+- inspect explicit Python candidates and selected existing AI runtimes without installing anything;
+- report whether likely runtimes already contain useful dependencies such as ONNX Runtime, Torch, OpenCV or MediaPipe;
+- search likely local AI roots for DWPose/whole-body/hand-pose assets and compatible directories;
+- keep the scan bounded and targeted instead of blindly crawling the entire Z: drive;
+- write local TXT/JSON evidence under the ignored `tools/video-studio/reports/` directory.
+
+Mode is strictly:
+
+**READ ONLY / NO DOWNLOAD / NO INSTALL / NO DELETE.**
+
+### Persistent schema
+
+`behavior_profile_schema_v1.json`
+
+Schema id/version:
+
+`behavior-profile/v1`
+
+Every unit records at least:
+
+- source file;
+- start/end/duration;
+- original RGB source span;
+- start/end pose;
+- head motion;
+- left/right/combined hand activity;
+- body activity;
+- mean/peak/entry/exit motion energy;
+- speech/pause classification and speech ratio;
+- pause context around the boundaries;
+- available prosody descriptors;
+- boundary/transition quality.
+
+### First extractor
+
+`extract_behavior_profile.py`
+
+Current scope is deliberately limited to the primary source first:
+
+`VID_20260911_140124885.mp4`
+
+Implementation choices:
+
+- FFmpeg/ffprobe are the base media runtime;
+- visual motion energy uses low-resolution grayscale frame differences so segmentation does not wait on a pose framework;
+- prosody v1 uses local audio RMS/dBFS, normalized energy and speech/pause evidence;
+- cuts prioritize **pause + low motion**, then target duration;
+- default motion units target roughly 2.2 s with a bounded short-unit range;
+- output is an inspectable `manifest.json` plus `motion_units.csv`;
+- pose ingestion is backend-independent through normalized JSONL frames, allowing reuse of whichever local whole-body pose tooling the machine already has.
+
+Pose is not optional for a valid profile gate. If the extractor is deliberately run with `--allow-missing-pose`, the manifest is marked:
+
+`status=incomplete_pose`
+
+That mode exists only to inspect segmentation/prosody. It must **not** be accepted as a behavioral-profile pass.
+
+### Prosody scope v1
+
+The currently implemented reliable descriptors are speech/pause, RMS dBFS and normalized audio energy. Pitch is intentionally `null` until a local dependency/backend is selected and validated. The schema already preserves the field so a later validated pitch implementation can populate it without changing the profile contract.
+
 ## Preflight result — 2026-09-18 23:45
 
 Canonical preflight report:
@@ -179,13 +251,11 @@ NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
 
 No DWPose whole-body model was found **under the Wan root**. The preflight did not perform an exhaustive `Z:\AI` search, so absence is not yet proven globally.
 
-Before downloading anything:
+The required next evidence is now produced by `inspect_local_behavior_tooling.ps1`. Only after its targeted no-download scan can the project decide whether pose tooling can be reused or a small dependency is genuinely missing.
 
-1. search likely existing local AI roots for DWPose/whole-body pose assets and compatible runtime;
-2. reuse existing tooling if present;
-3. if absent and required, enumerate the exact small component, source, license, size and destination before downloading.
+If absent and required, enumerate the exact small component, source, license, size and destination before downloading.
 
-A DWPose-L-class weight around ~350 MB is acceptable as a small supporting dependency if genuinely required; it is not a reason to introduce another large renderer.
+A DWPose-L-class weight around ~350 MB remains acceptable in principle as a small supporting dependency if genuinely required; this is not authorization to download it before the local search result.
 
 ### Python warning
 
@@ -193,7 +263,9 @@ The preflight printed:
 
 `Python 3.11: PASS / C:\Python314\python.exe / 3.14.3`
 
-This is internally inconsistent. Do not consider Python 3.11 validated. Resolve the intended interpreter/venv explicitly before adding new Python pose/prosody dependencies.
+This is internally inconsistent. Do not consider Python 3.11 validated.
+
+The new inspector fixes the diagnostic method by checking the actual resolved executable/version rather than trusting the launcher selector label. No interpreter is canonically selected until that script is run on the local machine.
 
 ### Disk pressure
 
@@ -213,7 +285,7 @@ Priority renderer:
 
 The first renderer gate should be short, around **4–5 seconds**, with no dramatic wardrobe/scene change. It tests whether a synthesized João behavioral driver survives Animate-2 while preserving recognizable behavior and identity.
 
-Do not run this gate until an inspectable behavior profile and motion-unit inventory exist.
+Do not run this gate until an inspectable **complete** behavior profile and motion-unit inventory exist.
 
 ## Mouth / speech synchronization — DEFERRED
 
@@ -247,19 +319,21 @@ It satisfies the project constraints:
 - Do not resume Wan S2V prompt acting as a substitute for behavioral conditioning.
 - Do not install MuseTalk/LatentSync before the body/head gate.
 - Do not claim a stitched RGB driver alone is the final product; it is a behavioral conditioning representation.
+- Do not accept `incomplete_pose` as a valid behavior profile.
 - Do not accept mere anatomical plausibility. João must recognize his own motion language.
 
 ## Immediate action — LOCKED
 
-Build the first **behavior-profile / motion-unit extractor** under `tools/video-studio/`.
+The schema and base extractor are implemented. Continue in this exact order:
 
-Order:
+1. run `tools/video-studio/inspect_local_behavior_tooling.ps1` on the local Windows machine;
+2. establish the real Python interpreter candidates and targeted pose-tooling inventory from that report;
+3. reuse compatible local whole-body/hand pose tooling if present;
+4. if none exists, enumerate the smallest required local dependency before any download;
+5. implement the selected pose adapter to the normalized JSONL pose-track contract;
+6. build a **complete** profile for `VID_20260911_140124885.mp4`;
+7. inspect `manifest.json` and `motion_units.csv` before any diffusion render;
+8. only after profile validation, synthesize a new ~4–5 s driving performance from several João motion units;
+9. then send that driver to the already-installed Wan-Animate-2.
 
-1. resolve the Python interpreter inconsistency;
-2. perform a targeted no-download search for reusable whole-body pose tooling in existing local AI roots;
-3. define the persistent behavior-profile/motion-unit schema;
-4. implement extraction first for `VID_20260911_140124885.mp4`;
-5. generate an inspectable manifest/inventory before any diffusion render;
-6. only after the profile is validated, synthesize a new ~4–5 s driving performance and send that to installed Wan-Animate-2.
-
-No new large renderer download is allowed before this gate.
+No new large renderer download is allowed before this gate. Wan-Animate-2 must not be run yet.
