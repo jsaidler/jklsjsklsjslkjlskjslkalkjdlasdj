@@ -93,163 +93,108 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curat
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
-## Secondary source — BASE PROFILE + FACIAL SIDECAR STRUCTURAL PASS
+## Secondary source — CURATED PASS
 
 Source: `VID_20260819_124008056.mp4`  
-Role: **face/head/microexpression**.
+Role: **face/head/microexpression**, with body only as auxiliary support.
 
-### Pose / geometry
-
-Validated C3 facial gate: **83.6–88.6 s**.
+### Pose / profile / facial sidecar
 
 ```text
-coded: 1920x1080
-display: 1080x1920
-rotation: 90
-analysis: 540x960
-C3: 30 frames @ 6 fps, 0 fallback
-```
-
-Full pose:
-
-```text
-1695 frames @ 6 fps
-1/1695 detector fallback
+full pose: 1695 frames @ 6 fps
+geometry: 1080x1920 display / rotation 90 / analysis 540x960
+fallback: 1/1695
 mean whole-body keypoint score: 0.5453589803
-CPUExecutionProvider
+behavior-profile/v1: complete
+base motion units: 119
+facial-behavior-profile/v1 units: 119
+facial units usable with >=2 accepted frames: 116
 ```
 
-Classification: **SECONDARY FULL POSE TRACK PASS**.
+Facial frame QA remains locked:
 
-### Base behavior-profile/v1
+- face landmarks 23–90;
+- eye-line midpoint normalization;
+- remove in-plane roll;
+- divide by inter-eye distance;
+- source-relative Tukey outer fences, 3×IQR;
+- normalization failures + static geometry outliers are facial-layer-only hard suspects;
+- temporal jumps are review-only.
+
+Observed facial quality:
 
 ```text
-status: complete
-units: 119
-coverage: 0.0 -> 282.574 s
-pose snapshots valid: 119/119
-head activity: 119/119
-body activity: 119/119
-left-hand activity: 37/119
-right-hand activity: 20/119
-combined-hand activity: 38/119
-speech: mixed=84, pause=1, speech=34
-unit duration min/median/max: 0.800/2.500/3.800 s
+accepted facial geometry: 1576/1695 = 0.929794
+face weight q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
 ```
 
-Sparse hands are **not a source failure** because this source is not a hand/gesture source.
+### Secondary role-aware curation — PASS
 
-### Facial sidecar architecture — LOCKED
-
-Keep `behavior-profile/v1` unchanged. Add:
+Observed:
 
 ```text
-facial-behavior-profile/v1
+units total: 119
+global hard excluded: 0
+face eligible: 116
+head eligible: 116
+body-support eligible: 116
+hands retrieval: disabled
+generic whole-upper retrieval: disabled
 ```
 
-Face landmarks: COCO WholeBody **23–90**.
-
-Normalization:
-
-1. eye-line midpoint center;
-2. remove in-plane roll;
-3. divide by inter-eye-center distance.
-
-Descriptors:
-
-- internal expression deformation, jaw excluded;
-- brows;
-- eyes;
-- mouth;
-- mouth open/width;
-- eye open;
-- brow-eye distance;
-- face-point presence/confidence.
-
-### Facial quality audit — PASS / POLICY LOCKED
+Role weights:
 
 ```text
-frames total: 1695
-normalized: 1677
-normalization failed: 18
-static hard suspects: 101
-temporal review suspects: 47
-accepted facial static geometry: 1576/1695 = 0.929794
+face q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
+head q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
+body_support q10/median/q90: 0.4351354 / 0.519182 / 0.5724356
 ```
 
-Filtered dynamics:
+Lowest face-quality units:
 
 ```text
-expression mean/peak: 0.135848 / 0.712936
-mouth mean/peak: 0.188157 / 0.921541
-mouth_open range: 0.118971
-mouth_width range: 0.192813
-eye_open range: 0.038902
-brow_eye_distance range: 0.119461
-```
-
-The reviewed suspect sheet confirms hard facial suspects are mainly face-off-frame / severe crop / strong lateral geometry / degenerate normalization.
-
-Locked semantics:
-
-- hard facial suspects are excluded **only from facial descriptors**;
-- they do not automatically remove the underlying base motion unit;
-- temporal jumps remain review-only;
-- facial quality stays continuous.
-
-Per-unit facial reliability:
-
-```text
-face_quality_weight =
-accepted_frame_ratio
-× mean_face_point_presence
-× mean_landmark_confidence
-```
-
-### Facial sidecar build — STRUCTURAL PASS
-
-```text
-units: 119
-usable with >=2 accepted facial frames: 116
-accepted-frame ratio q10/median/q90: 0.8318838 / 1.0 / 1.0
-face-quality weight q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
-units with hard facial suspects: 39
-hard-suspect frame references across units: 120
-units with temporal-review signal: 4
-```
-
-Lowest facial-quality units:
-
-```text
-u0003 weight=0.0 accepted=0.0
-u0006 weight=0.0 accepted=0.0
-u0007 weight=0.0 accepted=0.0
+u0003 weight=0.0 accepted=0.0 frames=0
+u0006 weight=0.0 accepted=0.0 frames=0
+u0007 weight=0.0 accepted=0.0 frames=0
 u0005 weight=0.276583 accepted=0.3125
 u0094 weight=0.432046 accepted=0.466667
 u0004 weight=0.440393 accepted=0.5
 ```
 
-Classification: **SECONDARY BASE PROFILE + FACIAL SIDECAR STRUCTURAL PASS**.
+Interpretation:
 
-## Secondary role-aware curation — NEXT
+- sparse hands are expected and not a source failure;
+- zero-face units remain in the base profile but are ineligible for face/head retrieval;
+- no unit is globally deleted solely because the face is unavailable;
+- head quality equals face quality in the current curated result because coarse head pose is effectively saturated across the face-usable units; the discriminating factor is facial usability, so no artificial extra penalty is added.
 
-Do **not** apply the primary source's whole-upper policy to this video.
+Artifacts:
 
-Locked retrieval roles:
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_inventory.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curated_secondary_motion_units.csv
+```
 
-- **face/microexpression**: enabled when a unit has at least 2 accepted facial frames; weight = `face_quality_weight`;
-- **head**: enabled only when face is structurally usable; weight = `head_pose_quality × face_quality_weight`;
-- **body_support**: auxiliary anchor only; weight = `body_pose_quality × face_quality_weight`;
-- **left/right/both hands**: diagnostic only; retrieval disabled for this source;
-- **generic whole-upper**: disabled for this source.
+Classification: **SECONDARY SOURCE CURATED PASS**.
 
-The three zero-face units remain in the base profile but are not eligible for face/head retrieval. They are **not globally hard-excluded** simply because the facial layer is unusable.
+## Third source — SIENA_BRUTO gate sampling NEXT
 
-Versioned:
+Source:
 
-- `tools/video-studio/behavior_source_annotations_secondary.json`;
-- `tools/video-studio/curate_secondary_behavior_source.py`;
-- `tools/video-studio/run_behavior_secondary_curation.ps1`.
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
+
+Role: alternate gesture/posture vocabulary with explicit prop/object/occlusion handling.
+
+Do not run the full DWPose pass yet. First inspect several candidate 5 s windows and identify both:
+
+- a clean gesture/posture gate with free hands/body visibility;
+- spans containing held objects, prop interaction or major occlusion that must later be annotated separately.
+
+Versioned runner:
+
+`tools/video-studio/run_behavior_tertiary_gate_candidates.ps1`
+
+It only samples source frames. No DWPose and no Wan-Animate-2.
 
 ## Immediate next action
 
@@ -258,19 +203,26 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_curation.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_gate_candidates.ps1'
 ```
 
-This runs no DWPose and no Wan-Animate-2. Paste the complete terminal output before processing `SIENA_BRUTO.mp4`.
+Upload:
+
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\gate_candidates\candidate_contact_sheet.jpg
+```
+
+After visual selection, run only a short DWPose gate before any full SIENA extraction.
 
 ## Downstream
 
-1. complete secondary role-aware curation;
-2. validate/process `SIENA_BRUTO.mp4` with a short gate first and source-specific exclusions;
-3. preserve source IDs/timestamps and source roles for every unit;
-4. build unified source-preserving library;
-5. synthesize a new 4–5 s multi-source behavioral driver;
-6. only then invoke installed Wan-Animate-2.
+1. choose SIENA clean gate + mark visible prop/occlusion spans;
+2. run short SIENA DWPose gate;
+3. if gate passes, full SIENA pose/profile/curation with source-specific exclusions;
+4. preserve source IDs/timestamps/roles for every eligible unit;
+5. build unified source-preserving library;
+6. synthesize a new 4–5 s multi-source behavioral driver;
+7. only then invoke installed Wan-Animate-2.
 
 ## Quality gate — LOCKED
 
