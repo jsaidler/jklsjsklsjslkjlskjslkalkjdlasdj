@@ -47,7 +47,7 @@ A single source video is never the final library, and different sources do **not
 
 1. `VID_20260911_140124885.mp4` — 300.352 s — torso/hands/posture/gesture primary;
 2. `VID_20260819_124008056.mp4` — 282.574 s — head/face/microexpression;
-3. `SIENA_BRUTO.mp4` — 113.3 s — alternate gesture/posture with object/occlusion exclusions.
+3. `SIENA_BRUTO.mp4` — 113.313 s — alternate gesture/posture with object/occlusion exclusions.
 
 ## Local pose stack — PASS
 
@@ -177,39 +177,52 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\curat
 
 Classification: **SECONDARY SOURCE CURATED PASS**.
 
-## Third source — SIENA_BRUTO gate sampling NEXT
+## Third source — SIENA_BRUTO GATE SELECTED
 
 Source:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
 
+Verified contact sheet:
+
+```text
+SOURCE: SIENA_BRUTO.mp4
+duration: 113.313 s
+window: 5 s
+candidates: 8
+```
+
 Role: alternate gesture/posture vocabulary with explicit prop/object/occlusion handling.
 
-Do not run the full DWPose pass yet. First inspect several candidate 5 s windows and identify both:
+### Selected clean gate — C6
 
-- a clean gesture/posture gate with free hands/body visibility;
-- spans containing held objects, prop interaction or major occlusion that must later be annotated separately.
+**75.2–80.2 s**.
+
+Why C6:
+
+- no held object;
+- torso is visible and stable;
+- useful free arm/hand movement is present;
+- no graphic overlay crossing the subject;
+- stronger gesture/posture test than the more static C3/C5 windows.
 
 Versioned runner:
 
-`tools/video-studio/run_behavior_tertiary_gate_candidates.ps1`
+`tools/video-studio/run_behavior_tertiary_pose_gate.ps1`
 
-It only samples source frames. No DWPose and no Wan-Animate-2.
+It runs DWPose only on C6 at 6 fps with the validated CPU provider and renders an overlay. It does not run Wan-Animate-2.
 
-### SIENA candidate-sheet integrity — LOCKED
+### Provisional semantic-suspect spans from the sampled sheet
 
-A previously uploaded contact sheet was rejected because it was visibly the **secondary 282 s video**, not `SIENA_BRUTO.mp4`: candidate timestamps extended to ~272 s, impossible for the canonical ~113.3 s SIENA source.
+These are **review markers only**, not final hard-exclusion boundaries:
 
-This was not treated as a SIENA gate result.
+- C1 / approximately 5–10 s: inserted still-image/graphic overlays obscure the subject;
+- C2 / approximately 19–24 s: held print/book/photo interaction and hand occlusion;
+- C4 / approximately 47–52 s: lens/camera prop interaction with major foreground occlusion.
 
-Sampler hardening now versioned:
+Do not lock exact exclusion boundaries from the coarse contact sheet. Exact intervals must be derived from the full SIENA source/inventory after pose/profile generation.
 
-- every candidate sheet header prints `SOURCE: <filename>` and exact duration;
-- the manifest now contains `source_name` and `duration_s` explicitly;
-- the SIENA runner verifies `source_name == SIENA_BRUTO.mp4`;
-- the SIENA runner checks a generous 100–130 s integrity band around the canonical ~113.3 s duration, intended only to catch accidental reuse of the 282 s secondary source or another file.
-
-Classification remains: **SIENA NOT YET GATED**.
+Classification: **SIENA CLEAN GATE SELECTED / SHORT POSE GATE NEXT**.
 
 ## Immediate next action
 
@@ -218,36 +231,30 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_gate_candidates.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_pose_gate.ps1'
 ```
 
-The terminal must report:
+Expected artifacts:
 
 ```text
-Manifest source: SIENA_BRUTO.mp4
-Manifest duration: ~113 s
-SIENA CANDIDATE SAMPLER: PASS
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_coco133.jsonl
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_coco133.jsonl.summary.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_overlay.mp4
 ```
 
-Upload exactly:
-
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\gate_candidates\candidate_contact_sheet.jpg
-```
-
-The JPG header itself must say `SOURCE: SIENA_BRUTO.mp4` and show the ~113 s duration.
-
-After visual selection, run only a short DWPose gate before any full SIENA extraction.
+Upload the overlay and paste the summary. Evaluate body/arms/hands/posture and geometry before any full SIENA extraction.
 
 ## Downstream
 
-1. choose SIENA clean gate + mark visible prop/occlusion spans;
-2. run short SIENA DWPose gate;
-3. if gate passes, full SIENA pose/profile/curation with source-specific exclusions;
-4. preserve source IDs/timestamps/roles for every eligible unit;
-5. build unified source-preserving library;
-6. synthesize a new 4–5 s multi-source behavioral driver;
-7. only then invoke installed Wan-Animate-2.
+1. validate SIENA C6 short pose gate;
+2. if gate passes, run full SIENA pose track;
+3. build behavior profile and inventory;
+4. define exact semantic exclusion intervals for overlays/objects/occlusions from the full source/inventory;
+5. curate SIENA as alternate gesture/posture source;
+6. preserve source IDs/timestamps/roles for every eligible unit;
+7. build unified source-preserving library;
+8. synthesize a new 4–5 s multi-source behavioral driver;
+9. only then invoke installed Wan-Animate-2.
 
 ## Quality gate — LOCKED
 
