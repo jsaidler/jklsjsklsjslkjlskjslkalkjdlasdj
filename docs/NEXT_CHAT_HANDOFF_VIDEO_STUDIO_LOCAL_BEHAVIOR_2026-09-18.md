@@ -1,13 +1,13 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **DWPose CPU SMOKE PASS / VISUAL POSE GATE NEXT**
+Status: **DWPose CPU SMOKE PASS / FIRST VISUAL SAMPLE REJECTED BY OCCLUSION / CLEAN-WINDOW SAMPLER NEXT**
 
 ## Continuation prompt
 
 Continue o projeto **Local Video Studio** exatamente do estado canônico no GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`.
 
-Antes de alterar qualquer estado, leia:
+Antes de alterar estado, leia:
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
@@ -16,9 +16,10 @@ Antes de alterar qualquer estado, leia:
 5. este arquivo;
 6. `tools/video-studio/extract_dwpose_track.py`
 7. `tools/video-studio/render_pose_overlay.py`
-8. `tools/video-studio/run_behavior_pose_visual_gate.ps1`
-9. `tools/video-studio/extract_behavior_profile.py`
-10. `tools/video-studio/behavior_profile_schema_v1.json`
+8. `tools/video-studio/sample_behavior_gate_candidates.py`
+9. `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`
+10. `tools/video-studio/extract_behavior_profile.py`
+11. `tools/video-studio/behavior_profile_schema_v1.json`
 
 Não reconstruir decisões pela memória quando os documentos disserem algo diferente. Toda mudança de estado atualiza os documentos vivos.
 
@@ -43,33 +44,9 @@ Novo texto/áudio deve gerar performance nova que:
 
 Movimento genérico não basta.
 
-## Arquitetura
-
-```text
-vídeos reais do João
-    -> pose + prosódia local
-    -> motion units persistentes
-
-novo áudio
-    -> janelas prosódicas
-    -> seleção/ordenação por compatibilidade
-    -> continuidade de pose + diversidade
-    -> nova performance composta do vocabulário real de João
-
-novo driving video
-    -> Wan-Animate-2 já instalado
-    -> lip-sync local posteriormente se necessário
-```
-
-## Fonte primária
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
-
-300.352 s / 3840x2160 HEVC + áudio.
-
 ## Estado validado em 2026-09-19
 
-### DWPose local
+### Local DWPose
 
 Reuse confirmado:
 
@@ -86,15 +63,15 @@ Não baixar outro pose stack.
 
 Inferência real de um frame passou e produziu `coco_wholebody_133` sem detector fallback.
 
-ONNX Runtime anunciou CUDA/TensorRT/CPU, mas a tentativa CUDA emitiu erro por dependência ausente `cublasLt64_13.dll`. Portanto:
+ONNX Runtime anunciou CUDA/TensorRT/CPU, mas CUDA emitiu erro por `cublasLt64_13.dll` ausente. Portanto:
 
 - DWPose funcional: **PASS**;
 - CUDA ORT efetivo: **FAIL / não validado**;
-- não instalar CUDA agora; CPU continua suficiente para o gate.
+- CPU é o caminho atual do gate.
 
 ### Smoke CPU
 
-Trecho 30–35 s, 6 fps, 960x540, CPU:
+Trecho 30–35 s, 6 fps, 960x540:
 
 ```text
 frames: 30
@@ -105,22 +82,26 @@ elapsed_s: 26.750566244125366
 frames_per_second_wall: 1.1214715877869776
 ```
 
-Track existente:
+Resultado técnico: PASS.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s.jsonl`
+### Primeiro visual gate
 
-O score médio isolado não é critério suficiente para aprovar qualidade anatômica.
+O overlay de 30–35 s foi gerado e enviado. João está segurando um objeto grande durante a maior parte do trecho. O objeto oculta mãos e atravessa a região do torso; os landmarks ficam parcialmente inferidos sobre/através do objeto.
 
-## Visual gate — PRÓXIMA AÇÃO EXATA
+Classificação correta:
 
-Foi versionado:
+**30–35 s SAMPLE REJECTED DUE TO OBJECT OCCLUSION.**
 
-- `tools/video-studio/render_pose_overlay.py`;
-- `tools/video-studio/run_behavior_pose_visual_gate.ps1`.
+Isto não é falha do DWPose. O intervalo não pode ser usado para aprovar ou reprovar qualidade anatômica.
 
-Eles não rodam DWPose novamente. Apenas desenham o track já extraído sobre os frames correspondentes e geram:
+## Próxima ação exata
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_smoke_5s_overlay.mp4`
+Foi versionado um sampler sem DWPose:
+
+- `tools/video-studio/sample_behavior_gate_candidates.py`;
+- `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`.
+
+Ele gera 8 candidatos de 5 s, cada um mostrado por frames de início/meio/fim, para localizar uma janela com mãos livres e torso desobstruído.
 
 Rodar:
 
@@ -129,26 +110,25 @@ cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_visual_gate.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_gate_candidate_sampler.ps1'
 ```
 
-Depois abrir o MP4 e verificar:
+Saída esperada:
 
-- torso/braços sobre a anatomia correta;
-- mãos ligadas aos pulsos corretos;
-- landmarks de dedos plausíveis;
-- face acompanhando o rosto;
-- ausência de saltos, swaps esquerda/direita e tracking do fundo.
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\gate_candidates\candidate_contact_sheet.jpg`
 
-**Não executar o full 300 s antes desse gate visual passar.**
+Uploadar esse JPG. Selecionar visualmente um intervalo limpo.
 
-## Depois do visual PASS
+Depois:
 
-1. gerar full pose track da fonte primária a 6 fps;
-2. gerar behavior profile com `status=complete`;
-3. inspecionar `manifest.json` + `motion_units.csv`;
-4. compor novo driving video de 4–5 s usando várias motion units;
-5. só então executar Wan-Animate-2.
+1. rerun de 5 s CPU DWPose nesse intervalo;
+2. overlay visual;
+3. validar torso/braços, pulsos/mãos/dedos, face, swaps e saltos temporais;
+4. somente após visual PASS gerar full pose track a 6 fps;
+5. gerar behavior profile `status=complete`;
+6. inspecionar `manifest.json` + `motion_units.csv`;
+7. compor novo driving video de 4–5 s com várias motion units;
+8. só então executar Wan-Animate-2.
 
 ## Qualidade final
 
