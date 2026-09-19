@@ -1,159 +1,167 @@
 # Local Video Studio
 
-This is the active local prototype for the current project.
+This directory contains the active local tooling for the Video Studio project.
 
-It hides the ComfyUI graph behind a localhost interface and turns the MiniMax H3 Ref2VA workflow into:
-
-`text + scene + optional appearance -> identity refs + voice ref -> H3 clips -> MP4`
+Canonical state: `../../docs/PROJECT_STATE.md`.  
+Canonical route: `../../docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`.  
+Canonical execution policy: `../../docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`.
 
 ## Current status
 
-**Functional architecture: validated.**  
-**Production visual quality: NOT approved.**
+The active engineering problem is **behavioral identity**, not another static-image talking-avatar benchmark.
 
-The 2026-09-15 tests proved that the installed local H3 stack can:
+The required product must preserve three independent identities:
 
-- preserve recognizable identity from still references;
-- use the user's voice reference for new Portuguese dialogue;
-- generate autonomous motion without a driving video;
-- generate a scene different from the source-reference room when cropped identity references are used.
+1. visual identity;
+2. voice identity;
+3. behavioral identity — João's real gesture language, posture, head motion, facial behavior and delivery rhythm.
 
-They did **not** prove that the visual result is good enough for publication. The active gate is `../../docs/VIDEO_STUDIO_QUALITY_GATE_2026-09-15.md`.
+The current route is fully local/self-hosted and zero-cost:
 
-Do not describe the current Turbo4 result as `production validated` or `production-ready`.
+```text
+João behavioral videos
+    -> local pose + prosody analysis
+    -> persistent motion-unit library
 
-## Current architecture contract
+new local speech/audio
+    -> prosody windows
+    -> motion-unit selection
+    -> pose continuity + diversity
+    -> new driving performance built from João's real behavioral vocabulary
 
-- local-first;
-- engine candidate: MiniMax H3 Ref2VA through `Z:\AI\MiniMaxH3`;
-- identity: `joao_id_face.png`, `joao_id_shoulders.png`, `joao_id_upperbody.png`;
-- voice: `joao_ref_voice.wav`;
-- no driving video required for the normal recording-free hypothesis;
-- normal authoring should not require ComfyUI graph editing;
-- quality work on one short shot takes precedence over one-minute/multi-shot polish.
+new driving performance
+    -> already-installed Wan-Animate-2
+    -> local lip-sync later if necessary
+```
 
-## Start / preflight
+Do not substitute a fixed driving clip or generic autonomous motion for this architecture.
 
-From the repository root:
+## Active first source
+
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4
+```
+
+This is the primary upper-body source for the first behavior profile.
+
+## New behavior-profile tooling
+
+### `inspect_local_behavior_tooling.ps1`
+
+Strict read-only environment inspection.
+
+It:
+
+- resolves what `py -3.11` actually executes and verifies `sys.version_info`;
+- inventories likely existing Python runtimes under selected local AI roots;
+- reports useful installed packages where available;
+- performs a bounded/no-download search for existing DWPose/whole-body/hand-pose tooling;
+- writes local TXT/JSON reports under `reports/`.
+
+It does **not** install, download, delete or perform a blind full-drive crawl.
+
+Run from the repository root:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File `
-'.\tools\video-studio\start_video_studio.ps1' `
--PreflightOnly
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\inspect_local_behavior_tooling.ps1'
 ```
 
-The launcher creates `config.json` from `config.example.json` on first run.
+### `behavior_profile_schema_v1.json`
 
-To open the prototype UI:
+Persistent schema for `behavior-profile/v1`.
 
-```powershell
-cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+Each motion unit contains source/timing/RGB-span metadata plus start/end pose, head activity, hand activity, body activity, motion energy, speech/pause evidence, available prosody and transition descriptors.
 
-git pull --ff-only origin main
+### `extract_behavior_profile.py`
 
-powershell -ExecutionPolicy Bypass -File `
-'.\tools\video-studio\start_video_studio.ps1'
+First renderer-independent behavior-profile extractor.
+
+Base analysis uses local FFmpeg/ffprobe only:
+
+- low-resolution grayscale frame-difference motion energy;
+- local mono-audio RMS/dBFS and normalized energy;
+- speech/pause evidence;
+- short motion-unit segmentation that prioritizes pauses and low-motion transition points.
+
+The pose backend is intentionally decoupled. The extractor accepts normalized JSONL pose frames:
+
+```json
+{"t": 1.234, "schema": "coco_wholebody_133", "keypoints": [[0.5, 0.3, 0.98]]}
 ```
 
-Interface:
+Coordinates are normalized to `[0,1]`. For COCO WholeBody 133, the extractor derives head/body/left-hand/right-hand activity from the standard keypoint groups.
+
+A normal gate run requires `--pose-track`.
+
+The diagnostic flag:
 
 ```text
-http://127.0.0.1:8765/
+--allow-missing-pose
 ```
 
-## Preset status
-
-The first MVP backend still contains the key name `production` for compatibility. **That key name is historical and does not mean production quality.**
-
-### `draft`
-
-Turbo4 at 480×864. Smoke test only.
-
-### `production` — legacy key / fast baseline
-
-- 768×1344;
-- MiniMax H3 Ref2VA INT8;
-- Ref2V Turbo LoRA;
-- 4 steps;
-- `res_multistep` + `simple`;
-- `ref_image_size=max`.
-
-Functionally successful, visually **not accepted as production quality**.
-
-### `quality`
-
-- 768×1344;
-- Base H3, no Turbo LoRA;
-- 20 steps;
-- `res_multistep` + `beta`;
-- `ref_image_size=max`.
-
-First active quality candidate.
-
-### `max`
-
-- 768×1344;
-- Base H3, no Turbo LoRA;
-- 50 steps;
-- `res_multistep` + `beta`;
-- `ref_image_size=max`.
-
-Maximum defined H3 quality candidate; potentially very slow on the RTX 3060.
-
-## Active task: controlled visual-quality benchmark
-
-Run the quality gate before treating the Studio as a production tool.
-
-The benchmark keeps identity references, voice, text, scenario, framing and seed fixed while changing only the sampling preset.
-
-Canonical criteria include:
-
-- face/identity stability;
-- eyes/glasses/hair/beard;
-- mouth/teeth/jaw;
-- hands/fingers/wrists/arms;
-- natural body performance;
-- skin/detail texture;
-- clothing stability;
-- background geometry stability;
-- lighting/camera coherence;
-- voice/AV synchronization;
-- overall publishability without manual frame repair.
-
-## Interface
-
-The existing UI exposes:
-
-- dialogue;
-- scenario;
-- optional clothing/appearance;
-- framing;
-- quality preset;
-- seed.
-
-It is currently a prototype harness. Productization resumes only after the visual-quality gate passes.
-
-## Output/evidence
-
-Default output root:
+may be used only to inspect segmentation/prosody. Its manifest is marked:
 
 ```text
-Z:\AI\MiniMaxH3\VideoStudioRuns
+status=incomplete_pose
 ```
 
-Jobs preserve prompts, API graphs, hashes and manifests. Generated media stays local and is not committed to Git.
+**`incomplete_pose` is not a valid behavioral-profile pass.**
 
-## Files
+Primary outputs are local and inspectable:
 
-- `video_studio.py` — existing backend/orchestrator;
-- `index.html` — local UI;
-- `config.example.json` — machine/profile defaults;
-- `start_video_studio.ps1` — Windows launcher;
-- `run_quality_gate.py` — controlled single-shot H3 quality comparison;
-- `run_quality_gate.ps1` — PowerShell entry point for that comparison.
+```text
+manifest.json
+motion_units.csv
+```
 
-Canonical state: `../../docs/PROJECT_STATE.md`.
+Default output root for the primary source:
+
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\
+```
+
+## Current gate
+
+The immediate gate is not Wan rendering yet.
+
+Required order:
+
+1. run the local tooling inspector;
+2. resolve the actual Python interpreter and local pose assets;
+3. reuse existing compatible pose tooling if found;
+4. if nothing suitable exists, enumerate the smallest required local dependency before downloading anything;
+5. produce a `status=complete` manifest for the primary source;
+6. inspect motion units and transition quality;
+7. compose a new ~4–5 s driving performance from several units;
+8. only then run the installed Wan-Animate-2 renderer.
+
+MuseTalk, LatentSync and final voice-clone/TTS integration remain deferred until body/head behavior passes.
+
+## Installed renderer state
+
+Wan-Animate-2 is already installed and passed reuse preflight. Do **not** download VACE, Motion Mirror or another large renderer as the next step.
+
+## Legacy H3 prototype files
+
+The following files belong to the earlier MiniMax H3 prototype and remain as historical/useful orchestration code:
+
+- `video_studio.py`;
+- `index.html`;
+- `config.example.json`;
+- `start_video_studio.ps1`;
+- `run_quality_gate.py` / `.ps1`;
+- H3-related benchmark/preflight helpers.
+
+H3 proved useful architecture and visual-identity behavior, but its production rendering and generic autonomous motion failed the current product requirement. These files are **not the active renderer route** and should not drive the next gate.
+
+## Historical branches
+
+Wan2.2-S2V, H3, HunyuanVideo-Avatar and HeyGen/Avatar-V records remain evidence only. Do not resume them as the next development step.
+
+The active quality criterion remains:
+
+> this does not merely look like João; it moves and reacts like João.
