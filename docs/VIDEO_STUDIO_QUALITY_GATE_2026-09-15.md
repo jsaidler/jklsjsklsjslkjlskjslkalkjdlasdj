@@ -10,13 +10,13 @@ Canonical project state: `docs/PROJECT_STATE.md`.
 
 A technically functional avatar is not enough. The finished result must satisfy both **render quality** and **personal identity quality**.
 
-The project now explicitly separates three identities:
+The project explicitly separates three identities:
 
 1. visual identity;
 2. voice identity;
 3. behavioral identity.
 
-Behavioral identity means João's characteristic facial expressions, head movement, gesture language, posture and delivery rhythm learned from his real footage.
+Behavioral identity means João's characteristic facial expressions, head movement, gesture language, posture and delivery rhythm learned/reused from his real footage.
 
 A clip that looks like João but moves like a generic presenter is a production failure.
 
@@ -38,16 +38,18 @@ A production candidate must be acceptable at normal viewing size and under full-
 12. **Lighting** — face/body/background illumination remains physically coherent.
 13. **Camera / composition** — framing follows the requested shot without unexplained zooming/reframing.
 14. **Voice identity / AV sync** — when the final voice stage is present, voice identity remains convincing and synchronization does not visibly slip.
-15. **Generalization** — a personal-avatar system must preserve João identity on a **new script not present in the behavioral reference video**.
+15. **Generalization** — the system must preserve João identity on a **new script not present in the behavioral reference video**.
 16. **Overall release standard** — publishable without manual frame-by-frame repair.
 
 A conspicuous failure in any major category means **production fail**.
 
 ## Important benchmark rule
 
-Do not claim behavioral-identity failure or success unless the candidate actually received João's behavioral video/reference in a way intended to condition or train motion identity.
+Do not claim behavioral-identity failure or success unless the candidate actually received João's behavioral evidence in a mechanism intended to carry that motion identity forward.
 
 Static-image + audio benchmarks such as the completed Wan S2V tests are useful for visual rendering quality but are **not behavioral-identity tests**.
+
+For the current architecture, the behavioral evidence is a newly assembled driving performance selected from João's own motion-unit library using pose/prosody constraints. A single fixed source clip is not sufficient as the product hypothesis.
 
 ## Evidence from completed branches
 
@@ -77,23 +79,48 @@ Do not try to repair personal mannerisms through prompt wording alone.
 
 Runtime/payload passed, but 720p quality path timed out after nearly three hours at `0/30` on RTX 3060 12 GB. No visual verdict. Local practicality fail.
 
-## Current production benchmark — Avatar V
+### HeyGen Avatar V / Digital Twin
 
-The next gate must explicitly test reusable behavioral identity learned from João's actual footage.
+This branch is **retired and invalid for the active project** because the canonical execution policy is local/self-hosted and zero-cost, and João's identity material must not be uploaded to an external avatar provider.
 
-Use HeyGen Avatar V / Digital Twin first because current product documentation states that it learns specific gestures, expressions and mannerisms from short real-human video footage.
+Historical documentation may remain for provenance, but HeyGen is not an active benchmark, fallback or next step.
 
-The benchmark must:
+## Current behavioral benchmark — LOCAL MOTION UNITS + INSTALLED WAN-ANIMATE-2
 
-- use existing João footage as motion/behavior reference;
-- use a new Portuguese script not present in that footage;
-- avoid exaggerated emotional direction;
-- preserve an easy-to-judge look/framing;
-- collect a separate human verdict for visual identity and behavioral identity.
+The next gate explicitly tests reusable behavioral identity from João's own local footage without an external service.
+
+Required sequence:
+
+1. build a `status=complete` behavior profile for `VID_20260911_140124885.mp4` with real whole-body/hand pose data plus local prosody descriptors;
+2. inspect the motion-unit manifest before rendering;
+3. create a **new ~4–5 s performance from several motion units**, not a replay of one fixed source clip;
+4. choose/order units using prosodic compatibility, pose continuity and diversity;
+5. pass that locally assembled driving video to the already-installed Wan-Animate-2;
+6. judge behavioral identity independently from pixel/visual identity.
+
+The current extractor deliberately permits `status=incomplete_pose` only as a segmentation/prosody diagnostic. Such a manifest is **not eligible for this gate**.
+
+Do not install lip-sync or final voice cloning before this body/head behavioral gate. Mouth timing may be imperfect at this stage; that does not relax the requirement that body, head, posture and gesture language feel like João.
+
+## Behavioral-profile pre-gate
+
+Before diffusion rendering, the profile itself must be inspectable and credible.
+
+At minimum verify:
+
+- units reference real original RGB spans;
+- cuts tend to fall at pauses and/or low-motion transition points;
+- start/end pose exists for each eligible unit;
+- head, hands and body activity are populated from pose rather than guessed from generic motion;
+- motion energy and speech/pause descriptors are plausible when spot-checked against the source;
+- enough different units exist to form a short performance without immediate repetition;
+- transition candidates include compatible end/start poses.
+
+Automatic segmentation metrics are supporting evidence only. They do not prove João's behavioral identity.
 
 ## Required human verdict
 
-The benchmark passes only if the reviewer can answer **yes** to both:
+The renderer benchmark passes only if the reviewer can answer **yes** to both:
 
 > Does this look like João?
 
@@ -101,20 +128,24 @@ The benchmark passes only if the reviewer can answer **yes** to both:
 
 A yes to only the first question is not enough.
 
+For the first behavior gate, the second question has priority over final lipsync/voice polish.
+
 ## Required evidence per quality run
 
 Store where technically possible:
 
-- renderer/model/version;
-- source behavioral-reference video identity/hash or provider asset ID;
-- look/identity reference identity/hash or provider asset ID;
-- script;
-- voice source/model;
+- local renderer/model/version;
+- source behavioral-reference video path/hash;
+- behavior-profile schema/version and manifest;
+- selected motion-unit IDs and source time ranges;
+- transition/selection scores used to assemble the driving performance;
+- look/identity reference path/hash;
+- target script/audio identity;
 - generation settings;
 - duration/dimensions;
-- elapsed time and cost;
+- elapsed local runtime;
 - final MP4;
 - human verdict per acceptance category;
 - explicit final classification: `PASS`, `FAIL`, or `INCONCLUSIVE`.
 
-No automatic metric may override visible human defects or the user's judgment of his own behavioral identity.
+No automatic metric may override visible human defects or João's judgment of his own behavioral identity.
