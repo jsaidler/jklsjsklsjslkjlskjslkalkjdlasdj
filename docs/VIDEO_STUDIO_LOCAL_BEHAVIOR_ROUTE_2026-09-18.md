@@ -2,133 +2,133 @@
 
 Date: **2026-09-18**  
 Updated: **2026-09-19**  
-Status: **ACTIVE / PRIMARY PROFILE STRUCTURAL PASS / INVENTORY QUALITY REVIEW NEXT**
+Status: **ACTIVE / PRIMARY INVENTORY REVIEW PASS WITH CURATION / PRIMARY CURATION NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
-Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`  
-Preflight: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
+Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 
 ## Problem
 
-Static visual identity plus audio can make a person look like João while moving like someone else. The product requires João's behavioral identity: posture, head movement, hands, gesture timing, expressions and delivery rhythm.
-
-Generic plausible motion is not sufficient.
+Static visual identity plus audio can make a person look like João while moving like someone else. The product requires João's behavioral identity: posture, head movement, hands, gesture timing, expressions and delivery rhythm. Generic plausible motion is insufficient.
 
 ## Selected architecture — LOCKED
 
 ```text
 multiple real João behavior videos
     -> local pose + motion + prosody
-    -> per-source motion-unit profiles
-    -> source-preserving quality annotations
-    -> unified João motion-unit library
+    -> per-source profiles
+    -> semantic/manual exclusions + continuous group-quality weights
+    -> unified source-preserving motion-unit library
 
 new local speech/audio
     -> prosodic windows
-    -> multi-source motion-unit retrieval
-    -> pose continuity + diversity + quality constraints
+    -> retrieve units across sources
+    -> pose continuity + diversity + quality/source weighting
     -> NEW João driving performance
 
 new driving performance
     -> installed Wan-Animate-2
-    -> local lip-sync later only if needed
+    -> local lip-sync later if needed
 ```
-
-The final library cannot be one clip or one source video.
 
 ## Canonical sources
 
-- `VID_20260911_140124885.mp4` — primary torso/hands/posture/gesture source;
-- `VID_20260819_124008056.mp4` — facial/head/microexpression source;
-- `SIENA_BRUTO.mp4` — alternate gesture/posture source with unusable object/occlusion spans excluded/down-weighted.
+- `VID_20260911_140124885.mp4` — primary torso/hands/posture/gesture;
+- `VID_20260819_124008056.mp4` — facial/head/microexpression;
+- `SIENA_BRUTO.mp4` — alternate gesture/posture with explicit object/occlusion handling.
 
-## Primary source validated path
+A single source is never the final João library.
 
-- DWPose local reuse: PASS;
-- portrait orientation preprocessing: FIXED;
-- clean C3 visual upper-body pose gate: PASS;
-- full pose track: PASS — 1801 frames, 0 fallback, mean keypoint score 0.7549247491487903;
-- behavior-profile motion analysis orientation: FIXED — 72x128 for the portrait primary source.
+## Primary source — validated through inventory review
 
-## Primary behavior-profile — STRUCTURAL PASS
+Pose/profile path:
 
-Observed profile inventory:
+- local WanGP DWPose reuse: PASS;
+- portrait orientation correction: PASS;
+- C3 88.7–93.7 s visual upper-body gate: PASS;
+- full pose track: 1801 frames, 0 fallback, mean keypoint score 0.7549247491;
+- behavior profile: `status=complete`, 123 units, complete 0–300.352 s coverage;
+- all 123 units have valid pose snapshots and head/body/both-hand activity.
 
-```text
-status: complete
-units: 123
-source coverage: 0.0 -> 300.352 s
-motion analysis: 72x128
-pose snapshots valid: 123/123
-activity present: head/body/left hand/right hand/combined hands = 123/123
-speech classes: mixed=89, pause=4, speech=30
-unit duration min/median/max: 0.800/2.500/3.800 s
-```
-
-This proves the per-source extraction/segmentation/profile path is structurally viable. It does not certify all 123 units as retrieval candidates.
-
-## Motion-unit inventory quality review — ACTIVE NEXT GATE
-
-Versioned tooling:
-
-- `tools/video-studio/analyze_behavior_inventory.py`;
-- `tools/video-studio/render_behavior_inventory_review.py`;
-- `tools/video-studio/run_behavior_inventory_review.ps1`.
-
-The analyzer reads the complete manifest plus full COCO WholeBody track and derives per-unit diagnostics using the same profile confidence floor (`CONF = 0.20`). It records group confidence/coverage for head, body and both hands, plus movement and transition descriptors.
-
-Thresholds used for review selection are **source-relative quantiles**, not arbitrary pass/fail constants. The selected visual-review set intentionally mixes low-relative-coverage units with high-hand-motion, high-body-motion, high-RGB-motion and pause units.
-
-The visual review sheet shows start/mid/end of up to 24 units so held objects, occlusion, off-frame hands and other human-visible problems can be identified before retrieval/synthesis.
-
-Outputs:
+Inventory diagnostics:
 
 ```text
-inventory_analysis.json
-inventory_units.csv
-inventory_review_sheet.jpg
+upper pose coverage q10: 0.9352380952
+median: 1.0
+q90: 1.0
+hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
+body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
 ```
 
-No DWPose, Wan-Animate-2 or remote service is invoked.
+Classification: **PRIMARY INVENTORY QUALITY IS SUFFICIENT TO CURATE AND KEEP**.
 
-## Multi-source expansion — after primary inventory review
+## Curation policy — LOCKED
 
-1. classify/exclude/down-weight unusable primary units;
-2. process `VID_20260819_124008056.mp4` through the validated pose/profile route;
-3. process `SIENA_BRUTO.mp4` with explicit object/occlusion quality handling;
-4. preserve source IDs and timestamps;
-5. build unified library with source-role weighting;
-6. only then synthesize a new 4–5 s multi-source behavioral driver.
+### Manual semantic/visual hard exclusions
 
-## Prosody v1
+Human-visible source semantics outrank pure tracking metrics when motion is nonportable.
 
-Implemented:
+Confirmed hard exclusion:
 
-- speech/pause;
-- RMS dBFS;
-- normalized audio energy.
+**24.1–37.5 s (`u0012`–`u0016`)** because this span contains reaching for, holding and presenting physical objects. The behavior is prop-specific and includes hand occlusion.
 
-Pitch remains intentionally `null` until a validated local method is needed.
+Canonical source annotation:
 
-The distribution `mixed=89, pause=4, speech=30` is recorded. It is not automatically a failure, but retrieval design must account for it rather than treating labels as perfect semantic speech segmentation.
+`tools/video-studio/behavior_source_annotations_primary.json`
+
+### Pose coverage is continuous reliability, not binary rejection
+
+`low_relative_pose_coverage` is not itself a failure condition. The already visually validated `u0038` carries that tag, proving that a vigorous/edge-of-frame gesture can remain valid while one hand's confidence temporarily drops.
+
+Eligible units therefore retain group-specific quality weights based on:
+
+`confident keypoint ratio × group frame presence`
+
+for head, body, left hand and right hand. Both-hands reliability is the minimum of hand reliabilities; whole-upper reliability is the minimum across active groups.
+
+No arbitrary new global pass/fail threshold is added.
+
+Versioned tools:
+
+- `tools/video-studio/behavior_source_annotations_primary.json`;
+- `tools/video-studio/curate_behavior_inventory.py`;
+- `tools/video-studio/run_behavior_primary_curation.ps1`.
+
+Expected current curation:
+
+```text
+123 total
+5 hard excluded
+118 eligible
+```
+
+## Next source
+
+After primary curation is materialized locally, do not blindly process the full second video. First run a short visual pose gate for:
+
+`VID_20260819_124008056.mp4`
+
+If that gate passes, run its full pose/profile/inventory route. Its source role is primarily head/face/microexpression, and v1 head descriptors may later need expansion beyond keypoints 0–4 based on evidence from this source.
+
+## Downstream
+
+1. curate primary;
+2. validate/process second source;
+3. validate/process `SIENA_BRUTO.mp4` with source-specific exclusions;
+4. unify all eligible source-preserving units;
+5. retrieve with source-role + group-quality weighting;
+6. synthesize a new 4–5 s multi-source performance;
+7. only then invoke installed Wan-Animate-2.
 
 ## Stop conditions
 
-- no new large renderer download;
-- no DWPose download;
-- no blind Python/CUDA install;
-- no `incomplete_pose` accepted as valid;
-- no structurally complete profile mistaken for a quality-approved inventory;
-- no single-source library accepted as final João behavior;
-- no Wan-Animate-2 render before inventory/multi-source/synthesis validation;
-- no generic plausible motion accepted as João behavior.
+- no new large renderer;
+- no DWPose/Python/CUDA reinstall while current route works;
+- no low-relative-coverage tag treated blindly as rejection;
+- no prop/object-specific motion accepted as generic behavior;
+- no single-source final library;
+- no Wan-Animate-2 before multi-source library/synthesis validation.
 
-## Immediate action
+Quality criterion:
 
-```powershell
-cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
-git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_inventory_review.ps1'
-```
-
-Then inspect the numeric inventory summary and `inventory_review_sheet.jpg` before processing the next source.
+> this does not merely look like João; it moves and reacts like João.
