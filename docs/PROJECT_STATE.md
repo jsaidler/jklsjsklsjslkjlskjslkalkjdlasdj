@@ -63,21 +63,22 @@ Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 
 DWPose functional runtime: PASS. CPU is the validated route. CUDA ONNX remains unvalidated because the CUDA EP reported missing `cublasLt64_13.dll`; do not repair CUDA yet.
 
-## Orientation/preprocessing — FIXED
+## Primary source — CURATED PASS
 
-Primary source is coded 3840x2160 but displayed portrait through 90° rotation metadata.
+The primary source is fully validated through pose, profile, inventory review and curation.
 
-Validated corrected geometry:
+### Pose/profile path
 
-- display: 2160x3840;
+Corrected display geometry:
+
+- coded: 3840x2160;
+- display: 2160x3840 via 90° stream rotation;
 - DWPose analysis: 540x960;
 - behavior-profile motion analysis: 72x128.
 
-## Primary pose/profile pipeline — PASS
+Clean C3 visual gate (88.7–93.7 s): PASS.
 
-Corrected visual C3 gate (88.7–93.7 s): PASS.
-
-Full primary pose extraction:
+Full pose extraction:
 
 ```text
 frames: 1801
@@ -87,7 +88,7 @@ mean keypoint score: 0.7549247491487903
 provider: CPUExecutionProvider
 ```
 
-Primary behavior profile:
+Behavior profile:
 
 ```text
 status: complete
@@ -99,17 +100,11 @@ speech classes: mixed=89, pause=4, speech=30
 unit duration min/median/max: 0.800/2.500/3.800 s
 ```
 
-Classification: **PRIMARY PIPELINE STRUCTURAL PASS**.
-
-## Primary motion-unit inventory review — PASS WITH CURATION REQUIRED
-
-Uploaded inventory analysis + review sheet were inspected on 2026-09-19.
+### Inventory review
 
 Source-relative diagnostics:
 
 ```text
-units: 123
-confidence threshold: 0.20
 upper-pose coverage q10: 0.9352380952
 upper-pose coverage median: 1.0
 upper-pose coverage q90: 1.0
@@ -117,61 +112,75 @@ hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
 body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
 ```
 
-Interpretation:
-
-- overall upper-body pose coverage is strong; median coverage is 1.0;
-- 13/123 units fall below the source-relative q10 coverage threshold;
-- **`low_relative_pose_coverage` is not an automatic rejection condition**: for example `u0038` (90.5–93.8 s) carries that tag yet belongs to the already visually validated C3 gesture interval;
-- low relative coverage frequently reflects a hand leaving/approaching the frame during a legitimate gesture, so reliability must remain continuous and group-specific rather than binary.
+`low_relative_pose_coverage` is a reliability diagnostic, not an automatic rejection condition. Group visibility remains a continuous weighting signal.
 
 ### Manual hard exclusion — LOCKED
 
-The visual sheet plus the earlier failed 30–35 s gate confirm a nonportable prop/object interaction spanning:
+**24.1–37.5 s = units `u0012` through `u0016`** are excluded from generic behavior retrieval because the sequence contains held-object/prop interaction and hand occlusion.
 
-**24.1–37.5 s = units `u0012` through `u0016`.**
-
-This interval includes reaching for, holding and presenting physical objects, causing hand occlusion and object-specific movement. These five units are not eligible as generic João behavior.
-
-Canonical annotation file:
+Canonical annotation:
 
 `tools/video-studio/behavior_source_annotations_primary.json`
 
-### Continuous quality weighting — LOCKED
+### Primary curation — COMPLETE
 
-Do not invent a binary confidence cutoff beyond the established per-keypoint `CONF=0.20`.
+`run_behavior_primary_curation.ps1` completed successfully.
 
-For eligible units, retrieval quality is represented continuously per group using confident-keypoint ratio × frame presence for:
+Observed:
 
-- head;
-- body;
-- left hand;
-- right hand;
-- both hands (minimum of left/right);
-- whole upper body (minimum across groups).
+```text
+Units total: 123
+Eligible: 118
+Hard excluded: 5
+Manual exclusion: 24.1-37.5 s / held_object,hand_occlusion,prop_interaction
+```
 
-Thus units such as early 7.1–20 s spans can remain usable for head/body behavior even when one hand has weaker visibility.
+Curated artifacts:
 
-Versioned curation tooling:
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_inventory.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_motion_units.csv
+```
 
-- `tools/video-studio/behavior_source_annotations_primary.json`;
-- `tools/video-studio/curate_behavior_inventory.py`;
-- `tools/video-studio/run_behavior_primary_curation.ps1`.
+Classification: **PRIMARY SOURCE CURATED PASS**.
 
-Expected result for the current annotations:
+The first video is now closed as a curated torso/hands/posture/gesture source containing 118 eligible motion units with continuous group-quality weights.
 
-- 123 total units;
-- 5 hard-excluded object/prop units;
-- 118 eligible units with continuous group-quality weights.
+## Secondary source — VISUAL GATE CANDIDATE SELECTION NEXT
+
+Next canonical source:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260819_124008056.mp4`
+
+Role: **facial/head/microexpression source**.
+
+Do not launch its full DWPose extraction blindly. First select a clean 5-second visual gate that has:
+
+- clearly visible face;
+- useful head/expression variation;
+- minimal face/hand/object occlusion;
+- stable subject framing.
+
+Versioned no-pose sampler:
+
+`tools/video-studio/run_behavior_secondary_gate_candidates.ps1`
+
+It samples eight 5-second windows across the second source and produces only a contact sheet + manifest. It does **not** run DWPose or Wan-Animate-2.
+
+Expected output:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\gate_candidates\candidate_contact_sheet.jpg`
+
+After human selection, run DWPose only on the selected 5-second window and visually inspect the face/head/upper-body overlay before any full-source extraction.
 
 ## Multi-video library requirement — LOCKED
 
-After primary curation is materialized locally:
+After the second source passes and is curated:
 
-1. process `VID_20260819_124008056.mp4` through the same pose/profile/quality route, emphasizing facial/head behavior;
-2. process `SIENA_BRUTO.mp4` through the same route with source-specific object/occlusion annotations;
-3. preserve source ID and timestamps for every unit;
-4. build a unified searchable library;
-5. use source-role + group-quality weighting rather than treating all recordings/units as equivalent.
+1. process `SIENA_BRUTO.mp4` through the same route with source-specific exclusions;
+2. preserve source ID and timestamps for every unit;
+3. build a unified searchable library;
+4. use source-role + group-quality weighting rather than treating all recordings/units as equivalent.
 
 ## Renderer — downstream
 
@@ -188,7 +197,7 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_primary_curation.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_gate_candidates.ps1'
 ```
 
-Then confirm the curation summary. After that, move to a short visual pose gate for `VID_20260819_124008056.mp4` before its full-source extraction.
+Then upload `candidate_contact_sheet.jpg`. Select the second-source gate visually before any DWPose full pass.
