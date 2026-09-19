@@ -38,9 +38,33 @@ def find_exe(name: str) -> str:
     return found
 
 
+def _stream_rotation_degrees(stream: dict[str, Any]) -> int:
+    """Return display rotation reported by ffprobe, normalized to [0, 360)."""
+    rotation = None
+    for side in stream.get("side_data_list") or []:
+        if "rotation" in side:
+            rotation = side.get("rotation")
+            break
+    if rotation is None:
+        rotation = (stream.get("tags") or {}).get("rotate")
+    try:
+        value = int(round(float(rotation))) if rotation is not None else 0
+    except (TypeError, ValueError):
+        value = 0
+    return value % 360
+
+
 def ffprobe_video(source: Path, ffprobe: str) -> dict[str, Any]:
     run = subprocess.run(
-        [ffprobe, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-show_entries", "format=duration", "-of", "json", str(source)],
+        [
+            ffprobe,
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height:stream_tags=rotate:stream_side_data=rotation",
+            "-show_entries", "format=duration",
+            "-of", "json",
+            str(source),
+        ],
         capture_output=True,
         text=True,
     )
@@ -48,9 +72,19 @@ def ffprobe_video(source: Path, ffprobe: str) -> dict[str, Any]:
         raise PoseError(run.stderr.strip() or "ffprobe failed")
     data = json.loads(run.stdout)
     stream = data["streams"][0]
+    coded_width = int(stream["width"])
+    coded_height = int(stream["height"])
+    rotation = _stream_rotation_degrees(stream)
+    if rotation in (90, 270):
+        display_width, display_height = coded_height, coded_width
+    else:
+        display_width, display_height = coded_width, coded_height
     return {
-        "width": int(stream["width"]),
-        "height": int(stream["height"]),
+        "coded_width": coded_width,
+        "coded_height": coded_height,
+        "display_width": display_width,
+        "display_height": display_height,
+        "rotation_degrees": rotation,
         "duration_s": float(data["format"]["duration"]),
     }
 
@@ -174,7 +208,7 @@ def main() -> int:
     ffmpeg = find_exe(args.ffmpeg)
     ffprobe = find_exe(args.ffprobe)
     info = ffprobe_video(source, ffprobe)
-    aw, ah = analysis_size(info["width"], info["height"], args.long_side)
+    aw, ah = analysis_size(info["display_width"], info["display_height"], args.long_side)
     det_session, pose_session, provider, available = session_pair(ort, det_path, pose_path, args.provider)
 
     cmd = [ffmpeg, "-hide_banner", "-loglevel", "error"]
@@ -183,6 +217,8 @@ def main() -> int:
     cmd += ["-i", str(source)]
     if args.duration is not None:
         cmd += ["-t", f"{args.duration:.6f}"]
+    # FFmpeg autorotates by default. aw/ah are therefore derived from display,
+    # not coded, dimensions so portrait sources are not distorted before DWPose.
     cmd += ["-an", "-vf", f"fps={args.fps:g},scale={aw}:{ah}:flags=area", "-f", "rawvideo", "-pix_fmt", "bgr24", "pipe:1"]
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -273,6 +309,11 @@ def main() -> int:
         "source": str(source),
         "output": str(output),
         "source_duration_s": info["duration_s"],
+        "coded_width": info["coded_width"],
+        "coded_height": info["coded_height"],
+        "display_width": info["display_width"],
+        "display_height": info["display_height"],
+        "rotation_degrees": info["rotation_degrees"],
         "start_s": args.start,
         "requested_duration_s": args.duration,
         "sample_fps": args.fps,
