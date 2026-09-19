@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a contact sheet of clean-segment candidates from the primary behavior video.
+"""Build a contact sheet of clean-segment candidates from a behavior video.
 
 This is a visual sampling helper only. It does not run DWPose and does not run any renderer.
 Each candidate row shows start/mid/end frames across a 5-second window so object occlusion
@@ -129,7 +129,13 @@ def main() -> int:
 
     width = max(row.shape[1] for row in rows)
     rows = [cv2.resize(row, (width, row.shape[0])) for row in rows]
-    sheet = np.vstack(rows)
+    body = np.vstack(rows)
+    header = np.zeros((70, width, 3), dtype=np.uint8)
+    title = f"SOURCE: {source.name}   duration={duration:.3f}s"
+    cv2.putText(header, title, (14, 30), font, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(header, f"window={args.window:.1f}s  candidates={args.candidates}  margin={args.margin:.1f}s", (14, 57), font, 0.62, (220, 220, 220), 1, cv2.LINE_AA)
+    sheet = np.vstack([header, body])
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if not cv2.imwrite(str(args.output), sheet):
         raise RuntimeError(f"Could not write contact sheet: {args.output}")
@@ -139,6 +145,7 @@ def main() -> int:
         json.dumps(
             {
                 "source": str(source),
+                "source_name": source.name,
                 "duration_s": duration,
                 "window_s": args.window,
                 "candidates": manifest,
@@ -150,7 +157,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(json.dumps({"output": str(args.output), "manifest": str(manifest_path), "candidates": manifest}, ensure_ascii=False, indent=2))
+    print(json.dumps({"source": str(source), "source_name": source.name, "duration_s": duration, "output": str(args.output), "manifest": str(manifest_path), "candidates": manifest}, ensure_ascii=False, indent=2))
     return 0
 
 
