@@ -1,0 +1,56 @@
+{
+  "schema": "behavior-source-annotations/v1",
+  "source_file": "SIENA_BRUTO.mp4",
+  "source_role": "alternate_posture_head_coarse_arm",
+  "manual_exclusions": [
+    {
+      "start_s": 4.6,
+      "end_s": 10.3,
+      "action": "exclude",
+      "reasons": ["graphic_overlay", "subject_occlusion"],
+      "evidence": "SIENA full inventory review sheet: u0003-u0004 contain inserted still-image/graphic overlays across the subject."
+    },
+    {
+      "start_s": 18.7,
+      "end_s": 24.7,
+      "action": "exclude",
+      "reasons": ["held_object", "prop_interaction", "hand_occlusion"],
+      "evidence": "SIENA full inventory review sheet: u0009-u0010 show a held print/photo/book dominating the gesture and obscuring hands."
+    },
+    {
+      "start_s": 43.7,
+      "end_s": 55.7,
+      "action": "exclude",
+      "reasons": ["camera_lens_prop", "foreground_occlusion", "prop_interaction"],
+      "evidence": "SIENA full inventory review sheet: u0021-u0025 are dominated by lens/camera demonstration and major foreground occlusion."
+    },
+    {
+      "start_s": 67.9,
+      "end_s": 74.0,
+      "action": "exclude",
+      "reasons": ["held_card", "face_occlusion", "prop_interaction"],
+      "evidence": "SIENA full inventory review sheet: u0031-u0033 contain the purple card covering a large part of the face/body."
+    }
+  ],
+  "retrieval_policy": {
+    "head": "enabled on semantically clean units; continuous weight from coarse head pose reliability",
+    "posture": "enabled on semantically clean units; continuous weight from body pose reliability",
+    "coarse_arm": "enabled on semantically clean units; continuous weight from body pose reliability; motion activity remains a matching feature rather than a quality multiplier",
+    "left_hand": "disabled for retrieval from this source",
+    "right_hand": "disabled for retrieval from this source",
+    "both_hands": "disabled for retrieval from this source",
+    "generic_whole_upper": "disabled for retrieval from this source"
+  },
+  "quality_policy": {
+    "pose_confidence_threshold": 0.2,
+    "group_reliability": "continuous",
+    "automatic_low_relative_pose_coverage_exclusion": false,
+    "hands": "diagnostic only; the C6 gate and full inventory do not justify promoting SIENA to a hand source",
+    "semantic_exclusions": "manual reviewed intervals are authoritative for generic behavioral retrieval"
+  },
+  "notes": [
+    "The primary source remains canonical for hands/gesture.",
+    "SIENA contributes alternate posture, head presence and coarse arm-motion vocabulary.",
+    "Do not hard-reject a clean SIENA unit solely because source-relative whole-upper coverage is low."
+  ]
+}
