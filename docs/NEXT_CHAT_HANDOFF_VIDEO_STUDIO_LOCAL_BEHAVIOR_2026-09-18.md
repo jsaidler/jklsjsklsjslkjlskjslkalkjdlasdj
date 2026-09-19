@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 IMPROVED BUT NOT PASS / DRIVER v3 QA NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 NOT PASS / DRIVER v3 POSE QA PASS / WAN CONDITIONING PREFLIGHT NEXT**
 
 Continue in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are canonical.
 
@@ -11,8 +11,8 @@ Read first:
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
-5. `tools/video-studio/synthesize_behavioral_pose_driver_v3.py`;
-6. `tools/video-studio/run_behavior_first_pose_driver_v3_and_qa.ps1`.
+5. `tools/video-studio/inspect_wan_animate2_conditioning.py`;
+6. `tools/video-studio/run_wan_animate2_conditioning_preflight.ps1`.
 
 ## Hard constraints
 
@@ -23,7 +23,7 @@ Read first:
 - no new Python/DWPose/CUDA install while current CPU route works;
 - Wan S2V/H3/Hunyuan/HeyGen remain retired/historical;
 - MuseTalk/LatentSync/TTS remain deferred;
-- no Wan-Animate-2 until a multi-source pose driver passes numeric + visual QA.
+- use only the already-installed Wan-Animate-2 once its real local conditioning path is known.
 
 ## Curated sources
 
@@ -84,11 +84,9 @@ tertiary 37
 
 Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
 
-## Driver v1 — FAIL
+## Driver history
 
-4.5 s / 24 fps / neutral QA.
-
-Key failure:
+### v1 — FAIL
 
 ```text
 transition q90 / normal q90
@@ -96,75 +94,111 @@ body_head  6.1729x
 face       3.1519x
 left_hand  3.0979x
 right_hand 1.5199x
-
-hand OOB
-left  41.71%
-right 44.09%
+hand OOB left 41.71% / right 44.09%
 ```
 
-Visual preview confirmed body reconfiguration and hands lost below frame. Library remained valid.
+Visual preview showed a source-change skeleton swap and severe hand loss below frame.
 
-## Driver v2 — major improvement / not full PASS
+### v2 — improved but NOT PASS
 
 ```text
-base primary -> tertiary
-overlap 1.875–2.625 s / 0.75 s
-base continuity 0.615637
-face continuity 0.937309
-hand continuity 0.783131
-predicted hand in-frame 0.707143
+body transition q90 ratio 0.7920x
+face transition q90 ratio 2.4043x
+hand OOB left 21.87% / right 27.73%
 ```
 
-QA:
+Visual preview confirmed body transition fixed but hand clipping and face acceleration remained.
 
-```text
-OOB
-coarse_head 0.00%
-upper_body  6.37%
-lower_body  3.42%
-face        0.00%
-left_hand  21.87%
-right_hand 27.73%
-
-transition q90 / normal q90
-body_head  0.7920x
-face       2.4043x
-left_hand  0.2085x
-right_hand 0.8727x
-```
-
-Visual review of `first_driver_v2\behavioral_driver_pose_preview.mp4`:
-
-- body transition is substantially fixed and no longer reads as a skeleton swap;
-- hands still scrape/leave the lower frame too frequently, especially second segment;
-- face remains stable spatially but accelerates through the overlap, matching the 2.40× numeric signal.
-
-Classification: **v2 improved but NOT PASS**. Wan remains blocked.
-
-## Architectural clarification — LOCKED
-
-Source-camera translation/scale is not behavioral identity. A single constant similarity transform may normalize the synthesized performance into a canonical target canvas because it preserves relative pose/motion and adds no dynamic camera motion.
-
-## Driver v3 — IMPLEMENTED
-
-Versioned:
-
-- `synthesize_behavioral_pose_driver_v3.py`
-- `run_behavior_first_pose_driver_v3_and_qa.ps1`
-
-Changes from v2:
-
-1. base and hands selected jointly;
-2. retargeted hand framing is a constraint, attempted at floors `0.90 -> 0.86 -> 0.82 -> 0.78 -> 0.74`;
-3. base pair can change if a high-scoring body pair cannot support in-frame hands;
-4. hand pair also scores forward source-time adjacency;
-5. face pair favors forward/adjacent secondary units and scores both shape and velocity continuity;
-6. one constant robust global similarity transform normalizes the complete driver to the portrait frame;
-7. transform scale is not allowed below `0.82`, preventing framing failures from being hidden by excessive shrinking.
+## Driver v3 — POSE QA PASS
 
 Output:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3`
+
+Observed:
+
+```text
+4.5 s / 24 fps / 108 frames
+base primary -> tertiary
+overlap 1.875–2.625 s / 0.75 s
+base continuity 0.602250
+hand framing floor 0.90
+predicted hand in-frame 0.947619
+hand pair source gap 0.0
+face pair source gap 0.0
+canonical framing scale 0.942959
+```
+
+Selected units:
+
+```text
+window 0
+base  primary:VID_20260911_140124885_u0041
+hands primary:VID_20260911_140124885_u0117
+face  secondary:VID_20260819_124008056_u0046
+
+window 1
+base  tertiary:SIENA_BRUTO_u0035
+hands primary:VID_20260911_140124885_u0118
+face  secondary:VID_20260819_124008056_u0047
+```
+
+Numeric QA:
+
+```text
+OOB overall
+coarse_head      0.0000%
+upper_body       0.0000%
+lower_body/foot  0.0000%
+face             0.0000%
+left_hand        0.0000%
+right_hand       1.1023%
+
+transition-only OOB: 0% for every group
+
+transition q90 / normal q90
+body_head   0.792506x
+face        1.411900x
+left_hand   0.682394x
+right_hand  0.944349x
+```
+
+Visual QA of `behavioral_driver_pose_preview.mp4` passed:
+
+- source transition reads continuously;
+- hands remain available;
+- no visually material face discontinuity;
+- residual right-hand OOB is outside transition and not materially visible.
+
+Classification: **FIRST MULTI-SOURCE BEHAVIORAL POSE DRIVER v3 PASS**.
+
+This validates the pose compositor, not yet the Wan input adapter.
+
+## Wan-Animate-2 installed route — PRELIGHT NEXT
+
+Known install root:
+
+`Z:\AI\WanAnimate2`
+
+Known model/code:
+
+```text
+Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors
+Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py
+```
+
+Do not assume Wan directly consumes COCO-133 JSONL or the skeleton preview. First inspect the actual installed code path.
+
+Versioned:
+
+- `tools/video-studio/inspect_wan_animate2_conditioning.py`;
+- `tools/video-studio/run_wan_animate2_conditioning_preflight.ps1`.
+
+The inspector is static only: no Comfy launch, no torch/model import, no DWPose, no Wan inference. It inventories model files and searches code/config for `animate2`, loader/model type, `INPUT_TYPES`, node mappings, pose/driving/reference/control/conditioning/mask/face/video paths and relevant class/function signatures.
+
+Expected report:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\wan_animate2_conditioning_preflight.json`
 
 ## Next exact action
 
@@ -173,21 +207,10 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_v3_and_qa.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_conditioning_preflight.ps1'
 ```
 
-This runs no DWPose and no Wan. Paste the complete terminal output and upload:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\behavioral_driver_pose_preview.mp4`
-
-Review goals:
-
-- hand OOB materially below v2 (`21.9% / 27.7%`);
-- face transition ratio materially below v2 (`2.40x`);
-- body transition remains as stable as v2 (`0.79x` transition q90 / normal q90);
-- visual preview reads as one continuous performance.
-
-Only after a true v3 PASS should we inspect the installed Wan-Animate-2 conditioning interface and prepare the first render spike.
+Paste the complete terminal output. Then determine the smallest adapter from v3 into the **actual installed** Wan-Animate-2 conditioning interface and prepare the first low-cost render spike.
 
 Final quality gate:
 
