@@ -28,6 +28,7 @@ Generate new video from new text/audio that looks, sounds and chiefly **moves/re
 multiple real João behavior videos
     -> local pose + motion + prosody
     -> per-source behavior profiles / motion units
+    -> optional additive facial sidecar per source
     -> source-quality annotation/curation
     -> unified persistent João motion-unit library
 
@@ -85,7 +86,7 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curat
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
-## Secondary source — C3 FACIAL/HEAD VISUAL GATE PASS
+## Secondary source — FACIAL/HEAD GATE PASS
 
 Source:
 
@@ -109,13 +110,26 @@ Observed facial result:
 - no subject switch;
 - shoulders/upper torso remain coherent enough to anchor the facial sequence.
 
-The large white whole-body/hand skeleton lines crossing the face are QA-overlay clutter from partially off-frame body/hand points. They do **not** invalidate the facial landmarks themselves.
+Whole-body/hand lines crossing the face are QA-overlay clutter from off-frame groups, not facial-landmark failure.
 
-### Secondary gate geometry — CONFIRMED CORRECT
+### Secondary gate geometry — PASS
 
-The second source has the **same encoded-landscape + rotation-metadata condition** as the primary source, but the orientation fix is active and correct.
+```text
+coded: 1920x1080
+display: 1080x1920
+rotation_degrees: 90
+analysis: 540x960
+frames: 30
+fallback: 0/30
+mean_keypoint_score: 0.5554170230711649
+CPUExecutionProvider
+```
 
-Observed gate summary:
+The old portrait-squashing bug is not present.
+
+## Secondary full pose extraction — PASS
+
+Completed full-track result:
 
 ```text
 source_duration_s: 282.574
@@ -124,72 +138,98 @@ coded_height: 1080
 display_width: 1080
 display_height: 1920
 rotation_degrees: 90
+sample_fps: 6.0
 analysis_width: 540
 analysis_height: 960
-frames: 30
-sample_fps: 6.0
-detector_fallback_frames: 0
-detector_fallback_ratio: 0.0
-mean_keypoint_score: 0.5554170230711649
+frames: 1695
+last_timestamp_s: 282.333333
+detector_fallback_frames: 1
+detector_fallback_ratio: 0.0005899705014749262
+mean_keypoint_score: 0.5453589802956859
 onnx_provider: CPUExecutionProvider
 ```
 
 Interpretation:
 
-- no portrait-to-landscape squashing is present;
-- the old 960x540 deformation bug is not active;
-- the lower global mean keypoint score versus the primary source does not invalidate this source because the intended role is face/head, the visual facial gate passed, and partially off-frame hands/body depress the whole-body average;
-- geometry is safe for a full secondary pose pass.
+- geometry is correct;
+- all 133 points, including facial 23–90, are retained;
+- 1 fallback in 1695 frames (~0.059%) does not invalidate the source;
+- the lower whole-body mean score is expected for this tighter face/head framing and is not used alone as a rejection criterion because the facial visual gate passed.
 
-Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS / ORIENTATION CONFIRMED**.
+Track:
 
-## Important profile-design finding — FACIAL DESCRIPTORS REQUIRED
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\pose_coco133.jsonl`
 
-Current behavior-profile v1 computes `head_motion` only from keypoints **0–4**. That is adequate for coarse head translation/orientation but does not capture the principal value of the secondary source: microexpression.
+Classification: **SECONDARY FULL POSE TRACK PASS**.
 
-The secondary gate proves that COCO WholeBody facial landmarks **23–90** are usable. Therefore:
+## Facial representation — ADDITIVE SIDECAR LOCKED
 
-- full secondary pose extraction is authorized now, because the JSONL preserves all 133 keypoints;
-- do **not** build the secondary behavior profile with the old head-only descriptor path;
-- before secondary profile construction, extend the behavior representation with facial descriptors derived from 23–90;
-- facial descriptors should separate expression deformation from gross head translation/scale as far as practical, rather than merely averaging all face points as another head centroid.
+The existing `behavior-profile/v1` remains unchanged and valid. It continues to represent segmentation, body/hands, coarse head motion, motion energy and prosody.
 
-This extension should be additive/backward-compatible so the already-curated primary source does not become invalid. The primary full pose track can be re-derived into facial features later without rerunning DWPose.
-
-## Secondary full pose extraction — NEXT
-
-Versioned runner:
-
-`tools/video-studio/run_behavior_pose_full_secondary.ps1`
-
-Defaults:
-
-- source: `VID_20260819_124008056.mp4`;
-- full duration;
-- 6 fps;
-- 960 px long side;
-- CPU provider;
-- normalized COCO WholeBody 133 JSONL;
-- all facial landmarks 23–90 retained;
-- no Wan-Animate-2.
-
-Output:
+Facial/microexpression information is added as a separate, source-aligned sidecar instead of mutating the already validated v1 schema:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\pose_coco133.jsonl
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\pose_coco133.jsonl.summary.json
+behavior-profile/v1
+    + facial-behavior-profile/v1 sidecar
 ```
 
-Review the full-track summary before implementing/building the secondary facial-aware behavior profile.
+Rationale:
+
+- backward-compatible with the curated primary source;
+- avoids invalidating existing motion-unit manifests;
+- allows facial descriptors to be recomputed from any existing 133-point pose track without rerunning DWPose;
+- keeps face-specific retrieval quality separate from body/hand quality.
+
+Canonical face landmarks: **23–90** (68-point face layout).
+
+Normalization before expression measurement:
+
+1. center on eye-line midpoint;
+2. remove in-plane roll using the eye line;
+3. divide by inter-eye-center distance.
+
+This removes image translation, in-plane rotation and scale before measuring internal facial deformation. It does **not** claim to remove perspective effects from yaw/pitch.
+
+Planned descriptor groups:
+
+- overall internal facial deformation (excluding jaw);
+- brows;
+- eyes;
+- mouth;
+- normalized mouth opening;
+- normalized mouth width;
+- normalized eye opening;
+- normalized brow-to-eye distance;
+- face-point presence and mean landmark confidence.
+
+Versioned tooling now present:
+
+- `tools/video-studio/facial_descriptors.py`;
+- `tools/video-studio/inspect_facial_track.py`;
+- `tools/video-studio/run_behavior_secondary_facial_probe.ps1`.
+
+The probe is read-only with respect to models: it reads the already generated full pose JSONL and compares facial descriptors on the complete source and the visually validated C3 interval. It does not run DWPose or Wan-Animate-2.
+
+## Immediate next action — FACIAL DESCRIPTOR PROBE
+
+Run:
+
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+git pull --ff-only origin main
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_facial_probe.ps1'
+```
+
+Paste the complete terminal output. Validate descriptor coverage and C3/full-track ranges before generating the secondary behavior profile and facial sidecar.
 
 ## Multi-video library requirement — LOCKED
 
-After the second source passes full pose + facial-aware profile + curation:
+After the second source passes facial-aware profile + curation:
 
 1. process `SIENA_BRUTO.mp4` through the same route with source-specific exclusions;
 2. preserve source ID and timestamps for every unit;
 3. build a unified searchable library;
-4. use source-role + group-quality weighting rather than treating all recordings/units as equivalent.
+4. use source-role + body/hand/face quality weighting rather than treating all recordings/units as equivalent.
 
 ## Renderer — downstream
 
@@ -198,15 +238,3 @@ Installed Wan-Animate-2 remains the selected renderer. Do not invoke it until mu
 ## Quality gate — LOCKED
 
 > this does not merely look like João; it moves and reacts like João.
-
-## Immediate next action
-
-Run:
-
-```powershell
-cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
-git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_full_secondary.ps1'
-```
-
-Then paste the full secondary pose summary. Do not build the secondary behavior profile yet; facial descriptors 23–90 are the next representation change after the full pose track is validated.
