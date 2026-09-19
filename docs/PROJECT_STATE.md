@@ -12,7 +12,7 @@ GitHub living documents are the canonical source of truth.
 - no new Python/DWPose/CUDA install while the validated CPU route works;
 - Wan S2V, H3, Hunyuan and HeyGen remain retired/historical;
 - MuseTalk/LatentSync/CosyVoice remain deferred;
-- no Wan-Animate-2 until the multi-source behavioral driver passes local QA.
+- no Wan-Animate-2 until the first multi-source behavioral pose driver passes local numeric + visual QA.
 
 ## Objective
 
@@ -32,26 +32,13 @@ new speech/audio
     -> prosodic target windows
     -> role-specific retrieval + continuity + diversity
     -> multi-source behavioral pose driver
-    -> visual QA
+    -> numeric + visual QA
     -> only then installed Wan-Animate-2
 ```
 
-## Local pose stack — PASS
-
-```text
-Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
-Z:\AI\WanGP\preprocessing\dwpose
-Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
-Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
-```
-
-Validated provider: `CPUExecutionProvider`. CUDA ORT is not repaired because CPU is functional.
-
 ## Source 1 — PRIMARY CURATED PASS
 
-`VID_20260911_140124885.mp4`
-
-Role: torso / hands / gesture / primary posture.
+`VID_20260911_140124885.mp4` — torso / hands / gesture / primary posture.
 
 ```text
 300.352 s
@@ -66,9 +53,7 @@ Locked exclusion: **24.1–37.5 s / u0012–u0016** for held object, hand occlus
 
 ## Source 2 — SECONDARY CURATED PASS
 
-`VID_20260819_124008056.mp4`
-
-Role: face / head / microexpression; body only as support.
+`VID_20260819_124008056.mp4` — face / head / microexpression; body support only.
 
 ```text
 282.574 s
@@ -90,13 +75,9 @@ face/head median quality: 0.913145
 body-support median quality: 0.519182
 ```
 
-## Source 3 — SIENA CURATION POLICY LOCKED
+## Source 3 — SIENA CURATED PASS
 
-`SIENA_BRUTO.mp4`
-
-Role: alternate posture / head / coarse-arm vocabulary.
-
-Full pose/profile:
+`SIENA_BRUTO.mp4` — alternate posture / head / coarse-arm vocabulary.
 
 ```text
 113.313208 s
@@ -104,10 +85,11 @@ Full pose/profile:
 0 fallback
 mean keypoint score 0.6698323212
 49 behavior units
-49/49 valid pose snapshots
+12 hard excluded
+37 semantically clean
 ```
 
-Reviewed hard exclusions from the full inventory sheet:
+Locked exclusions from the full inventory review:
 
 ```text
 4.6–10.3 s    u0003-u0004   graphic/still overlay + subject occlusion
@@ -116,38 +98,56 @@ Reviewed hard exclusions from the full inventory sheet:
 67.9–74.0 s   u0031-u0033   held purple card + face/body occlusion
 ```
 
-Expected curated state:
+Retrieval roles on clean units:
 
-```text
-49 total
-12 hard excluded
-37 semantically clean
-```
-
-Retrieval roles:
-
-- `head`: enabled on clean units with continuous head pose quality;
-- `posture`: enabled on clean units with continuous body pose quality;
-- `coarse_arm`: enabled on clean units with continuous body pose quality;
+- `head`: enabled;
+- `posture`: enabled;
+- `coarse_arm`: enabled;
 - hands: disabled;
 - generic whole-upper: disabled.
 
-Versioned:
+Observed SIENA role-weight quantiles are fully saturated:
 
-- `behavior_source_annotations_tertiary.json`
-- `curate_tertiary_behavior_source.py`
-- `run_behavior_tertiary_curation.ps1`
+```text
+head q10/median/q90 = 1.0 / 1.0 / 1.0
+posture q10/median/q90 = 1.0 / 1.0 / 1.0
+coarse_arm q10/median/q90 = 1.0 / 1.0 / 1.0
+```
 
-## Unified source-preserving library — IMPLEMENTED
+Interpretation: current SIENA pose-reliability weight is non-discriminative across the 37 clean units. This does not invalidate the source, but retrieval ranking within SIENA currently depends on motion/prosody/transition/duration rather than pose-quality differentiation. Do not claim the SIENA quality weight meaningfully ranks clean units.
 
-Builder: `tools/video-studio/build_unified_behavior_library.py`  
-Runner: `tools/video-studio/run_behavior_finalize_library.ps1`
+## Unified source-preserving library — PASS
 
 Schema: `joao-motion-library/v1`.
 
-Each unit preserves source identity, source timestamps, source video and pose-track paths, speech/prosody, transitions, motion/activity descriptors, pose boundary snapshots and role-specific quality/priority.
+Artifact:
 
-Locked role/source priorities:
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\joao_motion_library_v1.json`
+
+Observed build:
+
+```text
+271 total units
+primary:   118
+secondary: 116
+tertiary:   37
+```
+
+Observed role candidate counts:
+
+```text
+face:                116  secondary only
+head:                271  primary 118 + secondary 116 + tertiary 37
+posture:             271  primary 118 + secondary 116 + tertiary 37
+coarse_arm:          155  primary 118 + tertiary 37
+left_hand:           118  primary only
+right_hand:          118  primary only
+both_hands:          118  primary only
+generic_whole_upper: 118  primary only
+body_support:        271  primary 118 + secondary 116 + tertiary 37
+```
+
+Locked role/source priorities remain:
 
 ```text
 face:       secondary only / tier 0
@@ -158,75 +158,83 @@ hands:      primary only
 generic whole-upper: primary only
 ```
 
-The library never collapses the three sources into one generic score.
+Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
 
-Expected artifact:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\joao_motion_library_v1.json`
-
-## First multi-source behavioral driver — IMPLEMENTED / QA PENDING
+## First multi-source behavioral pose driver — GENERATED / QA PENDING
 
 Synthesizer: `tools/video-studio/synthesize_behavioral_pose_driver.py`  
 Runner: `tools/video-studio/run_behavior_first_pose_driver.ps1`
 
-The first gate is **pose-domain synthesis**, not RGB clip concatenation and not Wan inference.
-
-For a 4–5 s target it creates two synchronized windows and deliberately exercises multiple sources:
+Observed neutral QA synthesis:
 
 ```text
-base posture/coarse arm: primary + SIENA, order chosen by retrieval score + boundary continuity
-hands:                   primary
-face/microexpression:    secondary
+duration: 4.5 s
+fps: 24
+frames: 108
+target audio: none / neutral QA only
+base source order: primary -> tertiary
+planner boundary continuity score: 0.528554
 ```
 
-Retrieval uses source role eligibility, continuous quality, target prosodic energy, speech class, transition quality and duration fit. Source IDs/timestamps remain in the plan and per-frame provenance.
-
-Pose composition v1:
-
-- base units are similarity-aligned through shoulder geometry;
-- source changes receive a short boundary blend;
-- primary hands are retargeted to the current target wrists using forearm scale/rotation;
-- secondary face landmarks are eye-line normalized and retargeted onto the current head geometry;
-- secondary relative face/head displacement, roll and bounded scale variation contribute to the composite head/face track;
-- output remains COCO WholeBody 133.
-
-Outputs:
+Selected windows:
 
 ```text
-first_driver\driver_plan.json
-first_driver\behavioral_driver_coco133.jsonl
-first_driver\behavioral_driver_pose_preview.mp4
+window 0
+  base:  primary:VID_20260911_140124885_u0114
+  hands: primary:VID_20260911_140124885_u0114
+  face:  secondary:VID_20260819_124008056_u0026
+
+window 1
+  base:  tertiary:SIENA_BRUTO_u0037
+  hands: primary:VID_20260911_140124885_u0075
+  face:  secondary:VID_20260819_124008056_u0105
 ```
 
-If `-Audio` is supplied, the first 4–5 s are analyzed locally for target prosodic energy/speech class. Without `-Audio`, the runner produces only a neutral synthesis-QA target and must not be treated as production retrieval.
+Artifacts:
 
-Wan-Animate-2 remains blocked until the pose preview passes visual QA.
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\driver_plan.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_coco133.jsonl
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4
+```
+
+`0.528554` has no canonical pass/fail threshold and must not be interpreted alone. The first driver remains **QA PENDING**.
+
+## Driver numeric QA — IMPLEMENTED / NEXT
+
+Inspector: `tools/video-studio/inspect_behavioral_pose_driver.py`  
+Runner: `tools/video-studio/run_behavior_first_pose_driver_qa.ps1`
+
+The inspector performs no inference and applies no invented automatic threshold. It reports:
+
+- per-frame coordinate out-of-bounds ratio;
+- frame-to-frame normalized jumps for body/head, face, left hand and right hand;
+- the source-boundary jump compared with the driver's own non-boundary q90;
+- upper-arm and forearm length distributions normalized by shoulder width;
+- inter-eye / shoulder ratio;
+- retargeted hand-root / body-wrist attachment distances.
+
+Output:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\driver_qa.json`
+
+Visual preview remains authoritative together with numeric diagnostics.
 
 ## Immediate next action
 
-First finalize and validate the library:
+Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_finalize_library.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_qa.ps1'
 ```
 
-Paste the complete terminal output. Do **not** run the driver yet if this library build fails.
+Then paste the complete terminal output and upload:
 
-After library PASS, the next command is:
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4`
 
-```powershell
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver.ps1'
-```
-
-or, preferably with a real 4–5 s target speech/audio file:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver.ps1' -Audio '<PATH_TO_LOCAL_AUDIO>'
-```
-
-Upload `behavioral_driver_pose_preview.mp4` for QA before any Wan-Animate-2 call.
+Do not invoke Wan-Animate-2 before numeric + visual QA are reviewed.
 
 ## Progress-output policy — LOCKED
 
