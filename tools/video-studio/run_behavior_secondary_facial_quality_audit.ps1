@@ -26,6 +26,7 @@ foreach ($item in @(
     }
 }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
+if (Test-Path -LiteralPath $Sheet -PathType Leaf) { Remove-Item -LiteralPath $Sheet -Force }
 
 Write-Host 'SECONDARY FACIAL QUALITY AUDIT'
 Write-Host '=============================='
