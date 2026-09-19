@@ -2,7 +2,7 @@
 
 Date: **2026-09-18**  
 Updated: **2026-09-19**  
-Status: **ACTIVE / PRIMARY INVENTORY REVIEW PASS WITH CURATION / PRIMARY CURATION NEXT**
+Status: **ACTIVE / PRIMARY CURATED PASS / SECONDARY FACIAL GATE PASS / SECONDARY FULL POSE NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
 Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
@@ -18,6 +18,7 @@ multiple real João behavior videos
     -> local pose + motion + prosody
     -> per-source profiles
     -> semantic/manual exclusions + continuous group-quality weights
+    -> facial/microexpression descriptors where supported
     -> unified source-preserving motion-unit library
 
 new local speech/audio
@@ -39,86 +40,87 @@ new driving performance
 
 A single source is never the final João library.
 
-## Primary source — validated through inventory review
+## Primary source — CURATED PASS
 
-Pose/profile path:
+Primary pose/profile/inventory/curation route passed.
 
-- local WanGP DWPose reuse: PASS;
-- portrait orientation correction: PASS;
-- C3 88.7–93.7 s visual upper-body gate: PASS;
-- full pose track: 1801 frames, 0 fallback, mean keypoint score 0.7549247491;
-- behavior profile: `status=complete`, 123 units, complete 0–300.352 s coverage;
-- all 123 units have valid pose snapshots and head/body/both-hand activity.
-
-Inventory diagnostics:
+Final primary curation:
 
 ```text
-upper pose coverage q10: 0.9352380952
-median: 1.0
-q90: 1.0
-hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
-body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
-```
-
-Classification: **PRIMARY INVENTORY QUALITY IS SUFFICIENT TO CURATE AND KEEP**.
-
-## Curation policy — LOCKED
-
-### Manual semantic/visual hard exclusions
-
-Human-visible source semantics outrank pure tracking metrics when motion is nonportable.
-
-Confirmed hard exclusion:
-
-**24.1–37.5 s (`u0012`–`u0016`)** because this span contains reaching for, holding and presenting physical objects. The behavior is prop-specific and includes hand occlusion.
-
-Canonical source annotation:
-
-`tools/video-studio/behavior_source_annotations_primary.json`
-
-### Pose coverage is continuous reliability, not binary rejection
-
-`low_relative_pose_coverage` is not itself a failure condition. The already visually validated `u0038` carries that tag, proving that a vigorous/edge-of-frame gesture can remain valid while one hand's confidence temporarily drops.
-
-Eligible units therefore retain group-specific quality weights based on:
-
-`confident keypoint ratio × group frame presence`
-
-for head, body, left hand and right hand. Both-hands reliability is the minimum of hand reliabilities; whole-upper reliability is the minimum across active groups.
-
-No arbitrary new global pass/fail threshold is added.
-
-Versioned tools:
-
-- `tools/video-studio/behavior_source_annotations_primary.json`;
-- `tools/video-studio/curate_behavior_inventory.py`;
-- `tools/video-studio/run_behavior_primary_curation.ps1`.
-
-Expected current curation:
-
-```text
-123 total
-5 hard excluded
+123 total units
 118 eligible
+5 hard excluded
+24.1–37.5 s excluded for held-object/prop interaction + hand occlusion
 ```
 
-## Next source
+Eligible units retain continuous quality weights by head/body/left hand/right hand rather than a blind global confidence reject.
 
-After primary curation is materialized locally, do not blindly process the full second video. First run a short visual pose gate for:
+## Secondary source — FACIAL/HEAD GATE PASS
 
-`VID_20260819_124008056.mp4`
+Canonical gate:
 
-If that gate passes, run its full pose/profile/inventory route. Its source role is primarily head/face/microexpression, and v1 head descriptors may later need expansion beyond keypoints 0–4 based on evidence from this source.
+**C3 = 83.6–88.6 s** from `VID_20260819_124008056.mp4`.
+
+The uploaded 30-frame / 6 fps overlay was inspected frame-by-frame.
+
+Observed:
+
+- face landmarks 23–90 remain attached to brows, eyes, nose and lips;
+- mouth-shape changes track coherently;
+- brow/eye landmarks remain stable through expression changes;
+- head landmarks move smoothly;
+- no gross topology jump or subject switch;
+- upper torso remains coherent enough to anchor the facial sequence.
+
+Whole-body/hand lines crossing the face in QA are visual clutter from off-frame groups, not failure of facial tracking.
+
+Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS**.
+
+## Facial representation — REQUIRED BEFORE SECONDARY PROFILE
+
+Current behavior-profile v1 `head_motion` uses keypoints 0–4. That captures gross head motion but is too coarse for the second source's role.
+
+The gate now provides direct evidence that facial landmarks **23–90** are usable.
+
+Locked consequence:
+
+- full secondary pose extraction may proceed immediately, because all 133 points are retained;
+- do not build the secondary behavior profile with only the old head descriptor;
+- after the full pose track passes, add facial/microexpression descriptors from 23–90;
+- the extension must be additive/backward-compatible with the primary source;
+- expression descriptors should attempt to separate local facial deformation from whole-head translation/scale instead of merely measuring the centroid of all face points.
+
+Potential descriptor families to implement/validate after full pose extraction include normalized mouth opening/width, eye openness, brow/eye relation and translation/scale-normalized facial-shape activity. Do not lock numerical thresholds before measuring the real full-track distributions.
+
+## Secondary full pose extraction — NEXT
+
+Versioned:
+
+`tools/video-studio/run_behavior_pose_full_secondary.ps1`
+
+Defaults:
+
+- full `VID_20260819_124008056.mp4`;
+- 6 fps;
+- long side 960;
+- CPU provider;
+- normalized original COCO WholeBody 133 ordering;
+- facial points 23–90 preserved;
+- summary with geometry, fallback and aggregate confidence;
+- no Wan-Animate-2.
+
+After its summary passes, implement/validate facial descriptors **before** secondary profile construction.
 
 ## Downstream
 
-1. curate primary;
-2. validate/process second source;
-3. validate/process `SIENA_BRUTO.mp4` with source-specific exclusions;
-4. unify all eligible source-preserving units;
-5. retrieve with source-role + group-quality weighting;
-6. synthesize a new 4–5 s multi-source performance;
-7. only then invoke installed Wan-Animate-2.
+1. run full secondary pose extraction;
+2. extend/validate facial descriptors from landmarks 23–90;
+3. build/inspect/curate secondary profile with face/head source-role weighting;
+4. validate/process `SIENA_BRUTO.mp4` with source-specific exclusions;
+5. unify all eligible source-preserving units;
+6. retrieve with source-role + group-quality weighting;
+7. synthesize a new 4–5 s multi-source performance;
+8. only then invoke installed Wan-Animate-2.
 
 ## Stop conditions
 
@@ -126,6 +128,7 @@ If that gate passes, run its full pose/profile/inventory route. Its source role 
 - no DWPose/Python/CUDA reinstall while current route works;
 - no low-relative-coverage tag treated blindly as rejection;
 - no prop/object-specific motion accepted as generic behavior;
+- no second-source profile that throws away validated facial landmarks 23–90;
 - no single-source final library;
 - no Wan-Animate-2 before multi-source library/synthesis validation.
 
