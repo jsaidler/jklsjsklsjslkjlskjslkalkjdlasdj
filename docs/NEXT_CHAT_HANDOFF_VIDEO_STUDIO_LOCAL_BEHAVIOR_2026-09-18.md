@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / FIRST DRIVER GENERATED / QA NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / FIRST DRIVER GENERATED / QA v2 NEXT**
 
 Continue the Local Video Studio in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are canonical.
 
@@ -72,7 +72,7 @@ Locked SIENA exclusions:
 67.9–74.0 s   u0031-u0033
 ```
 
-SIENA head/posture/coarse-arm reliability weights all saturated at 1.0, so they are currently non-discriminative. Do not claim these weights rank clean SIENA units; retrieval within SIENA is differentiated by motion/prosody/transition/duration.
+SIENA head/posture/coarse-arm reliability weights all saturated at 1.0 and are non-discriminative. Retrieval within SIENA is differentiated by motion/prosody/transition/duration.
 
 ## Unified library — PASS
 
@@ -87,18 +87,6 @@ Observed:
 primary 118
 secondary 116
 tertiary 37
-```
-
-Role counts:
-
-```text
-face 116
-head 271
-posture 271
-coarse_arm 155
-left/right/both_hands 118 each
-generic_whole_upper 118
-body_support 271
 ```
 
 Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
@@ -137,11 +125,35 @@ Artifacts:
 ...\unified\first_driver\behavioral_driver_pose_preview.mp4
 ```
 
-The planner continuity score has no canonical cutoff. Do not call the driver PASS from that number alone.
+## Numeric QA v1 — COMPLETE / NOT SUFFICIENT FOR VERDICT
+
+Observed:
+
+```text
+all-finite OOB 2568/14364 = 0.178780
+exact boundary jump = 0.0 in all groups
+left/right hand-root to body-wrist = 0.0
+```
+
+Do not interpret these raw numbers as PASS/FAIL:
+
+- OOB v1 counted finite low-confidence landmarks together with reliable landmarks;
+- exact boundary jump is zero by construction because the current compositor starts the 0.25 s blend from the previous pose;
+- continuity must be judged across the whole transition window, not one pair of frames.
+
+## Numeric QA v2 — NEXT
+
+`inspect_behavioral_pose_driver.py` now emits `behavioral-pose-driver-qa/v2` with:
+
+- all-finite OOB and confidence-qualified OOB separated;
+- confidence-qualified OOB by coarse head / upper body / lower body-foot / face / left hand / right hand;
+- exact boundary retained only as explanatory diagnostic;
+- complete 0.25 s transition-window q90/max for body/head, face and each hand;
+- transition q90/max divided by the driver's own non-transition q90.
 
 ## Next exact action
 
-Run numeric QA:
+Run the revised QA against the already-generated driver; do not regenerate it:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
@@ -149,20 +161,11 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_qa.ps1'
 ```
 
-It runs no DWPose and no Wan. It reports:
-
-- out-of-bounds coordinates;
-- frame-step jumps by body/head, face, left hand, right hand;
-- boundary jump relative to the driver's own non-boundary q90;
-- normalized arm-length distributions;
-- inter-eye/shoulder ratio;
-- hand-root/body-wrist attachment distances.
-
-Then paste the complete terminal output and upload:
+Then paste the complete v2 terminal output and upload:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4`
 
-Visual preview + numeric diagnostics decide PASS/FAIL. If PASS, only then determine the exact installed Wan-Animate-2 conditioning interface and prepare the first render spike. If FAIL, patch pose synthesis rather than changing renderer.
+Visual preview + v2 numeric diagnostics decide PASS/FAIL. If PASS, inspect the exact installed Wan-Animate-2 conditioning interface and prepare the first render spike. If FAIL, patch pose synthesis rather than changing renderer.
 
 Final quality gate:
 
