@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY SOURCE CURATED PASS / SECONDARY FACIAL GATE PASS / SECONDARY FULL POSE NEXT**
+Status: **PRIMARY SOURCE CURATED PASS / SECONDARY FACIAL GATE + GEOMETRY PASS / SECONDARY FULL POSE NEXT**
 
 Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the source of truth.
 
@@ -75,7 +75,28 @@ Result:
 
 Whole-body/hand lines crossing the face in the QA overlay are clutter from off-frame groups, not failure of the facial landmarks.
 
-Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS**.
+### Orientation/geometry — CONFIRMED
+
+Gate summary:
+
+```text
+source_duration_s: 282.574
+coded: 1920x1080
+display: 1080x1920
+rotation_degrees: 90
+analysis: 540x960
+frames: 30
+sample_fps: 6.0
+detector_fallback: 0/30
+mean_keypoint_score: 0.5554170230711649
+provider: CPUExecutionProvider
+```
+
+This is the same encoded-landscape + rotation-metadata condition as the primary source, but the orientation fix is active. The old 960x540 squashing bug is **not** present.
+
+The lower global keypoint score versus the primary source is not itself a failure: this recording is framed for face/head and has weaker/off-frame body-hand coverage, while the facial gate itself passed visually.
+
+Classification: **SECONDARY C3 FACIAL/HEAD VISUAL GATE PASS / ORIENTATION CONFIRMED**.
 
 ## Important representation finding
 
