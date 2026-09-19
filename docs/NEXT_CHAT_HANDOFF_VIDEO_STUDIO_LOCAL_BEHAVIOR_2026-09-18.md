@@ -1,135 +1,137 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY BEHAVIOR PROFILE STRUCTURAL PASS / MOTION-UNIT INVENTORY REVIEW NEXT**
+Status: **PRIMARY INVENTORY REVIEW PASS WITH CURATION / PRIMARY CURATION NEXT**
 
-## Continue from canonical state
-
-Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`.
+Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the source of truth.
 
 Read first:
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
-4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
-5. this file;
-6. `tools/video-studio/analyze_behavior_inventory.py`;
-7. `tools/video-studio/render_behavior_inventory_review.py`;
-8. `tools/video-studio/run_behavior_inventory_review.ps1`.
-
-GitHub living docs are source of truth. Do not reconstruct state from memory when docs differ.
+4. this file;
+5. `tools/video-studio/behavior_source_annotations_primary.json`;
+6. `tools/video-studio/curate_behavior_inventory.py`;
+7. `tools/video-studio/run_behavior_primary_curation.ps1`.
 
 ## Hard constraints
 
 - 100% local/self-hosted;
 - zero service cost;
-- never upload João's video/voice/identity to third parties;
+- never upload João identity media to third parties;
 - no SaaS/paid API/credits/subscriptions;
-- do not download another large renderer;
-- no new Python/DWPose/CUDA install while current local route works;
-- Wan S2V, H3, Hunyuan and HeyGen remain retired/historical;
+- no new large renderer;
+- no new Python/DWPose/CUDA install while current route works;
+- Wan S2V/H3/Hunyuan/HeyGen remain retired/historical;
 - MuseTalk/LatentSync/TTS remain deferred.
 
 ## Goal
 
-New text/audio must eventually produce a new performance that looks, sounds and chiefly **moves/reacts like João**. Generic presenter motion is failure.
+New text/audio must yield a new performance that looks, sounds and chiefly **moves/reacts like João**. Generic presenter motion is failure.
 
 ## Multi-source requirement — LOCKED
 
-Final behavior library must not use only one video.
+Final behavior library must use all canonical sources, not only the first:
 
-Canonical sources:
+- `VID_20260911_140124885.mp4` — primary torso/hands/posture/gesture;
+- `VID_20260819_124008056.mp4` — head/face/microexpression;
+- `SIENA_BRUTO.mp4` — additional gesture/posture with exclusions.
 
-- `VID_20260911_140124885.mp4` — torso/hands/posture/gesture primary;
-- `VID_20260819_124008056.mp4` — head/face/microexpression source;
-- `SIENA_BRUTO.mp4` — additional gesture/posture source with object/occlusion exclusions.
+## Primary pipeline — PASS
 
-The first source is complete through structural profile validation only. The other two still must be processed before final library synthesis.
-
-## Validated primary pose path
-
-Primary video is coded 3840x2160, displayed 2160x3840 via 90° rotation.
-
-Corrected DWPose analysis:
+Primary corrected pose path:
 
 ```text
 540x960 @ 6 fps
 1801 frames
 0/1801 detector fallback
-mean keypoint score: 0.7549247491487903
+mean keypoint score 0.7549247491487903
 CPUExecutionProvider
 ```
 
-Clean visual gate C3 = 88.7–93.7 s passed after orientation correction.
-
-## Primary behavior profile — STRUCTURAL PASS
-
-Profile builder completed:
+Primary behavior profile:
 
 ```text
-status: complete
-units: 123
-CSV rows: 123
-coverage: 0.0 -> 300.352 s
-motion analysis: 72x128
-pose snapshots valid: 123/123
-activity units: head=123, body=123, left_hand=123, right_hand=123, combined_hands=123
-speech classes: mixed=89, pause=4, speech=30
-unit duration min/median/max: 0.800/2.500/3.800 s
+status complete
+123 units
+0.0 -> 300.352 s continuous coverage
+123/123 valid pose snapshots
+all 123 units have head/body/left-hand/right-hand activity
 ```
 
-Files:
+## Primary inventory review — PASS WITH CURATION
+
+Inventory artifacts were uploaded and inspected.
+
+Distribution:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\manifest.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\motion_units.csv
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\profile_inspection.json
+upper-pose coverage q10: 0.9352380952
+median: 1.0
+q90: 1.0
+hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
+body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
 ```
 
-Classification: **PRIMARY BEHAVIOR PROFILE STRUCTURAL PASS**.
+Important interpretation:
 
-Do not synthesize a driver yet. Structural completeness does not prove every unit is behaviorally usable.
+- `low_relative_pose_coverage` is a diagnostic tag, **not** an automatic reject condition;
+- `u0038` is tagged low-relative-coverage but belongs to the already visually passed C3 interval, proving that vigorous/edge-of-frame gestures can legitimately reduce one-hand coverage;
+- group coverage is therefore retained as a continuous retrieval reliability signal.
 
-## Next exact action — inventory quality review
+### Hard exclusion
 
-Versioned:
+Manual visual evidence establishes one nonportable object/prop interaction interval:
 
-- `tools/video-studio/analyze_behavior_inventory.py`;
-- `tools/video-studio/render_behavior_inventory_review.py`;
-- `tools/video-studio/run_behavior_inventory_review.ps1`.
+**24.1–37.5 s = `u0012`–`u0016`.**
+
+Reasons: held object, hand occlusion, prop-specific motion. These five units are excluded from generic João behavior retrieval.
+
+Canonical annotation:
+
+`tools/video-studio/behavior_source_annotations_primary.json`
+
+### Continuous quality weights
+
+Eligible units keep continuous weights based on confident-keypoint ratio × frame presence for head, body, left hand and right hand. No arbitrary new binary cutoff is introduced.
+
+Expected primary curation result:
+
+```text
+123 total
+5 hard excluded
+118 eligible
+```
+
+## Next exact action
 
 Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
-
 git pull --ff-only origin main
-
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_inventory_review.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_primary_curation.ps1'
 ```
-
-This does not rerun DWPose or Wan. It computes per-unit pose confidence/coverage and movement diagnostics, then selects up to 24 representative/suspicious units and creates a visual contact sheet with start/mid/end frames.
 
 Outputs:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_analysis.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_units.csv
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_review_sheet.jpg
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_inventory.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curated_motion_units.csv
 ```
 
-Paste the numeric terminal summary and upload `inventory_review_sheet.jpg`.
+After confirming 118 eligible / 5 excluded, proceed to a short visual pose gate for `VID_20260819_124008056.mp4`; do not blindly launch its full extraction first.
 
-## After inventory review
+## Downstream
 
-1. classify/exclude/down-weight unusable primary motion units;
-2. process `VID_20260819_124008056.mp4` through the validated pose/profile route;
-3. process `SIENA_BRUTO.mp4` with explicit occlusion/object exclusions;
-4. build unified multi-source João library preserving unit source/timestamps;
-5. synthesize a new 4–5 s performance from multiple units/sources;
+1. curate primary inventory;
+2. validate/process second canonical source;
+3. validate/process `SIENA_BRUTO.mp4` with source-specific exclusions;
+4. build unified source-preserving library;
+5. synthesize a new 4–5 s multi-source behavioral driver;
 6. only then invoke installed Wan-Animate-2.
 
-## Final human quality gate
+Final quality gate:
 
 > “isso não apenas parece João; isso se move e reage como João.”
