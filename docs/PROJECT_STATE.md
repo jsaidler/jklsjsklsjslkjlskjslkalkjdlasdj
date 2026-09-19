@@ -26,13 +26,12 @@ multiple real João behavior videos
     -> local pose + motion + prosody
     -> per-source behavior-profile/v1 motion units
     -> optional aligned facial-behavior-profile/v1 sidecar
-    -> source-specific semantic/quality curation
+    -> source-specific semantic + role-aware quality curation
     -> unified source-preserving João motion library
 
 new local speech/audio
     -> prosodic windows
-    -> retrieve compatible units across sources
-    -> body/hand/head/face quality weighting + continuity + diversity
+    -> retrieve by source role + quality + continuity + diversity
     -> NEW driving performance from João's real movement vocabulary
 
 new driving performance
@@ -40,7 +39,7 @@ new driving performance
     -> local lip-sync later if needed
 ```
 
-A single source video is never the final library.
+A single source video is never the final library, and different sources do **not** have interchangeable roles.
 
 ## Canonical sources
 
@@ -63,13 +62,11 @@ Validated provider: `CPUExecutionProvider`. CUDA ORT remains intentionally unrep
 
 ## Primary source — CURATED PASS
 
-Corrected portrait geometry and 6 fps DWPose route passed.
-
 ```text
 full pose frames: 1801
 fallback: 0/1801
 mean keypoint score: 0.7549247491
-behavior-profile/v1 status: complete
+behavior-profile/v1: complete
 motion units: 123
 ```
 
@@ -85,6 +82,8 @@ Final primary curation:
 5 hard excluded
 ```
 
+Role: torso/hands/posture/gesture. Group quality remains continuous rather than using one global rejection threshold.
+
 Artifacts:
 
 ```text
@@ -94,53 +93,67 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curat
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
-## Secondary source — FULL POSE PASS
+## Secondary source — BASE PROFILE + FACIAL SIDECAR STRUCTURAL PASS
 
-Role: face/head/microexpression.
+Source: `VID_20260819_124008056.mp4`  
+Role: **face/head/microexpression**.
+
+### Pose / geometry
 
 Validated C3 facial gate: **83.6–88.6 s**.
-
-Geometry is the same encoded-landscape + rotation-metadata condition as the primary source, and the orientation fix is working:
 
 ```text
 coded: 1920x1080
 display: 1080x1920
 rotation: 90
 analysis: 540x960
+C3: 30 frames @ 6 fps, 0 fallback
 ```
 
-Full pose result:
+Full pose:
 
 ```text
-duration: 282.574 s
-frames: 1695 @ 6 fps
-fallback: 1/1695 = 0.0005899705
-mean keypoint score: 0.5453589803
-provider: CPUExecutionProvider
+1695 frames @ 6 fps
+1/1695 detector fallback
+mean whole-body keypoint score: 0.5453589803
+CPUExecutionProvider
 ```
 
-All 133 keypoints are retained. Classification: **SECONDARY FULL POSE TRACK PASS**.
+Classification: **SECONDARY FULL POSE TRACK PASS**.
 
-## Facial representation — ADDITIVE SIDECAR LOCKED
-
-Do not mutate the validated `behavior-profile/v1` schema.
-
-Use an aligned sidecar:
+### Base behavior-profile/v1
 
 ```text
-behavior-profile/v1
-+ facial-behavior-profile/v1
+status: complete
+units: 119
+coverage: 0.0 -> 282.574 s
+pose snapshots valid: 119/119
+head activity: 119/119
+body activity: 119/119
+left-hand activity: 37/119
+right-hand activity: 20/119
+combined-hand activity: 38/119
+speech: mixed=84, pause=1, speech=34
+unit duration min/median/max: 0.800/2.500/3.800 s
+```
+
+Sparse hands are **not a source failure** because this source is not a hand/gesture source.
+
+### Facial sidecar architecture — LOCKED
+
+Keep `behavior-profile/v1` unchanged. Add:
+
+```text
+facial-behavior-profile/v1
 ```
 
 Face landmarks: COCO WholeBody **23–90**.
 
-Normalization before expression measurement:
+Normalization:
 
-1. center on eye-line midpoint;
+1. eye-line midpoint center;
 2. remove in-plane roll;
 3. divide by inter-eye-center distance.
-
-This removes image translation, in-plane rotation and scale. It does not claim to remove yaw/pitch perspective effects.
 
 Descriptors:
 
@@ -148,34 +161,12 @@ Descriptors:
 - brows;
 - eyes;
 - mouth;
-- mouth opening / width;
-- eye opening;
+- mouth open/width;
+- eye open;
 - brow-eye distance;
-- face point presence/confidence.
+- face-point presence/confidence.
 
-## Secondary facial probe — COVERAGE PASS
-
-Full source:
-
-```text
-1695 frames
-1677 normalized = 0.989381
-mean face-point presence = 0.988383
-mean landmark confidence = 0.910192
-```
-
-The validated C3 interval produced coherent facial dynamics, but raw full-track peaks were pathological (`expression peak 37.065`, `mouth peak 58.962`), proving that a small number of off-frame/degenerate frames must be removed from the facial layer.
-
-## Secondary facial frame-quality audit — PASS / POLICY LOCKED
-
-Audit policy:
-
-- source-relative Tukey outer fences, **3×IQR**;
-- normalization failures + static normalized-geometry outliers = facial hard suspects;
-- temporal expression jumps = review-only, never automatic hard exclusion;
-- no absolute hand-tuned facial threshold.
-
-Observed:
+### Facial quality audit — PASS / POLICY LOCKED
 
 ```text
 frames total: 1695
@@ -186,24 +177,27 @@ temporal review suspects: 47
 accepted facial static geometry: 1576/1695 = 0.929794
 ```
 
-Filtered dynamics become plausible:
+Filtered dynamics:
 
 ```text
 expression mean/peak: 0.135848 / 0.712936
 mouth mean/peak: 0.188157 / 0.921541
-mouth_open mean/range: 0.023286 / 0.118971
-mouth_width mean/range: 0.886436 / 0.192813
-eye_open mean/range: 0.063497 / 0.038902
-brow_eye_distance mean/range: 0.162553 / 0.119461
+mouth_open range: 0.118971
+mouth_width range: 0.192813
+eye_open range: 0.038902
+brow_eye_distance range: 0.119461
 ```
 
-The uploaded review sheet visually confirms that the highest-severity hard suspects are primarily moments with the face partially outside the frame, severe lateral/cropped geometry, or degenerate normalization. They are unsuitable for facial microexpression descriptors but do **not** imply global rejection of the underlying body/head motion.
+The reviewed suspect sheet confirms hard facial suspects are mainly face-off-frame / severe crop / strong lateral geometry / degenerate normalization.
 
-### Facial exclusion semantics — LOCKED
+Locked semantics:
 
-Hard facial suspects are excluded **only from the facial sidecar**. They do not automatically remove the corresponding motion unit from `behavior-profile/v1`.
+- hard facial suspects are excluded **only from facial descriptors**;
+- they do not automatically remove the underlying base motion unit;
+- temporal jumps remain review-only;
+- facial quality stays continuous.
 
-Per-unit facial reliability is continuous:
+Per-unit facial reliability:
 
 ```text
 face_quality_weight =
@@ -212,47 +206,68 @@ accepted_frame_ratio
 × mean_landmark_confidence
 ```
 
-No new binary per-unit face threshold is introduced at this stage.
+### Facial sidecar build — STRUCTURAL PASS
 
-Versioned tooling:
+```text
+units: 119
+usable with >=2 accepted facial frames: 116
+accepted-frame ratio q10/median/q90: 0.8318838 / 1.0 / 1.0
+face-quality weight q10/median/q90: 0.7649534 / 0.913145 / 0.9241892
+units with hard facial suspects: 39
+hard-suspect frame references across units: 120
+units with temporal-review signal: 4
+```
 
-- `tools/video-studio/facial_descriptors.py`;
-- `tools/video-studio/audit_facial_track_quality.py`;
-- `tools/video-studio/render_facial_quality_review.py`;
-- `tools/video-studio/facial_behavior_profile_schema_v1.json`;
-- `tools/video-studio/build_facial_behavior_sidecar.py`;
-- `tools/video-studio/inspect_facial_behavior_sidecar.py`;
-- `tools/video-studio/run_behavior_secondary_profile_and_facial_sidecar.ps1`.
+Lowest facial-quality units:
+
+```text
+u0003 weight=0.0 accepted=0.0
+u0006 weight=0.0 accepted=0.0
+u0007 weight=0.0 accepted=0.0
+u0005 weight=0.276583 accepted=0.3125
+u0094 weight=0.432046 accepted=0.466667
+u0004 weight=0.440393 accepted=0.5
+```
+
+Classification: **SECONDARY BASE PROFILE + FACIAL SIDECAR STRUCTURAL PASS**.
+
+## Secondary role-aware curation — NEXT
+
+Do **not** apply the primary source's whole-upper policy to this video.
+
+Locked retrieval roles:
+
+- **face/microexpression**: enabled when a unit has at least 2 accepted facial frames; weight = `face_quality_weight`;
+- **head**: enabled only when face is structurally usable; weight = `head_pose_quality × face_quality_weight`;
+- **body_support**: auxiliary anchor only; weight = `body_pose_quality × face_quality_weight`;
+- **left/right/both hands**: diagnostic only; retrieval disabled for this source;
+- **generic whole-upper**: disabled for this source.
+
+The three zero-face units remain in the base profile but are not eligible for face/head retrieval. They are **not globally hard-excluded** simply because the facial layer is unusable.
+
+Versioned:
+
+- `tools/video-studio/behavior_source_annotations_secondary.json`;
+- `tools/video-studio/curate_secondary_behavior_source.py`;
+- `tools/video-studio/run_behavior_secondary_curation.ps1`.
 
 ## Immediate next action
 
-Build the secondary base behavior profile and its aligned facial sidecar from existing local artifacts:
+Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_profile_and_facial_sidecar.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_curation.ps1'
 ```
 
-This runs no DWPose and no Wan-Animate-2.
-
-Expected outputs include:
-
-```text
-...\VID_20260819_124008056\manifest.json
-...\VID_20260819_124008056\motion_units.csv
-...\VID_20260819_124008056\profile_inspection.json
-...\VID_20260819_124008056\facial_behavior_profile.json
-...\VID_20260819_124008056\facial_sidecar_inspection.json
-```
-
-Paste the complete terminal output before secondary curation.
+This runs no DWPose and no Wan-Animate-2. Paste the complete terminal output before processing `SIENA_BRUTO.mp4`.
 
 ## Downstream
 
-1. inspect/curate secondary units with source role strongly favoring face/head;
-2. optionally derive a facial sidecar for primary from its existing 133-point track without rerunning DWPose;
-3. process `SIENA_BRUTO.mp4` with source-specific exclusions;
+1. complete secondary role-aware curation;
+2. validate/process `SIENA_BRUTO.mp4` with a short gate first and source-specific exclusions;
+3. preserve source IDs/timestamps and source roles for every unit;
 4. build unified source-preserving library;
 5. synthesize a new 4–5 s multi-source behavioral driver;
 6. only then invoke installed Wan-Animate-2.
