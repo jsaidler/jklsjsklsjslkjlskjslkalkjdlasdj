@@ -2,7 +2,7 @@
 
 Status date: **2026-09-19**
 
-Purpose: canonical cross-chat operational handoff. GitHub living documents are the source of truth.
+GitHub living documents are the canonical source of truth.
 
 ## Execution policy — LOCKED
 
@@ -13,20 +13,14 @@ Hard constraints:
 - no hosted avatar/generation/training service;
 - no SaaS/cloud inference API, credits or subscriptions;
 - never upload João's video, voice or identity to third parties;
-- do not download another large renderer while the behavior route is active;
-- Wan S2V, H3, Hunyuan and HeyGen remain historical/retired branches;
+- no new large renderer while the behavior route is active;
+- Wan S2V, H3, Hunyuan and HeyGen remain historical/retired routes;
 - MuseTalk/LatentSync/CosyVoice remain deferred;
 - no new Python/DWPose/CUDA install while the validated local route works.
 
 ## Active objective — LOCKED
 
-Generate new video from new text/audio in which the result:
-
-1. looks like João;
-2. sounds like João;
-3. chiefly **moves and reacts like João**.
-
-Generic plausible presenter motion is a failure.
+Generate new video from new text/audio that looks, sounds and chiefly **moves/reacts like João**. Generic plausible presenter motion is failure.
 
 ## Canonical architecture
 
@@ -34,12 +28,13 @@ Generic plausible presenter motion is a failure.
 multiple real João behavior videos
     -> local pose + motion + prosody
     -> per-source behavior profiles / motion units
+    -> source-quality annotation/curation
     -> unified persistent João motion-unit library
 
 new local speech/audio
     -> prosodic windows
-    -> retrieve/sequence compatible units across sources
-    -> pose continuity + diversity + source-quality constraints
+    -> retrieve compatible units across sources
+    -> pose continuity + diversity + quality/source weighting
     -> NEW driving performance from João's real movement vocabulary
 
 new driving performance
@@ -57,15 +52,7 @@ A single source video is not the final library.
 - `VID_20260819_124008056.mp4` — 282.6 s — facial/head/microexpression source;
 - `SIENA_BRUTO.mp4` — 113.3 s — additional gesture/posture source with object/occlusion exclusions.
 
-The first source is complete through the structural behavior-profile gate. The other two remain required before the final multi-source library is complete.
-
-## Installed Wan-Animate-2 — REUSE PASS
-
-Present locally and reserved for downstream rendering. Do **not** invoke it before behavior inventory review, multi-source expansion and driver synthesis are validated.
-
-## Local DWPose reuse — PASS
-
-Validated local stack:
+## Local pose stack — PASS
 
 ```text
 Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
@@ -74,134 +61,121 @@ Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
 Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-DWPose functional runtime: PASS. CUDA ONNX acceleration remains unvalidated; CPU is the validated route.
+DWPose functional runtime: PASS. CPU is the validated route. CUDA ONNX remains unvalidated because the CUDA EP reported missing `cublasLt64_13.dll`; do not repair CUDA yet.
 
-## Orientation/preprocessing defects — FIXED
+## Orientation/preprocessing — FIXED
 
-The primary video is coded 3840x2160 but displayed portrait via 90° rotation metadata.
+Primary source is coded 3840x2160 but displayed portrait through 90° rotation metadata.
 
-Corrected pose extraction:
+Validated corrected geometry:
 
-- coded: 3840x2160;
 - display: 2160x3840;
-- DWPose analysis: 540x960.
+- DWPose analysis: 540x960;
+- behavior-profile motion analysis: 72x128.
 
-Corrected behavior-profile motion analysis preserves display aspect ratio at 128 px long side:
+## Primary pose/profile pipeline — PASS
 
-- primary motion analysis: **72x128**, not 128x72.
+Corrected visual C3 gate (88.7–93.7 s): PASS.
 
-## Visual pose gate — PASS
-
-Clean interval C3 = 88.7–93.7 s passed after orientation correction. Head/face, upper-body joints and both hands were visually coherent with no subject switch, gross left/right swap or invalidating temporal jump.
-
-Behavior-profile v1 uses `CONF = 0.20`; low-confidence QA clutter below this threshold is ignored.
-
-## Full primary pose extraction — PASS
-
-Completed result:
+Full primary pose extraction:
 
 ```text
-source_duration_s: 300.352
-sample_fps: 6.0
-analysis: 540x960
 frames: 1801
-last_timestamp_s: 300.0
-detector_fallback_frames: 0
-detector_fallback_ratio: 0.0
-mean_keypoint_score: 0.7549247491487903
-onnx_provider: CPUExecutionProvider
+sample_fps: 6.0
+detector fallback: 0/1801
+mean keypoint score: 0.7549247491487903
+provider: CPUExecutionProvider
 ```
 
-Track:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`
-
-Classification: **FULL PRIMARY POSE TRACK PASS**.
-
-## Primary behavior profile — STRUCTURAL PASS
-
-`run_behavior_profile_primary.ps1` completed successfully using the full pose track.
-
-Observed:
+Primary behavior profile:
 
 ```text
 status: complete
 units: 123
-CSV rows: 123
-coverage: 0.0 -> 300.352 s / source=300.352 s
-motion analysis: 72x128
+coverage: 0.0 -> 300.352 s
 pose snapshots valid: 123/123
 activity units: head=123, body=123, left_hand=123, right_hand=123, combined_hands=123
 speech classes: mixed=89, pause=4, speech=30
 unit duration min/median/max: 0.800/2.500/3.800 s
 ```
 
-Files:
+Classification: **PRIMARY PIPELINE STRUCTURAL PASS**.
+
+## Primary motion-unit inventory review — PASS WITH CURATION REQUIRED
+
+Uploaded inventory analysis + review sheet were inspected on 2026-09-19.
+
+Source-relative diagnostics:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\manifest.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\motion_units.csv
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\profile_inspection.json
+units: 123
+confidence threshold: 0.20
+upper-pose coverage q10: 0.9352380952
+upper-pose coverage median: 1.0
+upper-pose coverage q90: 1.0
+hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
+body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
 ```
 
-Classification: **PRIMARY BEHAVIOR PROFILE STRUCTURAL PASS**.
+Interpretation:
 
-This proves completeness and consistency of the first per-source profile. It does **not** yet prove that all 123 units are good retrieval candidates.
+- overall upper-body pose coverage is strong; median coverage is 1.0;
+- 13/123 units fall below the source-relative q10 coverage threshold;
+- **`low_relative_pose_coverage` is not an automatic rejection condition**: for example `u0038` (90.5–93.8 s) carries that tag yet belongs to the already visually validated C3 gesture interval;
+- low relative coverage frequently reflects a hand leaving/approaching the frame during a legitimate gesture, so reliability must remain continuous and group-specific rather than binary.
 
-## Motion-unit inventory quality gate — NEXT
+### Manual hard exclusion — LOCKED
 
-Versioned tools:
+The visual sheet plus the earlier failed 30–35 s gate confirm a nonportable prop/object interaction spanning:
 
-- `tools/video-studio/analyze_behavior_inventory.py`;
-- `tools/video-studio/render_behavior_inventory_review.py`;
-- `tools/video-studio/run_behavior_inventory_review.ps1`.
+**24.1–37.5 s = units `u0012` through `u0016`.**
 
-The analyzer uses the profile + full pose track to compute per-unit source-relative diagnostics, including:
+This interval includes reaching for, holding and presenting physical objects, causing hand occlusion and object-specific movement. These five units are not eligible as generic João behavior.
 
-- head/body/left-hand/right-hand mean pose score;
-- confident keypoint ratio using the same `CONF = 0.20` threshold as profile v1;
-- per-group frame presence;
-- hand/body/head movement metrics;
-- transition and RGB-motion metrics;
-- source-relative q10/q50/q90 distributions.
+Canonical annotation file:
 
-It selects up to 24 units for human review, deliberately mixing:
+`tools/video-studio/behavior_source_annotations_primary.json`
 
-- lowest relative upper-body pose coverage;
-- highest hand motion;
-- highest body motion;
-- highest RGB motion;
-- pause units;
-- representative units if needed.
+### Continuous quality weighting — LOCKED
 
-The renderer creates one contact sheet showing **start / midpoint / end** for every selected unit. This is the next gate for detecting object-held spans, occlusion, off-frame hands or otherwise unsuitable units that pure metrics cannot identify reliably.
+Do not invent a binary confidence cutoff beyond the established per-keypoint `CONF=0.20`.
 
-Expected outputs:
+For eligible units, retrieval quality is represented continuously per group using confident-keypoint ratio × frame presence for:
 
-```text
-inventory_analysis.json
-inventory_units.csv
-inventory_review_sheet.jpg
-```
+- head;
+- body;
+- left hand;
+- right hand;
+- both hands (minimum of left/right);
+- whole upper body (minimum across groups).
 
-No DWPose, diffusion, training or remote service runs during this review.
+Thus units such as early 7.1–20 s spans can remain usable for head/body behavior even when one hand has weaker visibility.
+
+Versioned curation tooling:
+
+- `tools/video-studio/behavior_source_annotations_primary.json`;
+- `tools/video-studio/curate_behavior_inventory.py`;
+- `tools/video-studio/run_behavior_primary_curation.ps1`.
+
+Expected result for the current annotations:
+
+- 123 total units;
+- 5 hard-excluded object/prop units;
+- 118 eligible units with continuous group-quality weights.
 
 ## Multi-video library requirement — LOCKED
 
-After the primary inventory review passes:
+After primary curation is materialized locally:
 
-1. process `VID_20260819_124008056.mp4` through the same validated pose/profile route;
-2. process `SIENA_BRUTO.mp4`, explicitly excluding/down-weighting occluded/object spans;
+1. process `VID_20260819_124008056.mp4` through the same pose/profile/quality route, emphasizing facial/head behavior;
+2. process `SIENA_BRUTO.mp4` through the same route with source-specific object/occlusion annotations;
 3. preserve source ID and timestamps for every unit;
-4. build a unified searchable multi-source library;
-5. allow source-role weighting rather than treating the recordings as equivalent.
+4. build a unified searchable library;
+5. use source-role + group-quality weighting rather than treating all recordings/units as equivalent.
 
-## Known quality work
+## Renderer — downstream
 
-- object-held/occluded spans need explicit quality annotation or exclusion;
-- the 89 `mixed` speech units are not automatically a problem, but speech/prosody distribution must be considered during retrieval design;
-- facial descriptors may later need expansion beyond head points 0–4 if the second source proves that v1 is too coarse;
-- repair CUDA ORT only if CPU throughput becomes a meaningful blocker.
+Installed Wan-Animate-2 remains the selected renderer. Do not invoke it until multi-source behavior inventory and driver synthesis are validated.
 
 ## Quality gate — LOCKED
 
@@ -209,11 +183,12 @@ After the primary inventory review passes:
 
 ## Immediate next action
 
-1. pull `main`;
-2. run `tools/video-studio/run_behavior_inventory_review.ps1`;
-3. paste the numeric inventory analysis and upload `inventory_review_sheet.jpg`;
-4. classify/exclude/down-weight unusable primary units;
-5. then process the other two canonical behavior videos;
-6. unify the multi-source motion-unit library;
-7. synthesize a new 4–5 s multi-source behavioral driver;
-8. only then invoke installed Wan-Animate-2.
+Run:
+
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+git pull --ff-only origin main
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_primary_curation.ps1'
+```
+
+Then confirm the curation summary. After that, move to a short visual pose gate for `VID_20260819_124008056.mp4` before its full-source extraction.
