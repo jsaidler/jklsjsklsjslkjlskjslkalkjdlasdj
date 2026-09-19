@@ -126,37 +126,54 @@ Interpretation:
 
 The overlay for 30–35 s was rendered and inspected. João is holding a large object through most of the window. The object heavily occludes both hands and crosses the torso region.
 
-Observed overlay consequence:
-
-- hands/fingers are partly hidden;
-- several inferred limbs/landmarks traverse the held object;
-- the sample cannot fairly establish hand, wrist or torso anatomical quality.
-
 Classification:
 
 **30–35 s VISUAL GATE SAMPLE: REJECTED DUE TO OBJECT OCCLUSION.**
 
 This is **not** a DWPose failure. Do not use this interval as evidence for or against pose quality.
 
-## Clean-window candidate sampler — NEXT
+## Candidate sampler — COMPLETE
 
-Versioned tools:
+The source-only contact sheet sampled eight 5-second candidate windows. It was visually inspected.
 
-- `tools/video-studio/sample_behavior_gate_candidates.py`;
-- `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`.
+Selected clean gate:
 
-They do not run DWPose or Wan. They inspect the source only and build a contact sheet with 8 candidate 5-second windows. Each candidate row shows start/middle/end so object occlusion and framing can be rejected before spending inference time.
+**C3 = 88.7 s → 93.7 s.**
 
-Default output:
+Why C3:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\gate_candidates\candidate_contact_sheet.jpg`
+- both hands are free and visible;
+- there is meaningful arm/hand motion across the window;
+- torso and wrists are unobstructed;
+- no held object crosses the body;
+- framing provides a stronger tracking challenge than quieter candidates.
 
-After a clean candidate is selected:
+C2 was usable but less demanding. C3 is the canonical visual gate interval.
 
-1. rerun a 5 s CPU DWPose smoke on that interval;
-2. render its pose overlay;
-3. inspect torso/arms, wrists/hands/fingers, face, left/right consistency and temporal jumps;
-4. only a visual PASS authorizes the full 300 s pose extraction.
+## Selected clean visual gate — NEXT / BLOCKING FULL PASS
+
+Versioned runner:
+
+`tools/video-studio/run_behavior_pose_selected_gate.ps1`
+
+Defaults:
+
+- start: 88.7 s;
+- duration: 5.0 s;
+- sample rate: 6 fps;
+- provider: CPU;
+- analysis resolution inherited from `extract_dwpose_track.py` (960 px long side);
+- track: `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\selected_gate\pose_gate_c3_88p7_93p7_coco133.jsonl`;
+- overlay: `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\selected_gate\pose_gate_c3_88p7_93p7_overlay.mp4`.
+
+The runner performs only:
+
+1. 5 s DWPose CPU extraction for C3;
+2. overlay rendering from that track.
+
+It does **not** run Wan-Animate-2.
+
+Human inspection must validate torso/arms, wrists/hands/fingers, face, left/right consistency and temporal stability. Only a visual PASS authorizes full 300 s extraction.
 
 ## Behavior-profile tooling — ACTIVE
 
@@ -164,9 +181,9 @@ After a clean candidate is selected:
 - `extract_behavior_profile.py` — motion/prosody segmentation and profile builder;
 - `extract_dwpose_track.py` — normalized COCO WholeBody 133 extractor;
 - `render_pose_overlay.py` — visual QA overlay;
-- `run_behavior_pose_visual_gate.ps1` — overlay runner;
 - `sample_behavior_gate_candidates.py` — clean interval sampler;
-- `run_behavior_gate_candidate_sampler.ps1` — sampler runner.
+- `run_behavior_gate_candidate_sampler.ps1` — sampler runner;
+- `run_behavior_pose_selected_gate.ps1` — selected C3 extract+overlay runner.
 
 A pose-less run remains `status=incomplete_pose` and never passes the production gate.
 
@@ -187,14 +204,12 @@ Do not delete it reflexively; the active route currently needs no large download
 ## Immediate next action
 
 1. pull `main`;
-2. run `tools/video-studio/run_behavior_gate_candidate_sampler.ps1`;
-3. upload `candidate_contact_sheet.jpg`;
-4. select a clean 5-second interval with free/visible hands and unobstructed torso;
-5. rerun CPU pose smoke only on that interval;
-6. render and inspect the new pose overlay;
-7. only after visual PASS, generate the full 6 fps primary-source pose track;
-8. build `status=complete` behavior profile and inspect `manifest.json` + `motion_units.csv`;
-9. compose a new 4–5 s performance from multiple motion units;
-10. only then invoke installed Wan-Animate-2.
+2. run `tools/video-studio/run_behavior_pose_selected_gate.ps1`;
+3. upload `pose_gate_c3_88p7_93p7_overlay.mp4`;
+4. inspect the selected clean gate visually;
+5. only after visual PASS, generate the full 6 fps primary-source pose track;
+6. build `status=complete` behavior profile and inspect `manifest.json` + `motion_units.csv`;
+7. compose a new 4–5 s performance from multiple motion units;
+8. only then invoke installed Wan-Animate-2.
 
 Do not install/download another renderer, pose stack, lip-sync package, Python or CUDA dependency at this stage.
