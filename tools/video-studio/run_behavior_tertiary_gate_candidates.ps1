@@ -11,6 +11,7 @@ $Runner = Join-Path $PSScriptRoot 'sample_behavior_gate_candidates.py'
 $Stem = [System.IO.Path]::GetFileNameWithoutExtension($Source)
 $OutputDir = Join-Path 'Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1' (Join-Path $Stem 'gate_candidates')
 $Output = Join-Path $OutputDir 'candidate_contact_sheet.jpg'
+$Manifest = $Output + '.json'
 
 if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) { throw "WanGP Python missing: $Python" }
 if (-not (Test-Path -LiteralPath $Runner -PathType Leaf)) { throw "Candidate sampler missing: $Runner" }
@@ -44,9 +45,30 @@ try {
     $ErrorActionPreference = $Saved
 }
 if ($Exit -ne 0) { throw "SIENA behavior gate candidate sampler failed with exit code $Exit." }
+if (-not (Test-Path -LiteralPath $Manifest -PathType Leaf)) { throw "SIENA sampler produced no manifest: $Manifest" }
+
+$M = Get-Content -LiteralPath $Manifest -Raw | ConvertFrom-Json
+$ExpectedName = 'SIENA_BRUTO.mp4'
+$ActualName = [string]$M.source_name
+$Duration = [double]$M.duration_s
+
+Write-Host ''
+Write-Host ('Manifest source: ' + $ActualName)
+Write-Host ('Manifest duration: ' + $Duration + ' s')
+
+if ($ActualName -ne $ExpectedName) {
+    throw "Wrong source sampled. Expected $ExpectedName but manifest says $ActualName"
+}
+# Canonical SIENA source is approximately 113.3 s. Keep a generous integrity band,
+# intended only to catch accidental reuse of the ~282 s secondary source or another file.
+if ($Duration -lt 100.0 -or $Duration -gt 130.0) {
+    throw "Unexpected SIENA duration: $Duration s. Expected the canonical ~113 s source."
+}
 
 Write-Host ''
 Write-Host 'SIENA CANDIDATE SAMPLER: PASS'
+Write-Host ('Verified source: ' + $ActualName)
+Write-Host ('Verified duration: ' + $Duration + ' s')
 Write-Host ('Contact sheet: ' + $Output)
-Write-Host ('Manifest: ' + $Output + '.json')
-Write-Host 'Upload the contact-sheet JPG. We will choose for useful free gesture/posture and mark prop/occlusion intervals separately.'
+Write-Host ('Manifest: ' + $Manifest)
+Write-Host 'Upload this exact contact-sheet JPG. Its header now shows source filename and duration.'
