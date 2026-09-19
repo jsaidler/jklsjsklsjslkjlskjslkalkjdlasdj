@@ -97,7 +97,11 @@ function Find-Limited {
             }
         }
     }
-    return @($hits)
+
+    # Windows PowerShell 5.1 can throw "Argument types do not match" when a
+    # generic List[object] is wrapped directly in @(...). ToArray() avoids the
+    # PowerShell binder bug while preserving ordinary pipeline enumeration.
+    return $hits.ToArray()
 }
 
 Out-Line 'LOCAL BEHAVIOR TOOLING INSPECTION'
@@ -117,13 +121,19 @@ if ($null -eq $pyCmd) { $pyCmd = Get-Command py -ErrorAction SilentlyContinue }
 
 if ($pyCmd) {
     Out-Line ('py launcher: ' + $pyCmd.Source)
+
+    # The legacy Windows launcher may emit its inventory on stderr even when
+    # the command is informative. Avoid turning that into a terminating error.
+    $savedErrorActionPreference = $ErrorActionPreference
     try {
-        $launcherList = & $pyCmd.Source -0p 2>$null
-        Out-Line 'py -0p:'
-        foreach ($line in @($launcherList)) { Out-Line ('  ' + [string]$line) }
-    } catch {
-        Out-Line ('py -0p failed: ' + $_.Exception.Message)
+        $ErrorActionPreference = 'Continue'
+        $launcherList = & $pyCmd.Source -0p 2>&1
+        $launcherExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedErrorActionPreference
     }
+    Out-Line ('py -0p exit: ' + $launcherExit)
+    foreach ($line in @($launcherList)) { Out-Line ('  ' + [string]$line) }
 
     $id311 = Get-PythonIdentity -Executable $pyCmd.Source -PrefixArgs @('-3.11')
     if ($id311) {
@@ -281,10 +291,10 @@ $Result = [ordered]@{
     timestamp = (Get-Date).ToString('o')
     mode = 'read-only'
     ai_root = $AiRoot
-    python_candidates = @($PythonCandidates)
+    python_candidates = $PythonCandidates.ToArray()
     selected_python_candidate = $SelectedPython
-    likely_roots = @($LikelyRoots)
-    pose_hits = @($PoseHits)
+    likely_roots = $LikelyRoots.ToArray()
+    pose_hits = $PoseHits.ToArray()
     primary_source = $PrimarySource
 }
 
