@@ -1,53 +1,41 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **DWPose runtime PASS / C3 VISUAL GATE FAILED FROM ORIENTATION BUG / ORIENTATION FIX IMPLEMENTED / C3 RERUN NEXT**
+Status: **CORRECTED C3 VISUAL POSE GATE PASS / FULL PRIMARY POSE EXTRACTION NEXT**
 
-## Continuation prompt
+## Continue from canonical state
 
-Continue o projeto **Local Video Studio** exatamente do estado canônico no GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`.
+Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`.
 
-Antes de alterar estado, leia:
+Read first:
 
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
-5. este arquivo;
-6. `tools/video-studio/extract_dwpose_track.py`
-7. `tools/video-studio/render_pose_overlay.py`
-8. `tools/video-studio/run_behavior_pose_selected_gate.ps1`
-9. `tools/video-studio/extract_behavior_profile.py`
-10. `tools/video-studio/behavior_profile_schema_v1.json`
+5. this file;
+6. `tools/video-studio/extract_dwpose_track.py`;
+7. `tools/video-studio/extract_behavior_profile.py`;
+8. `tools/video-studio/run_behavior_pose_full.ps1`.
 
-Não reconstruir decisões pela memória quando os documentos disserem algo diferente. Toda mudança de estado atualiza os documentos vivos.
+GitHub living docs are source of truth. Do not reconstruct state from memory when docs differ.
 
-## Restrições inegociáveis
+## Hard constraints
 
 - 100% local/self-hosted;
-- zero custo de serviço;
-- nenhum vídeo/voz/identidade do João enviado a terceiros;
-- nada de SaaS/API paga/créditos/assinaturas;
-- não baixar outro renderer grande;
-- não retomar Wan S2V, H3 ou Hunyuan como próxima etapa;
-- MuseTalk/LatentSync/TTS final continuam deferidos;
-- não instalar outro Python, outro DWPose ou dependências CUDA antes de evidência de necessidade.
+- zero service cost;
+- never upload João's video/voice/identity to third parties;
+- no SaaS/paid API/credits/subscriptions;
+- do not download another large renderer;
+- do not reopen Wan S2V, H3, Hunyuan or HeyGen as next route;
+- no new Python/DWPose/CUDA install while current local route works;
+- MuseTalk/LatentSync/TTS remain deferred.
 
-## Objetivo
+## Goal
 
-Novo texto/áudio deve gerar performance nova que:
+New text/audio must eventually produce a new performance that looks, sounds and chiefly **moves/reacts like João**. Generic presenter motion is failure.
 
-1. pareça João;
-2. soe como João;
-3. principalmente, mova-se e reaja como João.
-
-Movimento genérico não basta.
-
-## Estado validado
-
-### DWPose local
-
-Reuse confirmado:
+## Validated local pose stack
 
 ```text
 Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
@@ -56,79 +44,77 @@ Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
 Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-DWPose funcional: PASS. CUDA ORT efetivo continua não validado por ausência de `cublasLt64_13.dll`; CPU é o caminho atual.
+DWPose functional runtime: PASS.
 
-### Clean gate interval
+CUDA ONNX Runtime: not validated; missing `cublasLt64_13.dll` was reported. CPU is the validated path. Do not install CUDA components yet.
 
-C3 = **88.7 s → 93.7 s**.
+## Critical preprocessing correction
 
-Foi escolhido por ter duas mãos livres, gesticulação real e torso/pulsos desobstruídos.
+The primary source is coded `3840x2160` but displayed as portrait via stream rotation metadata. Earlier extraction calculated analysis geometry from coded dimensions while FFmpeg autorotated, distorting portrait content to `960x540` before DWPose.
 
-### C3 overlay recebido — FAIL
+`extract_dwpose_track.py` now reads rotation metadata and derives analysis size from **display dimensions**. The corrected primary-source pose analysis is portrait, approximately `540x960`.
 
-O overlay enviado mostrou:
+## Visual pose gate result
 
-- esqueleto corporal atravessando rosto/torso;
-- face geometricamente instável;
-- algumas mãos localmente plausíveis, mas geometria corporal global inutilizável.
+Clean gate interval: **C3 = 88.7–93.7 s**.
 
-Não classificar isso ainda como falha do modelo DWPose.
+Corrected portrait overlay was uploaded and inspected frame-by-frame.
 
-## Root cause identificado
+PASS evidence:
 
-A fonte primária tem dimensões codificadas 3840x2160, mas é exibida em portrait através de metadata de rotação.
+- face landmarks remain on face;
+- shoulders/elbows/wrists/hips remain anatomically aligned;
+- both hands follow the moving hands through the gesture sequence;
+- no subject switch;
+- no gross left/right swap or upper-body temporal jump.
 
-O extrator anterior:
+Distracting lines toward the lower frame are low-confidence/off-frame lower-body/foot landmarks shown by the QA renderer. They do not invalidate behavior-profile v1.
 
-1. calculava tamanho de análise a partir das dimensões codificadas;
-2. escolhia 960x540;
-3. FFmpeg autorotacionava o frame para portrait;
-4. o pipeline então forçava esse portrait já rotacionado para 960x540;
-5. DWPose recebia a pessoa severamente achatada.
+Important: QA overlay displayed points at score >= 0.05; `extract_behavior_profile.py` uses `CONF = 0.20`. v1 activity groups are head 0–4, body 5–12, left hand 91–111, right hand 112–132. Low-confidence points are ignored.
 
-Isso explica a geometria ruim observada no overlay.
+Classification:
 
-## Fix implementado
+**C3 corrected upper-body visual pose gate: PASS.**
 
-`tools/video-studio/extract_dwpose_track.py` agora:
+## Next exact action
 
-- lê `rotation` de stream side-data ou tag `rotate` via ffprobe;
-- mantém dimensões codificadas separadas das dimensões de display;
-- troca width/height para rotações 90°/270°;
-- calcula a resolução de análise a partir da orientação de display usada pelo autorotate do FFmpeg;
-- grava no summary:
-  - `coded_width` / `coded_height`;
-  - `display_width` / `display_height`;
-  - `rotation_degrees`;
-  - `analysis_width` / `analysis_height`.
-
-Para a fonte primária, a reexecução correta deve resultar em análise portrait, aproximadamente **540x960**, e não 960x540.
-
-## Próxima ação exata
-
-Rerodar o mesmo gate C3; o runner sobrescreve o track e overlay antigos:
+Run full primary pose extraction only:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_selected_gate.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_full.ps1'
 ```
 
-Depois:
+Expected output track:
 
-1. conferir no summary se `analysis_width`/`analysis_height` estão em portrait (~540x960);
-2. uploadar o novo `pose_gate_c3_88p7_93p7_overlay.mp4`;
-3. validar torso/braços, pulsos/mãos/dedos, face, swaps e saltos temporais;
-4. somente após visual PASS gerar full pose track a 6 fps;
-5. gerar behavior profile `status=complete`;
-6. inspecionar `manifest.json` + `motion_units.csv`;
-7. compor novo driving video de 4–5 s com várias motion units;
-8. só então executar Wan-Animate-2.
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`
 
-## Qualidade final
+Summary:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl.summary.json`
+
+After completion, inspect/paste:
+
+- frames;
+- display + analysis dimensions;
+- ONNX provider;
+- detector fallback count/ratio;
+- mean keypoint score.
+
+Do not build the profile automatically if full extraction reports anomalies.
+
+## After full-track review
+
+1. run `extract_behavior_profile.py` with the full pose track;
+2. require `status=complete`;
+3. inspect `manifest.json` + `motion_units.csv`;
+4. reject/down-weight object-occluded or low-quality spans;
+5. synthesize a new 4–5 s behavioral driver from multiple João motion units;
+6. only then invoke installed Wan-Animate-2.
+
+## Final human quality gate
 
 > “isso não apenas parece João; isso se move e reage como João.”
-
-Nenhuma métrica automática substitui esse julgamento.
