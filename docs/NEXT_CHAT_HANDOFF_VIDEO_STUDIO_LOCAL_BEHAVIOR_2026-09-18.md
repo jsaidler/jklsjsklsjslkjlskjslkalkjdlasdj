@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / FIRST DRIVER v1 NUMERIC FAIL / VISUAL DIAGNOSTIC NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 IMPLEMENTED / LOCAL v2 QA NEXT**
 
 Continue in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are canonical.
 
@@ -10,7 +10,10 @@ Read first:
 1. `docs/PROJECT_STATE.md`
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
-4. this file.
+4. this file;
+5. `tools/video-studio/synthesize_behavioral_pose_driver_v2.py`;
+6. `tools/video-studio/inspect_behavioral_pose_driver_overlap.py`;
+7. `tools/video-studio/run_behavior_first_pose_driver_v2_and_qa.ps1`.
 
 ## Hard constraints
 
@@ -58,7 +61,7 @@ hands disabled
 generic whole-upper disabled
 ```
 
-Locked exclusions:
+Locked SIENA exclusions:
 
 ```text
 4.6–10.3 s    u0003-u0004
@@ -67,7 +70,7 @@ Locked exclusions:
 67.9–74.0 s   u0031-u0033
 ```
 
-SIENA pose-reliability weights are saturated at 1.0 and do not rank its clean units meaningfully.
+SIENA pose reliability is saturated at 1.0 and does not rank its clean units meaningfully.
 
 ## Unified library — PASS
 
@@ -80,67 +83,79 @@ secondary 116
 tertiary 37
 ```
 
-Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
+## Driver v1 — FAIL
 
-## First pose driver v1 — NUMERIC FAIL
+Neutral 4.5 s / 24 fps / 108-frame multi-source QA synthesis.
 
-Neutral 4.5 s / 24 fps / 108-frame QA synthesis, no target audio.
-
-```text
-base order primary -> tertiary
-planner boundary continuity 0.528554
-```
-
-Selected provenance:
+Numeric evidence:
 
 ```text
-window 0
-base  primary:VID_20260911_140124885_u0114
-hands primary:VID_20260911_140124885_u0114
-face  secondary:VID_20260819_124008056_u0026
+confidence-qualified OOB:
+upper_body  0.177083
+left_hand   0.417108
+right_hand  0.440917
+face        0.000000
+coarse_head 0.000000
 
-window 1
-base  tertiary:SIENA_BRUTO_u0037
-hands primary:VID_20260911_140124885_u0075
-face  secondary:VID_20260819_124008056_u0105
-```
-
-Numeric QA v2:
-
-```text
-confidence-qualified OOB total = 0.161972
-coarse_head OOB  = 0.000000
-face OOB         = 0.000000
-upper_body OOB   = 0.177083
-left_hand OOB    = 0.417108
-right_hand OOB   = 0.440917
-
-transition q90 / non-transition q90:
+transition q90 / normal q90:
 body_head  6.1729x
 face       3.1519x
 left_hand  3.0979x
 right_hand 1.5199x
 ```
 
-Interpretation: **driver/compositor v1 fails numeric QA**. The source library remains valid. Exact boundary jump zero is a blending artifact, not continuity evidence. Hand roots attach exactly to wrists, but hand framing is unacceptable and the source transition is dynamically anomalous.
+Visual preview confirmed the same failure: around the `primary -> SIENA` transition the skeleton drops/reconfigures too quickly, and afterward hands/arms disappear through the lower frame boundary. Face/head remain comparatively stable.
 
-Wan-Animate-2 remains blocked.
+Interpretation: source library remains valid; compositor v1 fails. Wan stays blocked.
+
+## Driver v2 — IMPLEMENTED
+
+Files:
+
+- `synthesize_behavioral_pose_driver_v2.py`
+- `inspect_behavioral_pose_driver_overlap.py`
+- `run_behavior_first_pose_driver_v2_and_qa.ps1`
+
+Evidence-driven changes:
+
+- stronger base-pair continuity in retrieval;
+- base candidate framing includes body coverage + wrist room;
+- hand donors are selected jointly with the chosen base using predicted post-retarget in-frame coverage;
+- face pair selection includes normalized face-shape continuity;
+- hand pair selection includes normalized hand-shape continuity;
+- symmetric **0.75 s** overlap/crossfade with quintic easing replaces the v1 0.25 s incremental blend;
+- v1 output is preserved; v2 writes to `...\first_driver_v2`.
+
+Default 4.5 s geometry:
+
+```text
+segment duration 2.625 s
+overlap 1.875 -> 2.625 s
+blend 0.75 s
+```
 
 ## Next exact action
 
-Upload the existing diagnostic preview:
+Run:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4`
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
+git pull --ff-only origin main
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_v2_and_qa.ps1'
+```
 
-Use it to identify the visible failure mode before modifying synthesis.
+This runs no DWPose and no Wan. It synthesizes v2 and immediately runs overlap-aware numeric QA.
 
-Expected compositor-v2 direction:
+Expected artifacts:
 
-- continuity-aware retrieval for base + face + hands;
-- smoother transition evaluated across the full interval;
-- in-frame hand/wrist room considered in candidate selection;
-- keep current sources/library/renderer route unchanged;
-- no DWPose re-extraction.
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\driver_plan.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\behavioral_driver_coco133.jsonl
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\behavioral_driver_pose_preview.mp4
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v2\driver_qa.json
+```
+
+Paste complete terminal output and upload the v2 preview. Only a numeric + visual PASS can unblock Wan-Animate-2.
 
 Final quality gate:
 
