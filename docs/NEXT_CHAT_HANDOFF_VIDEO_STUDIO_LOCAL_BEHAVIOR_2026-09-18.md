@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA GATE SAMPLING NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA C6 POSE GATE NEXT**
 
 Continue the Local Video Studio in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the canonical source of truth.
 
@@ -12,7 +12,7 @@ Read first:
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
 5. `tools/video-studio/run_behavior_tertiary_gate_candidates.ps1`;
-6. `tools/video-studio/sample_behavior_gate_candidates.py`.
+6. `tools/video-studio/run_behavior_tertiary_pose_gate.ps1`.
 
 ## Hard constraints
 
@@ -67,63 +67,71 @@ Canonical source:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\SIENA_BRUTO.mp4`
 
-Expected duration: approximately **113.3 s**.
+Verified contact-sheet source/duration:
+
+```text
+SOURCE: SIENA_BRUTO.mp4
+duration = 113.313 s
+8 candidate windows, 5 s each
+```
 
 Role: alternate gesture/posture vocabulary, with explicit held-object/prop/occlusion handling.
 
-Do not run full DWPose yet.
+### Selected clean gate — C6
 
-### Important rejected artifact
+**C6 = 75.2–80.2 s**.
 
-A contact sheet uploaded after the first SIENA sampler request was **not SIENA**. It visibly reused the secondary source: candidate timestamps extended to ~272 s and the image content matched `VID_20260819_124008056.mp4`.
+Selection rationale from the verified SIENA sheet:
 
-Do not derive any SIENA gate decision from that sheet.
+- no held object;
+- torso visible and stable;
+- useful free arm/hand movement rather than a static pose;
+- no graphic overlay crossing the subject;
+- suitable for validating gesture/posture tracking before any full pass.
 
-### Sampler integrity hardening
+### Provisional semantic-suspect spans from the sheet
 
-The sampler/runner now enforce source identity more visibly:
+These are **review markers only**, not final exclusion boundaries:
 
-- every generated contact sheet has a top header with `SOURCE: <filename>` and duration;
-- candidate manifest includes `source_name` and `duration_s`;
-- SIENA runner requires `source_name == SIENA_BRUTO.mp4`;
-- SIENA runner requires duration in the broad 100–130 s integrity band to catch accidental reuse of the 282 s secondary source or another file.
+- C1 around 5–10 s: inserted still-image/graphic overlays obscure the subject;
+- C2 around 19–24 s: held print/book/photo interaction and hand occlusion;
+- C4 around 47–52 s: lens/camera prop interaction with major foreground occlusion.
 
-## Next exact action
+Do not convert these coarse sampled windows into canonical hard exclusions until the full SIENA inventory defines the real temporal boundaries.
+
+### Next exact action — short DWPose gate only
 
 Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_gate_candidates.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_tertiary_pose_gate.ps1'
 ```
 
-The terminal must show:
+Defaults:
 
 ```text
-Manifest source: SIENA_BRUTO.mp4
-Manifest duration: ~113 s
-SIENA CANDIDATE SAMPLER: PASS
+window: 75.2–80.2 s
+fps: 6
+provider: CPUExecutionProvider
+output track: ...\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_coco133.jsonl
+overlay: ...\SIENA_BRUTO\selected_gate\pose_gate_c6_75p2_80p2_overlay.mp4
 ```
 
-Upload exactly:
+This runs DWPose only for 5 s and does not run Wan-Animate-2.
 
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\SIENA_BRUTO\gate_candidates\candidate_contact_sheet.jpg
-```
+Upload the overlay MP4 and paste the summary. Evaluate body/arms/hands/posture and geometry before any full SIENA extraction.
 
-Confirm visually that the JPG header says `SOURCE: SIENA_BRUTO.mp4` and shows the ~113 s duration before evaluating candidates.
+## After SIENA C6 gate PASS
 
-## After correct SIENA contact-sheet review
-
-1. choose clean SIENA 5 s gate;
-2. identify visible prop/object/occlusion intervals;
-3. run short DWPose gate only;
-4. if visual gate passes, run full SIENA pose track;
-5. build/inspect/curate SIENA with source-specific semantic exclusions;
-6. build unified source-preserving multi-source library;
-7. synthesize a new 4–5 s behavioral driver;
-8. only then invoke installed Wan-Animate-2.
+1. run full SIENA pose track;
+2. build behavior profile and inventory;
+3. use the full source/inventory to define exact semantic exclusions for overlays/objects/occlusions;
+4. curate SIENA as alternate gesture/posture source;
+5. build unified source-preserving multi-source library;
+6. synthesize a new 4–5 s behavioral driver;
+7. only then invoke installed Wan-Animate-2.
 
 Final quality gate:
 
