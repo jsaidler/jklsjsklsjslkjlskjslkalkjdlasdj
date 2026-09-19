@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY SOURCE CURATED PASS / SECONDARY GATE CANDIDATE SELECTION NEXT**
+Status: **PRIMARY SOURCE CURATED PASS / SECONDARY C3 FACIAL GATE SELECTED**
 
 Continue the **Local Video Studio** in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are the source of truth.
 
@@ -11,8 +11,9 @@ Read first:
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
-5. `tools/video-studio/run_behavior_secondary_gate_candidates.ps1`;
-6. `tools/video-studio/sample_behavior_gate_candidates.py`.
+5. `tools/video-studio/run_behavior_secondary_pose_gate.ps1`;
+6. `tools/video-studio/extract_dwpose_track.py`;
+7. `tools/video-studio/render_pose_overlay.py`.
 
 ## Hard constraints
 
@@ -39,34 +40,6 @@ Final behavior library must use all canonical sources:
 
 ## Primary source — CURATED PASS
 
-Primary corrected pose/profile path passed.
-
-Full pose:
-
-```text
-540x960 @ 6 fps
-1801 frames
-0/1801 detector fallback
-mean keypoint score 0.7549247491487903
-CPUExecutionProvider
-```
-
-Behavior profile:
-
-```text
-status complete
-123 units
-0.0 -> 300.352 s continuous coverage
-123/123 valid pose snapshots
-all 123 units have head/body/left-hand/right-hand activity
-```
-
-Inventory review established strong overall upper-body coverage and continuous group-quality weighting rather than binary rejection by relative coverage.
-
-Manual hard exclusion:
-
-**24.1–37.5 s = `u0012`–`u0016`** due held-object/prop interaction and hand occlusion.
-
 Primary curation completed:
 
 ```text
@@ -85,7 +58,7 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curat
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
-## Secondary source — NEXT
+## Secondary source — SELECTED GATE
 
 Source:
 
@@ -93,38 +66,63 @@ Source:
 
 Role: **facial/head/microexpression source**.
 
-Do not launch full pose extraction yet.
+Eight 5-second candidate windows were sampled without DWPose and visually reviewed.
 
-First select a clean 5-second candidate with visible face, useful head/expression variation, minimal occlusion and stable framing.
+Selected first validation gate:
 
-Versioned sampler:
+**C3 = 83.6–88.6 s.**
 
-`tools/video-studio/run_behavior_secondary_gate_candidates.ps1`
+Why C3:
+
+- frontal, clearly visible face;
+- stable framing;
+- useful mouth/brow/expression variation;
+- no hand/object face occlusion;
+- no strong head rotation.
+
+C6 remains a possible later stress case because it contains stronger tilt/blink variation.
+
+Versioned runner:
+
+`tools/video-studio/run_behavior_secondary_pose_gate.ps1`
+
+## Next exact action
 
 Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_gate_candidates.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_pose_gate.ps1'
 ```
 
-Expected contact sheet:
+This runs DWPose only on C3 at 6 fps with CPU and renders the overlay. It does not invoke Wan-Animate-2.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\gate_candidates\candidate_contact_sheet.jpg`
+Expected overlay:
 
-Upload that JPG. Choose the best face/head interval before running DWPose on only those 5 seconds.
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\selected_gate\pose_gate_c3_83p6_88p6_overlay.mp4`
 
-## After secondary visual gate selection
+Upload that MP4 and paste the short summary if useful.
 
-1. run DWPose on the selected 5 seconds only;
-2. render/inspect the COCO WholeBody overlay, paying special attention to face/head landmarks and upper-body continuity;
-3. only if visual gate passes, run full 6 fps secondary pose extraction;
-4. build/inspect/curate its behavior profile;
-5. then process `SIENA_BRUTO.mp4` with source-specific exclusions;
-6. build unified multi-source João library;
-7. synthesize a new 4–5 s multi-source behavioral driver;
-8. only then invoke installed Wan-Animate-2.
+## Secondary gate review criteria
+
+Inspect especially:
+
+- facial landmarks remain attached to the face through mouth/brow changes;
+- head landmarks move smoothly with head motion;
+- no gross facial topology jump or subject switch;
+- shoulders/upper torso remain coherent enough to anchor the face/head sequence;
+- do not reject merely because hands/lower body are weak if they are outside this source's intended role.
+
+Only after this visual gate passes:
+
+1. run full 6 fps secondary pose extraction;
+2. build its complete profile;
+3. review/curate units with greater weight on head/face quality;
+4. then process `SIENA_BRUTO.mp4`;
+5. build unified source-preserving library;
+6. synthesize a new 4–5 s multi-source behavioral driver;
+7. only then invoke installed Wan-Animate-2.
 
 Final quality gate:
 
