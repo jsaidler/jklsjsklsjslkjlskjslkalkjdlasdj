@@ -1,167 +1,180 @@
 # Local Video Studio
 
-This directory contains the active local tooling for the Video Studio project.
+Active local tooling for the Video Studio project.
 
-Canonical state: `../../docs/PROJECT_STATE.md`.  
-Canonical route: `../../docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`.  
-Canonical execution policy: `../../docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`.
+Canonical state: `../../docs/PROJECT_STATE.md`  
+Canonical route: `../../docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`  
+Policy: `../../docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 
-## Current status
+## Current engineering problem
 
-The active engineering problem is **behavioral identity**, not another static-image talking-avatar benchmark.
-
-The required product must preserve three independent identities:
-
-1. visual identity;
-2. voice identity;
-3. behavioral identity — João's real gesture language, posture, head motion, facial behavior and delivery rhythm.
-
-The current route is fully local/self-hosted and zero-cost:
+Behavioral identity: new speech must yield a new performance built from João's real gesture/posture/head/hand vocabulary, not generic presenter motion.
 
 ```text
 João behavioral videos
-    -> local pose + prosody analysis
+    -> local pose + prosody
     -> persistent motion-unit library
 
-new local speech/audio
+new local speech
     -> prosody windows
-    -> motion-unit selection
+    -> retrieve/sequence units
     -> pose continuity + diversity
-    -> new driving performance built from João's real behavioral vocabulary
+    -> new João behavioral driver
 
-new driving performance
-    -> already-installed Wan-Animate-2
-    -> local lip-sync later if necessary
+behavioral driver
+    -> installed Wan-Animate-2
+    -> lip-sync later if required
 ```
 
-Do not substitute a fixed driving clip or generic autonomous motion for this architecture.
+## Primary source
 
-## Active first source
+`Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4`
+
+## Local pose stack — REUSE FOUND
+
+Do not download DWPose.
+
+Existing assets:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260911_140124885.mp4
+Z:\AI\WanGP\preprocessing\dwpose
+Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
+Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-This is the primary upper-body source for the first behavior profile.
+Existing isolated runtime candidate:
 
-## New behavior-profile tooling
+```text
+Z:\AI\WanGP\env_uv\Scripts\python.exe
+```
 
-### `inspect_local_behavior_tooling.ps1`
+The Windows `py` launcher does not currently resolve `-3.11`, but this does not invalidate the isolated WanGP environment. Historical project evidence already validated that environment as Python 3.11.14; the active gate verifies that it still executes DWPose correctly.
 
-Strict read-only environment inspection.
+## Current gate: one-frame DWPose runtime probe
 
-It:
-
-- resolves what `py -3.11` actually executes and verifies `sys.version_info`;
-- inventories likely existing Python runtimes under selected local AI roots;
-- reports useful installed packages where available;
-- performs a bounded/no-download search for existing DWPose/whole-body/hand-pose tooling;
-- writes local TXT/JSON reports under `reports/`.
-
-It does **not** install, download, delete or perform a blind full-drive crawl.
-
-Run from the repository root:
+Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\inspect_local_behavior_tooling.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\probe_wangp_dwpose_runtime.ps1'
 ```
 
-### `behavior_profile_schema_v1.json`
+The probe checks the existing environment, imports OpenCV/NumPy/ONNX Runtime, reports ONNX providers, opens the existing YOLOX and DWPose models and performs real inference on one frame from the primary source.
 
-Persistent schema for `behavior-profile/v1`.
+It does **not** download, install, delete or run Wan-Animate-2.
 
-Each motion unit contains source/timing/RGB-span metadata plus start/end pose, head activity, hand activity, body activity, motion energy, speech/pause evidence, available prosody and transition descriptors.
+## After the runtime probe passes
 
-### `extract_behavior_profile.py`
+Run the short pose smoke:
 
-First renderer-independent behavior-profile extractor.
+```powershell
+cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
-Base analysis uses local FFmpeg/ffprobe only:
+git pull --ff-only origin main
 
-- low-resolution grayscale frame-difference motion energy;
-- local mono-audio RMS/dBFS and normalized energy;
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_smoke.ps1'
+```
+
+Default smoke:
+
+- source start: 30 s;
+- duration: 5 s;
+- sample rate: 4 fps;
+- analysis long side: 960 px;
+- provider: auto, CUDA preferred then CPU fallback.
+
+Outputs:
+
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\smoke\pose_smoke_coco133.jsonl
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\smoke\pose_smoke_coco133.jsonl.summary.json
+```
+
+Inspect provider, 133-keypoint output, detector fallback ratio, mean keypoint confidence and throughput before a full-source pass.
+
+## `extract_dwpose_track.py`
+
+Video -> normalized COCO WholeBody 133 JSONL adapter using the existing WanGP stack.
+
+The eventual full-source defaults are:
+
+- 6 fps;
+- 960 px long side;
+- original COCO WholeBody 133 ordering;
+- normalized coordinates `[0,1]`;
+- explicit detector fallback marker;
+- summary JSON with provider, confidence, fallback rate and throughput.
+
+Standard groups retained:
+
+- body 0–16;
+- feet 17–22;
+- face 23–90;
+- left hand 91–111;
+- right hand 112–132.
+
+## `behavior_profile_schema_v1.json`
+
+Persistent `behavior-profile/v1` schema. Each motion unit stores source/timing/RGB span, pose endpoints, head/hand/body activity, motion energy, speech/pause, available prosody and transition descriptors.
+
+## `extract_behavior_profile.py`
+
+Renderer-independent behavior-profile extractor.
+
+Base analysis:
+
+- FFmpeg/ffprobe;
+- grayscale frame-difference motion energy;
+- mono audio RMS/dBFS + normalized energy;
 - speech/pause evidence;
-- short motion-unit segmentation that prioritizes pauses and low-motion transition points.
+- segmentation prioritizing pause + low motion.
 
-The pose backend is intentionally decoupled. The extractor accepts normalized JSONL pose frames:
+Pose input is the normalized JSONL generated by `extract_dwpose_track.py`.
 
-```json
-{"t": 1.234, "schema": "coco_wholebody_133", "keypoints": [[0.5, 0.3, 0.98]]}
-```
-
-Coordinates are normalized to `[0,1]`. For COCO WholeBody 133, the extractor derives head/body/left-hand/right-hand activity from the standard keypoint groups.
-
-A normal gate run requires `--pose-track`.
-
-The diagnostic flag:
-
-```text
---allow-missing-pose
-```
-
-may be used only to inspect segmentation/prosody. Its manifest is marked:
-
-```text
-status=incomplete_pose
-```
-
-**`incomplete_pose` is not a valid behavioral-profile pass.**
-
-Primary outputs are local and inspectable:
+Outputs:
 
 ```text
 manifest.json
 motion_units.csv
 ```
 
-Default output root for the primary source:
+A valid gate requires:
 
 ```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\
+status=complete
 ```
 
-## Current gate
+`status=incomplete_pose` is diagnostic only and must never be treated as a behavior pass.
 
-The immediate gate is not Wan rendering yet.
+## Development order
 
-Required order:
+1. one-frame WanGP/DWPose runtime probe;
+2. 5 s pose smoke;
+3. full 6 fps pose track for `VID_20260911_140124885.mp4`;
+4. complete behavior profile;
+5. inspect motion-unit inventory and transition descriptors;
+6. compose a new ~4–5 s performance from multiple units;
+7. only then run installed Wan-Animate-2;
+8. lip-sync and final voice stage later.
 
-1. run the local tooling inspector;
-2. resolve the actual Python interpreter and local pose assets;
-3. reuse existing compatible pose tooling if found;
-4. if nothing suitable exists, enumerate the smallest required local dependency before downloading anything;
-5. produce a `status=complete` manifest for the primary source;
-6. inspect motion units and transition quality;
-7. compose a new ~4–5 s driving performance from several units;
-8. only then run the installed Wan-Animate-2 renderer.
+## Stop conditions
 
-MuseTalk, LatentSync and final voice-clone/TTS integration remain deferred until body/head behavior passes.
+Do not:
 
-## Installed renderer state
+- install another Python merely because `py -3.11` is unresolved;
+- download another DWPose/ControlNet pose stack;
+- download another large renderer;
+- resume Wan S2V/H3/Hunyuan as the next route;
+- install MuseTalk/LatentSync yet;
+- run Wan-Animate-2 before a complete profile is inspected.
 
-Wan-Animate-2 is already installed and passed reuse preflight. Do **not** download VACE, Motion Mirror or another large renderer as the next step.
+## Historical prototype files
 
-## Legacy H3 prototype files
+H3/Wan S2V/Hunyuan helpers remain historical evidence and reusable orchestration code, not the active renderer route.
 
-The following files belong to the earlier MiniMax H3 prototype and remain as historical/useful orchestration code:
-
-- `video_studio.py`;
-- `index.html`;
-- `config.example.json`;
-- `start_video_studio.ps1`;
-- `run_quality_gate.py` / `.ps1`;
-- H3-related benchmark/preflight helpers.
-
-H3 proved useful architecture and visual-identity behavior, but its production rendering and generic autonomous motion failed the current product requirement. These files are **not the active renderer route** and should not drive the next gate.
-
-## Historical branches
-
-Wan2.2-S2V, H3, HunyuanVideo-Avatar and HeyGen/Avatar-V records remain evidence only. Do not resume them as the next development step.
-
-The active quality criterion remains:
+The quality criterion remains:
 
 > this does not merely look like João; it moves and reacts like João.
