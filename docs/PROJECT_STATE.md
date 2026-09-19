@@ -100,33 +100,19 @@ speech classes: mixed=89, pause=4, speech=30
 unit duration min/median/max: 0.800/2.500/3.800 s
 ```
 
-### Inventory review
-
-Source-relative diagnostics:
-
-```text
-upper-pose coverage q10: 0.9352380952
-upper-pose coverage median: 1.0
-upper-pose coverage q90: 1.0
-hand speed q10/median/q90: 0.049868 / 0.161759 / 0.3921014
-body speed q10/median/q90: 0.0209724 / 0.05028 / 0.1128552
-```
+### Inventory review and curation
 
 `low_relative_pose_coverage` is a reliability diagnostic, not an automatic rejection condition. Group visibility remains a continuous weighting signal.
 
-### Manual hard exclusion — LOCKED
+Manual hard exclusion:
 
-**24.1–37.5 s = units `u0012` through `u0016`** are excluded from generic behavior retrieval because the sequence contains held-object/prop interaction and hand occlusion.
+**24.1–37.5 s = units `u0012` through `u0016`** because the sequence contains held-object/prop interaction and hand occlusion.
 
 Canonical annotation:
 
 `tools/video-studio/behavior_source_annotations_primary.json`
 
-### Primary curation — COMPLETE
-
-`run_behavior_primary_curation.ps1` completed successfully.
-
-Observed:
+Primary curation completed:
 
 ```text
 Units total: 123
@@ -144,34 +130,44 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\curat
 
 Classification: **PRIMARY SOURCE CURATED PASS**.
 
-The first video is now closed as a curated torso/hands/posture/gesture source containing 118 eligible motion units with continuous group-quality weights.
+## Secondary source — C3 FACIAL/HEAD GATE SELECTED
 
-## Secondary source — VISUAL GATE CANDIDATE SELECTION NEXT
-
-Next canonical source:
+Source:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\VID_20260819_124008056.mp4`
 
 Role: **facial/head/microexpression source**.
 
-Do not launch its full DWPose extraction blindly. First select a clean 5-second visual gate that has:
+Eight no-pose candidate windows were sampled across the video and visually reviewed. Selected canonical gate:
 
-- clearly visible face;
-- useful head/expression variation;
-- minimal face/hand/object occlusion;
-- stable subject framing.
+**C3 = 83.6–88.6 s.**
 
-Versioned no-pose sampler:
+Selection rationale:
 
-`tools/video-studio/run_behavior_secondary_gate_candidates.ps1`
+- face remains frontal and clearly visible;
+- stable framing;
+- useful variation in mouth, brows and expression across the window;
+- no hand/object crosses the face;
+- no strong head rotation that would make the first facial gate unnecessarily ambiguous.
 
-It samples eight 5-second windows across the second source and produces only a contact sheet + manifest. It does **not** run DWPose or Wan-Animate-2.
+C6 is a useful later stress-case candidate because it includes stronger head tilt/blink variation, but C3 is the clean first validation gate.
 
-Expected output:
+Versioned runner:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\gate_candidates\candidate_contact_sheet.jpg`
+`tools/video-studio/run_behavior_secondary_pose_gate.ps1`
 
-After human selection, run DWPose only on the selected 5-second window and visually inspect the face/head/upper-body overlay before any full-source extraction.
+Defaults:
+
+- C3 start 83.6 s;
+- duration 5.0 s;
+- 6 fps;
+- CPU provider;
+- same local WanGP DWPose stack;
+- output under `profile_v1\VID_20260819_124008056\selected_gate`;
+- produces normalized COCO WholeBody 133 JSONL + visual overlay;
+- does not run Wan-Animate-2.
+
+Next gate: inspect the resulting overlay with emphasis on face/head landmark continuity and upper-body coherence. Do **not** launch the full 282.6 s extraction until this passes.
 
 ## Multi-video library requirement — LOCKED
 
@@ -197,7 +193,11 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_gate_candidates.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_secondary_pose_gate.ps1'
 ```
 
-Then upload `candidate_contact_sheet.jpg`. Select the second-source gate visually before any DWPose full pass.
+Then upload:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260819_124008056\selected_gate\pose_gate_c3_83p6_88p6_overlay.mp4`
+
+Inspect that 5-second result before any secondary full pass.
