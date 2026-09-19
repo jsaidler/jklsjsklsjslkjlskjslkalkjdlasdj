@@ -1,10 +1,11 @@
 # Local Video Studio — local behavioral-video route
 
 Date: **2026-09-18**  
-Status: **ACTIVE TECHNICAL DIRECTION / NO NEW LARGE DOWNLOAD YET**
+Status: **ACTIVE TECHNICAL DIRECTION / PREFLIGHT PASS / BEHAVIOR PROFILE NEXT**
 
 Canonical state: `docs/PROJECT_STATE.md`  
-Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
+Execution policy: `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`  
+Preflight result: `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
 
 ## Problem being solved
 
@@ -59,9 +60,7 @@ Classification:
 
 ### MimicTalk / Style-Talking
 
-MimicTalk can train a person-specific expressive talking face from source video with roughly 8 GB VRAM at batch size 1 and can use an optional style video. Style-Talking clones speaking style from reference video and target audio.
-
-These are relevant for face/head expression but are not full upper-body co-speech gesture generators.
+MimicTalk can train a person-specific expressive talking face from source video and can use optional style video; Style-Talking clones speaking style from reference video and target audio. These remain relevant for face/head expression but are not full upper-body co-speech gesture generators.
 
 Classification:
 
@@ -73,7 +72,7 @@ Classification:
 
 Recent research directly formulates the desired problem: new speech plus a short reference motion clip from an unseen speaker should produce new co-speech gestures while preserving that speaker's gesture style.
 
-At the time of this decision record, no reliable public implementation/checkpoint was found for immediate installation. Do not build the project around an unavailable repository.
+At the time of this decision record, no reliable public implementation/checkpoint was found for immediate installation.
 
 Classification:
 
@@ -83,9 +82,7 @@ Classification:
 
 Ubisoft La Forge's ZeroEGGS is public and generates speech-driven gestures in the style of a short example motion clip. Code and pretrained models are available, but its style reference/output are BVH/3D motion rather than raw João video.
 
-It is a valid future motion-model candidate if we add video-to-motion retargeting, but it adds an avoidable 3D conversion problem before we have tested a simpler route.
-
-Reference: `https://github.com/ubisoft/ubisoft-laforge-ZeroEGGS`
+It remains a valid R&D fallback if video-to-motion retargeting becomes worthwhile.
 
 Classification:
 
@@ -93,36 +90,54 @@ Classification:
 
 ## Renderer finding — reuse what is already installed
 
-Wan-Animate-2 is especially important because unlike the S2V benchmark it **directly consumes a driving video**. The current Wan/ComfyUI implementation feeds the driving video's latents directly into the transformer rather than reducing them to a generic motion prompt. The model is explicitly designed to reproduce body movement and facial expression while preserving a reference character's identity.
+Wan-Animate-2 is the priority renderer because unlike the S2V benchmark it **directly consumes a driving video** and is designed to reproduce body movement/facial expression while preserving reference-character identity.
 
 Official references:
 
 - `https://github.com/Wan-Video/Wan-Animate-2`
 - `https://docs.comfy.org/tutorials/video/wan/wan2-2-animate`
 
-The project already has the large `wan_animate_2_bf16.safetensors` payload under the WanAnimate2 installation. Therefore **do not download VACE/Motion Mirror yet**. First determine whether the installed Animate-2 route can be reused as the pixel renderer.
+The project already has the large Animate-2 payload locally. The no-download preflight on 2026-09-18 confirmed:
 
-Motion Mirror / Wan2.1-VACE remains a fallback renderer because its 1.3B path can run around 8–9 GB VRAM on Windows, but it would require roughly another 20 GB model cache and its 1.3B identity fidelity is explicitly described as loose. That download is not justified before exhausting the already-installed Animate-2 path.
+- transformer present: `Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors` — **30.538 GiB**;
+- text encoder present: `Z:\AI\WanAnimate2\models\text_encoders\umt5_xxl_fp16.safetensors` — **10.586 GiB**;
+- VAE present: `Z:\AI\WanAnimate2\models\vae\Wan2_1_VAE_bf16.safetensors` — **0.236 GiB**;
+- native model code present: `Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py`.
+
+Classification:
+
+**INSTALLED RENDERER REUSE: PASS.**
+
+Therefore:
+
+**DO NOT DOWNLOAD VACE/MOTION MIRROR OR ANOTHER LARGE RENDERER BEFORE BUILDING AND TESTING THE BEHAVIOR PROFILE WITH INSTALLED WAN-ANIMATE-2.**
+
+Motion Mirror / Wan2.1-VACE remains fallback only.
+
+## Behavioral source library — PREFLIGHT PASS
+
+All protected sources are present, readable and contain audio:
+
+1. `VID_20260911_140124885.mp4` — 300.4 s, 3840x2160 HEVC — primary upper-body behavior library;
+2. `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080 H.264 — facial/microexpression evidence;
+3. `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 — alternate gesture material, with object-occluded spans excluded where needed.
+
+The generic 1080p H.264 derivative is also present locally and may be used as a convenient analysis/render source if needed; its historical provider-oriented filename has no architectural meaning.
 
 ## Selected architecture — behavioral driver synthesis
 
-The first local implementation will not try to train a 14B avatar model on eleven minutes of João footage. It will build a **behavior compiler** from João's own recorded movements.
+The first local implementation will not train a 14B avatar model on the source corpus. It will build a **behavior compiler** from João's own recorded movements.
 
 ### Persistent profile build
 
 For each source video:
 
 1. extract whole-body/hand/face pose descriptors for analysis;
-2. extract local speech/prosody descriptors (speech/pause, energy, pitch/rhythm where reliable);
-3. split the footage into short motion units around speech pauses and low-motion transition points;
-4. store normalized start/end pose, head motion, hand activity, motion energy and source timing;
-5. retain the original RGB clip for every unit.
-
-Initial source priority:
-
-1. `VID_20260911_140124885.mp4` — primary upper-body behavior library;
-2. `VID_20260819_124008056.mp4` — facial/microexpression evidence;
-3. `SIENA_BRUTO.mp4` — alternate gesture material, excluding object-occluded spans where needed.
+2. extract local speech/prosody descriptors such as speech/pause, energy and reliable pitch/rhythm features;
+3. split footage into short motion units around speech pauses and low-motion transition points;
+4. store normalized start/end pose, head motion, hand activity, body activity, motion energy and source timing;
+5. retain a reference to the original RGB span for every unit;
+6. mark/exclude units with problematic foreground-object occlusion when relevant.
 
 ### New speech -> new behavioral driver
 
@@ -130,73 +145,121 @@ For new local speech audio:
 
 1. divide the new audio into prosodic windows;
 2. retrieve João motion units with compatible energy/pause/emphasis profile;
-3. score transitions by pose continuity so cuts happen where hands/head/body can connect naturally;
+3. score transitions by pose continuity;
 4. penalize repeated use of the same motion unit;
 5. time-adjust only within conservative limits;
-6. assemble a **new driving video** from multiple João motion units;
-7. replace its audio with the new target speech.
+6. assemble a **new driving performance** from multiple João motion units;
+7. attach/replace audio with the new target speech.
 
-This is not a fixed replay: the driving performance is newly assembled from João's own behavioral vocabulary. It has the useful property that the gestures are literally João's rather than a generic model's invented choreography.
+This is not a fixed replay. The useful property is that the gesture vocabulary comes from João's actual recorded behavior instead of a generic model's invented choreography.
 
-Semantic retrieval can be added later by locally transcribing/indexing the source corpus, but it is not required for the first behavioral gate. Prosody + continuity is sufficient to test whether this direction preserves recognizable mannerisms.
+Semantic transcript retrieval can be added later; the first gate uses prosody + pose continuity.
 
-## Pixel generation
+## Preflight result — 2026-09-18 23:45
+
+Canonical preflight report:
+
+`docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
+
+Local raw report:
+
+`tools/video-studio/reports/local_behavior_route_preflight_20260918_234516.txt`
+
+Result:
+
+```text
+BEHAVIOR SOURCES: PASS
+WAN-ANIMATE-2 PAYLOAD: PASS
+WAN-ANIMATE-2 NATIVE CODE: PASS
+POSE TOOLING: NOT FOUND UNDER WAN ROOT
+NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
+```
+
+### Pose tooling gap
+
+No DWPose whole-body model was found **under the Wan root**. The preflight did not perform an exhaustive `Z:\AI` search, so absence is not yet proven globally.
+
+Before downloading anything:
+
+1. search likely existing local AI roots for DWPose/whole-body pose assets and compatible runtime;
+2. reuse existing tooling if present;
+3. if absent and required, enumerate the exact small component, source, license, size and destination before downloading.
+
+A DWPose-L-class weight around ~350 MB is acceptable as a small supporting dependency if genuinely required; it is not a reason to introduce another large renderer.
+
+### Python warning
+
+The preflight printed:
+
+`Python 3.11: PASS / C:\Python314\python.exe / 3.14.3`
+
+This is internally inconsistent. Do not consider Python 3.11 validated. Resolve the intended interpreter/venv explicitly before adding new Python pose/prosody dependencies.
+
+### Disk pressure
+
+Z: had **22.32 GB free** at preflight time.
+
+A retired Hunyuan transformer remains reclaimable:
+
+`Z:\AI\WanGP\ckpts\hunyuan_video_avatar_720_quanto_bf16_int8.safetensors` — **12.486 GiB**.
+
+Do not delete it automatically as part of behavior-profile coding, but treat it as the first obvious retired payload if real storage pressure appears.
+
+## Pixel generation gate
 
 Priority renderer:
 
-**installed Wan-Animate-2**
+**installed Wan-Animate-2**.
 
-Inputs:
+The first renderer gate should be short, around **4–5 seconds**, with no dramatic wardrobe/scene change. It tests whether a synthesized João behavioral driver survives Animate-2 while preserving recognizable behavior and identity.
 
-- target João look/reference image;
-- newly synthesized João driving video;
-- scene/viewpoint prompt where supported.
+Do not run this gate until an inspectable behavior profile and motion-unit inventory exist.
 
-The first renderer gate should be short, around 4–5 seconds, and should not change wardrobe/scene dramatically. It tests whether the synthesized driver survives Animate-2 without losing recognizable behavior.
+## Mouth / speech synchronization — DEFERRED
 
-## Mouth / speech synchronization
+Wan-Animate-2 will copy facial performance from the driving video, so recombined source-mouth motion will not necessarily match new audio.
 
-Wan-Animate-2 copies facial performance from the driving video; the source mouth motion will not necessarily match new target audio after motion-unit recombination.
+Potential later local finishing stages:
 
-Therefore lip synchronization is a separate local finishing stage.
+- MuseTalk 1.5;
+- LatentSync 1.5.
 
-Current lightweight candidates:
+Do not install either until body/head behavior passes.
 
-- **MuseTalk 1.5** — MIT code, Windows instructions, tested as low as 4 GB VRAM; modifies the face region from target audio;
-- **LatentSync 1.5** — local audio-driven lip sync, approximately 8 GB VRAM minimum in the official release.
+## Voice stage — DEFERRED
 
-Do not download either until the behavioral-driver + Animate-2 gate works. There is no value fixing lips on a body performance that still feels like another person.
+CosyVoice or another local voice-clone/TTS stage remains separate. For behavior-compiler engineering, an existing local speech WAV may be used as a mechanical target.
 
-## Voice stage
+## Why this route remains first
 
-CosyVoice or another local voice-clone/TTS stage remains separate. It provides the final target audio that the behavior compiler analyzes and the lip-sync stage follows.
-
-For initial engineering of the behavior compiler, an existing local speech WAV can be used as a mechanical target; voice quality is not part of that gate.
-
-## Why this route is first
-
-It satisfies all current constraints:
+It satisfies the project constraints:
 
 - local/self-hosted;
 - zero paid-service dependency;
-- uses João's actual videos as behavioral material;
-- does not ask a text prompt to invent João's gestures;
-- reuses the already-installed Wan-Animate-2 renderer before downloading another large model;
-- separates behavior generation, pixel rendering, voice and lip sync so each failure can be diagnosed independently;
-- leaves room to replace the retrieval motion generator later with PersonaGesture/ZeroEGGS/a custom learned model without replacing the rest of the Video Studio.
+- João's actual videos are the behavioral source;
+- no prompt is asked to invent João's gestures;
+- already-installed Wan-Animate-2 is reused before any large download;
+- behavior, rendering, voice and lip sync remain separately diagnosable.
 
 ## Stop conditions
 
-Do not download another 14B renderer while the installed Animate-2 route is unaudited.
+- Do not download another large renderer.
+- Do not resume Wan S2V prompt acting as a substitute for behavioral conditioning.
+- Do not install MuseTalk/LatentSync before the body/head gate.
+- Do not claim a stitched RGB driver alone is the final product; it is a behavioral conditioning representation.
+- Do not accept mere anatomical plausibility. João must recognize his own motion language.
 
-Do not install MuseTalk/LatentSync until body/head behavior survives the renderer gate.
+## Immediate action — LOCKED
 
-Do not claim that a stitched RGB driver alone is the final product; it is an internal motion representation used to condition the renderer.
+Build the first **behavior-profile / motion-unit extractor** under `tools/video-studio/`.
 
-Do not accept a final result merely because it is anatomically plausible. João must recognize his own motion language.
+Order:
 
-## Immediate action
+1. resolve the Python interpreter inconsistency;
+2. perform a targeted no-download search for reusable whole-body pose tooling in existing local AI roots;
+3. define the persistent behavior-profile/motion-unit schema;
+4. implement extraction first for `VID_20260911_140124885.mp4`;
+5. generate an inspectable manifest/inventory before any diffusion render;
+6. only after the profile is validated, synthesize a new ~4–5 s driving performance and send that to installed Wan-Animate-2.
 
-Run a **no-download local preflight** to determine exactly what Animate-2, DWPose/pose tooling and reusable runtime pieces are already present on `Z:\AI` before modifying the installation or downloading weights.
-
-Repository tool: `tools/video-studio/preflight_local_behavior_route.ps1`.
+No new large renderer download is allowed before this gate.
