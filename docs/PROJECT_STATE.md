@@ -114,7 +114,7 @@ posture q10/median/q90 = 1.0 / 1.0 / 1.0
 coarse_arm q10/median/q90 = 1.0 / 1.0 / 1.0
 ```
 
-Interpretation: current SIENA pose-reliability weight is non-discriminative across the 37 clean units. This does not invalidate the source, but retrieval ranking within SIENA currently depends on motion/prosody/transition/duration rather than pose-quality differentiation. Do not claim the SIENA quality weight meaningfully ranks clean units.
+Interpretation: current SIENA pose-reliability weight is non-discriminative across the 37 clean units. This does not invalidate the source, but retrieval ranking within SIENA currently depends on motion/prosody/transition/duration rather than pose-quality differentiation.
 
 ## Unified source-preserving library — PASS
 
@@ -147,23 +147,9 @@ generic_whole_upper: 118  primary only
 body_support:        271  primary 118 + secondary 116 + tertiary 37
 ```
 
-Locked role/source priorities remain:
-
-```text
-face:       secondary only / tier 0
-head:       secondary tier 0 -> primary tier 1 -> SIENA tier 2
-posture:    primary tier 0 -> SIENA tier 1 -> secondary support tier 2
-coarse_arm: primary tier 0 -> SIENA tier 1
-hands:      primary only
-generic whole-upper: primary only
-```
-
 Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
 
 ## First multi-source behavioral pose driver — GENERATED / QA PENDING
-
-Synthesizer: `tools/video-studio/synthesize_behavioral_pose_driver.py`  
-Runner: `tools/video-studio/run_behavior_first_pose_driver.ps1`
 
 Observed neutral QA synthesis:
 
@@ -198,31 +184,45 @@ Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavio
 Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4
 ```
 
-`0.528554` has no canonical pass/fail threshold and must not be interpreted alone. The first driver remains **QA PENDING**.
+`0.528554` has no canonical pass/fail threshold and must not be interpreted alone.
 
-## Driver numeric QA — IMPLEMENTED / NEXT
+## First driver numeric QA v1 — COMPLETE / INSUFFICIENT FOR VERDICT
 
-Inspector: `tools/video-studio/inspect_behavioral_pose_driver.py`  
-Runner: `tools/video-studio/run_behavior_first_pose_driver_qa.ps1`
+Observed:
 
-The inspector performs no inference and applies no invented automatic threshold. It reports:
+```text
+frames: 108
+all-finite coordinate OOB: 2568/14364 = 0.178780
+body/head nonboundary jump q90: 0.009728
+face nonboundary jump q90: 0.013127
+left-hand nonboundary jump q90: 0.032354
+right-hand nonboundary jump q90: 0.060746
+exact boundary jumps: 0.0 for all groups
+hand-root/body-wrist distance: 0.0 left and right
+```
 
-- per-frame coordinate out-of-bounds ratio;
-- frame-to-frame normalized jumps for body/head, face, left hand and right hand;
-- the source-boundary jump compared with the driver's own non-boundary q90;
-- upper-arm and forearm length distributions normalized by shoulder width;
-- inter-eye / shoulder ratio;
-- retargeted hand-root / body-wrist attachment distances.
+Interpretation is intentionally **not** PASS/FAIL yet:
 
-Output:
+1. the `17.878%` OOB figure counted every finite coordinate, including low-confidence off-frame landmarks; it must be separated into confidence-qualified semantic groups before judging severity;
+2. the exact source-boundary jump is zero by construction because the current compositor begins the 0.25 s blend by copying the previous pose; a single boundary pair is therefore not a valid continuity measurement;
+3. continuity must be evaluated across the entire 0.25 s transition window and compared with the driver's non-transition movement distribution;
+4. zero hand-root/wrist distance confirms the hand retargeter attaches the hand root exactly to the current wrist, but visual hand geometry still requires preview inspection.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\driver_qa.json`
+## Driver numeric QA v2 — IMPLEMENTED / NEXT
 
-Visual preview remains authoritative together with numeric diagnostics.
+`tools/video-studio/inspect_behavioral_pose_driver.py` now reports schema `behavioral-pose-driver-qa/v2` and adds:
+
+- all-finite OOB separately from confidence-qualified OOB;
+- confidence-qualified OOB by `coarse_head`, `upper_body`, `lower_body_foot`, `face`, `left_hand`, `right_hand`;
+- exact-boundary jump retained only as a diagnostic explaining the compositor behavior;
+- full **0.25 s transition-window** jump q90/max per body/head, face and hands;
+- transition q90/max divided by the driver's own non-transition q90.
+
+No automatic threshold is invented. Visual preview remains authoritative together with these source-relative diagnostics.
 
 ## Immediate next action
 
-Run:
+Run the revised QA only; the driver does not need to be regenerated:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
@@ -230,11 +230,11 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_first_pose_driver_qa.ps1'
 ```
 
-Then paste the complete terminal output and upload:
+Then paste the complete v2 terminal output and upload:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver\behavioral_driver_pose_preview.mp4`
 
-Do not invoke Wan-Animate-2 before numeric + visual QA are reviewed.
+Do not invoke Wan-Animate-2 before v2 numeric + visual QA are reviewed.
 
 ## Progress-output policy — LOCKED
 
@@ -242,4 +242,4 @@ Long local passes must emit visible progress. Do not leave long-running terminal
 
 ## Final quality criterion
 
-> this does not merely look like João; it moves and reacts like João.
+> this does not merely look like João; this moves and reacts like João.
