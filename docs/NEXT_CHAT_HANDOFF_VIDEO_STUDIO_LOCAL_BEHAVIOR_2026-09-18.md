@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **DWPose CPU SMOKE PASS / FIRST SAMPLE REJECTED BY OCCLUSION / C3 CLEAN VISUAL GATE SELECTED**
+Status: **DWPose runtime PASS / C3 VISUAL GATE FAILED FROM ORIENTATION BUG / ORIENTATION FIX IMPLEMENTED / C3 RERUN NEXT**
 
 ## Continuation prompt
 
@@ -43,9 +43,9 @@ Novo texto/áudio deve gerar performance nova que:
 
 Movimento genérico não basta.
 
-## Estado validado em 2026-09-19
+## Estado validado
 
-### Local DWPose
+### DWPose local
 
 Reuse confirmado:
 
@@ -56,65 +56,57 @@ Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
 Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
 ```
 
-Não baixar outro pose stack.
+DWPose funcional: PASS. CUDA ORT efetivo continua não validado por ausência de `cublasLt64_13.dll`; CPU é o caminho atual.
 
-### Runtime probe
+### Clean gate interval
 
-Inferência real de um frame passou e produziu `coco_wholebody_133` sem detector fallback.
+C3 = **88.7 s → 93.7 s**.
 
-ONNX Runtime anunciou CUDA/TensorRT/CPU, mas CUDA emitiu erro por `cublasLt64_13.dll` ausente. Portanto:
+Foi escolhido por ter duas mãos livres, gesticulação real e torso/pulsos desobstruídos.
 
-- DWPose funcional: **PASS**;
-- CUDA ORT efetivo: **FAIL / não validado**;
-- CPU é o caminho atual do gate.
+### C3 overlay recebido — FAIL
 
-### Smoke CPU
+O overlay enviado mostrou:
 
-Trecho 30–35 s, 6 fps, 960x540:
+- esqueleto corporal atravessando rosto/torso;
+- face geometricamente instável;
+- algumas mãos localmente plausíveis, mas geometria corporal global inutilizável.
 
-```text
-frames: 30
-detector_fallback_frames: 0
-detector_fallback_ratio: 0.0
-mean_keypoint_score: 0.13263878929229625
-elapsed_s: 26.750566244125366
-frames_per_second_wall: 1.1214715877869776
-```
+Não classificar isso ainda como falha do modelo DWPose.
 
-Resultado técnico: PASS.
+## Root cause identificado
 
-### Primeiro visual gate
+A fonte primária tem dimensões codificadas 3840x2160, mas é exibida em portrait através de metadata de rotação.
 
-30–35 s foi rejeitado como amostra porque João estava segurando um objeto grande, ocultando mãos e cruzando o torso. Isso não foi classificado como falha do DWPose.
+O extrator anterior:
 
-### Candidate sampler
+1. calculava tamanho de análise a partir das dimensões codificadas;
+2. escolhia 960x540;
+3. FFmpeg autorotacionava o frame para portrait;
+4. o pipeline então forçava esse portrait já rotacionado para 960x540;
+5. DWPose recebia a pessoa severamente achatada.
 
-O contact sheet com oito janelas foi gerado e inspecionado. A janela escolhida é:
+Isso explica a geometria ruim observada no overlay.
 
-**C3 = 88.7 s → 93.7 s.**
+## Fix implementado
 
-Motivos:
+`tools/video-studio/extract_dwpose_track.py` agora:
 
-- duas mãos livres e visíveis;
-- gesticulação real ao longo dos 5 s;
-- torso, braços e pulsos desobstruídos;
-- nenhuma peça segurada cruzando a anatomia;
-- desafio melhor que candidatos mais estáticos.
+- lê `rotation` de stream side-data ou tag `rotate` via ffprobe;
+- mantém dimensões codificadas separadas das dimensões de display;
+- troca width/height para rotações 90°/270°;
+- calcula a resolução de análise a partir da orientação de display usada pelo autorotate do FFmpeg;
+- grava no summary:
+  - `coded_width` / `coded_height`;
+  - `display_width` / `display_height`;
+  - `rotation_degrees`;
+  - `analysis_width` / `analysis_height`.
 
-C2 seria utilizável, mas C3 é o gate canônico.
+Para a fonte primária, a reexecução correta deve resultar em análise portrait, aproximadamente **540x960**, e não 960x540.
 
 ## Próxima ação exata
 
-Runner versionado:
-
-`tools/video-studio/run_behavior_pose_selected_gate.ps1`
-
-Ele executa apenas:
-
-1. DWPose CPU no trecho 88.7–93.7 s, 6 fps;
-2. overlay visual desse mesmo track.
-
-Rodar:
+Rerodar o mesmo gate C3; o runner sobrescreve o track e overlay antigos:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
@@ -124,31 +116,16 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_pose_selected_gate.ps1'
 ```
 
-Saídas:
+Depois:
 
-```text
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\selected_gate\pose_gate_c3_88p7_93p7_coco133.jsonl
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\selected_gate\pose_gate_c3_88p7_93p7_coco133.jsonl.summary.json
-Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\selected_gate\pose_gate_c3_88p7_93p7_overlay.mp4
-```
-
-Uploadar o overlay MP4. Validar:
-
-- torso/braços sobre a anatomia correta;
-- pulsos e mãos ligados corretamente;
-- dedos plausíveis;
-- face estável;
-- ausência de swaps esquerda/direita e saltos temporais.
-
-**Não executar full 300 s antes do visual PASS.**
-
-Depois do PASS:
-
-1. gerar full pose track a 6 fps;
-2. gerar behavior profile `status=complete`;
-3. inspecionar `manifest.json` + `motion_units.csv`;
-4. compor novo driving video de 4–5 s com várias motion units;
-5. só então executar Wan-Animate-2.
+1. conferir no summary se `analysis_width`/`analysis_height` estão em portrait (~540x960);
+2. uploadar o novo `pose_gate_c3_88p7_93p7_overlay.mp4`;
+3. validar torso/braços, pulsos/mãos/dedos, face, swaps e saltos temporais;
+4. somente após visual PASS gerar full pose track a 6 fps;
+5. gerar behavior profile `status=complete`;
+6. inspecionar `manifest.json` + `motion_units.csv`;
+7. compor novo driving video de 4–5 s com várias motion units;
+8. só então executar Wan-Animate-2.
 
 ## Qualidade final
 
