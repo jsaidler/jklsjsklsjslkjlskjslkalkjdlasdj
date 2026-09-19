@@ -1,0 +1,24 @@
+{
+  "schema": "behavior-source-annotations/v1",
+  "source_file": "VID_20260911_140124885.mp4",
+  "source_role": "primary_torso_hands_posture_gesture",
+  "manual_exclusions": [
+    {
+      "start_s": 24.1,
+      "end_s": 37.5,
+      "action": "exclude",
+      "reasons": [
+        "held_object",
+        "hand_occlusion",
+        "prop_interaction"
+      ],
+      "evidence": "Primary inventory review sheet plus prior failed 30-35 s visual gate. Units u0012-u0016 include reaching for, holding and presenting physical objects, so the motion is not portable as generic João behavior."
+    }
+  ],
+  "quality_policy": {
+    "pose_confidence_threshold": 0.2,
+    "group_reliability": "continuous",
+    "automatic_low_relative_pose_coverage_exclusion": false,
+    "note": "Do not hard-reject a unit merely because it falls below the source-relative q10 coverage. Use head/body/left-hand/right-hand confident coverage as continuous retrieval reliability. Manual semantic/visual exclusions remain authoritative."
+  }
+}
