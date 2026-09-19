@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **FULL PRIMARY POSE TRACK PASS / PRIMARY BEHAVIOR PROFILE BUILD NEXT**
+Status: **PRIMARY BEHAVIOR PROFILE STRUCTURAL PASS / MOTION-UNIT INVENTORY REVIEW NEXT**
 
 ## Continue from canonical state
 
@@ -14,9 +14,9 @@ Read first:
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_PREFLIGHT_2026-09-18.md`
 5. this file;
-6. `tools/video-studio/extract_behavior_profile.py`;
-7. `tools/video-studio/inspect_behavior_profile.py`;
-8. `tools/video-studio/run_behavior_profile_primary.ps1`.
+6. `tools/video-studio/analyze_behavior_inventory.py`;
+7. `tools/video-studio/render_behavior_inventory_review.py`;
+8. `tools/video-studio/run_behavior_inventory_review.ps1`.
 
 GitHub living docs are source of truth. Do not reconstruct state from memory when docs differ.
 
@@ -27,8 +27,8 @@ GitHub living docs are source of truth. Do not reconstruct state from memory whe
 - never upload João's video/voice/identity to third parties;
 - no SaaS/paid API/credits/subscriptions;
 - do not download another large renderer;
-- do not reopen Wan S2V, H3, Hunyuan or HeyGen as next route;
 - no new Python/DWPose/CUDA install while current local route works;
+- Wan S2V, H3, Hunyuan and HeyGen remain retired/historical;
 - MuseTalk/LatentSync/TTS remain deferred.
 
 ## Goal
@@ -37,7 +37,7 @@ New text/audio must eventually produce a new performance that looks, sounds and 
 
 ## Multi-source requirement — LOCKED
 
-The final behavior library must **not** use only one video.
+Final behavior library must not use only one video.
 
 Canonical sources:
 
@@ -45,106 +45,90 @@ Canonical sources:
 - `VID_20260819_124008056.mp4` — head/face/microexpression source;
 - `SIENA_BRUTO.mp4` — additional gesture/posture source with object/occlusion exclusions.
 
-The first source is being completed first only to validate the full pipeline. After its profile passes, process the other two and unify all motion units while preserving source/timestamps.
+The first source is complete through structural profile validation only. The other two still must be processed before final library synthesis.
 
-## Validated local pose stack
+## Validated primary pose path
 
-```text
-Z:\AI\WanGP\env_uv\Scripts\python.exe          Python 3.11.14
-Z:\AI\WanGP\preprocessing\dwpose
-Z:\AI\WanGP\ckpts\pose\yolox_l.onnx
-Z:\AI\WanGP\ckpts\pose\dw-ll_ucoco_384.onnx
-```
+Primary video is coded 3840x2160, displayed 2160x3840 via 90° rotation.
 
-DWPose functional runtime: PASS.
-
-CUDA ONNX Runtime remains unvalidated because `cublasLt64_13.dll` is absent. CPU is the validated path; do not install CUDA dependencies yet.
-
-## Orientation corrections
-
-Primary video is coded 3840x2160 but displayed portrait with 90° stream rotation.
-
-Pose extraction is now display-orientation aware:
-
-- display: 2160x3840;
-- DWPose analysis: 540x960.
-
-Behavior-profile motion analysis is also now display-orientation aware. It preserves aspect ratio at 128 px long side, so the primary portrait source uses **72x128**, not 128x72.
-
-## Visual pose gate — PASS
-
-Clean gate C3 = 88.7–93.7 s passed after orientation correction:
-
-- face aligned;
-- upper-body anatomy aligned;
-- both hands tracked through gestures;
-- no subject switch;
-- no gross left/right swap or upper-body temporal jump.
-
-Behavior metrics ignore points below confidence 0.20.
-
-## Full primary pose track — PASS
-
-Completed result:
+Corrected DWPose analysis:
 
 ```text
-source_duration_s: 300.352
-coded: 3840x2160
-display: 2160x3840
-rotation_degrees: 90
-sample_fps: 6.0
-analysis: 540x960
-frames: 1801
-last_timestamp_s: 300.0
-detector_fallback_frames: 0
-detector_fallback_ratio: 0.0
-mean_keypoint_score: 0.7549247491487903
-provider: CPUExecutionProvider
-elapsed_s: 2780.1648166179657
-frames_per_second_wall: 0.6478033205926593
+540x960 @ 6 fps
+1801 frames
+0/1801 detector fallback
+mean keypoint score: 0.7549247491487903
+CPUExecutionProvider
 ```
 
-Track:
+Clean visual gate C3 = 88.7–93.7 s passed after orientation correction.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`
+## Primary behavior profile — STRUCTURAL PASS
 
-Classification: **FULL PRIMARY POSE TRACK PASS.**
+Profile builder completed:
 
-## Next exact action
+```text
+status: complete
+units: 123
+CSV rows: 123
+coverage: 0.0 -> 300.352 s
+motion analysis: 72x128
+pose snapshots valid: 123/123
+activity units: head=123, body=123, left_hand=123, right_hand=123, combined_hands=123
+speech classes: mixed=89, pause=4, speech=30
+unit duration min/median/max: 0.800/2.500/3.800 s
+```
 
-Run the versioned primary profile builder:
+Files:
+
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\manifest.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\motion_units.csv
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\profile_inspection.json
+```
+
+Classification: **PRIMARY BEHAVIOR PROFILE STRUCTURAL PASS**.
+
+Do not synthesize a driver yet. Structural completeness does not prove every unit is behaviorally usable.
+
+## Next exact action — inventory quality review
+
+Versioned:
+
+- `tools/video-studio/analyze_behavior_inventory.py`;
+- `tools/video-studio/render_behavior_inventory_review.py`;
+- `tools/video-studio/run_behavior_inventory_review.ps1`.
+
+Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 
 git pull --ff-only origin main
 
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_profile_primary.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_behavior_inventory_review.ps1'
 ```
 
-It:
+This does not rerun DWPose or Wan. It computes per-unit pose confidence/coverage and movement diagnostics, then selects up to 24 representative/suspicious units and creates a visual contact sheet with start/mid/end frames.
 
-1. uses the existing full `pose_coco133.jsonl`;
-2. computes display-orientation-aware motion energy;
-3. computes local RMS/prosody descriptors;
-4. segments motion units;
-5. writes `manifest.json` + `motion_units.csv`;
-6. runs `inspect_behavior_profile.py` immediately;
-7. writes `profile_inspection.json`.
+Outputs:
 
-Required profile status: **`complete`**.
+```text
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_analysis.json
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_units.csv
+Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\inventory_review_sheet.jpg
+```
 
-Do not synthesize a driving performance if structural inspection fails.
+Paste the numeric terminal summary and upload `inventory_review_sheet.jpg`.
 
-## After primary-profile PASS
+## After inventory review
 
-1. inspect the actual motion-unit inventory and quality distributions;
-2. mark/exclude/down-weight object-occluded or unusable spans;
-3. process `VID_20260819_124008056.mp4` through the same pipeline;
-4. process `SIENA_BRUTO.mp4` through the same pipeline with exclusions;
-5. build unified multi-source João motion-unit library;
-6. synthesize a new 4–5 s performance from multiple units/sources;
-7. only then invoke installed Wan-Animate-2.
+1. classify/exclude/down-weight unusable primary motion units;
+2. process `VID_20260819_124008056.mp4` through the validated pose/profile route;
+3. process `SIENA_BRUTO.mp4` with explicit occlusion/object exclusions;
+4. build unified multi-source João library preserving unit source/timestamps;
+5. synthesize a new 4–5 s performance from multiple units/sources;
+6. only then invoke installed Wan-Animate-2.
 
 ## Final human quality gate
 
