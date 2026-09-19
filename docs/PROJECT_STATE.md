@@ -51,7 +51,7 @@ A fixed driving clip is not sufficient.
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\avatar_v\sources\`
 
-- `VID_20260911_140124885.mp4` — 300.352 s, coded 3840x2160 HEVC + audio, displayed portrait by rotation metadata — **primary torso/hands/posture/gesture source**;
+- `VID_20260911_140124885.mp4` — 300.352 s, coded 3840x2160 with portrait display rotation — **primary torso/hands/posture/gesture source**;
 - `VID_20260819_124008056.mp4` — 282.6 s, 1920x1080 H.264 + audio — facial/microexpression source;
 - `SIENA_BRUTO.mp4` — 113.3 s, 1080x1920 H.264 + audio — alternate gesture/look source; object/occlusion spans excluded later.
 
@@ -100,95 +100,105 @@ Classification:
 - **DWPose functional runtime: PASS**;
 - **DWPose ONNX CUDA acceleration: FAIL / not validated**.
 
-Do not install CUDA components yet. CPU is sufficient to continue the quality gate.
+CPU is the current validated path. Do not install CUDA components yet.
 
-## Initial CPU smoke — TECHNICAL PASS, QUALITY EVIDENCE INVALIDATED BY ORIENTATION BUG
+## Orientation/preprocessing defect — FIXED
 
-The earlier 30–35 s smoke produced 30/30 frames and zero detector fallback, but used analysis dimensions 960x540 derived from the **coded** 3840x2160 stream dimensions.
+The first DWPose runs used coded dimensions `3840x2160` to choose analysis geometry even though FFmpeg autorotated the source to portrait display. That forced the displayed portrait frame into `960x540`, severely distorting João before pose inference.
 
-The source is actually displayed portrait through rotation metadata. FFmpeg autorotated the decoded frames, after which the pipeline forced them into 960x540. Therefore DWPose inferred on a severely distorted portrait subject.
-
-The earlier numeric smoke remains evidence that the local runtime executes, but it is **not** valid pose-quality evidence.
-
-## First visual gate — REJECTED AS SAMPLE
-
-30–35 s was already rejected because João was holding a large object that occluded both hands and crossed the torso. This was not a DWPose failure.
-
-## Candidate sampler — COMPLETE
-
-The source-only contact sheet sampled eight 5-second candidate windows. Canonical clean interval:
-
-**C3 = 88.7 s → 93.7 s.**
-
-Why C3:
-
-- both hands free and visible;
-- meaningful arm/hand motion;
-- torso and wrists unobstructed;
-- no held object crossing the body;
-- stronger tracking challenge than quieter candidates.
-
-## Selected C3 visual gate — FAIL / PIPELINE ORIENTATION DEFECT IDENTIFIED
-
-The uploaded C3 overlay was inspected frame-by-frame.
-
-Observed failure:
-
-- body skeleton lines repeatedly cross the face and torso instead of following shoulders/elbows/wrists;
-- face landmarks are geometrically unstable/misplaced;
-- some hand landmarks are locally plausible, but global body geometry is not usable;
-- the failure persists across the 5-second clean interval and cannot be attributed to object occlusion.
-
-Root cause identified in `extract_dwpose_track.py`:
-
-1. `ffprobe` returned coded dimensions 3840x2160;
-2. the extractor computed analysis size 960x540 from those coded dimensions;
-3. FFmpeg autorotated the source to portrait during decode;
-4. the already-rotated portrait frame was then forcibly scaled to 960x540 before YOLOX/DWPose;
-5. DWPose therefore saw a heavily squashed subject.
+`extract_dwpose_track.py` now reads stream rotation metadata, distinguishes coded vs display dimensions and derives analysis size from display geometry. For the primary source the correct analysis geometry is portrait, approximately `540x960`.
 
 Classification:
 
-**C3 VISUAL GATE: FAIL DUE TO PREPROCESSING ORIENTATION BUG, NOT YET A DWPose MODEL FAIL.**
+**portrait display-orientation preprocessing: FIXED.**
 
-Full 300 s extraction remains blocked.
+## Visual gate history
 
-## Orientation fix — IMPLEMENTED / RERUN NEXT
+### 30–35 s
 
-`tools/video-studio/extract_dwpose_track.py` now:
+Rejected only because João was holding a large object across the hands/torso. Not evidence against DWPose.
 
-- reads rotation from ffprobe stream side-data or `rotate` tag;
-- distinguishes coded dimensions from display dimensions;
-- swaps width/height for 90°/270° display rotation;
-- computes analysis dimensions from the **display orientation** used by FFmpeg autorotation;
-- records `coded_width`, `coded_height`, `display_width`, `display_height`, and `rotation_degrees` in the summary.
+### C3 clean gate
 
-For this source, the corrected gate is expected to analyze portrait frames at approximately **540x960**, not 960x540.
+Canonical clean interval: **88.7–93.7 s**, selected because both hands are free, gestures are active, and torso/wrists are unobstructed.
 
-The same versioned runner remains the next action:
+The first C3 overlay before the orientation fix was invalid because the portrait frame had been distorted to landscape analysis geometry.
 
-`tools/video-studio/run_behavior_pose_selected_gate.ps1`
+After the orientation fix, the new uploaded C3 overlay is `540x960`, 30 frames at 6 fps and was inspected frame-by-frame.
 
-It overwrites the C3 JSONL/summary/overlay with the corrected extraction.
+Observed after correction:
 
-Required rerun check:
+- face landmarks stay on the face;
+- shoulders, elbows, wrists and hips remain anatomically aligned;
+- both hand skeletons follow the moving hands through open, closing, clasped and separated configurations;
+- no subject switch was observed;
+- no gross left/right swap or temporal pose jump was observed in the profile-relevant upper-body groups.
 
-- summary must report portrait `analysis_width`/`analysis_height` consistent with display orientation;
-- then visually inspect the new overlay for torso/arms, wrists/hands/fingers, face, left/right consistency and temporal stability.
+The overlay still shows distracting white lines toward the bottom of frame. Those are low-confidence/off-frame knee/ankle/foot landmarks plus visualization edges. They are not used by behavior-profile v1 upper-body descriptors.
 
-Only a corrected visual PASS authorizes the full 300 s extraction.
+Important behavior-profile confidence rule:
+
+`extract_behavior_profile.py` uses `CONF = 0.20`, while the QA overlay was rendered with `min_score = 0.05`. Therefore many noisy lines visible in the overlay are intentionally excluded from actual behavior metrics.
+
+Behavior-profile v1 pose groups are:
+
+- head: keypoints 0–4;
+- body: 5–12;
+- left hand: 91–111;
+- right hand: 112–132;
+- low-confidence points below 0.20 are ignored when computing group centroids/activity.
+
+Classification:
+
+**C3 corrected upper-body visual pose gate: PASS.**
+
+This authorizes full primary-source pose extraction.
+
+## Full primary pose extraction — NEXT
+
+Versioned runner:
+
+`tools/video-studio/run_behavior_pose_full.ps1`
+
+Defaults:
+
+- source: primary 300.352 s video;
+- 6 fps;
+- long side 960;
+- portrait-aware display geometry;
+- `CPUExecutionProvider`;
+- output: `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\VID_20260911_140124885\pose_coco133.jsonl`;
+- summary: same path + `.summary.json`.
+
+The runner invokes DWPose only. It does not run Wan-Animate-2.
+
+After completion, inspect at minimum:
+
+- frame count;
+- display and analysis dimensions;
+- provider;
+- detector fallback count/ratio;
+- mean keypoint score.
+
+Do **not** build the behavior profile until that full extraction result has been reviewed.
 
 ## Behavior-profile tooling — ACTIVE
 
 - `behavior_profile_schema_v1.json` — schema `behavior-profile/v1`;
 - `extract_behavior_profile.py` — motion/prosody segmentation and profile builder;
-- `extract_dwpose_track.py` — normalized COCO WholeBody 133 extractor with display-rotation handling;
+- `extract_dwpose_track.py` — normalized COCO WholeBody 133 extractor, now portrait/display-rotation aware;
 - `render_pose_overlay.py` — visual QA overlay;
 - `sample_behavior_gate_candidates.py` — clean interval sampler;
-- `run_behavior_gate_candidate_sampler.ps1` — sampler runner;
-- `run_behavior_pose_selected_gate.ps1` — selected C3 extract+overlay runner.
+- `run_behavior_pose_selected_gate.ps1` — selected C3 gate runner;
+- `run_behavior_pose_full.ps1` — full primary pose runner.
 
-A pose-less run remains `status=incomplete_pose` and never passes the production gate.
+A pose-less profile remains `status=incomplete_pose` and never passes the production gate.
+
+## Known future cleanup/quality work
+
+- object-occluded spans in behavior sources must be excluded or down-weighted before motion-unit retrieval;
+- overlay visualization should not be confused with actual v1 metrics because it currently displays points down to 0.05 confidence and includes lower-body edges outside the active upper-body feature groups;
+- CUDA ORT acceleration can be revisited only if CPU throughput becomes a practical blocker.
 
 ## Disk pressure
 
@@ -207,12 +217,12 @@ Do not delete it reflexively; the active route currently needs no large download
 ## Immediate next action
 
 1. pull `main`;
-2. rerun `tools/video-studio/run_behavior_pose_selected_gate.ps1` on the same C3 window;
-3. confirm the summary reports portrait analysis dimensions (expected ~540x960 for this source);
-4. upload the regenerated C3 overlay;
-5. inspect corrected pose geometry;
-6. only after visual PASS, generate the full 6 fps primary-source pose track;
-7. build `status=complete` behavior profile and inspect `manifest.json` + `motion_units.csv`;
+2. run `tools/video-studio/run_behavior_pose_full.ps1`;
+3. paste the resulting summary/output;
+4. review full-track integrity;
+5. then run `extract_behavior_profile.py` with the full pose track and require `status=complete`;
+6. inspect `manifest.json` + `motion_units.csv`;
+7. exclude/down-weight occluded or unusable motion units;
 8. compose a new 4–5 s performance from multiple motion units;
 9. only then invoke installed Wan-Animate-2.
 
