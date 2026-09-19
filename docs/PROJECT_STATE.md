@@ -1,6 +1,6 @@
 # Local Video Studio — Current Project State
 
-Status date: **2026-09-18**
+Status date: **2026-09-19**
 
 Purpose: canonical cross-chat operational handoff. GitHub living documents are the source of truth.
 
@@ -128,7 +128,28 @@ The extractor deliberately separates the low-dependency analysis layer from the 
 
 This code does not run Wan-Animate-2 and does not install any new model.
 
-The next local execution must first run `inspect_local_behavior_tooling.ps1`. Python and global pose-tool availability remain **UNRESOLVED UNTIL THAT MACHINE-LOCAL REPORT EXISTS**.
+## Machine-local tooling inspection — PARTIAL RESULT 2026-09-19
+
+The first run of `inspect_local_behavior_tooling.ps1` established one important fact before the scan aborted:
+
+```text
+py launcher: c:\windows\py.exe
+py -3.11: NOT RESOLVED
+```
+
+Therefore the earlier preflight line that appeared to validate Python 3.11 is definitively superseded: **the Windows launcher does not currently resolve a registered Python 3.11 interpreter.** Do not install/reinstall Python merely from this fact; existing AI-runtime interpreters still need to be inventoried.
+
+The same first inspector run did **not** complete the targeted pose scan. Two script compatibility issues were exposed under the local Windows PowerShell runtime:
+
+1. `py -0p` can emit launcher inventory through stderr and was being treated as a failure because the script uses terminating error policy;
+2. Windows PowerShell 5.1 raised `Argument types do not match` when `Find-Limited` returned a generic `List[object]` through `@($hits)`.
+
+Both are tooling-script defects, not environment failures. They were corrected in `tools/video-studio/inspect_local_behavior_tooling.ps1` at commit `c5f6000bc8caf0f3739e1323f7b870abe93c9315`:
+
+- launcher inventory is now captured without making stderr fatal;
+- generic lists are converted with `.ToArray()` where required, avoiding the Windows PowerShell binder bug.
+
+**Pose-tool availability remains unresolved until the corrected inspector completes.** No download, install or deletion was performed by the failed run or the fix.
 
 ## No-download local preflight — PASS 2026-09-18 23:45
 
@@ -161,21 +182,21 @@ NEXT ROUTE GATE: BUILD BEHAVIOR PROFILE WITHOUT NEW LARGE RENDERER DOWNLOAD
 
 No DWPose whole-body model was found **under `Z:\AI\WanAnimate2`**. The preflight did not prove global absence under all `Z:\AI` roots.
 
-The new `inspect_local_behavior_tooling.ps1` performs the required targeted/no-download search over likely existing AI runtimes. Its result, not the older Wan-root-only scan, decides whether a small pose dependency is actually missing.
+The corrected `inspect_local_behavior_tooling.ps1` performs the required targeted/no-download search over likely existing AI runtimes. Its completed result, not the older Wan-root-only scan, decides whether a small pose dependency is actually missing.
 
 If pose tooling is genuinely absent and a DWPose-class dependency is needed, exact file/source/license/size/destination must be enumerated before download.
 
-### Python resolution warning
+### Python resolution warning — UPDATED
 
 The older report printed:
 
 `Python 3.11: PASS / C:\Python314\python.exe / 3.14.3`
 
-This is inconsistent. Python 3.11 is **not validated** by that line.
+This was inconsistent and is now superseded by the strict local probe:
 
-The new strict inspector checks `sys.version_info` from the executable actually resolved by `py -3.11`, inventories explicit local candidates and refuses to label a candidate as Python 3.11 unless the interpreter itself reports `3.11`.
+`py -3.11: NOT RESOLVED`
 
-No Python installation/reinstallation has been authorized or performed.
+No Python installation/reinstallation has been authorized or performed. Existing local runtime interpreters still need to be inventoried by the corrected inspector before selecting an interpreter for pose/prosody tooling.
 
 ### Disk pressure
 
@@ -228,12 +249,12 @@ Generic presenter choreography, exaggerated expressions, plausible-but-uncharact
 
 ## Immediate next action — LOCKED
 
-Continue the first **behavior-profile / motion-unit extractor** gate. Schema and base extractor now exist; the machine-local environment must be resolved before pose integration.
+Continue the first **behavior-profile / motion-unit extractor** gate. Schema and base extractor exist; the corrected machine-local inspector must complete before pose integration.
 
 Required order from this state:
 
-1. run the versioned read-only `tools/video-studio/inspect_local_behavior_tooling.ps1` on the Windows machine;
-2. record the exact interpreter reached by `py -3.11` and any verified Python 3.11 candidate;
+1. pull `main` and rerun the corrected `tools/video-studio/inspect_local_behavior_tooling.ps1`;
+2. inventory the actual Python interpreters in existing AI runtimes; do not require Python 3.11 merely because it was the old requested label;
 3. reuse any whole-body/hand pose tooling found by the targeted local search;
 4. only if no suitable local pose tooling exists, enumerate the smallest required dependency before any download;
 5. connect the selected local pose backend to the normalized JSONL pose-track contract;
