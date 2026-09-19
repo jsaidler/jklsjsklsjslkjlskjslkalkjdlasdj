@@ -180,6 +180,8 @@ def main() -> int:
     ap.add_argument("--start", type=float, default=0.0)
     ap.add_argument("--duration", type=float)
     ap.add_argument("--max-frames", type=int)
+    ap.add_argument("--progress-every", type=int, default=10,
+                    help="Print a live heartbeat every N processed frames; 0 disables periodic progress.")
     ap.add_argument("--ffmpeg", default="ffmpeg")
     ap.add_argument("--ffprobe", default="ffprobe")
     args = ap.parse_args()
@@ -194,6 +196,8 @@ def main() -> int:
             raise PoseError(f"Missing {label}: {path}")
     if args.fps <= 0:
         raise PoseError("--fps must be > 0")
+    if args.progress_every < 0:
+        raise PoseError("--progress-every must be >= 0")
 
     sys.path.insert(0, str(root))
     try:
@@ -209,7 +213,21 @@ def main() -> int:
     ffprobe = find_exe(args.ffprobe)
     info = ffprobe_video(source, ffprobe)
     aw, ah = analysis_size(info["display_width"], info["display_height"], args.long_side)
+
+    span_s = args.duration if args.duration is not None else max(0.0, info["duration_s"] - args.start)
+    expected_frames = max(1, int(math.ceil(span_s * args.fps)))
+    if args.max_frames is not None:
+        expected_frames = min(expected_frames, args.max_frames)
+
+    print(
+        f"source={source.name} duration={info['duration_s']:.3f}s "
+        f"display={info['display_width']}x{info['display_height']} rotation={info['rotation_degrees']} "
+        f"analysis={aw}x{ah} fps={args.fps:g}",
+        flush=True,
+    )
+    print(f"Initializing DWPose ONNX sessions (provider request={args.provider})...", flush=True)
     det_session, pose_session, provider, available = session_pair(ort, det_path, pose_path, args.provider)
+    print(f"DWPose sessions ready: provider={provider}; expected_frames~{expected_frames}", flush=True)
 
     cmd = [ffmpeg, "-hide_banner", "-loglevel", "error"]
     if args.start > 0:
@@ -221,6 +239,7 @@ def main() -> int:
     # not coded, dimensions so portrait sources are not distorted before DWPose.
     cmd += ["-an", "-vf", f"fps={args.fps:g},scale={aw}:{ah}:flags=area", "-f", "rawvideo", "-pix_fmt", "bgr24", "pipe:1"]
 
+    print("Starting FFmpeg decode + DWPose inference...", flush=True)
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     assert proc.stdout is not None
     frame_bytes = aw * ah * 3
@@ -287,9 +306,19 @@ def main() -> int:
             }
             fh.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
             frames += 1
-            if frames % 60 == 0:
+
+            if args.progress_every and (frames == 1 or frames % args.progress_every == 0):
                 elapsed = time.time() - started
-                print(f"frames={frames} elapsed={elapsed:.1f}s provider={provider}", flush=True)
+                wall_fps = frames / elapsed if elapsed > 0 else 0.0
+                pct = min(100.0, 100.0 * frames / expected_frames) if expected_frames else 0.0
+                video_t = args.start + (frames - 1) / args.fps
+                print(
+                    f"progress frames={frames}/{expected_frames} ({pct:.1f}%) "
+                    f"video_t={video_t:.1f}s elapsed={elapsed:.1f}s "
+                    f"wall_fps={wall_fps:.3f} fallback={fallback_frames}",
+                    flush=True,
+                )
+
             if args.max_frames is not None and frames >= args.max_frames:
                 break
 
