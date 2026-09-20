@@ -1,7 +1,7 @@
 # Next chat handoff — Video Studio local behavioral route
 
 Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 NOT PASS / DRIVER v3 POSE QA PASS / WAN CONDITIONING PREFLIGHT NEXT**
+Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 NOT PASS / DRIVER v3 POSE QA PASS / WAN RAW-RGB CONTRACT VERIFIED / RGB PROXY QA NEXT**
 
 Continue in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are canonical.
 
@@ -11,8 +11,8 @@ Read first:
 2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
 3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
 4. this file;
-5. `tools/video-studio/inspect_wan_animate2_conditioning.py`;
-6. `tools/video-studio/run_wan_animate2_conditioning_preflight.ps1`.
+5. `tools/video-studio/build_wan_animate2_rgb_driver_proxy.py`;
+6. `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1`.
 
 ## Hard constraints
 
@@ -20,14 +20,15 @@ Read first:
 - never upload João identity media to third parties;
 - no SaaS/paid API/credits/subscriptions;
 - no new large renderer;
-- no new Python/DWPose/CUDA install while current CPU route works;
+- no new Python/DWPose/CUDA install while current local route works;
 - Wan S2V/H3/Hunyuan/HeyGen remain retired/historical;
 - MuseTalk/LatentSync/TTS remain deferred;
-- use only the already-installed Wan-Animate-2 once its real local conditioning path is known.
+- do not replace the validated source/library/pose compositor because of downstream adapter failures;
+- use only the already-installed Wan-Animate-2 through its verified raw-RGB driving-video contract.
 
 ## Curated sources
 
-### Primary
+### PRIMARY
 `VID_20260911_140124885.mp4` — torso/hands/gesture/posture.
 
 ```text
@@ -37,7 +38,7 @@ Read first:
 24.1–37.5 s / u0012-u0016 excluded
 ```
 
-### Secondary
+### SECONDARY
 `VID_20260819_124008056.mp4` — face/head/microexpression; body support only.
 
 ```text
@@ -69,8 +70,6 @@ Locked exclusions:
 67.9–74.0 s   u0031-u0033
 ```
 
-SIENA pose-reliability weights are saturated at 1.0 and do not rank clean units meaningfully.
-
 ## Unified library — PASS
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\joao_motion_library_v1.json`
@@ -97,8 +96,6 @@ right_hand 1.5199x
 hand OOB left 41.71% / right 44.09%
 ```
 
-Visual preview showed a source-change skeleton swap and severe hand loss below frame.
-
 ### v2 — improved but NOT PASS
 
 ```text
@@ -107,29 +104,22 @@ face transition q90 ratio 2.4043x
 hand OOB left 21.87% / right 27.73%
 ```
 
-Visual preview confirmed body transition fixed but hand clipping and face acceleration remained.
-
-## Driver v3 — POSE QA PASS
+### v3 — POSE QA PASS
 
 Output:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3`
-
-Observed:
 
 ```text
 4.5 s / 24 fps / 108 frames
 base primary -> tertiary
 overlap 1.875–2.625 s / 0.75 s
 base continuity 0.602250
-hand framing floor 0.90
 predicted hand in-frame 0.947619
-hand pair source gap 0.0
-face pair source gap 0.0
 canonical framing scale 0.942959
 ```
 
-Selected units:
+Selected:
 
 ```text
 window 0
@@ -143,7 +133,7 @@ hands primary:VID_20260911_140124885_u0118
 face  secondary:VID_20260819_124008056_u0047
 ```
 
-Numeric QA:
+QA:
 
 ```text
 OOB overall
@@ -154,7 +144,7 @@ face             0.0000%
 left_hand        0.0000%
 right_hand       1.1023%
 
-transition-only OOB: 0% for every group
+transition-only OOB 0% all groups
 
 transition q90 / normal q90
 body_head   0.792506x
@@ -163,42 +153,71 @@ left_hand   0.682394x
 right_hand  0.944349x
 ```
 
-Visual QA of `behavioral_driver_pose_preview.mp4` passed:
-
-- source transition reads continuously;
-- hands remain available;
-- no visually material face discontinuity;
-- residual right-hand OOB is outside transition and not materially visible.
+Visual preview passed: source transition reads continuously, hands remain available, no visually material face discontinuity.
 
 Classification: **FIRST MULTI-SOURCE BEHAVIORAL POSE DRIVER v3 PASS**.
 
-This validates the pose compositor, not yet the Wan input adapter.
+## Camera framing — LOCKED
 
-## Wan-Animate-2 installed route — PRELIGHT NEXT
+Absolute source-camera translation/scale is acquisition geometry, not behavioral identity. One constant global similarity transform may normalize the complete synthesized performance if relative motion/geometry are preserved and no dynamic camera motion is introduced.
 
-Known install root:
+## Wan-Animate-2 local contract — VERIFIED
 
-`Z:\AI\WanAnimate2`
+Node: `WanAnimate2ToVideo` in `comfy_extras\nodes_wan.py`.
 
-Known model/code:
+Critical facts from the installed source/object info:
 
 ```text
-Z:\AI\WanAnimate2\models\diffusion_models\wan_animate_2_bf16.safetensors
-Z:\AI\WanAnimate2\comfy\ldm\wan\model_animate2.py
+pose_video type = IMAGE
+reference_image type = IMAGE
+pose_video is resized to requested width/height
+pose_video is VAE-encoded directly:
+  pose_values["pose_video_latent"] = vae.encode(pose_video[:, :, :, :3])
 ```
 
-Do not assume Wan directly consumes COCO-133 JSONL or the skeleton preview. First inspect the actual installed code path.
+There is no COCO/OpenPose/DWPose extractor in this node. Saved W0/W1 prompts wire `pose_video <- GetVideoComponents` from real MP4 driving videos. The installed Animate2 node has no separate `face_video`; face/body/hands motion all travel in the single RGB driving video.
+
+Therefore:
+
+```text
+COCO-133 v3 behavioral driver = canonical behavior/control representation
+RGB driving video             = required Wan conditioning representation
+```
+
+Classification: **WAN-ANIMATE-2 RAW RGB DRIVING-VIDEO CONTRACT VERIFIED**.
+
+## RGB adapter v1 — IMPLEMENTED / NEXT
 
 Versioned:
 
-- `tools/video-studio/inspect_wan_animate2_conditioning.py`;
-- `tools/video-studio/run_wan_animate2_conditioning_preflight.ps1`.
+- `tools/video-studio/build_wan_animate2_rgb_driver_proxy.py`
+- `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1`
 
-The inspector is static only: no Comfy launch, no torch/model import, no DWPose, no Wan inference. It inventories model files and searches code/config for `animate2`, loader/model type, `INPUT_TYPES`, node mappings, pose/driving/reference/control/conditioning/mask/face/video paths and relevant class/function signatures.
+Adapter behavior:
 
-Expected report:
+1. auto-select a clean eligible PRIMARY João frame with usable body/face/hands;
+2. extract it at `512×912`;
+3. use its real pixels as a texture atlas;
+4. build a fixed Delaunay mesh on reliable COCO WholeBody points;
+5. piecewise-affine warp those pixels through the 108-frame v3 trajectory;
+6. neutral background; no source-background/camera motion;
+7. emit full 108-frame proxy plus a 65-frame `4n+1` spike clip covering the complete source overlap.
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\wan_animate2_conditioning_preflight.json`
+Output root:
+
+`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\wan_rgb_proxy`
+
+Expected:
+
+```text
+rgb_proxy_anchor_reference.png
+behavioral_driver_rgb_proxy.mp4
+behavioral_driver_rgb_proxy_spike65.mp4
+behavioral_driver_rgb_proxy_contact.jpg
+rgb_driver_proxy_manifest.json
+```
+
+This adapter is deliberately non-generative. It is a dense RGB motion proxy to test Wan's end-to-end driving branch. If it fails, patch the RGB adapter; do not throw away the validated pose-domain behavior system.
 
 ## Next exact action
 
@@ -207,10 +226,17 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_conditioning_preflight.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_rgb_driver_proxy.ps1'
 ```
 
-Paste the complete terminal output. Then determine the smallest adapter from v3 into the **actual installed** Wan-Animate-2 conditioning interface and prepare the first low-cost render spike.
+Paste the complete terminal output and upload:
+
+```text
+...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_contact.jpg
+...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_spike65.mp4
+```
+
+Do **not** run Wan-Animate-2 before visual QA of the RGB proxy. If proxy QA passes, prepare the first low-cost Wan render at `512×912`, 65 frames, using the existing BF16 Animate2 model and no new model downloads.
 
 Final quality gate:
 
