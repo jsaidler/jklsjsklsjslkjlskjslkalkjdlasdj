@@ -1,67 +1,40 @@
 # Next chat handoff — Video Studio local behavioral route
 
-Updated: **2026-09-19**  
-Status: **PRIMARY CURATED PASS / SECONDARY CURATED PASS / SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v1 FAIL / DRIVER v2 NOT PASS / DRIVER v3 POSE QA PASS / WAN RAW-RGB CONTRACT VERIFIED / RGB PROXY QA NEXT**
+Updated: **2026-09-20**  
+Status: **PRIMARY/SECONDARY/SIENA CURATED PASS / UNIFIED LIBRARY PASS / DRIVER v3 POSE PASS / WAN RAW-RGB CONTRACT VERIFIED / PRIMARY WAN BASELINE PASS / CROSS-SOURCE SIENA WAN GATE NEXT**
 
 Continue in GitHub `jsaidler/jklsjsklsjslkjlskjslkalkjdlasdj`, branch `main`. GitHub living docs are canonical.
 
 Read first:
 
 1. `docs/PROJECT_STATE.md`
-2. `docs/VIDEO_STUDIO_LOCAL_ZERO_COST_POLICY_2026-09-18.md`
-3. `docs/VIDEO_STUDIO_LOCAL_BEHAVIOR_ROUTE_2026-09-18.md`
-4. this file;
-5. `tools/video-studio/build_wan_animate2_rgb_driver_proxy.py`;
-6. `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1`.
+2. this file
+3. `tools/video-studio/run_wan_animate2_cross_source_siena_render.py`
+4. `tools/video-studio/run_wan_animate2_cross_source_siena_render.ps1`
 
 ## Hard constraints
 
 - 100% local/self-hosted, zero service cost;
 - never upload João identity media to third parties;
-- no SaaS/paid API/credits/subscriptions;
+- no SaaS/paid API/credits/subscriptions/cloud generation;
 - no new large renderer;
-- no new Python/DWPose/CUDA install while current local route works;
+- no new Python/DWPose/CUDA install while current route works;
 - Wan S2V/H3/Hunyuan/HeyGen remain retired/historical;
-- MuseTalk/LatentSync/TTS remain deferred;
-- do not replace the validated source/library/pose compositor because of downstream adapter failures;
-- use only the already-installed Wan-Animate-2 through its verified raw-RGB driving-video contract.
+- MuseTalk/LatentSync/CosyVoice remain deferred;
+- do not invalidate the curated source/library/pose system because of downstream RGB/render failures;
+- use only the installed Wan-Animate-2 BF16 path;
+- long local passes must emit heartbeat/progress.
 
-## Curated sources
-
-### PRIMARY
-`VID_20260911_140124885.mp4` — torso/hands/gesture/posture.
+## Canonical source/library state
 
 ```text
-123 total
-118 eligible
-5 excluded
-24.1–37.5 s / u0012-u0016 excluded
+PRIMARY   VID_20260911_140124885.mp4   118 eligible   torso/hands/gesture/posture
+SECONDARY VID_20260819_124008056.mp4   116 face/head/body-support eligible
+SIENA     SIENA_BRUTO.mp4               37 clean      posture/head/coarse-arm
+UNIFIED   271 units total
 ```
 
-### SECONDARY
-`VID_20260819_124008056.mp4` — face/head/microexpression; body support only.
-
-```text
-119 base units
-116 face eligible
-116 head eligible
-116 body-support eligible
-hands disabled
-face/head median quality 0.913145
-```
-
-### SIENA
-`SIENA_BRUTO.mp4` — alternate posture/head/coarse arm.
-
-```text
-49 total
-12 hard excluded
-37 clean
-hands disabled
-generic whole-upper disabled
-```
-
-Locked exclusions:
+SIENA exclusions remain locked:
 
 ```text
 4.6–10.3 s    u0003-u0004
@@ -70,54 +43,11 @@ Locked exclusions:
 67.9–74.0 s   u0031-u0033
 ```
 
-## Unified library — PASS
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\joao_motion_library_v1.json`
-
-```text
-271 total units
-primary 118
-secondary 116
-tertiary 37
-```
-
-Classification: **UNIFIED MULTI-SOURCE LIBRARY PASS**.
-
-## Driver history
-
-### v1 — FAIL
-
-```text
-transition q90 / normal q90
-body_head  6.1729x
-face       3.1519x
-left_hand  3.0979x
-right_hand 1.5199x
-hand OOB left 41.71% / right 44.09%
-```
-
-### v2 — improved but NOT PASS
-
-```text
-body transition q90 ratio 0.7920x
-face transition q90 ratio 2.4043x
-hand OOB left 21.87% / right 27.73%
-```
-
-### v3 — POSE QA PASS
+## Behavioral pose driver v3 — PASS
 
 Output:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3`
-
-```text
-4.5 s / 24 fps / 108 frames
-base primary -> tertiary
-overlap 1.875–2.625 s / 0.75 s
-base continuity 0.602250
-predicted hand in-frame 0.947619
-canonical framing scale 0.942959
-```
 
 Selected:
 
@@ -133,111 +63,104 @@ hands primary:VID_20260911_140124885_u0118
 face  secondary:VID_20260819_124008056_u0047
 ```
 
-QA:
+Key QA:
 
 ```text
-OOB overall
-coarse_head      0.0000%
-upper_body       0.0000%
-lower_body/foot  0.0000%
-face             0.0000%
-left_hand        0.0000%
-right_hand       1.1023%
-
 transition-only OOB 0% all groups
-
-transition q90 / normal q90
-body_head   0.792506x
-face        1.411900x
-left_hand   0.682394x
-right_hand  0.944349x
+body transition q90 ratio 0.792506x
+face 1.411900x
+left hand 0.682394x
+right hand 0.944349x
 ```
-
-Visual preview passed: source transition reads continuously, hands remain available, no visually material face discontinuity.
 
 Classification: **FIRST MULTI-SOURCE BEHAVIORAL POSE DRIVER v3 PASS**.
 
-## Camera framing — LOCKED
+## Wan contract — VERIFIED
 
-Absolute source-camera translation/scale is acquisition geometry, not behavioral identity. One constant global similarity transform may normalize the complete synthesized performance if relative motion/geometry are preserved and no dynamic camera motion is introduced.
+Installed node: `WanAnimate2ToVideo`.
 
-## Wan-Animate-2 local contract — VERIFIED
-
-Node: `WanAnimate2ToVideo` in `comfy_extras\nodes_wan.py`.
-
-Critical facts from the installed source/object info:
+Important facts:
 
 ```text
 pose_video type = IMAGE
-reference_image type = IMAGE
-pose_video is resized to requested width/height
-pose_video is VAE-encoded directly:
-  pose_values["pose_video_latent"] = vae.encode(pose_video[:, :, :, :3])
+pose_video is RGB video frames, resized and VAE-encoded directly
+no COCO/OpenPose/DWPose conversion inside node
+no separate face_video input
 ```
 
-There is no COCO/OpenPose/DWPose extractor in this node. Saved W0/W1 prompts wire `pose_video <- GetVideoComponents` from real MP4 driving videos. The installed Animate2 node has no separate `face_video`; face/body/hands motion all travel in the single RGB driving video.
+Therefore COCO-133 remains canonical behavior representation, but Animate2 needs RGB driving frames.
 
-Therefore:
+## Failed RGB adapter routes — DO NOT RESUME
+
+- Delaunay still-frame warp: stalled before frame 1;
+- IDW still-frame remap: completed but severe anatomical melting;
+- PRIMARY+SIENA raw RGB xfade: double-exposed source/acquisition transition.
+
+These failures do not invalidate v3 pose composition.
+
+## First actual Wan render — PASS
+
+Run:
+
+`Z:\AI\VideoStudioRuns\wan-animate2-behavior\primary-baseline-20260920_113651`
+
+Actual generated output:
+
+`wan_animate2_bf16_exilada_aspectmatched_ref10_pose080_steps30_00001_.mp4`
+
+Runtime:
 
 ```text
-COCO-133 v3 behavioral driver = canonical behavior/control representation
-RGB driving video             = required Wan conditioning representation
+RTX 3060 12GB / LOW_VRAM
+65 frames / 512x912 / 24 fps
+30 steps
+sampling 01:17:19
+prompt total 01:19:25
+no OOM / no execution_error
 ```
 
-Classification: **WAN-ANIMATE-2 RAW RGB DRIVING-VIDEO CONTRACT VERIFIED**.
+Visual QA: stable identity/background, recognizable transferred motion, no material anatomy collapse.
 
-## RGB adapter v1 — IMPLEMENTED / NEXT
+Classification: **WAN-ANIMATE-2 PRIMARY BASELINE RENDER PASS**.
+
+Known bug in the old baseline runner: it labeled the first returned MP4 as final, but that file was the driving input. The real generated MP4 was the second returned video. Do not rerun the baseline just to fix naming.
+
+## Current next gate — CROSS-SOURCE SIENA
+
+Purpose: isolate whether Wan can take motion from a different acquisition domain while PRIMARY reference controls identity/appearance.
+
+Inputs:
+
+```text
+reference: PRIMARY u0041 midpoint
+driver:    SIENA u0035 real RGB span
+65 frames / 512x912 / 24 fps
+same BF16 Animate2 runtime
+```
 
 Versioned:
 
-- `tools/video-studio/build_wan_animate2_rgb_driver_proxy.py`
-- `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1`
+- `tools/video-studio/run_wan_animate2_cross_source_siena_render.py`
+- `tools/video-studio/run_wan_animate2_cross_source_siena_render.ps1`
 
-Adapter behavior:
-
-1. auto-select a clean eligible PRIMARY João frame with usable body/face/hands;
-2. extract it at `512×912`;
-3. use its real pixels as a texture atlas;
-4. build a fixed Delaunay mesh on reliable COCO WholeBody points;
-5. piecewise-affine warp those pixels through the 108-frame v3 trajectory;
-6. neutral background; no source-background/camera motion;
-7. emit full 108-frame proxy plus a 65-frame `4n+1` spike clip covering the complete source overlap.
-
-Output root:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\wan_rgb_proxy`
-
-Expected:
-
-```text
-rgb_proxy_anchor_reference.png
-behavioral_driver_rgb_proxy.mp4
-behavioral_driver_rgb_proxy_spike65.mp4
-behavioral_driver_rgb_proxy_contact.jpg
-rgb_driver_proxy_manifest.json
-```
-
-This adapter is deliberately non-generative. It is a dense RGB motion proxy to test Wan's end-to-end driving branch. If it fails, patch the RGB adapter; do not throw away the validated pose-domain behavior system.
-
-## Next exact action
+The new runner selects the generated output deterministically and will not confuse the driving input with the Wan result.
 
 Run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_rgb_driver_proxy.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_cross_source_siena_render.ps1'
 ```
 
-Paste the complete terminal output and upload:
+Expected runtime: roughly the prior ~80 minutes.
 
-```text
-...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_contact.jpg
-...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_spike65.mp4
-```
+Upload:
 
-Do **not** run Wan-Animate-2 before visual QA of the RGB proxy. If proxy QA passes, prepare the first low-cost Wan render at `512×912`, 65 frames, using the existing BF16 Animate2 model and no new model downloads.
+`wan_animate2_cross_source_siena65_GENERATED.mp4`
 
-Final quality gate:
+If this passes, investigate and implement Animate2 `continue_motion`/chunking to join source-specific generated spans under one stable reference identity instead of raw RGB xfade.
 
-> “isso não apenas parece João; isso se move e reage como João.”
+Final quality criterion:
+
+> isso não apenas parece João; isso se move e reage como João.
