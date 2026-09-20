@@ -1,8 +1,8 @@
 param(
     [string]$WanGpRoot = 'Z:\AI\WanGP',
     [string]$UnifiedRoot = 'Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified',
-    [int]$Width = 512,
-    [int]$Height = 912,
+    [int]$Width = 256,
+    [int]$Height = 456,
     [double]$Fps = 24.0,
     [int]$SpikeFrames = 65
 )
@@ -32,17 +32,17 @@ if ($null -eq $FfmpegCmd) {
     throw 'ffmpeg is not available in PATH.'
 }
 
-Write-Host 'WAN-ANIMATE-2 RGB DRIVER PROXY BUILD'
+Write-Host 'WAN-ANIMATE-2 RGB DRIVER PROXY SPIKE'
 Write-Host '===================================='
 Write-Host ('Library: ' + $Library)
 Write-Host ('Pose driver: ' + $PoseDriver)
 Write-Host ('Output: ' + $OutputDir)
-Write-Host ('Canvas: ' + $Width + 'x' + $Height + ' @ ' + $Fps + ' fps')
-Write-Host ('Spike clip: first ' + $SpikeFrames + ' frames')
+Write-Host ('Proxy canvas: ' + $Width + 'x' + $Height + ' @ ' + $Fps + ' fps')
+Write-Host ('Spike: first ' + $SpikeFrames + ' frames only')
 Write-Host ''
-Write-Host 'Contract now established: WanAnimate2ToVideo VAE-encodes raw pose_video RGB frames directly.'
-Write-Host 'This step builds a dense real-pixel motion proxy from the validated COCO-133 driver.'
-Write-Host 'No DWPose and no Wan-Animate-2 inference are invoked.'
+Write-Host 'The installed WanAnimate2ToVideo resizes pose_video to the requested render canvas before VAE encoding.'
+Write-Host 'Therefore this gate deliberately uses a lower-resolution 65-frame RGB proxy instead of rendering all 108 frames at 512x912.'
+Write-Host 'Progress is printed for every frame. No DWPose and no Wan-Animate-2 inference are invoked.'
 Write-Host ''
 
 & $Python $Builder `
@@ -56,25 +56,23 @@ Write-Host ''
     '--ffmpeg' $FfmpegCmd.Source
 
 if ($LASTEXITCODE -ne 0) {
-    throw ('RGB driver proxy build failed with exit code ' + $LASTEXITCODE)
+    throw ('RGB driver proxy spike failed with exit code ' + $LASTEXITCODE)
 }
 
 $Manifest = Join-Path $OutputDir 'rgb_driver_proxy_manifest.json'
 $Contact = Join-Path $OutputDir 'behavioral_driver_rgb_proxy_contact.jpg'
-$Full = Join-Path $OutputDir 'behavioral_driver_rgb_proxy.mp4'
 $Spike = Join-Path $OutputDir ('behavioral_driver_rgb_proxy_spike' + $SpikeFrames + '.mp4')
 $Reference = Join-Path $OutputDir 'rgb_proxy_anchor_reference.png'
-foreach ($path in @($Manifest,$Contact,$Full,$Spike,$Reference)) {
+foreach ($path in @($Manifest,$Contact,$Spike,$Reference)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw ('Expected output missing: ' + $path)
     }
 }
 
 Write-Host ''
-Write-Host 'WAN RGB DRIVER PROXY BUILD: COMPLETE'
+Write-Host 'WAN RGB DRIVER PROXY SPIKE: COMPLETE'
 Write-Host ('Manifest: ' + $Manifest)
 Write-Host ('Reference: ' + $Reference)
-Write-Host ('Full driver: ' + $Full)
 Write-Host ('Spike driver: ' + $Spike)
 Write-Host ('Upload this contact sheet: ' + $Contact)
 Write-Host ('Upload this driver video: ' + $Spike)
