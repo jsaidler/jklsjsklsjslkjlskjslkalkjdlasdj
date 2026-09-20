@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
-"""Build a dense RGB driving-video proxy for Wan-Animate-2 from a validated COCO-133 driver.
+"""Build a bounded-cost RGB driving-video proxy for Wan-Animate-2.
 
-Wan-Animate-2 consumes raw RGB driving-video frames directly through its VAE. The
-validated behavioral driver is pose-domain data, so this adapter turns it into a
-human-shaped RGB proxy without invoking another generative model.
+WanAnimate2ToVideo consumes raw IMAGE frames and resizes them to the requested
+output canvas before VAE encoding. For the first renderer gate we therefore do
+not need to build the whole 108-frame performance at 512x912. We only need the
+65-frame 4n+1 spike that already contains the complete primary->SIENA overlap.
 
-Strategy:
-- select one clean real João frame automatically from eligible PRIMARY footage;
-- use that real frame as a texture atlas;
-- piecewise-affine warp it with a fixed Delaunay mesh driven by the synthesized
-  COCO WholeBody 133 trajectory;
-- keep the background neutral so acquisition geometry/background motion is not
-  injected into the motion signal;
-- preserve the full 24 fps driver and also emit a 65-frame 4n+1 spike clip that
-  includes the complete primary->SIENA overlap.
-
-No DWPose and no Wan inference are invoked.
+This adapter:
+- selects one clean real PRIMARY frame automatically;
+- uses real pixels from that frame as a texture atlas;
+- piecewise-affine warps a reduced but behaviorally useful COCO-133 control mesh;
+- renders only the requested spike frames;
+- defaults to 256x456 because WanAnimate2ToVideo will upscale pose_video itself;
+- emits progress for every frame with elapsed time and ETA;
+- performs no DWPose and no Wan inference.
 """
 
 from __future__ import annotations
@@ -26,6 +24,7 @@ import math
 import shutil
 import statistics
 import subprocess
+import time
 from pathlib import Path
 
 import cv2
@@ -36,7 +35,15 @@ BODY_HEAD = list(range(0, 13))
 FACE = list(range(23, 91))
 LEFT_HAND = list(range(91, 112))
 RIGHT_HAND = list(range(112, 133))
-RELEVANT = BODY_HEAD + FACE + LEFT_HAND + RIGHT_HAND
+
+# Dense 68-point face + both 21-point hands created 224 triangles and made the
+# first implementation unacceptably expensive. For a motion-conditioning proxy
+# we keep all body/head points and a regular subset of face/hands. The validated
+# COCO-133 driver remains the canonical high-detail representation.
+PROXY_FACE = list(range(23, 91, 3))
+PROXY_LEFT_HAND = list(range(91, 112, 2))
+PROXY_RIGHT_HAND = list(range(112, 133, 2))
+PROXY_RELEVANT = BODY_HEAD + PROXY_FACE + PROXY_LEFT_HAND + PROXY_RIGHT_HAND
 
 
 def finite(v):
@@ -142,7 +149,6 @@ def choose_primary_anchor(library, target_frames):
     rows = load_track(pose_track)
     ranges = [(float(u["source_start_s"]), float(u["source_end_s"])) for u in units]
 
-    # First third of the synthesized driver is PRIMARY-led and gives a stable anchor target.
     target_idx = min(len(target_frames) - 1, max(0, int(round(len(target_frames) * 0.18))))
     target = target_frames[target_idx]["keypoints"]
 
@@ -160,19 +166,14 @@ def choose_primary_anchor(library, target_frames):
         rh_in, rh_seen = visibility(kp, RIGHT_HAND)
         hand_in = (lh_in + rh_in) / 2.0
         hand_seen = (lh_seen + rh_seen) / 2.0
-        # Require a genuinely useful texture atlas, not merely a detectable body.
         if body_seen < 0.85 or face_seen < 0.80 or hand_seen < 0.70:
             continue
         dist = normalized_pose_distance(kp, target)
         pose_match = 1.0 / (1.0 + 4.0 * dist)
         score = 0.34 * pose_match + 0.22 * body_in + 0.18 * face_in + 0.26 * hand_in
         row = {
-            "score": score,
-            "t": t,
-            "pose_match": pose_match,
-            "body_in": body_in,
-            "face_in": face_in,
-            "hand_in": hand_in,
+            "score": score, "t": t, "pose_match": pose_match,
+            "body_in": body_in, "face_in": face_in, "hand_in": hand_in,
             "keypoints": kp,
         }
         if best is None or row["score"] > best["score"]:
@@ -188,13 +189,8 @@ def choose_primary_anchor(library, target_frames):
 def extract_anchor_frame(ffmpeg, source_video: Path, t: float, output: Path, width: int, height: int):
     exe = shutil.which(ffmpeg) or ffmpeg
     output.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        exe, "-y", "-hide_banner", "-loglevel", "error",
-        "-ss", f"{t:.6f}", "-i", str(source_video),
-        "-frames:v", "1",
-        "-vf", f"scale={width}:{height}:flags=lanczos",
-        str(output),
-    ]
+    cmd = [exe, "-y", "-hide_banner", "-loglevel", "error", "-ss", f"{t:.6f}", "-i", str(source_video),
+           "-frames:v", "1", "-vf", f"scale={width}:{height}:flags=lanczos", str(output)]
     p = subprocess.run(cmd, capture_output=True)
     if p.returncode != 0:
         raise SystemExit("FFmpeg anchor extraction failed: " + p.stderr.decode("utf-8", "replace"))
@@ -205,21 +201,18 @@ def extract_anchor_frame(ffmpeg, source_video: Path, t: float, output: Path, wid
 
 
 def reliable_control_indices(anchor_kp, target_frames, min_target_ratio=0.92):
-    counts = {i: 0 for i in RELEVANT}
+    counts = {i: 0 for i in PROXY_RELEVANT}
     total = len(target_frames)
     for rec in target_frames:
         kp = rec["keypoints"]
-        for i in RELEVANT:
+        for i in PROXY_RELEVANT:
             x, y, c = kp[i]
             if finite(x) and finite(y) and finite(c) and float(c) >= CONF:
                 counts[i] += 1
 
-    # Body first, then face/hands. This ordering also decides which nearly-duplicate
-    # point survives (e.g. body wrist vs hand root).
-    ordered = BODY_HEAD + FACE + LEFT_HAND + RIGHT_HAND
     selected = []
     selected_xy = []
-    for i in ordered:
+    for i in PROXY_RELEVANT:
         x, y, c = anchor_kp[i]
         if not (finite(x) and finite(y) and finite(c) and float(c) >= CONF):
             continue
@@ -228,7 +221,6 @@ def reliable_control_indices(anchor_kp, target_frames, min_target_ratio=0.92):
         px, py = float(x), float(y)
         if not (0.005 <= px <= 0.995 and 0.005 <= py <= 0.995):
             continue
-        # Avoid Subdiv2D duplicate-point failures.
         if any((px - qx) ** 2 + (py - qy) ** 2 < (0.0025 ** 2) for qx, qy in selected_xy):
             continue
         selected.append(i)
@@ -250,14 +242,14 @@ def delaunay_triangles(src_pts, width, height):
         for vx, vy in verts:
             ds = np.sum((pts - np.array([vx, vy], dtype=np.float32)) ** 2, axis=1)
             j = int(np.argmin(ds))
-            if float(ds[j]) > 9.0:  # 3 px tolerance
+            if float(ds[j]) > 9.0:
                 ok = False
                 break
             idxs.append(j)
         if not ok or len(set(idxs)) != 3:
             continue
         a, b, c = pts[idxs[0]], pts[idxs[1]], pts[idxs[2]]
-        area = abs(np.cross(b - a, c - a)) * 0.5
+        area = abs(float(np.cross(b - a, c - a))) * 0.5
         if area < 2.0:
             continue
         triangles.add(tuple(sorted(idxs)))
@@ -270,10 +262,8 @@ def delaunay_triangles(src_pts, width, height):
 def warp_triangle(src, dst, src_tri, dst_tri):
     src_tri = np.float32(src_tri)
     dst_tri = np.float32(dst_tri)
-    r1 = cv2.boundingRect(src_tri)
-    r2 = cv2.boundingRect(dst_tri)
-    x1, y1, w1, h1 = r1
-    x2, y2, w2, h2 = r2
+    x1, y1, w1, h1 = cv2.boundingRect(src_tri)
+    x2, y2, w2, h2 = cv2.boundingRect(dst_tri)
     if w1 <= 0 or h1 <= 0 or w2 <= 0 or h2 <= 0:
         return
     if x2 < 0 or y2 < 0 or x2 + w2 > dst.shape[1] or y2 + h2 > dst.shape[0]:
@@ -285,16 +275,14 @@ def warp_triangle(src, dst, src_tri, dst_tri):
     t2 = dst_tri - np.array([x2, y2], dtype=np.float32)
     M = cv2.getAffineTransform(t1, t2)
     warped = cv2.warpAffine(src_crop, M, (w2, h2), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
-    mask = np.zeros((h2, w2), dtype=np.float32)
-    cv2.fillConvexPoly(mask, np.int32(np.round(t2)), 1.0, lineType=cv2.LINE_AA)
-    mask3 = mask[:, :, None]
-    roi = dst[y2:y2+h2, x2:x2+w2].astype(np.float32)
-    dst[y2:y2+h2, x2:x2+w2] = np.clip(roi * (1.0 - mask3) + warped.astype(np.float32) * mask3, 0, 255).astype(np.uint8)
+    mask = np.zeros((h2, w2), dtype=np.uint8)
+    cv2.fillConvexPoly(mask, np.int32(np.round(t2)), 255, lineType=cv2.LINE_8)
+    roi = dst[y2:y2+h2, x2:x2+w2]
+    cv2.copyTo(warped, mask, roi)
 
 
 def render_proxy_frame(anchor_img, anchor_kp, target_kp, control_ids, triangles, width, height, background=127):
-    src_pts = []
-    dst_pts = []
+    src_pts, dst_pts = [], []
     for i in control_ids:
         sx, sy, _ = anchor_kp[i]
         tx, ty, _ = target_kp[i]
@@ -316,14 +304,14 @@ def write_contact(frames, path: Path, fps: float):
     thumbs = []
     for idx in ids:
         img = frames[idx].copy()
-        cv2.putText(img, f"f={idx} t={idx/fps:.2f}s", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, .55, (255,255,255), 2, cv2.LINE_AA)
-        small = cv2.resize(img, (256, 456), interpolation=cv2.INTER_AREA)
+        cv2.putText(img, f"f={idx} t={idx/fps:.2f}s", (8, 20), cv2.FONT_HERSHEY_SIMPLEX, .38, (255,255,255), 1, cv2.LINE_AA)
+        small = cv2.resize(img, (192, 342), interpolation=cv2.INTER_AREA)
         thumbs.append(small)
-    sheet = np.full((456 * 3, 256 * 3, 3), 32, dtype=np.uint8)
+    sheet = np.full((342 * 3, 192 * 3, 3), 32, dtype=np.uint8)
     for j, img in enumerate(thumbs):
-        y = (j // 3) * 456
-        x = (j % 3) * 256
-        sheet[y:y+456, x:x+256] = img
+        y = (j // 3) * 342
+        x = (j % 3) * 192
+        sheet[y:y+342, x:x+192] = img
     cv2.imwrite(str(path), sheet)
 
 
@@ -344,8 +332,8 @@ def main():
     ap.add_argument("--library", type=Path, required=True)
     ap.add_argument("--pose-driver", type=Path, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
-    ap.add_argument("--width", type=int, default=512)
-    ap.add_argument("--height", type=int, default=912)
+    ap.add_argument("--width", type=int, default=256)
+    ap.add_argument("--height", type=int, default=456)
     ap.add_argument("--fps", type=float, default=24.0)
     ap.add_argument("--spike-frames", type=int, default=65)
     ap.add_argument("--ffmpeg", default="ffmpeg")
@@ -356,9 +344,10 @@ def main():
     lib = load_json(args.library)
     if lib.get("schema") != "joao-motion-library/v1":
         raise SystemExit(f"Unexpected library schema: {lib.get('schema')}")
-    target_frames = load_track(args.pose_driver)
-    if args.spike_frames < 1 or args.spike_frames > len(target_frames):
-        raise SystemExit(f"--spike-frames must be 1..{len(target_frames)}")
+    full_target = load_track(args.pose_driver)
+    if args.spike_frames < 1 or args.spike_frames > len(full_target):
+        raise SystemExit(f"--spike-frames must be 1..{len(full_target)}")
+    target_frames = full_target[:args.spike_frames]
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     anchor = choose_primary_anchor(lib, target_frames)
@@ -366,68 +355,74 @@ def main():
     anchor_img = extract_anchor_frame(args.ffmpeg, Path(anchor["source_video"]), anchor["t"], anchor_png, args.width, args.height)
 
     control_ids = reliable_control_indices(anchor["keypoints"], target_frames)
-    if len(control_ids) < 40:
+    if len(control_ids) < 30:
         raise SystemExit(f"Too few reliable control points: {len(control_ids)}")
     src_pts = [[float(anchor["keypoints"][i][0]) * (args.width - 1), float(anchor["keypoints"][i][1]) * (args.height - 1)] for i in control_ids]
     triangles = delaunay_triangles(src_pts, args.width, args.height)
 
-    print("WAN-ANIMATE-2 RGB DRIVER PROXY")
-    print("==============================")
+    print("WAN-ANIMATE-2 RGB DRIVER PROXY — SPIKE")
+    print("======================================")
     print(f"Anchor source: {anchor['source_video']}")
     print(f"Anchor time: {anchor['t']:.3f}s / score={anchor['score']:.6f} / pose_match={anchor['pose_match']:.6f}")
     print(f"Anchor framing: body={anchor['body_in']:.3f} face={anchor['face_in']:.3f} hands={anchor['hand_in']:.3f}")
     print(f"Control points: {len(control_ids)} / Delaunay triangles: {len(triangles)}")
-    print(f"Canvas: {args.width}x{args.height} @ {args.fps} fps")
-    print("Rendering RGB motion proxy from validated COCO-133 driver...")
+    print(f"Proxy canvas: {args.width}x{args.height} @ {args.fps} fps")
+    print(f"Rendering spike only: {len(target_frames)} frames ({len(target_frames)/args.fps:.3f}s)")
+    print("Wan node will upscale pose_video to the final render canvas before VAE encoding.")
 
     frames = []
     total = len(target_frames)
+    started = time.perf_counter()
     for i, rec in enumerate(target_frames):
+        f0 = time.perf_counter()
         frames.append(render_proxy_frame(anchor_img, anchor["keypoints"], rec["keypoints"], control_ids, triangles, args.width, args.height))
-        if (i + 1) % 12 == 0 or i + 1 == total:
-            print(f"  progress {i+1}/{total} ({100.0*(i+1)/total:.1f}%)")
+        now = time.perf_counter()
+        elapsed = now - started
+        avg = elapsed / (i + 1)
+        eta = avg * (total - i - 1)
+        print(f"  frame {i+1:02d}/{total}  frame_s={now-f0:.2f}  elapsed={elapsed:.1f}s  ETA={eta:.1f}s", flush=True)
+        if i == 0 and (now - f0) > 30.0:
+            raise SystemExit("First proxy frame exceeded 30 s after optimization; aborting instead of allowing another silent multi-hour pass")
 
-    full_video = args.output_dir / "behavioral_driver_rgb_proxy.mp4"
     spike_video = args.output_dir / f"behavioral_driver_rgb_proxy_spike{args.spike_frames}.mp4"
     contact = args.output_dir / "behavioral_driver_rgb_proxy_contact.jpg"
-    write_video(full_video, frames, args.fps)
-    write_video(spike_video, frames[:args.spike_frames], args.fps)
+    write_video(spike_video, frames, args.fps)
     write_contact(frames, contact, args.fps)
 
     manifest = {
-        "schema": "wan-animate2-rgb-driver-proxy/v1",
-        "contract": "WanAnimate2ToVideo pose_video is raw IMAGE frames VAE-encoded directly; this proxy is therefore RGB, not a skeleton video",
+        "schema": "wan-animate2-rgb-driver-proxy/v2",
+        "contract": "WanAnimate2ToVideo pose_video is raw IMAGE frames, resized to output canvas and VAE-encoded directly",
+        "mode": "spike_only",
         "library": str(args.library.resolve()),
         "pose_driver": str(args.pose_driver.resolve()),
+        "source_pose_driver_frames": len(full_target),
+        "rendered_frames": len(frames),
         "width": args.width,
         "height": args.height,
         "fps": args.fps,
-        "frames": len(frames),
-        "spike_frames": args.spike_frames,
         "anchor": {k: v for k, v in anchor.items() if k != "keypoints"},
         "control_point_count": len(control_ids),
         "control_indices": control_ids,
         "triangle_count": len(triangles),
+        "elapsed_s": time.perf_counter() - started,
         "outputs": {
             "anchor_reference": str(anchor_png.resolve()),
-            "full_driver": str(full_video.resolve()),
             "spike_driver": str(spike_video.resolve()),
             "contact_sheet": str(contact.resolve()),
         },
         "limitations": [
             "This is a non-generative real-pixel piecewise-affine proxy, not photorealistic resynthesis.",
-            "The first Wan spike tests whether the end-to-end raw-video pose branch accepts this synthesized dense motion proxy.",
-            "A failure here does not invalidate the validated pose-domain behavior library/compositor.",
+            "The validated COCO-133 v3 driver remains the canonical high-detail behavioral representation.",
+            "Reduced control-point density is used only to keep the Wan input-adapter spike computationally bounded.",
         ],
     }
     manifest_path = args.output_dir / "rgb_driver_proxy_manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print("")
-    print("RGB DRIVER PROXY: COMPLETE")
+    print("RGB DRIVER PROXY SPIKE: COMPLETE")
     print(f"Anchor/reference: {anchor_png}")
-    print(f"Full 108-frame driver: {full_video}")
-    print(f"65-frame render-spike driver: {spike_video}")
+    print(f"65-frame spike driver: {spike_video}")
     print(f"Contact sheet: {contact}")
     print(f"Manifest: {manifest_path}")
     print("Wan-Animate-2: NOT INVOKED")
