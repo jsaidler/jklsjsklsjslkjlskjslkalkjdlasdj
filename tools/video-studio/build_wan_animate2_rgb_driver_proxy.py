@@ -99,7 +99,9 @@ def normalized_points(kp, ids):
 
 
 def normalized_pose_distance(a, b):
-    na, nb = normalized_points(a, BODY_HEAD + LEFT_HAND + RIGHT_HAND)
+    ids_to_compare = BODY_HEAD + LEFT_HAND + RIGHT_HAND
+    na = normalized_points(a, ids_to_compare)
+    nb = normalized_points(b, ids_to_compare)
     ids = set(na) & set(nb)
     if len(ids) < 12:
         return 1.0
