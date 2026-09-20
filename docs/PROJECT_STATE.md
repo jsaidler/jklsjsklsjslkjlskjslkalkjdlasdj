@@ -36,7 +36,7 @@ new speech/audio
     -> role-specific retrieval + continuity + diversity
     -> multi-source behavioral pose driver
     -> numeric + visual QA
-    -> RGB driving-video representation compatible with installed Wan-Animate-2
+    -> RGB driving representation compatible with installed Wan-Animate-2
     -> local Wan-Animate-2 render
     -> render QA
 ```
@@ -95,10 +95,10 @@ generic whole-upper disabled
 Locked SIENA exclusions:
 
 ```text
-4.6–10.3 s    u0003-u0004   graphic/still overlay + subject occlusion
-18.7–24.7 s   u0009-u0010   held print/photo/book + prop/hand occlusion
-43.7–55.7 s   u0021-u0025   lens/camera foreground interaction + occlusion
-67.9–74.0 s   u0031-u0033   held purple card + face/body occlusion
+4.6–10.3 s    u0003-u0004
+18.7–24.7 s   u0009-u0010
+43.7–55.7 s   u0021-u0025
+67.9–74.0 s   u0031-u0033
 ```
 
 SIENA head/posture/coarse-arm reliability weights are saturated at `1.0` and do not rank the 37 clean units meaningfully. Motion/prosody/transition/duration differentiate retrieval inside SIENA.
@@ -153,18 +153,15 @@ Output root:
 
 `Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3`
 
-Observed neutral gate:
-
 ```text
 4.5 s / 24 fps / 108 frames
 base source order primary -> tertiary
 overlap 1.875–2.625 s / 0.75 s
 base continuity 0.602250
-hand framing floor 0.90
 predicted hand in-frame 0.947619
-hand continuity 0.587692 / source gap 0.0
+hand continuity 0.587692
 face shape continuity 0.943299
-face velocity continuity 0.725175 / source gap 0.0
+face velocity continuity 0.725175
 canonical framing scale 0.942959 / dx 0.022041 / dy -0.122904
 ```
 
@@ -202,9 +199,7 @@ left_hand   0.682394x
 right_hand  0.944349x
 ```
 
-Visual QA passed: source transition reads continuously in pose space, hands remain available, and the remaining face acceleration is not materially discontinuous.
-
-Classification: **FIRST MULTI-SOURCE BEHAVIORAL POSE DRIVER v3 PASS**.
+Visual QA passed. Classification: **FIRST MULTI-SOURCE BEHAVIORAL POSE DRIVER v3 PASS**.
 
 ## Wan-Animate-2 local contract — VERIFIED
 
@@ -240,7 +235,7 @@ pose_video type = IMAGE
 pose_video -> slice/pad -> resize -> vae.encode(RGB)
 ```
 
-No COCO/OpenPose/DWPose conversion occurs inside this node. Saved local W0/W1 workflows feed `pose_video` from real MP4 through `GetVideoComponents`. There is no separate `face_video` input in the installed node.
+No COCO/OpenPose/DWPose conversion occurs inside this node. Saved W0/W1 workflows feed `pose_video` from real MP4 through `GetVideoComponents`. There is no separate `face_video` input.
 
 Classification: **WAN-ANIMATE-2 RAW RGB DRIVING-VIDEO CONTRACT VERIFIED**.
 
@@ -248,52 +243,80 @@ Classification: **WAN-ANIMATE-2 RAW RGB DRIVING-VIDEO CONTRACT VERIFIED**.
 
 ### Still-image Delaunay warp — RETIRED
 
-Stalled before frame 1 even after mesh/resolution reduction. Do not resume.
+Stalled before frame 1 even after reduction. Do not resume.
 
 ### Still-image IDW/remap — VISUAL FAIL / RETIRED
 
-The IDW path completed, but visual QA showed severe non-anatomic melting of face, torso and arms. This representation is unusable as Wan driving input. No Wan inference was run with it. Do not resume still-image deformation.
+Completed but produced severe non-anatomic melting. Do not resume still-image deformation.
 
-### Real-RGB PRIMARY + SIENA xfade spike — TECHNICALLY COMPLETE / NOT A VALID RENDER GATE
+### Real-RGB PRIMARY + SIENA xfade — NOT PASS
+
+The actual PRIMARY and SIENA spans were combined by raw RGB xfade. Each span was individually coherent, but the overlap showed strong double exposure because acquisition domains differ. Pose-space blending therefore cannot be represented by naive RGB crossfade.
+
+This does not invalidate the v3 pose compositor.
+
+## First actual Wan-Animate-2 renderer gate — PASS
+
+Run directory:
+
+`Z:\AI\VideoStudioRuns\wan-animate2-behavior\primary-baseline-20260920_113651`
+
+Manifest:
+
+`run_manifest.json`
+
+Runtime facts:
+
+```text
+RTX 3060 12 GB
+48 GB RAM
+ComfyUI 0.34.0
+PyTorch 2.13.0+cu130
+LOW_VRAM
+DynamicVRAM enabled
+wan_animate_2_bf16.safetensors
+65 frames
+512x912
+24 fps
+30 sampling steps
+prompt total 01:19:25
+sampling 01:17:19
+no OOM
+no execution_error
+```
+
+Generated artifact returned by the Comfy workflow:
+
+`wan_animate2_bf16_exilada_aspectmatched_ref10_pose080_steps30_00001_.mp4`
+
+Visual QA: identity/background remain stable, motion transfers, hands/arms remain coherent enough for the gate, and there is no material anatomy collapse. This is a renderer-isolation test using PRIMARY reference and PRIMARY driving RGB from the same source/acquisition domain.
+
+Classification: **WAN-ANIMATE-2 PRIMARY BASELINE RENDER PASS**.
+
+Known runner bug: the first baseline runner copied the first MP4 in the returned output list to `wan_animate2_primary_baseline65.mp4`; that first MP4 was the driving input itself. The actual generated output was the second returned MP4 above. Do not use the mislabeled copied driver as generated evidence.
+
+## Current gate — CROSS-SOURCE SIENA MOTION TRANSFER
+
+The next question is no longer whether Wan runs. It is whether a driving RGB clip from a **different acquisition domain** can transfer motion while the PRIMARY reference controls identity/appearance.
 
 Versioned:
 
-- `tools/video-studio/build_wan_animate2_real_rgb_driver_spike.py`;
-- `tools/video-studio/run_wan_animate2_real_rgb_driver_spike.ps1`.
+- `tools/video-studio/run_wan_animate2_cross_source_siena_render.py`;
+- `tools/video-studio/run_wan_animate2_cross_source_siena_render.ps1`.
 
-Output:
+Gate design:
 
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\wan_real_rgb_spike\pose_video_real_spike65.mp4`
+1. reference image: PRIMARY unit `primary:VID_20260911_140124885_u0041` midpoint;
+2. driving video: SIENA unit `tertiary:SIENA_BRUTO_u0035` selected by v3;
+3. real RGB only; no DWPose, no skeleton render, no xfade, no still warp;
+4. 65 frames / 512x912 / 24 fps;
+5. same installed BF16 Animate2 path and low-VRAM runtime;
+6. deterministic output selection excludes the driving input and prefers the actual Wan-generated MP4;
+7. expected runtime is similar to the ~80 minute PRIMARY baseline.
 
-The 65-frame `512×912 @ 24 fps` file uses the actual PRIMARY and SIENA RGB spans selected by v3. Each source span is individually coherent, but the `0.75 s` raw RGB `xfade` creates a visibly double-exposed person/background during the source transition. Because Wan consumes the RGB sequence itself, this would confound the first renderer test.
+Success criterion: the output must preserve the PRIMARY reference identity/appearance while reproducing materially recognizable SIENA body/head/coarse-arm motion without carrying over the SIENA acquisition appearance as the dominant result.
 
-Classification: **REAL-RGB MULTI-SOURCE XFADE NOT PASS AS FIRST WAN DRIVING INPUT**.
-
-This does **not** invalidate v3 pose composition. It shows that pose-space blending cannot be represented by a naive RGB crossfade between acquisition domains.
-
-## Current gate — ISOLATED PRIMARY WAN RENDER
-
-Before solving learned/identity-preserving RGB synthesis across multiple sources, isolate the renderer itself with a clean, single-source real RGB driver.
-
-Versioned:
-
-- `tools/video-studio/run_wan_animate2_primary_baseline_render.py`;
-- `tools/video-studio/run_wan_animate2_primary_baseline_render.ps1`.
-
-The gate:
-
-1. uses the already validated v3 window-0 PRIMARY base unit `primary:VID_20260911_140124885_u0041` only;
-2. builds a real RGB 65-frame `512×912 @ 24 fps` driving clip from that source span;
-3. extracts a matching clean reference image;
-4. reuses an existing local `w*_api_prompt.json` that contains `WanAnimate2ToVideo` and the installed `wan_animate_2_bf16.safetensors`;
-5. patches only the driver/reference media and 65-frame render geometry;
-6. starts/reuses the protected local ComfyUI portable runtime with `--lowvram`;
-7. validates required nodes and exact BF16 visibility before submission;
-8. performs the **first actual Wan-Animate-2 inference in this behavioral route**;
-9. prints a heartbeat every ~20 s while inference is active;
-10. downloads nothing and installs nothing.
-
-Purpose: determine whether the installed Wan-Animate-2 can faithfully transfer one clean real PRIMARY motion span to the reference under the actual RTX 3060 12 GB runtime. A failure here is a renderer/runtime/conditioning issue, not a multi-source stitching issue.
+If this passes, the next architectural task is to use Animate2 continuation/chunking rather than raw RGB xfade to join source-specific generated motion spans under one stable reference identity.
 
 ## Immediate next action
 
@@ -302,10 +325,10 @@ Run:
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
 git pull --ff-only origin main
-powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_primary_baseline_render.ps1'
+powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_cross_source_siena_render.ps1'
 ```
 
-Paste the complete terminal output. If a final MP4 is produced, upload it for visual QA.
+Upload the resulting `wan_animate2_cross_source_siena65_GENERATED.mp4` and paste the terminal output if there is any error.
 
 ## Final quality criterion
 
