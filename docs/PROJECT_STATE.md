@@ -1,6 +1,6 @@
 # Local Video Studio — Current Project State
 
-Status date: **2026-09-19**
+Status date: **2026-09-20**
 
 GitHub living documents are the canonical source of truth.
 
@@ -278,46 +278,50 @@ The installed `WanAnimate2ToVideo` also has no separate `face_video` input. Faci
 
 Classification: **WAN-ANIMATE-2 RAW RGB DRIVING-VIDEO CONTRACT VERIFIED**.
 
-## RGB behavioral adapter — IMPLEMENTED / QA NEXT
+## RGB behavioral adapter — Delaunay route RETIRED / IDW route NEXT
 
-Versioned:
+The first dense-RGB adapter attempted piecewise-affine Delaunay warping from one clean PRIMARY João frame. The anchor selection itself succeeded:
 
-- `tools/video-studio/build_wan_animate2_rgb_driver_proxy.py`;
-- `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1`.
+```text
+anchor source: VID_20260911_140124885.mp4
+anchor time: 207.500 s
+anchor framing: body=1.0 face=1.0 hands=1.0
+```
 
-Purpose: bridge the validated COCO-133 v3 driver into the actual raw-RGB Wan contract without introducing a second generative model.
+However, the triangle renderer stalled before completing even frame 1 on the local Windows/OpenCV runtime. Reducing the proxy from 512×912 to 256×456, limiting the run to the 65-frame spike, and reducing the control mesh did **not** solve the stall. Therefore the Delaunay/`warpAffine` route is retired rather than tuned further.
 
-Adapter v1 strategy:
+Versioned replacement:
 
-1. automatically select a clean eligible PRIMARY João frame with face and hands visible;
-2. extract it at the target `512×912` portrait canvas;
-3. use that real frame as a texture atlas;
-4. build a fixed Delaunay mesh from reliable COCO WholeBody points;
-5. piecewise-affine warp the real pixels through all 108 validated v3 poses;
-6. use a neutral background so source-camera/background motion is not injected into the driver;
-7. emit both the full 108-frame proxy and a **65-frame** (`4n+1`) spike clip that covers the complete 1.875–2.625 s primary->SIENA overlap.
+- `tools/video-studio/build_wan_animate2_rgb_driver_proxy_idw.py`;
+- `tools/video-studio/run_wan_animate2_rgb_driver_proxy.ps1` now calls the IDW builder.
 
-This is deliberately non-generative and fully local. It is a dense RGB motion proxy, not a skeleton preview and not claimed to be photorealistic resynthesis.
+IDW adapter policy:
 
-Expected output root:
-
-`Z:\AI\VideoStudio\profiles\joao\behavior\profile_v1\unified\first_driver_v3\wan_rgb_proxy`
+1. reuse the validated PRIMARY anchor selection;
+2. neutralize the source background around a real-pixel person hull;
+3. compute a target->source inverse-distance deformation field on a coarse `64×114` grid;
+4. add fixed canvas-perimeter stabilizers so background/acquisition geometry does not become motion;
+5. upscale the map to `256×456`;
+6. perform exactly **one `cv2.remap` per frame**;
+7. render only the first **65 frames** (`4n+1`) that contain the complete primary->SIENA transition;
+8. print explicit stage markers plus timing/ETA for every frame;
+9. abort after frame 1 if even this route takes more than 15 s/frame.
 
 Expected outputs:
 
 ```text
-rgb_proxy_anchor_reference.png
-behavioral_driver_rgb_proxy.mp4
-behavioral_driver_rgb_proxy_spike65.mp4
-behavioral_driver_rgb_proxy_contact.jpg
-rgb_driver_proxy_manifest.json
+...\first_driver_v3\wan_rgb_proxy\rgb_proxy_anchor_reference.png
+...\first_driver_v3\wan_rgb_proxy\rgb_proxy_anchor_neutral.png
+...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_spike65.mp4
+...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_contact.jpg
+...\first_driver_v3\wan_rgb_proxy\rgb_driver_proxy_manifest.json
 ```
 
-A Wan render is **not** authorized until the RGB proxy itself is visually reviewed. If the RGB proxy fails, fix the adapter rather than the validated behavior library/compositor.
+A Wan render remains blocked until this RGB proxy is visually reviewed. Failure of the RGB adapter does not invalidate the validated behavior library or v3 pose compositor.
 
 ## Immediate next action
 
-Run:
+Cancel any still-running Delaunay proxy with `Ctrl+C`, then run:
 
 ```powershell
 cd 'D:\GOOGLE DRIVE\DEV\Roguelite'
@@ -325,14 +329,7 @@ git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File '.\tools\video-studio\run_wan_animate2_rgb_driver_proxy.ps1'
 ```
 
-Then paste the complete terminal output and upload:
-
-```text
-...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_contact.jpg
-...\first_driver_v3\wan_rgb_proxy\behavioral_driver_rgb_proxy_spike65.mp4
-```
-
-Only after visual QA of that RGB driver should the first low-cost Wan-Animate-2 render spike be built.
+The console should show `stage=load_inputs`, `stage=select_anchor`, `stage=extract_anchor`, `stage=select_controls`, `stage=render`, then one timing line per frame.
 
 ## Progress-output policy — LOCKED
 
